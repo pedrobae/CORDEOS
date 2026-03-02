@@ -8,6 +8,7 @@ import 'package:cordis/providers/navigation_provider.dart';
 import 'package:cordis/providers/playlist/playlist_provider.dart';
 import 'package:cordis/providers/schedule/local_schedule_provider.dart';
 import 'package:cordis/providers/schedule/cloud_schedule_provider.dart';
+import 'package:cordis/providers/schedule/play_schedule_state_provider.dart';
 import 'package:cordis/providers/section_provider.dart';
 import 'package:cordis/providers/version/local_version_provider.dart';
 import 'package:cordis/widgets/schedule/play/play_flow_item.dart';
@@ -30,45 +31,36 @@ class PlayScheduleScreen extends StatefulWidget {
 class PlayScheduleScreenState extends State<PlayScheduleScreen>
     with SingleTickerProviderStateMixin {
   late final bool isCloud = widget.scheduleId is String;
-  bool showSettings = false;
-
-  int currentTabIndex = 0;
   List<PlaylistItem> items = [];
+  late PlayScheduleStateProvider _stateProvider;
 
   @override
   void initState() {
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await _ensureDataLoaded();
-    });
     super.initState();
+    _stateProvider = context.read<PlayScheduleStateProvider>();
+    _stateProvider.reset();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _initializePlaylist();
+      await _loadItemsAroundCurrent(0);
+    });
   }
 
-  Future<void> _ensureDataLoaded() async {
+  /// Load only the current playlist structure without full content
+  Future<void> _initializePlaylist() async {
     final scheduleProvider = context.read<LocalScheduleProvider>();
     final cloudScheduleProvider = context.read<CloudScheduleProvider>();
     final playlistProvider = context.read<PlaylistProvider>();
-    final cipherProvider = context.read<CipherProvider>();
-    final versionProvider = context.read<LocalVersionProvider>();
-    final flowItemProvider = context.read<FlowItemProvider>();
-    final sectionProvider = context.read<SectionProvider>();
 
     if (widget.scheduleId == null) throw Exception("Schedule ID is required");
 
     if (!isCloud) {
       final schedule = scheduleProvider.getSchedule(widget.scheduleId)!;
-
       await playlistProvider.loadPlaylist(schedule.playlistId!);
-
-      items = playlistProvider.getPlaylistById(schedule.playlistId!)!.items;
-
-      for (final item in items) {
-        if (item.type == PlaylistItemType.version) {
-          await versionProvider.loadVersion(item.contentId!);
-          await cipherProvider.loadCipherOfVersion(item.contentId!);
-          await sectionProvider.loadSectionsOfVersion(item.contentId!);
-        } else if (item.type == PlaylistItemType.flowItem) {
-          await flowItemProvider.loadFlowItem(item.contentId!);
-        }
+      if (mounted) {
+        setState(() {
+          items = playlistProvider.getPlaylistById(schedule.playlistId!)!.items;
+        });
       }
     } else {
       if (!cloudScheduleProvider.schedules.containsKey(widget.scheduleId)) {
@@ -76,13 +68,47 @@ class PlayScheduleScreenState extends State<PlayScheduleScreen>
       }
 
       final schedule = cloudScheduleProvider.schedules[widget.scheduleId];
-
       if (schedule == null) {
         throw Exception("Schedule not found");
       }
-      setState(() {
-        items = schedule.playlist.getPlaylistItems();
-      });
+      if (mounted) {
+        setState(() {
+          items = schedule.playlist.getPlaylistItems();
+        });
+      }
+    }
+  }
+
+  /// Lazy load data for current item ± 1 neighbors
+  /// This dramatically reduces initial load time and memory usage
+  Future<void> _loadItemsAroundCurrent(int currentIndex) async {
+    final versionProvider = context.read<LocalVersionProvider>();
+    final cipherProvider = context.read<CipherProvider>();
+    final flowItemProvider = context.read<FlowItemProvider>();
+    final sectionProvider = context.read<SectionProvider>();
+
+    // Load current, previous, and next items
+    final indicesToLoad = <int>{};
+    indicesToLoad.add(currentIndex);
+    if (currentIndex > 0) indicesToLoad.add(currentIndex - 1);
+    if (currentIndex < items.length - 1) indicesToLoad.add(currentIndex + 1);
+
+    for (final idx in indicesToLoad) {
+      final item = items[idx];
+
+      if (item.type == PlaylistItemType.version) {
+        // Skip if already loaded
+        if (versionProvider.cachedVersion(item.contentId!) != null) continue;
+
+        await versionProvider.loadVersion(item.contentId!);
+        await cipherProvider.loadCipherOfVersion(item.contentId!);
+        await sectionProvider.loadSectionsOfVersion(item.contentId!);
+      } else if (item.type == PlaylistItemType.flowItem) {
+        // Skip if already loaded
+        if (flowItemProvider.getFlowItem(item.contentId!) != null) continue;
+
+        await flowItemProvider.loadFlowItem(item.contentId!);
+      }
     }
   }
 
@@ -92,24 +118,28 @@ class PlayScheduleScreenState extends State<PlayScheduleScreen>
     final colorScheme = Theme.of(context).colorScheme;
 
     return Consumer6<
+      PlayScheduleStateProvider,
       CloudScheduleProvider,
       PlaylistProvider,
       LocalVersionProvider,
       CipherProvider,
-      FlowItemProvider,
-      NavigationProvider
+      FlowItemProvider
     >(
       builder:
           (
             context,
+            stateProvider,
             cloudScheduleProvider,
             playlistProvider,
             versionProvider,
             cipherProvider,
             flowItemProvider,
-            navigationProvider,
             child,
           ) {
+            final navigationProvider = Provider.of<NavigationProvider>(context, listen: false);
+            final currentTabIndex = stateProvider.currentTabIndex;
+            final showSettings = stateProvider.showSettings;
+
             return Stack(
               children: [
                 // TAB VIEWER
@@ -228,9 +258,7 @@ class PlayScheduleScreenState extends State<PlayScheduleScreen>
                                   height: 40,
                                   child: GestureDetector(
                                     onTap: () {
-                                      setState(() {
-                                        showSettings = false;
-                                      });
+                                      stateProvider.setShowSettings(false);
                                       showModalBottomSheet(
                                         context: context,
                                         isScrollControlled: true,
@@ -253,9 +281,7 @@ class PlayScheduleScreenState extends State<PlayScheduleScreen>
                                   height: 40,
                                   child: GestureDetector(
                                     onTap: () {
-                                      setState(() {
-                                        showSettings = false;
-                                      });
+                                      stateProvider.setShowSettings(false);
                                       showModalBottomSheet(
                                         context: context,
                                         isScrollControlled: true,
@@ -278,9 +304,7 @@ class PlayScheduleScreenState extends State<PlayScheduleScreen>
                                   height: 40,
                                   child: GestureDetector(
                                     onTap: () {
-                                      setState(() {
-                                        showSettings = false;
-                                      });
+                                      stateProvider.setShowSettings(false);
                                       showModalBottomSheet(
                                         context: context,
                                         barrierColor: Colors.transparent,
@@ -310,9 +334,9 @@ class PlayScheduleScreenState extends State<PlayScheduleScreen>
                             GestureDetector(
                               onTap: () {
                                 if (currentTabIndex > 0) {
-                                  setState(() {
-                                    currentTabIndex--;
-                                  });
+                                  final newIndex = currentTabIndex - 1;
+                                  stateProvider.setCurrentTabIndex(newIndex);
+                                  _loadItemsAroundCurrent(newIndex);
                                 }
                               },
                               child: SizedBox(
@@ -331,9 +355,7 @@ class PlayScheduleScreenState extends State<PlayScheduleScreen>
                               width: MediaQuery.of(context).size.width / 2,
                               child: GestureDetector(
                                 onTap: () {
-                                  setState(() {
-                                    showSettings = !showSettings;
-                                  });
+                                  stateProvider.toggleSettings();
                                 },
                                 child: Builder(
                                   builder: (context) {
@@ -341,58 +363,13 @@ class PlayScheduleScreenState extends State<PlayScheduleScreen>
                                     if (currentTabIndex < items.length - 1) {
                                       final nextItem =
                                           items[currentTabIndex + 1];
-                                      switch (nextItem.type) {
-                                        case PlaylistItemType.version:
-                                          if (isCloud) {
-                                            nextTitle =
-                                                ((cloudScheduleProvider
-                                                            .schedules[widget
-                                                            .scheduleId]
-                                                        as ScheduleDto)
-                                                    .playlist
-                                                    .versions[nextItem
-                                                        .firebaseContentId]
-                                                    ?.title) ??
-                                                '';
-                                          } else {
-                                            final version = versionProvider
-                                                .cachedVersion(
-                                                  nextItem.contentId!,
-                                                );
-
-                                            if (version == null) {
-                                              return CircularProgressIndicator();
-                                            }
-
-                                            nextTitle =
-                                                cipherProvider
-                                                    .getCipher(version.cipherId)
-                                                    ?.title ??
-                                                '';
-                                          }
-                                          break;
-                                        case PlaylistItemType.flowItem:
-                                          if (isCloud) {
-                                            nextTitle =
-                                                ((cloudScheduleProvider
-                                                            .schedules[widget
-                                                            .scheduleId]
-                                                        as ScheduleDto)
-                                                    .playlist
-                                                    .flowItems[nextItem
-                                                    .firebaseContentId]?['title']) ??
-                                                '';
-                                          } else {
-                                            nextTitle =
-                                                flowItemProvider
-                                                    .getFlowItem(
-                                                      nextItem.contentId!,
-                                                    )
-                                                    ?.title ??
-                                                '';
-                                          }
-                                          break;
-                                      }
+                                      nextTitle = _getItemTitle(
+                                        nextItem,
+                                        versionProvider,
+                                        cipherProvider,
+                                        flowItemProvider,
+                                        cloudScheduleProvider,
+                                      );
                                     }
                                     return Text(
                                       nextTitle.isEmpty
@@ -413,9 +390,9 @@ class PlayScheduleScreenState extends State<PlayScheduleScreen>
                             GestureDetector(
                               onTap: () {
                                 if (currentTabIndex < items.length - 1) {
-                                  setState(() {
-                                    currentTabIndex++;
-                                  });
+                                  final newIndex = currentTabIndex + 1;
+                                  stateProvider.setCurrentTabIndex(newIndex);
+                                  _loadItemsAroundCurrent(newIndex);
                                 }
                               },
                               child: SizedBox(
@@ -438,5 +415,40 @@ class PlayScheduleScreenState extends State<PlayScheduleScreen>
             );
           },
     );
+  }
+
+  /// Helper to extract title from different item types
+  String _getItemTitle(
+    PlaylistItem item,
+    LocalVersionProvider versionProvider,
+    CipherProvider cipherProvider,
+    FlowItemProvider flowItemProvider,
+    CloudScheduleProvider cloudScheduleProvider,
+  ) {
+    switch (item.type) {
+      case PlaylistItemType.version:
+        if (isCloud) {
+          return ((cloudScheduleProvider.schedules[widget.scheduleId]
+                      as ScheduleDto)
+                  .playlist
+                  .versions[item.firebaseContentId]
+                  ?.title) ??
+              '';
+        } else {
+          final version = versionProvider.cachedVersion(item.contentId!);
+          if (version == null) return '';
+          return cipherProvider.getCipher(version.cipherId)?.title ?? '';
+        }
+      case PlaylistItemType.flowItem:
+        if (isCloud) {
+          return ((cloudScheduleProvider.schedules[widget.scheduleId]
+                      as ScheduleDto)
+                  .playlist
+                  .flowItems[item.firebaseContentId]?['title']) ??
+              '';
+        } else {
+          return flowItemProvider.getFlowItem(item.contentId!)?.title ?? '';
+        }
+    }
   }
 }

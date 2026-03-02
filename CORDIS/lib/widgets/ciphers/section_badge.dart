@@ -1,8 +1,5 @@
 import 'dart:math';
-
-import 'package:cordis/providers/layout_settings_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class SectionBadge extends StatelessWidget {
   final String sectionCode;
@@ -19,8 +16,6 @@ class SectionBadge extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
-    final lsp = context.read<LayoutSettingsProvider>();
-
     // Measure section code width on the correct style
     final textPainter = TextPainter(
       text: TextSpan(
@@ -28,7 +23,7 @@ class SectionBadge extends StatelessWidget {
         style: TextStyle(
           fontWeight: FontWeight.bold,
           color: colorScheme.surface,
-          fontSize: lsp.fontSize,
+          fontSize: textTheme.labelLarge?.fontSize,
         ),
       ),
       maxLines: 1,
@@ -49,7 +44,7 @@ class SectionBadge extends StatelessWidget {
         style: textTheme.bodyMedium?.copyWith(
           fontWeight: FontWeight.w600,
           color: colorScheme.surface,
-          fontSize: lsp.fontSize - 4,
+          fontSize: textTheme.labelLarge?.fontSize != null ? textTheme.labelLarge!.fontSize! - 4 : null,
         ),
         textAlign: TextAlign.center,
       ),

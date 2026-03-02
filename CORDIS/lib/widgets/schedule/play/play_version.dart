@@ -27,10 +27,11 @@ class PlayVersion extends StatefulWidget {
 class _PlayVersionState extends State<PlayVersion> {
   late final ScrollController _scrollController;
   late final List<GlobalKey> sectionKeys = [];
+  late final ValueNotifier<bool> _showTopBar = ValueNotifier(false);
   final _headerSectionKey = GlobalKey();
   bool isCloud = false;
-  bool showTopBar = false;
   double _headerHeight = 0;
+  DateTime _lastScrollUpdate = DateTime.now();
 
   @override
   void initState() {
@@ -41,13 +42,8 @@ class _PlayVersionState extends State<PlayVersion> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializeSectionKeys();
-
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          _calculateHeaderHeight();
-          _scrollController.addListener(_scrollListener);
-        }
-      });
+      _calculateHeaderHeight();
+      _scrollController.addListener(_scrollListener);
     });
   }
 
@@ -90,18 +86,31 @@ class _PlayVersionState extends State<PlayVersion> {
   @override
   void dispose() {
     _scrollController.dispose();
+    _showTopBar.dispose();
     super.dispose();
   }
 
   void _scrollListener() {
-    // Use pre-calculated header height as threshold for showing sticky bar
-    final offset = _scrollController.offset;
-    final shouldShow = offset > _headerHeight;
+    // Throttle to 50ms for smoother updates without jank
+    final now = DateTime.now();
+    if (now.difference(_lastScrollUpdate).inMilliseconds < 50) {
+      // Always check critical boundaries even when throttled
+      final offset = _scrollController.offset;
+      final shouldShow = offset > _headerHeight && offset > 0;
+      if (shouldShow != _showTopBar.value) {
+        _showTopBar.value = shouldShow; // Update without expensive setState
+      }
+      return;
+    }
+    _lastScrollUpdate = now;
 
-    if (shouldShow != showTopBar) {
-      setState(() {
-        showTopBar = shouldShow;
-      });
+    final offset = _scrollController.offset;
+    // Hide bar when at top, show when past header height
+    final shouldShow = offset > _headerHeight && offset > 0;
+
+    if (shouldShow != _showTopBar.value) {
+      _showTopBar.value =
+          shouldShow; // Direct ValueNotifier update = no full rebuild
     }
   }
 
@@ -162,19 +171,18 @@ class _PlayVersionState extends State<PlayVersion> {
                 .toList();
             return Stack(
               children: [
-                // MAIN SCROLLABLE CONTENT - Wrapped in RepaintBoundary for isolation
-                RepaintBoundary(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: SingleChildScrollView(
-                      controller: _scrollController,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        spacing: 16,
-                        children: [
-                          const SizedBox(height: 8),
-                          // HEADER
-                          Column(
+                // MAIN SCROLLABLE CONTENT
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: SingleChildScrollView(
+                    controller: _scrollController,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      spacing: 16,
+                      children: [
+                        const SizedBox(height: 8),
+                        // HEADER
+                        Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             spacing: 16,
                             children: [
@@ -231,22 +239,25 @@ class _PlayVersionState extends State<PlayVersion> {
                       ),
                     ),
                   ),
-                ),
 
                 // SCROLL-CONDITIONAL TOP SONG STRUCTURE BAR
-                if (showTopBar)
-                  Positioned(
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    child: RepaintBoundary(
-                      child: _buildStickyBar(
-                        context,
-                        colorScheme,
-                        filteredStructure,
-                      ),
-                    ),
-                  ),
+                ValueListenableBuilder<bool>(
+                  valueListenable: _showTopBar,
+                  builder: (context, showBar, child) {
+                    return showBar
+                        ? Positioned(
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            child: _buildStickyBar(
+                              context,
+                              colorScheme,
+                              filteredStructure,
+                            ),
+                          )
+                        : const SizedBox.shrink();
+                  },
+                ),
               ],
             );
           },
@@ -349,14 +360,12 @@ class _PlayVersionState extends State<PlayVersion> {
           );
         }
 
-        return RepaintBoundary(
-          child: SectionCard(
-            key: sectionKeys[index],
-            sectionType: section.contentType,
-            sectionCode: trimmedCode,
-            sectionText: section.contentText,
-            sectionColor: section.contentColor,
-          ),
+        return SectionCard(
+          key: sectionKeys[index],
+          sectionType: section.contentType,
+          sectionCode: trimmedCode,
+          sectionText: section.contentText,
+          sectionColor: section.contentColor,
         );
       },
     );

@@ -131,7 +131,7 @@ class ChordProView extends StatelessWidget {
             if (parsedSong.linesMap.isNotEmpty && parsedSong.linesMap.values.every((line) => line.trim().isNotEmpty))
               SizedBox(height: 8),
             Column(
-              spacing: ls.lyricTextStyle.fontSize! * 0.9,
+              spacing: ls.lyricTextStyle.fontSize!,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: sectionChildren,
             ),
