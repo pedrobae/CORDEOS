@@ -74,9 +74,10 @@ class LocalScheduleProvider extends ChangeNotifier {
     return null;
   }
 
-  bool isPublished(int scheduleID) {
+  bool isLive(int scheduleID) {
     final schedule = _schedules[scheduleID];
-    return (schedule != null && schedule.isPublic && schedule.time.isBefore(TimeOfDay.now()));
+    if (schedule == null) return false;
+    return (schedule.isPublic && schedule.date.isAfter(DateTime.now()));
   }
 
   Future<Schedule?> getScheduleWithPlaylistId(int playlistId) async {

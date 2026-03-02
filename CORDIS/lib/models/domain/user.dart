@@ -80,7 +80,7 @@ class User {
 
   User mergeWith(User other) {
     return User(
-      id: id,
+      id: id ?? other.id,
       firebaseId: firebaseId ?? other.firebaseId,
       username: username.isNotEmpty ? username : other.username,
       email: email.isNotEmpty ? email : other.email,
