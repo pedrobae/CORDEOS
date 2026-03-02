@@ -190,4 +190,14 @@ class LocalScheduleRepository {
     await db.delete('role', where: 'id = ?', whereArgs: [roleId]);
     await db.delete('role_member', where: 'role_id = ?', whereArgs: [roleId]);
   }
+
+  /// Removes a user from a role by deleting the corresponding entry in the role_member table.
+  Future<void> removeUserFromRole(int roleId, int userId) async {
+    final db = await _databaseHelper.database;
+    await db.delete(
+      'role_member',
+      where: 'role_id = ? AND member_id = ?',
+      whereArgs: [roleId, userId],
+    );
+  }
 }

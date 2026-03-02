@@ -7,6 +7,7 @@ import 'package:cordis/models/domain/schedule.dart';
 import 'package:cordis/models/domain/user.dart';
 import 'package:cordis/models/dtos/playlist_dto.dart';
 import 'package:cordis/models/dtos/schedule_dto.dart';
+import 'package:cordis/models/dtos/user_dto.dart';
 import 'package:cordis/models/dtos/version_dto.dart';
 import 'package:cordis/repositories/cloud/schedule_repository.dart';
 import 'package:cordis/repositories/local/flow_item_repository.dart';
@@ -44,44 +45,90 @@ class ScheduleSyncService {
 
     final playlistID = await syncPlaylist(scheduleDto.playlist, ownerUser);
 
+    final scheduleID = await syncSchedule(scheduleDto, playlistID);
+
+    final existingRoles = await _localRepo.getRolesForSchedule(scheduleID);
+    for (var role in scheduleDto.roles) {
+      Role? existingRole;
+      try {
+        existingRole = existingRoles.firstWhere((r) => r.name == role.name);
+      } catch (e) {
+        existingRole = null;
+      }
+      await syncRole(role, scheduleID, existingRole);
+    }
+  }
+
+  Future<int> syncSchedule(ScheduleDto scheduleDto, int playlistID) async {
     final schedule = scheduleDto.toDomain(playlistLocalId: playlistID);
 
     final existing = await _localRepo.getScheduleByFirebaseIdOrShareCode(
       scheduleDto.firebaseId!,
       scheduleDto.shareCode,
     );
+
+    int scheduleID;
     if (existing == null) {
       // Schedule doesn't exist locally, insert it
-      await _localRepo.insertSchedule(schedule);
+      scheduleID = await _localRepo.insertSchedule(schedule);
     } else {
       // Schedule exists, update it (this will keep local changes if there are any, but fill in any missing fields from the cloud version)
       final merged = existing.mergeWith(schedule);
       await _localRepo.updateSchedule(merged);
+      scheduleID = merged.id;
+    }
+    return scheduleID;
+  }
 
-      // Sync roles (upsert)
-      for (var role in merged.roles) {
-        final users = <User>[];
-        for (var user in role.users) {
-          User? localUser;
-          if (user.id == null) {
-            localUser = await _userRepo.getUserByFirebaseId(user.firebaseId!);
-          } else {
-            localUser = await _userRepo.getUserById(user.id!);
-          }
-          if (localUser == null) {
-            // User doesn't exist locally, insert them
-            final newUserId = await _userRepo.createUser(user);
-            users.add(user.copyWith(id: newUserId));
-          } else {
-            // User exists locally, ensure it's up to date
-            final mergedUser = localUser.mergeWith(user);
-            await _userRepo.updateUser(mergedUser);
-            users.add(user.copyWith(id: mergedUser.id!));
-          }
+  Future<int> syncRole(
+    RoleDto roleDto,
+    int scheduleID,
+    Role? existingRole,
+  ) async {
+    final users = <User>[];
+    for (var user in roleDto.users) {
+      final localUser = await syncUser(user);
+      users.add(localUser);
+    }
+
+    if (existingRole != null) {
+      final cloudEmails = {for (var user in users) user.email};
+      final localEmails = {for (var member in existingRole.users) member.email};
+
+      // Remove members not in cloud
+      for (var member in existingRole.users) {
+        if (!cloudEmails.contains(member.email)) {
+          await _localRepo.removeUserFromRole(existingRole.id, member.id!);
         }
-        // Role exists locally, update it
-        await _localRepo.upsertRole(merged.id, role.copyWith(users: users));
       }
+
+      // Add new members from cloud
+      for (var user in users) {
+        if (!localEmails.contains(user.email)) {
+          await _localRepo.insertMember(existingRole.id, user.id!);
+        }
+      }
+      return existingRole.id;
+    } else {
+      // Role doesn't exist locally, insert it
+      final roleID = await _localRepo.insertRole(
+        scheduleID,
+        Role(name: roleDto.name, users: users, id: -1),
+      );
+      return roleID;
+    }
+  }
+
+  Future<User> syncUser(UserDto userDto) async {
+    final existing = await _userRepo.getUserByEmail(userDto.email);
+    if (existing == null) {
+      final user = userDto.toDomain();
+      await _userRepo.createUser(user);
+      return user;
+    } else {
+      final user = userDto.toDomain();
+      await _userRepo.updateUser(user);
+      return user;
     }
   }
 

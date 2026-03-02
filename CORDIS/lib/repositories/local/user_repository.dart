@@ -59,6 +59,24 @@ class UserRepository {
     return null;
   }
 
+  /// Gets a user by email
+  /// Used when ensuring users exist locally, since some users may not have a Firebase ID if they were created locally and haven't been synced yet
+  Future<User?> getUserByEmail(String email) async {
+    final db = await _databaseHelper.database;
+
+    final results = await db.query(
+      'user',
+      where: 'email = ?',
+      whereArgs: [email],
+    );
+
+    if (results.isNotEmpty) {
+      return User.fromSqlite(results.first);
+    }
+
+    return null;
+  }
+
   /// Gets all users that collaborate on a given playlist
   Future<List<User>> getUsersForPlaylist(int playlistId) async {
     final db = await _databaseHelper.database;
