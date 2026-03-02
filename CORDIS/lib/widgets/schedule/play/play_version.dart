@@ -1,18 +1,25 @@
+import 'package:cordis/providers/auto_scroll_provider.dart';
+import 'package:cordis/widgets/schedule/play/auto_scroll_indicator.dart';
+import 'package:flutter/material.dart';
+
 import 'package:cordis/l10n/app_localizations.dart';
+
 import 'package:cordis/models/domain/cipher/section.dart';
+
+import 'package:provider/provider.dart';
 import 'package:cordis/providers/cipher/cipher_provider.dart';
 import 'package:cordis/providers/layout_settings_provider.dart';
 import 'package:cordis/providers/section_provider.dart';
 import 'package:cordis/providers/version/cloud_version_provider.dart';
 import 'package:cordis/providers/version/local_version_provider.dart';
+
 import 'package:cordis/utils/date_utils.dart';
 import 'package:cordis/utils/section_constants.dart';
+
 import 'package:cordis/widgets/ciphers/viewer/annotation_card.dart';
 import 'package:cordis/widgets/ciphers/viewer/section_card.dart';
 import 'package:cordis/widgets/ciphers/viewer/structure_list.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import 'package:provider/provider.dart';
 
 class PlayVersion extends StatefulWidget {
   final int? localVersionID;
@@ -26,11 +33,10 @@ class PlayVersion extends StatefulWidget {
 
 class _PlayVersionState extends State<PlayVersion> {
   late final ScrollController _scrollController;
-  late final List<GlobalKey> sectionKeys = [];
   late final ValueNotifier<bool> _showTopBar = ValueNotifier(false);
   final _headerSectionKey = GlobalKey();
-  bool isCloud = false;
   double _headerHeight = 0;
+  bool isCloud = false;
   DateTime _lastScrollUpdate = DateTime.now();
 
   @override
@@ -41,36 +47,10 @@ class _PlayVersionState extends State<PlayVersion> {
     isCloud = widget.cloudVersionID != null;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _initializeSectionKeys();
       _calculateHeaderHeight();
       _scrollController.addListener(_scrollListener);
+      context.read<AutoScrollProvider>().startAutoScroll();
     });
-  }
-
-  void _initializeSectionKeys() {
-    final lvp = context.read<LocalVersionProvider>();
-    final cvp = context.read<CloudVersionProvider>();
-    final layoutProvider = context.read<LayoutSettingsProvider>();
-
-    final songStructure = isCloud
-        ? cvp.getVersion(widget.cloudVersionID!)?.songStructure
-        : lvp.cachedVersion(widget.localVersionID!)?.songStructure;
-
-    if (songStructure == null) {
-      return;
-    }
-    final filteredStructure = songStructure
-        .where(
-          (sectionCode) =>
-              ((layoutProvider.showAnnotations || !isAnnotation(sectionCode)) &&
-              (layoutProvider.showTransitions || !isTransition(sectionCode))),
-        )
-        .toList();
-
-    sectionKeys.clear();
-    for (int i = 0; i < filteredStructure.length; i++) {
-      sectionKeys.add(GlobalKey());
-    }
   }
 
   void _calculateHeaderHeight() {
@@ -136,9 +116,7 @@ class _PlayVersionState extends State<PlayVersion> {
             layoutProvider,
             child,
           ) {
-            if (sectionKeys.isEmpty) {
-              _initializeSectionKeys();
-            }
+            final scrollProvider = Provider.of<AutoScrollProvider>(context, listen: false);
 
             // LOADING STATE
             if (localVersionProvider.isLoading ||
@@ -169,6 +147,7 @@ class _PlayVersionState extends State<PlayVersion> {
                           !isTransition(sectionCode))),
                 )
                 .toList();
+
             return Stack(
               children: [
                 // MAIN SCROLLABLE CONTENT
@@ -183,62 +162,60 @@ class _PlayVersionState extends State<PlayVersion> {
                         const SizedBox(height: 8),
                         // HEADER
                         Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            spacing: 16,
-                            children: [
-                              _buildHeader(textTheme),
-                              // SONG STRUCTURE
-                              Column(
-                                spacing: 4,
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 8.0),
-                                    child: Text(
-                                      AppLocalizations.of(
-                                        context,
-                                      )!.songStructure,
-                                      style: textTheme.titleMedium,
-                                    ),
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          spacing: 16,
+                          children: [
+                            _buildHeader(textTheme),
+                            // SONG STRUCTURE
+                            Column(
+                              spacing: 4,
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 8.0),
+                                  child: Text(
+                                    AppLocalizations.of(context)!.songStructure,
+                                    style: textTheme.titleMedium,
                                   ),
-                                  Container(
-                                    key: _headerSectionKey,
-                                    padding: EdgeInsets.symmetric(vertical: 8),
-                                    decoration: BoxDecoration(
-                                      color: colorScheme.surface,
-                                      border: Border.fromBorderSide(
-                                        BorderSide(
-                                          color: colorScheme
-                                              .surfaceContainerLowest,
-                                          width: 1,
-                                        ),
+                                ),
+                                Container(
+                                  key: _headerSectionKey,
+                                  padding: EdgeInsets.symmetric(vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: colorScheme.surface,
+                                    border: Border.fromBorderSide(
+                                      BorderSide(
+                                        color:
+                                            colorScheme.surfaceContainerLowest,
+                                        width: 1,
                                       ),
                                     ),
-                                    child: StructureList(
-                                      versionId:
-                                          widget.localVersionID ??
-                                          widget.cloudVersionID!,
-                                      filteredStructure: filteredStructure,
-                                      scrollController: _scrollController,
-                                      sectionKeys: sectionKeys,
-                                    ),
                                   ),
-                                ],
-                              ),
-                            ],
-                          ),
-                          // SECTION CARDS GRID
-                          _buildSectionGrid(
-                            sectionProvider,
-                            layoutProvider,
-                            cloudVersionProvider,
-                            filteredStructure,
-                          ),
-                          const SizedBox(height: 200),
-                        ],
-                      ),
+                                  child: StructureList(
+                                    versionId:
+                                        widget.localVersionID ??
+                                        widget.cloudVersionID!,
+                                    filteredStructure: filteredStructure,
+                                    scrollController: _scrollController,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        // SECTION CARDS GRID
+                        _buildSectionGrid(
+                          sectionProvider,
+                          layoutProvider,
+                          cloudVersionProvider,
+                          scrollProvider,
+                          filteredStructure,
+                        ),
+                        const SizedBox(height: 200),
+                      ],
                     ),
                   ),
+                ),
 
                 // SCROLL-CONDITIONAL TOP SONG STRUCTURE BAR
                 ValueListenableBuilder<bool>(
@@ -258,6 +235,9 @@ class _PlayVersionState extends State<PlayVersion> {
                         : const SizedBox.shrink();
                   },
                 ),
+
+                // AUTO SCROLL INDICATOR
+                Positioned(bottom: 66, right: 16, child: AutoScrollIndicator()),
               ],
             );
           },
@@ -329,6 +309,7 @@ class _PlayVersionState extends State<PlayVersion> {
     SectionProvider sectionProvider,
     LayoutSettingsProvider layoutProvider,
     CloudVersionProvider cloudVersionProvider,
+    AutoScrollProvider scrollProvider,
     List<String> filteredStructure,
   ) {
     return MasonryGridView.count(
@@ -359,9 +340,12 @@ class _PlayVersionState extends State<PlayVersion> {
             sectionType: section.contentType,
           );
         }
-
+        // Create key if it doesn't exist
+        if (scrollProvider.sectionKeys[index] == null) {
+          scrollProvider.sectionKeys[index] = GlobalKey();
+        }
         return SectionCard(
-          key: sectionKeys[index],
+          key: scrollProvider.sectionKeys[index],
           sectionType: section.contentType,
           sectionCode: trimmedCode,
           sectionText: section.contentText,
@@ -379,7 +363,7 @@ class _PlayVersionState extends State<PlayVersion> {
     return Row(
       children: [
         Container(
-          padding: const EdgeInsets.symmetric(vertical: 10.0),
+          padding: const EdgeInsets.only(top: 10.0, bottom: 10.0, left: 8),
           decoration: BoxDecoration(
             color: colorScheme.surface,
             border: Border(
@@ -395,13 +379,12 @@ class _PlayVersionState extends State<PlayVersion> {
           ),
           child: ConstrainedBox(
             constraints: BoxConstraints(
-              maxWidth: MediaQuery.of(context).size.width - 66,
+              maxWidth: MediaQuery.of(context).size.width - 74,
             ),
             child: StructureList(
               versionId: widget.localVersionID ?? widget.cloudVersionID!,
               filteredStructure: filteredStructure,
               scrollController: _scrollController,
-              sectionKeys: sectionKeys,
             ),
           ),
         ),

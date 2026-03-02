@@ -1,3 +1,4 @@
+import 'package:cordis/providers/auto_scroll_provider.dart';
 import 'package:cordis/providers/transposition_provider.dart';
 import 'package:flutter/material.dart';
 
@@ -59,6 +60,8 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => AdminProvider()),
         ChangeNotifierProvider(create: (_) => MyAuthProvider()),
+        ChangeNotifierProvider(create: (_) => AppInfoProvider()),
+        ChangeNotifierProvider(create: (_) => AutoScrollProvider()),
         ChangeNotifierProvider(create: (_) => EmailProvider()),
         ChangeNotifierProvider(create: (_) => CipherProvider()),
         ChangeNotifierProvider(create: (_) => ImportProvider()),

@@ -1,7 +1,9 @@
 import 'package:cordis/l10n/app_localizations.dart';
+
 import 'package:cordis/models/domain/playlist/flow_item.dart';
 import 'package:cordis/models/domain/playlist/playlist_item.dart';
 import 'package:cordis/models/dtos/schedule_dto.dart';
+
 import 'package:cordis/providers/cipher/cipher_provider.dart';
 import 'package:cordis/providers/playlist/flow_item_provider.dart';
 import 'package:cordis/providers/navigation_provider.dart';
@@ -11,11 +13,13 @@ import 'package:cordis/providers/schedule/cloud_schedule_provider.dart';
 import 'package:cordis/providers/schedule/play_schedule_state_provider.dart';
 import 'package:cordis/providers/section_provider.dart';
 import 'package:cordis/providers/version/local_version_provider.dart';
+
 import 'package:cordis/widgets/schedule/play/play_flow_item.dart';
 import 'package:cordis/widgets/schedule/play/play_version.dart';
 import 'package:cordis/widgets/settings/auto_scroll_settings.dart';
 import 'package:cordis/widgets/settings/content_filters.dart';
 import 'package:cordis/widgets/settings/style_settings.dart';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -136,7 +140,10 @@ class PlayScheduleScreenState extends State<PlayScheduleScreen>
             flowItemProvider,
             child,
           ) {
-            final navigationProvider = Provider.of<NavigationProvider>(context, listen: false);
+            final navigationProvider = Provider.of<NavigationProvider>(
+              context,
+              listen: false,
+            );
             final currentTabIndex = stateProvider.currentTabIndex;
             final showSettings = stateProvider.showSettings;
 
@@ -218,7 +225,7 @@ class PlayScheduleScreenState extends State<PlayScheduleScreen>
                       height: 48,
                       child: Icon(
                         Icons.close,
-                        color: colorScheme.onSurface,
+                        color: colorScheme.primary,
                         size: 26,
                       ),
                     ),
@@ -235,7 +242,7 @@ class PlayScheduleScreenState extends State<PlayScheduleScreen>
                       border: Border(
                         top: BorderSide(
                           color: colorScheme.surfaceContainerHigh,
-                          width: .5,
+                          width: 1,
                         ),
                       ),
                     ),
@@ -245,12 +252,20 @@ class PlayScheduleScreenState extends State<PlayScheduleScreen>
                         /// SETTINGS CONTROLS
                         if (showSettings)
                           Container(
-                            color: colorScheme.surfaceContainerHigh,
                             padding: const EdgeInsets.symmetric(
                               horizontal: 16,
                               vertical: 4,
                             ),
+                            decoration: BoxDecoration(
+                              border: Border(
+                                bottom: BorderSide(
+                                  color: colorScheme.surfaceContainerHigh,
+                                  width: 1,
+                                ),
+                              ),
+                            ),
                             child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
                               children: [
                                 // Style settings button - opens bottom sheet
                                 SizedBox(
@@ -272,7 +287,10 @@ class PlayScheduleScreenState extends State<PlayScheduleScreen>
                                         },
                                       );
                                     },
-                                    child: Icon(Icons.format_paint),
+                                    child: Icon(
+                                      Icons.format_paint,
+                                      color: colorScheme.primary,
+                                    ),
                                   ),
                                 ),
                                 // Filters button - opens bottom sheet
@@ -295,7 +313,10 @@ class PlayScheduleScreenState extends State<PlayScheduleScreen>
                                         },
                                       );
                                     },
-                                    child: Icon(Icons.filter_alt),
+                                    child: Icon(
+                                      Icons.filter_alt,
+                                      color: colorScheme.primary,
+                                    ),
                                   ),
                                 ),
                                 // Autoplay controls
@@ -318,7 +339,10 @@ class PlayScheduleScreenState extends State<PlayScheduleScreen>
                                         },
                                       );
                                     },
-                                    child: Icon(Icons.auto_stories_outlined),
+                                    child: Icon(
+                                      Icons.auto_stories_outlined,
+                                      color: colorScheme.primary,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -344,7 +368,7 @@ class PlayScheduleScreenState extends State<PlayScheduleScreen>
                                 height: 48,
                                 child: Icon(
                                   Icons.chevron_left,
-                                  color: colorScheme.surfaceContainerLowest,
+                                  color: colorScheme.primary,
                                   size: 48,
                                 ),
                               ),
@@ -400,7 +424,7 @@ class PlayScheduleScreenState extends State<PlayScheduleScreen>
                                 height: 48,
                                 child: Icon(
                                   Icons.chevron_right,
-                                  color: colorScheme.surfaceContainerLowest,
+                                  color: colorScheme.primary,
                                   size: 48,
                                 ),
                               ),

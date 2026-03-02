@@ -13,8 +13,7 @@ class LayoutSettingsProvider extends ChangeNotifier {
   bool showTransitions = true;
   bool showTextSections = true;
 
-  bool autoScrollEnabled = false;
-  double autoScrollSpeed = 1.0; // 0.5 = slow, 1 = normal, 1.5 = fast
+
 
   /// Initialize with stored settings
   Future<void> loadSettings() async {
@@ -27,8 +26,6 @@ class LayoutSettingsProvider extends ChangeNotifier {
     showTransitions = SettingsService.getShowTransitions();
     showTextSections = SettingsService.getShowTextSections();
     showSectionHeaders = SettingsService.getShowSectionHeaders();
-    autoScrollEnabled = SettingsService.getAutoScrollEnabled();
-    autoScrollSpeed = SettingsService.getAutoScrollSpeed();
     notifyListeners();
   }
 
@@ -102,16 +99,4 @@ class LayoutSettingsProvider extends ChangeNotifier {
     height: 2,
     letterSpacing: 0,
   );
-
-  void toggleAutoScroll() {
-    autoScrollEnabled = !autoScrollEnabled;
-    SettingsService.setAutoScrollEnabled(autoScrollEnabled);
-    notifyListeners();
-  }
-
-  void setAutoScrollSpeed(double value) {
-    autoScrollSpeed = value;
-    SettingsService.setAutoScrollSpeed(value);
-    notifyListeners();
-  }
 }

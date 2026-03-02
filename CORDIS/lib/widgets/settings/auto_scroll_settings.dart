@@ -1,5 +1,5 @@
 import 'package:cordis/l10n/app_localizations.dart';
-import 'package:cordis/providers/layout_settings_provider.dart';
+import 'package:cordis/providers/auto_scroll_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -11,8 +11,8 @@ class AutoScrollSettings extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Consumer<LayoutSettingsProvider>(
-      builder: (context, settings, child) {
+    return Consumer<AutoScrollProvider>(
+      builder: (context, autoScroll, child) {
         return Container(
           decoration: BoxDecoration(
             color: colorScheme.surface,
@@ -50,9 +50,9 @@ class AutoScrollSettings extends StatelessWidget {
                       WidgetState.selected: colorScheme.primary,
                       WidgetState.any: colorScheme.shadow,
                     }),
-                    value: settings.autoScrollEnabled,
+                    value: autoScroll.isAutoScrolling,
                     onChanged: (value) {
-                      settings.toggleAutoScroll();
+                      autoScroll.toggleAutoScroll();
                     },
                   ),
                 ],
@@ -62,16 +62,16 @@ class AutoScrollSettings extends StatelessWidget {
                 children: [
                   Text(AppLocalizations.of(context)!.autoScrollSpeed),
                   Slider(
-                    value: settings.autoScrollSpeed,
+                    value: autoScroll.scrollSpeed,
                     onChanged: (value) {
-                      settings.setAutoScrollSpeed(value);
+                      autoScroll.setScrollSpeed(value);
                     },
                     min: 0.5,
                     max: 1.5,
                     divisions: 8,
-                    label: settings.autoScrollSpeed < 0.85
+                    label: autoScroll.scrollSpeed < 0.85
                         ? AppLocalizations.of(context)!.slow
-                        : settings.autoScrollSpeed < 1.15
+                        : autoScroll.scrollSpeed < 1.15
                             ? AppLocalizations.of(context)!.normal
                             : AppLocalizations.of(context)!.fast,
                   ),

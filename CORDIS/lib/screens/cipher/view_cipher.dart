@@ -1,7 +1,6 @@
 import 'package:cordis/l10n/app_localizations.dart';
-import 'package:cordis/models/domain/cipher/cipher.dart';
 import 'package:cordis/models/domain/cipher/version.dart';
-import 'package:cordis/models/dtos/version_dto.dart';
+import 'package:cordis/providers/auto_scroll_provider.dart';
 import 'package:cordis/providers/navigation_provider.dart';
 import 'package:cordis/providers/section_provider.dart';
 import 'package:cordis/providers/transposition_provider.dart';
@@ -40,7 +39,6 @@ class ViewCipherScreen extends StatefulWidget {
 
 class _ViewCipherScreenState extends State<ViewCipherScreen>
     with SingleTickerProviderStateMixin {
-  final List<GlobalKey> sectionKeys = [];
   late ScrollController scrollController;
 
   @override
@@ -91,6 +89,7 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
       TranspositionProvider
     >(
       builder: (context, cp, lvp, cvp, sp, lsp, tp, child) {
+        final scrollProvider = context.read<AutoScrollProvider>();
         // Handle loading states
         if (cp.isLoading || lvp.isLoading || cvp.isLoading || sp.isLoading) {
           return Scaffold(
@@ -126,29 +125,40 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
           );
         }
 
-        Cipher? cipher;
-        if (widget.cipherID != null) {
-          cipher = cp.getCipher(widget.cipherID!);
-        }
+        String title;
+        String author;
+        int bpm;
+        Duration duration;
+        List<String> songStructure;
 
-        dynamic version;
-        final Duration duration;
-        // Set original key for transposer
-        if (widget.versionType == VersionType.cloud) {
-          version = cvp.getVersion(widget.versionID);
-          duration = Duration(seconds: version.duration);
-        } else {
-          version = lvp.cachedVersion(widget.versionID);
-          duration = version.duration;
-        }
-
-        final List<String> songStructure;
-
-        if (widget.versionID is String) {
-          songStructure = cvp.getVersion(widget.versionID)!.songStructure;
-        } else {
-          songStructure = lvp.cachedVersion(widget.versionID)!.songStructure;
-        }
+        (
+          title,
+          author,
+          bpm,
+          duration,
+          songStructure,
+        ) = widget.versionID is String
+            ? () {
+                final versionDto = cvp.getVersion(widget.versionID)!;
+                return (
+                  versionDto.title,
+                  versionDto.author,
+                  versionDto.bpm,
+                  Duration(seconds: versionDto.duration),
+                  songStructure = versionDto.songStructure,
+                );
+              }()
+            : () {
+                final cipher = cp.getCipher(widget.cipherID!);
+                final version = lvp.cachedVersion(widget.versionID);
+                return (
+                  cipher?.title ?? '',
+                  cipher?.author ?? '',
+                  version?.bpm ?? 0,
+                  version?.duration ?? Duration.zero,
+                  songStructure = version?.songStructure ?? [],
+                );
+              }();
 
         final filteredStructure = <String>[];
         for (var sectionCode in songStructure) {
@@ -163,28 +173,30 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
 
         final sectionCardList = filteredStructure.asMap().entries.map((entry) {
           String trimmedCode = entry.value.trim();
-
           final section = sp.getSection(widget.versionID, trimmedCode);
 
           if (section == null) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          sectionKeys.add(GlobalKey());
-
           if (section.contentText.isEmpty) {
             return const SizedBox.shrink();
           }
+          
+          if (scrollProvider.sectionKeys[entry.key] == null) {
+            scrollProvider.sectionKeys[entry.key] = GlobalKey();
+          }
+          final key = scrollProvider.sectionKeys[entry.key]!;
 
           if (isAnnotation(trimmedCode)) {
             return AnnotationCard(
-              key: sectionKeys[entry.key],
+              key: key,
               sectionText: section.contentText,
               sectionType: section.contentType,
             );
           } else {
             return SectionCard(
-              key: sectionKeys[entry.key],
+              key: key,
               sectionType: section.contentType,
               sectionCode: trimmedCode,
               sectionText: section.contentText,
@@ -259,11 +271,11 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            cipher?.title ?? version.title,
+                            title,
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                           Text(
-                            '${AppLocalizations.of(context)!.by} ${cipher?.author ?? (version as VersionDto).author}',
+                            '${AppLocalizations.of(context)!.by} $author',
                             style: Theme.of(context).textTheme.bodyMedium
                                 ?.copyWith(fontStyle: FontStyle.italic),
                           ),
@@ -280,13 +292,11 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
                                 ),
                                 style: textTheme.bodySmall,
                               ),
-                              version.bpm != 0
+                              bpm != 0
                                   ? Text(
                                       AppLocalizations.of(
                                         context,
-                                      )!.bpmWithPlaceholder(
-                                        version.bpm.toString(),
-                                      ),
+                                      )!.bpmWithPlaceholder(bpm.toString()),
                                       style: textTheme.bodySmall,
                                     )
                                   : Text('-'),
@@ -317,7 +327,6 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
                             versionId: widget.versionID,
                             filteredStructure: filteredStructure,
                             scrollController: scrollController,
-                            sectionKeys: sectionKeys,
                           ),
                         ],
                       ),
