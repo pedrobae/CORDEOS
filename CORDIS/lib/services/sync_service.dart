@@ -126,9 +126,9 @@ class ScheduleSyncService {
       await _userRepo.createUser(user);
       return user;
     } else {
-      final user = userDto.toDomain();
-      await _userRepo.updateUser(user);
-      return user;
+      final merged = userDto.toDomain().mergeWith(existing);
+      await _userRepo.updateUser(merged);
+      return merged;
     }
   }
 

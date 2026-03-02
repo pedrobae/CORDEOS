@@ -63,6 +63,9 @@ class UserDto {
       firebaseId: json['id'] as String?,
       username: json['username'] as String,
       email: json['email'] as String,
+      language: json['language'] as String?,
+      timeZone: json['timeZone'] as String?,
+      country: json['country'] as String?,
     );
   }
 
