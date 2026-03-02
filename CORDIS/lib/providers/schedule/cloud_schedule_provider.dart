@@ -189,55 +189,6 @@ class CloudScheduleProvider extends ChangeNotifier {
     }
   }
 
-  // ===== UPDATE =====
-  void cacheScheduleDetails(
-    String scheduleId, {
-    required String name,
-    required String date,
-    required String startTime,
-    required String location,
-    String? roomVenue,
-    String? annotations,
-  }) {
-    final schedule = _schedules[scheduleId];
-    if (schedule == null) throw Exception('Schedule not found');
-
-    _schedules[scheduleId] = schedule.copyWith(
-      name: name,
-      datetime: Timestamp.fromDate(
-        DateTime(
-          int.parse(date.split('/')[0]),
-          int.parse(date.split('/')[1]),
-          int.parse(date.split('/')[2]),
-          int.parse(startTime.split(':')[0]),
-          int.parse(startTime.split(':')[1]),
-        ),
-      ),
-      location: location,
-      roomVenue: roomVenue,
-      annotations: annotations,
-    );
-
-    notifyListeners();
-  }
-
-  Future<void> updateSchedule(String scheduleId, String ownerId) async {
-    if (_isSaving) return;
-
-    _isSaving = true;
-    notifyListeners();
-
-    try {
-      final schedule = _schedules[scheduleId]!;
-      await _repo.updateSchedule(ownerId, schedule);
-    } catch (e) {
-      _error = e.toString();
-    } finally {
-      _isSaving = false;
-      notifyListeners();
-    }
-  }
-
   // ===== DELETE =====
   /// Delete a schedule from the cache and in Firestore
   Future<void> deleteSchedule(String userId, String scheduleId) async {

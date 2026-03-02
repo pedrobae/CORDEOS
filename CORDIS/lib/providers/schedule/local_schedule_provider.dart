@@ -2,10 +2,12 @@ import 'package:cordis/helpers/codes.dart';
 import 'package:cordis/models/domain/schedule.dart';
 import 'package:cordis/models/domain/user.dart';
 import 'package:cordis/repositories/local/schedule_repository.dart';
+import 'package:cordis/services/sync_service.dart';
 import 'package:flutter/material.dart';
 
 class LocalScheduleProvider extends ChangeNotifier {
   final LocalScheduleRepository _repo = LocalScheduleRepository();
+  final _syncService = ScheduleSyncService();
 
   LocalScheduleProvider();
 
@@ -73,7 +75,8 @@ class LocalScheduleProvider extends ChangeNotifier {
   }
 
   bool isPublished(int scheduleID) {
-    return _schedules[scheduleID]!.isPublic;
+    final schedule = _schedules[scheduleID];
+    return (schedule != null && schedule.isPublic && schedule.time.isBefore(TimeOfDay.now()));
   }
 
   Future<Schedule?> getScheduleWithPlaylistId(int playlistId) async {
@@ -194,6 +197,19 @@ class LocalScheduleProvider extends ChangeNotifier {
       _error = e.toString();
     } finally {
       _isSaving = false;
+      notifyListeners();
+    }
+  }
+
+  /// Uploads changes of a local schedule to the cloud.
+  Future<void> uploadScheduleToCloud(int scheduleId, String ownerFirebaseId) async {
+    final schedule = _schedules[scheduleId];
+    if (schedule == null) return;
+
+    try {
+      await _syncService.scheduleToCloud(schedule, ownerFirebaseId);
+    } catch (e) {
+      _error = e.toString();
       notifyListeners();
     }
   }

@@ -164,12 +164,20 @@ class _EditScheduleScreenState extends State<EditScheduleScreen> {
                               playlistProvider,
                               selectionProvider,
                             );
+                            break;
                           case EditScheduleMode.roleMember:
                             _saveRoleMember(
                               navigationProvider,
                               scheduleProvider,
                             );
                             break;
+                        }
+                        // Sync to cloud if public
+                        if (scheduleProvider.isPublished(widget.scheduleId)) {
+                          scheduleProvider.uploadScheduleToCloud(
+                            widget.scheduleId,
+                            context.read<MyAuthProvider>().id!,
+                          );
                         }
                         navigationProvider.pop();
                       },
