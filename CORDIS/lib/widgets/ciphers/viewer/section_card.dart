@@ -31,18 +31,18 @@ class SectionCard extends StatelessWidget {
         return Container(
           decoration: BoxDecoration(
             color: layoutSettingsProvider.showSectionHeaders
-                ? sectionColor.withAlpha(30)
-                : colorScheme.surface,
-            border: Border.all(color: 
-            layoutSettingsProvider.showSectionHeaders
-                ? sectionColor
-                : colorScheme.surfaceContainerHigh),
+                ? colorScheme.surface
+                : sectionColor.withAlpha(30),
+            border: Border.all(
+              color: layoutSettingsProvider.showSectionHeaders
+                  ? colorScheme.surfaceContainerHigh
+                  : sectionColor,
+            ),
             borderRadius: BorderRadius.circular(0),
           ),
           padding: const EdgeInsets.all(8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            spacing: 16,
             children: [
               // LABEL
               if (layoutSettingsProvider.showSectionHeaders)
@@ -62,6 +62,9 @@ class SectionCard extends StatelessWidget {
                     ),
                   ],
                 ),
+              SizedBox(
+                height: layoutSettingsProvider.showSectionHeaders ? 8 : 0,
+              ),
               ChordProView(
                 chordPro: sectionText,
                 isAnnotation: sectionCode == 'N',

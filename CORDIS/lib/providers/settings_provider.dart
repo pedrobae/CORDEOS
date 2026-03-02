@@ -103,9 +103,4 @@ class SettingsProvider extends ChangeNotifier {
     await SettingsService.clearAllSettings();
     await loadSettings();
   }
-
-  /// Get all settings for debugging/export
-  Map<String, dynamic> exportSettings() {
-    return SettingsService.exportSettings();
-  }
 }

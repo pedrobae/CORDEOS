@@ -4,14 +4,17 @@ import '../services/settings_service.dart';
 class LayoutSettingsProvider extends ChangeNotifier {
   double fontSize = 16;
   String fontFamily = 'OpenSans';
-  Color chordColor = const Color.fromARGB(255, 0, 0, 0);
   int columnCount = 1;
   bool showSectionHeaders = true;
+
   bool showChords = true;
   bool showLyrics = true;
   bool showAnnotations = true;
   bool showTransitions = true;
   bool showTextSections = true;
+
+  bool autoScrollEnabled = false;
+  double autoScrollSpeed = 1.0; // 0.5 = slow, 1 = normal, 1.5 = fast
 
   /// Initialize with stored settings
   Future<void> loadSettings() async {
@@ -24,6 +27,8 @@ class LayoutSettingsProvider extends ChangeNotifier {
     showTransitions = SettingsService.getShowTransitions();
     showTextSections = SettingsService.getShowTextSections();
     showSectionHeaders = SettingsService.getShowSectionHeaders();
+    autoScrollEnabled = SettingsService.getAutoScrollEnabled();
+    autoScrollSpeed = SettingsService.getAutoScrollSpeed();
     notifyListeners();
   }
 
@@ -82,10 +87,10 @@ class LayoutSettingsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  TextStyle get chordTextStyle => TextStyle(
+  TextStyle getChordTextStyle(Color primaryColor) => TextStyle(
     fontFamily: fontFamily,
     fontSize: fontSize.toDouble(),
-    color: chordColor,
+    color: primaryColor,
     fontWeight: FontWeight.bold,
     height: 2,
     letterSpacing: 0,
@@ -97,4 +102,16 @@ class LayoutSettingsProvider extends ChangeNotifier {
     height: 2,
     letterSpacing: 0,
   );
+
+  void toggleAutoScroll() {
+    autoScrollEnabled = !autoScrollEnabled;
+    SettingsService.setAutoScrollEnabled(autoScrollEnabled);
+    notifyListeners();
+  }
+
+  void setAutoScrollSpeed(double value) {
+    autoScrollSpeed = value;
+    SettingsService.setAutoScrollSpeed(value);
+    notifyListeners();
+  }
 }

@@ -12,6 +12,9 @@ import 'package:cordis/providers/section_provider.dart';
 import 'package:cordis/providers/version/local_version_provider.dart';
 import 'package:cordis/widgets/schedule/play/play_flow_item.dart';
 import 'package:cordis/widgets/schedule/play/play_version.dart';
+import 'package:cordis/widgets/settings/auto_scroll_settings.dart';
+import 'package:cordis/widgets/settings/content_filters.dart';
+import 'package:cordis/widgets/settings/style_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -27,8 +30,7 @@ class PlayScheduleScreen extends StatefulWidget {
 class PlayScheduleScreenState extends State<PlayScheduleScreen>
     with SingleTickerProviderStateMixin {
   late final bool isCloud = widget.scheduleId is String;
-
-  bool isPlaying = false;
+  bool showSettings = false;
 
   int currentTabIndex = 0;
   List<PlaylistItem> items = [];
@@ -63,7 +65,7 @@ class PlayScheduleScreenState extends State<PlayScheduleScreen>
         if (item.type == PlaylistItemType.version) {
           await versionProvider.loadVersion(item.contentId!);
           await cipherProvider.loadCipherOfVersion(item.contentId!);
-          await sectionProvider.loadLocalSections(item.contentId!);
+          await sectionProvider.loadSectionsOfVersion(item.contentId!);
         } else if (item.type == PlaylistItemType.flowItem) {
           await flowItemProvider.loadFlowItem(item.contentId!);
         }
@@ -135,7 +137,7 @@ class PlayScheduleScreenState extends State<PlayScheduleScreen>
                             case PlaylistItemType.version:
                               if (isCloud) {
                                 return PlayVersion(
-                                  cloudVersionID:item.firebaseContentId!,
+                                  cloudVersionID: item.firebaseContentId!,
                                 );
                               } else {
                                 return PlayVersion(
@@ -186,14 +188,14 @@ class PlayScheduleScreenState extends State<PlayScheduleScreen>
                       height: 48,
                       child: Icon(
                         Icons.close,
-                        color: colorScheme.shadow,
+                        color: colorScheme.onSurface,
                         size: 26,
                       ),
                     ),
                   ),
                 ),
 
-                // BOTTOM PLAY CONTROLS
+                // BOTTOM CONTROLS
                 Positioned(
                   bottom: 0,
                   child: Container(
@@ -208,119 +210,225 @@ class PlayScheduleScreenState extends State<PlayScheduleScreen>
                       ),
                     ),
                     width: MediaQuery.of(context).size.width,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      mainAxisSize: MainAxisSize.max,
+                    child: Column(
                       children: [
-                        // PREVIOUS ITEM BUTTON
-                        GestureDetector(
-                          onTap: () {
-                            if (currentTabIndex > 0) {
-                              setState(() {
-                                currentTabIndex--;
-                              });
-                            }
-                          },
-                          child: SizedBox(
-                            width: MediaQuery.of(context).size.width / 4,
-                            height: 48,
-                            child: Icon(
-                              Icons.chevron_left,
-                              color: colorScheme.surfaceContainerLowest,
-                              size: 48,
+                        /// SETTINGS CONTROLS
+                        if (showSettings)
+                          Container(
+                            color: colorScheme.surfaceContainerHigh,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 4,
+                            ),
+                            child: Row(
+                              children: [
+                                // Style settings button - opens bottom sheet
+                                SizedBox(
+                                  width: 40,
+                                  height: 40,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        showSettings = false;
+                                      });
+                                      showModalBottomSheet(
+                                        context: context,
+                                        isScrollControlled: true,
+                                        builder: (context) {
+                                          return BottomSheet(
+                                            onClosing: () {},
+                                            builder: (context) {
+                                              return StyleSettings();
+                                            },
+                                          );
+                                        },
+                                      );
+                                    },
+                                    child: Icon(Icons.format_paint),
+                                  ),
+                                ),
+                                // Filters button - opens bottom sheet
+                                SizedBox(
+                                  width: 40,
+                                  height: 40,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        showSettings = false;
+                                      });
+                                      showModalBottomSheet(
+                                        context: context,
+                                        isScrollControlled: true,
+                                        builder: (context) {
+                                          return BottomSheet(
+                                            onClosing: () {},
+                                            builder: (context) {
+                                              return ContentFilters();
+                                            },
+                                          );
+                                        },
+                                      );
+                                    },
+                                    child: Icon(Icons.filter_alt),
+                                  ),
+                                ),
+                                // Autoplay controls
+                                SizedBox(
+                                  width: 40,
+                                  height: 40,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        showSettings = false;
+                                      });
+                                      showModalBottomSheet(
+                                        context: context,
+                                        barrierColor: Colors.transparent,
+                                        builder: (context) {
+                                          return BottomSheet(
+                                            onClosing: () {},
+                                            builder: (context) {
+                                              return AutoScrollSettings();
+                                            },
+                                          );
+                                        },
+                                      );
+                                    },
+                                    child: Icon(Icons.auto_stories_outlined),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ),
 
-                        // NEXT ITEM TITLE
-                        SizedBox(
-                          width: MediaQuery.of(context).size.width / 2,
-                          child: Builder(
-                            builder: (context) {
-                              String nextTitle = '';
-                              if (currentTabIndex < items.length - 1) {
-                                final nextItem = items[currentTabIndex + 1];
-                                switch (nextItem.type) {
-                                  case PlaylistItemType.version:
-                                    if (isCloud) {
-                                      nextTitle =
-                                          ((cloudScheduleProvider
-                                                      .schedules[widget
-                                                      .scheduleId]
-                                                  as ScheduleDto)
-                                              .playlist
-                                              .versions[nextItem
-                                                  .firebaseContentId]
-                                              ?.title) ??
-                                          '';
-                                    } else {
-                                      final version = versionProvider
-                                          .cachedVersion(nextItem.contentId!);
-
-                                      if (version == null) {
-                                        return CircularProgressIndicator();
-                                      }
-
-                                      nextTitle =
-                                          cipherProvider
-                                              .getCipher(version.cipherId)
-                                              ?.title ??
-                                          '';
-                                    }
-                                    break;
-                                  case PlaylistItemType.flowItem:
-                                    if (isCloud) {
-                                      nextTitle =
-                                          ((cloudScheduleProvider
-                                                      .schedules[widget
-                                                      .scheduleId]
-                                                  as ScheduleDto)
-                                              .playlist
-                                              .flowItems[nextItem
-                                              .firebaseContentId]?['title']) ??
-                                          '';
-                                    } else {
-                                      nextTitle =
-                                          flowItemProvider
-                                              .getFlowItem(nextItem.contentId!)
-                                              ?.title ??
-                                          '';
-                                    }
-                                    break;
+                        /// PLAY CONTROLS
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          mainAxisSize: MainAxisSize.max,
+                          children: [
+                            // PREVIOUS ITEM BUTTON
+                            GestureDetector(
+                              onTap: () {
+                                if (currentTabIndex > 0) {
+                                  setState(() {
+                                    currentTabIndex--;
+                                  });
                                 }
-                              }
-                              return Text(
-                                nextTitle.isEmpty
-                                    ? '-'
-                                    : AppLocalizations.of(
-                                        context,
-                                      )!.nextPlaceholder(nextTitle),
-                                style: textTheme.bodyLarge,
-                                softWrap: true,
-                                textAlign: TextAlign.center,
-                              );
-                            },
-                          ),
-                        ),
-
-                        // NEXT ITEM BUTTON
-                        GestureDetector(
-                          onTap: () {
-                            if (currentTabIndex < items.length - 1) {
-                              setState(() {
-                                currentTabIndex++;
-                              });
-                            }
-                          },
-                          child: SizedBox(
-                            width: MediaQuery.of(context).size.width / 4,
-                            height: 48,
-                            child: Icon(
-                              Icons.chevron_right,
-                              color: colorScheme.surfaceContainerLowest,
-                              size: 48,
+                              },
+                              child: SizedBox(
+                                width: MediaQuery.of(context).size.width / 4,
+                                height: 48,
+                                child: Icon(
+                                  Icons.chevron_left,
+                                  color: colorScheme.surfaceContainerLowest,
+                                  size: 48,
+                                ),
+                              ),
                             ),
-                          ),
+
+                            // NEXT ITEM TITLE
+                            SizedBox(
+                              width: MediaQuery.of(context).size.width / 2,
+                              child: GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    showSettings = !showSettings;
+                                  });
+                                },
+                                child: Builder(
+                                  builder: (context) {
+                                    String nextTitle = '';
+                                    if (currentTabIndex < items.length - 1) {
+                                      final nextItem =
+                                          items[currentTabIndex + 1];
+                                      switch (nextItem.type) {
+                                        case PlaylistItemType.version:
+                                          if (isCloud) {
+                                            nextTitle =
+                                                ((cloudScheduleProvider
+                                                            .schedules[widget
+                                                            .scheduleId]
+                                                        as ScheduleDto)
+                                                    .playlist
+                                                    .versions[nextItem
+                                                        .firebaseContentId]
+                                                    ?.title) ??
+                                                '';
+                                          } else {
+                                            final version = versionProvider
+                                                .cachedVersion(
+                                                  nextItem.contentId!,
+                                                );
+
+                                            if (version == null) {
+                                              return CircularProgressIndicator();
+                                            }
+
+                                            nextTitle =
+                                                cipherProvider
+                                                    .getCipher(version.cipherId)
+                                                    ?.title ??
+                                                '';
+                                          }
+                                          break;
+                                        case PlaylistItemType.flowItem:
+                                          if (isCloud) {
+                                            nextTitle =
+                                                ((cloudScheduleProvider
+                                                            .schedules[widget
+                                                            .scheduleId]
+                                                        as ScheduleDto)
+                                                    .playlist
+                                                    .flowItems[nextItem
+                                                    .firebaseContentId]?['title']) ??
+                                                '';
+                                          } else {
+                                            nextTitle =
+                                                flowItemProvider
+                                                    .getFlowItem(
+                                                      nextItem.contentId!,
+                                                    )
+                                                    ?.title ??
+                                                '';
+                                          }
+                                          break;
+                                      }
+                                    }
+                                    return Text(
+                                      nextTitle.isEmpty
+                                          ? '-'
+                                          : AppLocalizations.of(
+                                              context,
+                                            )!.nextPlaceholder(nextTitle),
+                                      style: textTheme.bodyLarge,
+                                      softWrap: true,
+                                      textAlign: TextAlign.center,
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+
+                            // NEXT ITEM BUTTON
+                            GestureDetector(
+                              onTap: () {
+                                if (currentTabIndex < items.length - 1) {
+                                  setState(() {
+                                    currentTabIndex++;
+                                  });
+                                }
+                              },
+                              child: SizedBox(
+                                width: MediaQuery.of(context).size.width / 4,
+                                height: 48,
+                                child: Icon(
+                                  Icons.chevron_right,
+                                  color: colorScheme.surfaceContainerLowest,
+                                  size: 48,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),

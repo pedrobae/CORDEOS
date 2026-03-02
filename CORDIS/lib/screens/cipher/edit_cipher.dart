@@ -98,7 +98,7 @@ class _EditCipherScreenState extends State<EditCipherScreen>
         // Load the version
         await localVersionProvider.loadVersion(widget.versionID!);
         // Load sections
-        await sectionProvider.loadLocalSections(widget.versionID!);
+        await sectionProvider.loadSectionsOfVersion(widget.versionID!);
         break;
       case VersionType.brandNew:
         cipherProvider.setNewCipherInCache(Cipher.empty());
@@ -127,7 +127,7 @@ class _EditCipherScreenState extends State<EditCipherScreen>
           await cipherProvider.loadCipher(widget.cipherID!);
 
           // Load the sections in cache
-          await sectionProvider.loadLocalSections(widget.versionID!);
+          await sectionProvider.loadSectionsOfVersion(widget.versionID!);
           sectionProvider.cacheSectionCopy(widget.versionID!);
         } else {
           final VersionDto originalVersion = cloudVersionProvider.getVersion(
@@ -368,7 +368,7 @@ class _EditCipherScreenState extends State<EditCipherScreen>
         }
         // Create Section entries for the new version
         await sectionProvider.createSections(versionId);
-        await sectionProvider.loadLocalSections(versionId);
+        await sectionProvider.loadSectionsOfVersion(versionId);
         playlistProvider.cacheAddVersion(
           selectionProvider.targetId!,
           versionId,

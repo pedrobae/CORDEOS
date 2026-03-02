@@ -244,6 +244,24 @@ class AppLocalizationsPt extends AppLocalizations {
   String get contentFilters => 'Filtros de Conteúdo';
 
   @override
+  String get autoScrollSettings => 'Configurações de Rolagem Automática';
+
+  @override
+  String get autoScroll => 'Rolagem Automática';
+
+  @override
+  String get autoScrollSpeed => 'Velocidade de Rolagem Automática';
+
+  @override
+  String get slow => 'Lento';
+
+  @override
+  String get normal => 'Médio';
+
+  @override
+  String get fast => 'Rápido';
+
+  @override
   String get unsavedChangesTitle => 'Alterações Não Salvas';
 
   @override

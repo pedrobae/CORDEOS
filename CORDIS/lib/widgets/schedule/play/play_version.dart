@@ -39,7 +39,7 @@ class _PlayVersionState extends State<PlayVersion> {
 
     isCloud = widget.cloudVersionID != null;
 
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializeSectionKeys();
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -57,9 +57,12 @@ class _PlayVersionState extends State<PlayVersion> {
     final layoutProvider = context.read<LayoutSettingsProvider>();
 
     final songStructure = isCloud
-        ? cvp.getVersion(widget.cloudVersionID!)!.songStructure
-        : lvp.cachedVersion(widget.localVersionID!)!.songStructure;
+        ? cvp.getVersion(widget.cloudVersionID!)?.songStructure
+        : lvp.cachedVersion(widget.localVersionID!)?.songStructure;
 
+    if (songStructure == null) {
+      return;
+    }
     final filteredStructure = songStructure
         .where(
           (sectionCode) =>
@@ -276,10 +279,10 @@ class _PlayVersionState extends State<PlayVersion> {
             final version = localVersionProvider.cachedVersion(
               widget.localVersionID!,
             )!;
-            final cipher = cipherProvider.getCipher(version.cipherId)!;
+            final cipher = cipherProvider.getCipher(version.cipherId);
             return (
-              cipher.title,
-              version.transposedKey ?? cipher.musicKey,
+              cipher?.title ?? '',
+              version.transposedKey ?? cipher?.musicKey ?? '',
               version.bpm,
               version.duration,
             );

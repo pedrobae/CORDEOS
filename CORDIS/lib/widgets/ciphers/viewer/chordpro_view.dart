@@ -13,6 +13,7 @@ class ChordProView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Consumer2<LayoutSettingsProvider, TranspositionProvider>(
       builder: (context, ls, tp, child) {
         final parsedSong = Song.fromChordPro(chordPro);
@@ -29,7 +30,7 @@ class ChordProView extends StatelessWidget {
               List<Text> rowChildren = [];
               for (var chord in parsedSong.chordsMap[i] ?? []) {
                 rowChildren.add(
-                  Text(tp.transposeChord(chord.name), style: ls.chordTextStyle),
+                  Text(tp.transposeChord(chord.name), style: ls.getChordTextStyle(colorScheme.primary)),
                 );
               }
               sectionChildren.add(Row(spacing: 5, children: rowChildren));
@@ -47,7 +48,7 @@ class ChordProView extends StatelessWidget {
                     precedingChords.add(
                       Text(
                         tp.transposeChord(chord.name),
-                        style: ls.chordTextStyle,
+                        style: ls.getChordTextStyle(colorScheme.primary),
                       ),
                     );
                   } else {
@@ -67,7 +68,7 @@ class ChordProView extends StatelessWidget {
                         children: [
                           SizedBox(
                             width: parsedSong.precedingChordOffset,
-                            height: ls.chordTextStyle.fontSize!,
+                            height: ls.getChordTextStyle(colorScheme.primary).fontSize!,
                           ),
                           Positioned(
                             top: -ls.lyricTextStyle.fontSize! * 0.8,
@@ -83,7 +84,7 @@ class ChordProView extends StatelessWidget {
                         child: LineView(
                           chords: parsedSong.chordsMap[i]!.sublist(index),
                           line: parsedSong.linesMap[i] ?? '',
-                          chordStyle: ls.chordTextStyle,
+                          chordStyle: ls.getChordTextStyle(colorScheme.primary),
                           lyricStyle: ls.lyricTextStyle,
                         ),
                       ),
@@ -95,7 +96,7 @@ class ChordProView extends StatelessWidget {
                   LineView(
                     chords: parsedSong.chordsMap[i] ?? [],
                     line: parsedSong.linesMap[i] ?? '',
-                    chordStyle: ls.chordTextStyle,
+                    chordStyle: ls.getChordTextStyle(colorScheme.primary),
                     lyricStyle: ls.lyricTextStyle,
                   ),
                 );
@@ -118,7 +119,7 @@ class ChordProView extends StatelessWidget {
           for (int i = 0; i < parsedSong.chordsMap.length; i++) {
             for (var chord in parsedSong.chordsMap[i]!) {
               rowChildren.add(
-                Text(tp.transposeChord(chord.name), style: ls.chordTextStyle),
+                Text(tp.transposeChord(chord.name), style: ls.getChordTextStyle(colorScheme.primary)),
               );
             }
           }
@@ -126,9 +127,15 @@ class ChordProView extends StatelessWidget {
         }
 
         return Column(
-          spacing: ls.lyricTextStyle.fontSize! * 0.9,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: sectionChildren,
+          children: [
+            if (parsedSong.linesMap.isNotEmpty && parsedSong.linesMap.values.every((line) => line.trim().isNotEmpty))
+              SizedBox(height: 8),
+            Column(
+              spacing: ls.lyricTextStyle.fontSize! * 0.9,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: sectionChildren,
+            ),
+          ],
         );
       },
     );

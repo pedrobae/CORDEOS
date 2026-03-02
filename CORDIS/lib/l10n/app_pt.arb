@@ -171,6 +171,19 @@
   "contentFilters": "Filtros de Conteúdo",
   "@contentFilters": {"description": "Title for content filters settings section"},
 
+  "autoScrollSettings": "Configurações de Rolagem Automática",
+  "@autoScrollSettings": {"description": "Title for auto-scroll settings section"},
+  "autoScroll": "Rolagem Automática",
+  "@autoScroll": {"description": "Auto-scroll toggle label"},
+  "autoScrollSpeed": "Velocidade de Rolagem Automática",
+  "@autoScrollSpeed": {"description": "Auto-scroll speed field label"},
+  "slow": "Lento",
+  "@slow": {"description": "Slow auto-scroll speed label"},
+  "normal": "Médio",
+  "@normal": {"description": "Normal auto-scroll speed label"},
+  "fast": "Rápido",
+  "@fast": {"description": "Fast auto-scroll speed label"},
+
 
   "unsavedChangesTitle": "Alterações Não Salvas",
   "@unsavedChangesTitle": {"description": "Title for unsaved changes warning"},

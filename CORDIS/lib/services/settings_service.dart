@@ -14,11 +14,17 @@ class SettingsService {
   static const String _keyFontFamily = 'layout_font_family';
   static const String _keyColumnCount = 'layout_column_count';
   static const String _keyShowSectionHeaders = 'layout_show_section_headers';
+
+  // Filter Settings Keys
   static const String _keyShowChords = 'layout_show_chords';
   static const String _keyShowLyrics = 'layout_show_lyrics';
   static const String _keyShowNotes = 'layout_show_notes';
   static const String _keyShowTransitions = 'layout_show_transitions';
   static const String _keyShowTextSections = 'layout_show_text_sections';
+
+  // Auto Scroll Settings Keys
+  static const String _keyAutoScrollEnabled = 'layout_auto_scroll_enabled';
+  static const String _keyAutoScrollSpeed = 'layout_auto_scroll_speed';
 
   // Notification Settings Keys
   static const String _keyNotificationsEnabled = 'notifications_enabled';
@@ -190,6 +196,29 @@ class SettingsService {
     return _preferences.getBool(_keyShowTextSections) ?? true;
   }
 
+
+  // === AUTO SCROLL SETTINGS ===
+  /// Save auto scroll enabled
+  static Future<void> setAutoScrollEnabled(bool enabled) async {
+    await _preferences.setBool(_keyAutoScrollEnabled, enabled);
+  }
+
+  /// Get auto scroll enabled
+  static bool getAutoScrollEnabled() {
+    return _preferences.getBool(_keyAutoScrollEnabled) ?? false;
+  }
+
+
+  /// Save auto scroll speed
+  static Future<void> setAutoScrollSpeed(double speed) async {
+    await _preferences.setDouble(_keyAutoScrollSpeed, speed);
+  }
+
+  /// Get auto scroll speed
+  static double getAutoScrollSpeed() {
+    return _preferences.getDouble(_keyAutoScrollSpeed) ?? 1.0;
+  }
+
   // === NOTIFICATION SETTINGS ===
 
   /// Save notifications enabled
@@ -213,27 +242,8 @@ class SettingsService {
   }
 
   // === UTILITY METHODS ===
-
   /// Clear all settings (useful for debugging)
   static Future<void> clearAllSettings() async {
     await _preferences.clear();
-  }
-
-  /// Export all settings (useful for debugging or backup)
-  static Map<String, dynamic> exportSettings() {
-    return {
-      'theme_mode': getThemeMode().name,
-      'locale': getLocale(),
-      'font_size': getFontSize(),
-      'font_family': getFontFamily(),
-      'column_count': getColumnCount(),
-      'show_section_headers': getShowSectionHeaders(),
-      'show_chords': getShowChords(),
-      'show_lyrics': getShowLyrics(),
-      'show_notes': getShowNotes(),
-      'show_transitions': getShowTransitions(),
-      'notifications_enabled': getNotificationsEnabled(),
-      'reminder_notifications': getReminderNotifications(),
-    };
   }
 }

@@ -536,6 +536,42 @@ abstract class AppLocalizations {
   /// **'Filtros de Conteúdo'**
   String get contentFilters;
 
+  /// Title for auto-scroll settings section
+  ///
+  /// In pt, this message translates to:
+  /// **'Configurações de Rolagem Automática'**
+  String get autoScrollSettings;
+
+  /// Auto-scroll toggle label
+  ///
+  /// In pt, this message translates to:
+  /// **'Rolagem Automática'**
+  String get autoScroll;
+
+  /// Auto-scroll speed field label
+  ///
+  /// In pt, this message translates to:
+  /// **'Velocidade de Rolagem Automática'**
+  String get autoScrollSpeed;
+
+  /// Slow auto-scroll speed label
+  ///
+  /// In pt, this message translates to:
+  /// **'Lento'**
+  String get slow;
+
+  /// Normal auto-scroll speed label
+  ///
+  /// In pt, this message translates to:
+  /// **'Médio'**
+  String get normal;
+
+  /// Fast auto-scroll speed label
+  ///
+  /// In pt, this message translates to:
+  /// **'Rápido'**
+  String get fast;
+
   /// Title for unsaved changes warning
   ///
   /// In pt, this message translates to:

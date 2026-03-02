@@ -242,6 +242,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get contentFilters => 'Content Filters';
 
   @override
+  String get autoScrollSettings => 'Auto-Scroll Settings';
+
+  @override
+  String get autoScroll => 'Auto-Scroll';
+
+  @override
+  String get autoScrollSpeed => 'Scroll Speed';
+
+  @override
+  String get slow => 'Slow';
+
+  @override
+  String get normal => 'Normal';
+
+  @override
+  String get fast => 'Fast';
+
+  @override
   String get unsavedChangesTitle => 'Unsaved Changes';
 
   @override

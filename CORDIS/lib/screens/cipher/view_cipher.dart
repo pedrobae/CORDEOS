@@ -355,7 +355,7 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
       case VersionType.local:
       case VersionType.playlist:
         if (widget.versionID != null) {
-          await sectionProvider.loadLocalSections(widget.versionID);
+          await sectionProvider.loadSectionsOfVersion(widget.versionID);
         }
         break;
       case VersionType.cloud:

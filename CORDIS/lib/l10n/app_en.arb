@@ -162,7 +162,19 @@
   "contentFilters": "Content Filters",
   "@contentFilters": {"description": "Title for content filters settings section"},
 
-  
+  "autoScrollSettings": "Auto-Scroll Settings",
+  "@autoScrollSettings": {"description": "Title for auto-scroll settings section"},
+  "autoScroll": "Auto-Scroll",
+  "@autoScroll": {"description": "Label for auto-scroll toggle setting"},
+  "autoScrollSpeed": "Scroll Speed",
+  "@autoScrollSpeed": {"description": "Label for auto-scroll speed setting"},
+  "slow": "Slow",
+  "@slow": {"description": "Label for slow auto-scroll speed"},
+  "normal": "Normal",
+  "@normal": {"description": "Label for normal auto-scroll speed"},
+  "fast": "Fast",
+  "@fast": {"description": "Label for fast auto-scroll speed"},
+
   "unsavedChangesTitle": "Unsaved Changes",
   "@unsavedChangesTitle": {"description": "Title for unsaved changes warning"},
   "unsavedChangesMessage": "Any changes you made will be lost. Are you sure you want to leave without saving?",

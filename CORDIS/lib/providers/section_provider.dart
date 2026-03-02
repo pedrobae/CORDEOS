@@ -107,7 +107,7 @@ class SectionProvider extends ChangeNotifier {
 
   // ====== READ =====
   /// Load sections for a given version from the database
-  Future<void> loadLocalSections(int versionId) async {
+  Future<void> loadSectionsOfVersion(int versionId) async {
     if (_isLoading) return;
 
     _isLoading = true;
