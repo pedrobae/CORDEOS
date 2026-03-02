@@ -2,6 +2,7 @@ import 'package:cordis/l10n/app_localizations.dart';
 import 'package:cordis/models/domain/cipher/version.dart';
 import 'package:cordis/providers/cipher/cipher_provider.dart';
 import 'package:cordis/providers/navigation_provider.dart';
+import 'package:cordis/providers/section_provider.dart';
 import 'package:cordis/providers/version/local_version_provider.dart';
 import 'package:cordis/screens/cipher/edit_cipher.dart';
 import 'package:cordis/widgets/ciphers/library/sheet_select_version.dart';
@@ -22,13 +23,14 @@ class CipherCardActionsSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer3<NavigationProvider, CipherProvider, LocalVersionProvider>(
+    return Consumer4<NavigationProvider, CipherProvider, LocalVersionProvider, SectionProvider>(
       builder:
           (
             context,
             navigationProvider,
             cipherProvider,
             versionProvider,
+            sectionProvider,
             child,
           ) {
             final textTheme = Theme.of(context).textTheme;
@@ -79,7 +81,9 @@ class CipherCardActionsSheet extends StatelessWidget {
                           versionID: versionProvider
                               .getIdOfOldestVersionOfCipher(cipherId),
                         ),
-                        interceptPop: true,
+                        changeDetector: () =>
+                            (versionProvider.hasUnsavedChanges ||
+                            cipherProvider.hasUnsavedChanges || sectionProvider.hasUnsavedChanges),
                         showBottomNavBar: true,
                       );
                     },

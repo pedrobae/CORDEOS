@@ -14,6 +14,8 @@ class LocalVersionProvider extends ChangeNotifier {
 
   String? _error;
 
+  bool _hasUnsavedChanges = false;
+
   // Getters
   Map<int, Version> get versions => _versions;
 
@@ -21,6 +23,8 @@ class LocalVersionProvider extends ChangeNotifier {
   bool get isSaving => _isSaving;
 
   String? get error => _error;
+
+  bool get hasUnsavedChanges => _hasUnsavedChanges;
 
   int get localVersionCount {
     if (_versions[-1] != null) {
@@ -131,6 +135,7 @@ class LocalVersionProvider extends ChangeNotifier {
       }
     } finally {
       _isSaving = false;
+      _hasUnsavedChanges = false;
       notifyListeners();
     }
     return versionId;
@@ -139,29 +144,8 @@ class LocalVersionProvider extends ChangeNotifier {
   /// Initialize cloud cache from domain object, with ID -1
   void setNewVersionInCache(Version version) {
     _versions[-1] = version;
+    _hasUnsavedChanges = true;
     notifyListeners();
-  }
-
-  /// Inserts a new version into the local database and cache
-  Future<int> insertVersion(Version version) async {
-    int versionId = -1;
-    if (_isSaving) return versionId;
-
-    _isSaving = true;
-    _error = null;
-    notifyListeners();
-
-    try {
-      versionId = await _repo.insertVersion(version);
-      _versions[versionId] = version.copyWith(id: versionId);
-      notifyListeners();
-    } catch (e) {
-      _error = e.toString();
-    } finally {
-      _isSaving = false;
-      notifyListeners();
-    }
-    return versionId;
   }
 
   // ===== READ =====
@@ -246,7 +230,7 @@ class LocalVersionProvider extends ChangeNotifier {
   }
 
   // ===== UPSERT =====
-  /// Upsert a version into local db (add or update)
+  /// Upsert a version into local db (used when download a version from the cloud)
   Future<int> upsertVersion(Version version) async {
     int versionId = -1;
     if (_isSaving) return versionId;
@@ -322,7 +306,7 @@ class LocalVersionProvider extends ChangeNotifier {
   }
 
   // Saves a new structure of a version (playlist reordering)
-  Future<void> saveUpdatedSongStructure(
+  Future<void> cacheSongStructure(
     int versionId,
     List<String> songStructure,
   ) async {
@@ -341,17 +325,14 @@ class LocalVersionProvider extends ChangeNotifier {
       _versions[versionId] = _versions[versionId]!.copyWith(
         songStructure: songStructure,
       );
-
-      if (kDebugMode) {
-        print('Updated the songStructure of version: $versionId');
-      }
     } catch (e) {
       _error = e.toString();
       if (kDebugMode) {
-        print('Error updating cipher version song structure: $e');
+        print('Error caching song structure: $e');
       }
     } finally {
       _isSaving = false;
+      _hasUnsavedChanges = true;
       notifyListeners();
     }
   }
@@ -372,6 +353,7 @@ class LocalVersionProvider extends ChangeNotifier {
       duration: duration,
       bpm: bpm,
     );
+    _hasUnsavedChanges = true;
     notifyListeners();
   }
 
@@ -381,6 +363,7 @@ class LocalVersionProvider extends ChangeNotifier {
 
     final item = _versions[versionId]!.songStructure.removeAt(oldIndex);
     _versions[versionId]!.songStructure.insert(newIndex, item);
+    _hasUnsavedChanges = true;
     notifyListeners();
     return;
   }
@@ -406,11 +389,6 @@ class LocalVersionProvider extends ChangeNotifier {
     }
   }
 
-  void clearVersionsOfCipher(int cipherId) {
-    _versions.removeWhere((id, version) => version.cipherId == cipherId);
-    notifyListeners();
-  }
-
   // ===== SAVE =====
   /// Persist the cache of an ID to the database
   Future<void> saveVersion(int versionID) async {
@@ -427,6 +405,7 @@ class LocalVersionProvider extends ChangeNotifier {
       debugPrint('Error updating cipher version: $e');
     } finally {
       _isSaving = false;
+      _hasUnsavedChanges = false;
       notifyListeners();
     }
   }
@@ -436,6 +415,7 @@ class LocalVersionProvider extends ChangeNotifier {
   // Add a new section
   void addSectionToStruct(int versionId, String contentCode) {
     _versions[versionId]!.songStructure.add(contentCode);
+    _hasUnsavedChanges = true;
     notifyListeners();
   }
 
@@ -454,7 +434,7 @@ class LocalVersionProvider extends ChangeNotifier {
         songStructure[i] = newCode;
       }
     }
-
+    _hasUnsavedChanges = true;
     notifyListeners();
   }
 
@@ -463,10 +443,13 @@ class LocalVersionProvider extends ChangeNotifier {
     _versions[versionId]!.songStructure.removeWhere(
       (code) => code == contentCode,
     );
+    _hasUnsavedChanges = true;
+    notifyListeners();
   }
 
   void clearCache() {
     _versions.clear();
+    _hasUnsavedChanges = false;
     notifyListeners();
   }
 }

@@ -51,7 +51,7 @@ class PlaylistCard extends StatelessWidget {
                     ? null
                     : navigationProvider.push(
                         ViewPlaylistScreen(playlistId: playlistId),
-                        interceptPop: true,
+                        changeDetector: () => context.read<PlaylistProvider>().hasUnsavedChanges,
                         showBottomNavBar: true,
                       );
               },
@@ -136,7 +136,7 @@ class PlaylistCard extends StatelessWidget {
                         onPressed: () {
                           navigationProvider.push(
                             ViewPlaylistScreen(playlistId: playlistId),
-                            interceptPop: true,
+                            changeDetector: () => context.read<PlaylistProvider>().hasUnsavedChanges,
                             showBottomNavBar: true,
                           );
                         },

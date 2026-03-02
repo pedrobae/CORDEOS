@@ -1,7 +1,12 @@
 import 'package:cordis/l10n/app_localizations.dart';
 import 'package:cordis/models/domain/cipher/version.dart';
+import 'package:cordis/providers/cipher/cipher_provider.dart';
 import 'package:cordis/providers/navigation_provider.dart';
+import 'package:cordis/providers/playlist/playlist_provider.dart';
+import 'package:cordis/providers/schedule/local_schedule_provider.dart';
+import 'package:cordis/providers/section_provider.dart';
 import 'package:cordis/providers/selection_provider.dart';
+import 'package:cordis/providers/version/local_version_provider.dart';
 import 'package:cordis/screens/cipher/edit_cipher.dart';
 import 'package:cordis/screens/playlist/edit_playlist.dart';
 import 'package:cordis/screens/schedule/create_new_schedule.dart';
@@ -61,7 +66,8 @@ class QuickActionSheet extends StatelessWidget {
                     route: NavigationRoute.playlists,
                   );
                   navigationProvider.push(
-                    interceptPop: true,
+                    changeDetector: () =>
+                        context.read<PlaylistProvider>().hasUnsavedChanges,
                     EditPlaylistScreen(),
                     showBottomNavBar: true,
                   );
@@ -85,7 +91,12 @@ class QuickActionSheet extends StatelessWidget {
                       versionID: -1,
                       versionType: VersionType.brandNew,
                     ),
-                    interceptPop: true,
+                    changeDetector: () =>
+                        (context.read<CipherProvider>().hasUnsavedChanges ||
+                        context
+                            .read<LocalVersionProvider>()
+                            .hasUnsavedChanges ||
+                        context.read<SectionProvider>().hasUnsavedChanges),
                     showBottomNavBar: true,
                   );
                 },
@@ -104,7 +115,7 @@ class QuickActionSheet extends StatelessWidget {
                   navigationProvider.push(
                     CreateScheduleScreen(creationStep: 1),
                     showBottomNavBar: true,
-                    interceptPop: true,
+                    changeDetector: () => context.read<LocalScheduleProvider>().hasUnsavedChanges,
                     onPopCallback: () {
                       selectionProvider.disableSelectionMode();
                     },

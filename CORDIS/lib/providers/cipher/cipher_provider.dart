@@ -18,7 +18,7 @@ class CipherProvider extends ChangeNotifier {
 
   bool _isLoading = false;
   bool _isSaving = false;
-  bool _hasLoaded = false;
+  bool _hasUnsavedChanges = false;
 
   String? _error;
 
@@ -45,6 +45,8 @@ class CipherProvider extends ChangeNotifier {
   bool get isSaving => _isSaving;
 
   String? get error => _error;
+
+  bool get hasUnsavedChanges => _hasUnsavedChanges;
 
   /// USED WHEN UPSERTING VERSIONS FROM CLOUD (as ciphers are not stored in cloud)
   int? getCipherIdByTitleOrAuthor(String title, String author) {
@@ -88,6 +90,7 @@ class CipherProvider extends ChangeNotifier {
       }
     } finally {
       _isSaving = false;
+      _hasUnsavedChanges = false;
       notifyListeners();
     }
     return cipherId;
@@ -95,13 +98,13 @@ class CipherProvider extends ChangeNotifier {
 
   void setNewCipherInCache(Cipher cipher) {
     _ciphers[-1] = cipher;
+    _hasUnsavedChanges = true;
     notifyListeners();
   }
 
   // ===== READ =====
   /// Load ciphers from local SQLite
   Future<void> loadCiphers({bool forceReload = false}) async {
-    if (_hasLoaded && !forceReload) return;
     if (_isLoading) return;
     // Debounce rapid calls
     _isLoading = true;
@@ -123,7 +126,6 @@ class CipherProvider extends ChangeNotifier {
       if (kDebugMode) {
         print('Loaded ${_ciphers.length} ciphers from SQLite');
       }
-      _hasLoaded = true;
     } catch (e) {
       _error = e.toString();
       if (kDebugMode) {
@@ -256,6 +258,7 @@ class CipherProvider extends ChangeNotifier {
         print('Error saving cipher: $e');
       }
     } finally {
+      _hasUnsavedChanges = false;
       _isSaving = false;
       notifyListeners();
     }
@@ -277,6 +280,7 @@ class CipherProvider extends ChangeNotifier {
       language: language,
       tags: tags,
     );
+    _hasUnsavedChanges = true;
     notifyListeners();
   }
 
@@ -285,6 +289,7 @@ class CipherProvider extends ChangeNotifier {
     if (!currentTags.contains(tag)) {
       final updatedTags = List<String>.from(currentTags)..add(tag);
       _ciphers[cipherId] = _ciphers[cipherId]!.copyWith(tags: updatedTags);
+      _hasUnsavedChanges = true;
       notifyListeners();
     }
   }
@@ -315,6 +320,7 @@ class CipherProvider extends ChangeNotifier {
 
   void clearNewCipherFromCache() {
     _ciphers.remove(-1);
+    _hasUnsavedChanges = false;
     notifyListeners();
   }
 
@@ -324,6 +330,7 @@ class CipherProvider extends ChangeNotifier {
     _ciphers.clear();
     _isLoading = false;
     _isSaving = false;
+    _hasUnsavedChanges = false;
     _error = null;
     _searchTerm = '';
     notifyListeners();

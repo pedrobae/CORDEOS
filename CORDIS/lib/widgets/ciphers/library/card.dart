@@ -6,6 +6,7 @@ import 'package:cordis/models/domain/cipher/version.dart';
 import 'package:cordis/providers/cipher/cipher_provider.dart';
 import 'package:cordis/providers/navigation_provider.dart';
 import 'package:cordis/providers/playlist/playlist_provider.dart';
+import 'package:cordis/providers/section_provider.dart';
 import 'package:cordis/providers/selection_provider.dart';
 import 'package:cordis/providers/version/local_version_provider.dart';
 import 'package:cordis/screens/cipher/edit_cipher.dart';
@@ -32,9 +33,10 @@ class _CipherCardState extends State<CipherCard> {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Consumer5<
+    return Consumer6<
       CipherProvider,
       LocalVersionProvider,
+      SectionProvider,
       SelectionProvider,
       PlaylistProvider,
       NavigationProvider
@@ -44,6 +46,7 @@ class _CipherCardState extends State<CipherCard> {
             context,
             cipherProvider,
             versionProvider,
+            sectionProvider,
             selectionProvider,
             playlistProvider,
             navigationProvider,
@@ -229,7 +232,10 @@ class _CipherCardState extends State<CipherCard> {
                               isEnabled: false,
                             ),
                             showBottomNavBar: true,
-                            interceptPop: true,
+                            changeDetector: () =>
+                                (versionProvider.hasUnsavedChanges ||
+                                sectionProvider.hasUnsavedChanges ||
+                                cipherProvider.hasUnsavedChanges),
                             onPopCallback: () {
                               selectionProvider.deselect(versionId);
                               selectionProvider.enableSelectionMode();
@@ -256,7 +262,10 @@ class _CipherCardState extends State<CipherCard> {
                               versionID: versionId,
                               versionType: VersionType.local,
                             ),
-                            interceptPop: true,
+                            changeDetector: () =>
+                                (versionProvider.hasUnsavedChanges ||
+                                sectionProvider.hasUnsavedChanges ||
+                                cipherProvider.hasUnsavedChanges),
                             showBottomNavBar: true,
                           );
                         }

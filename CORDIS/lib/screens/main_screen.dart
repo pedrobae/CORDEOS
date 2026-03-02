@@ -1,5 +1,7 @@
 import 'package:cordis/models/domain/cipher/version.dart';
 import 'package:cordis/providers/cipher/cipher_provider.dart';
+import 'package:cordis/providers/section_provider.dart';
+import 'package:cordis/providers/version/local_version_provider.dart';
 import 'package:cordis/screens/cipher/edit_cipher.dart';
 import 'package:cordis/screens/playlist/edit_playlist.dart';
 import 'package:cordis/widgets/ciphers/editor/sections/sheet_new_section.dart';
@@ -75,7 +77,11 @@ class MainScreenState extends State<MainScreen> {
                     ? SideMenu() //
                     : null,
                 bottomNavigationBar: navigationProvider.showBottomNavBar
-                    ? _buildBottomNavigationBar(colorScheme, textTheme, navigationProvider)
+                    ? _buildBottomNavigationBar(
+                        colorScheme,
+                        textTheme,
+                        navigationProvider,
+                      )
                     : null,
                 floatingActionButton: navigationProvider.showFAB
                     ? _buildFAB(colorScheme, navigationProvider, cipherProvider)
@@ -193,7 +199,10 @@ class MainScreenState extends State<MainScreen> {
                 cipherID: -1,
                 versionType: VersionType.brandNew,
               ),
-              interceptPop: true,
+              changeDetector: () =>
+                  cipherProvider.hasUnsavedChanges ||
+                  context.read<SectionProvider>().hasUnsavedChanges ||
+                  context.read<LocalVersionProvider>().hasUnsavedChanges,
               showBottomNavBar: true,
               onPopCallback: () => cipherProvider.clearNewCipherFromCache(),
             );
@@ -201,7 +210,8 @@ class MainScreenState extends State<MainScreen> {
           case NavigationRoute.playlists:
             navProvider.push(
               EditPlaylistScreen(),
-              interceptPop: true,
+              changeDetector: () =>
+                  context.read<LocalVersionProvider>().hasUnsavedChanges,
               showBottomNavBar: true,
             );
             break;

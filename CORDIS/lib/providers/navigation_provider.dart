@@ -16,7 +16,7 @@ class NavigationProvider extends ChangeNotifier {
   static final List<bool> _showDrawerIconStack = [];
   static final List<bool> _showBottomNavBarStack = [];
   static final List<bool> _showFABStack = [];
-  static final List<bool> _popInterceptorStack = [];
+  static final List<bool Function()> _changeDetectors = [];
 
   static final List<VoidCallback> _onPopCallbacks = [];
 
@@ -80,7 +80,10 @@ class NavigationProvider extends ChangeNotifier {
     BuildContext context, {
     NavigationRoute? route,
   }) async {
-    if (_popInterceptorStack.isNotEmpty && _popInterceptorStack.last) {
+    final hasChanges = _changeDetectors.isNotEmpty && 
+                       _changeDetectors.last.call();
+    
+    if (hasChanges) {
       // If the top of the pop interceptor stack is true, show the unsaved changes warning
       showDialog(
         context: context,
@@ -123,7 +126,7 @@ class NavigationProvider extends ChangeNotifier {
     _showDrawerIconStack.clear();
     _showBottomNavBarStack.clear();
     _showFABStack.clear();
-    _popInterceptorStack.clear();
+    _changeDetectors.clear();
 
     // Clear onPop callbacks
     while (_onPopCallbacks.isNotEmpty) {
@@ -142,7 +145,7 @@ class NavigationProvider extends ChangeNotifier {
     bool showBottomNavBar = false,
     bool showFAB = false,
     VoidCallback? onPopCallback,
-    bool interceptPop = false,
+    bool Function()? changeDetector,
   }) {
     _screenStack.add(screen);
     _showAppBarStack.add(showAppBar);
@@ -150,7 +153,7 @@ class NavigationProvider extends ChangeNotifier {
     _showBottomNavBarStack.add(showBottomNavBar);
     _showFABStack.add(showFAB);
     _onPopCallbacks.add(onPopCallback ?? () {});
-    _popInterceptorStack.add(interceptPop);
+    _changeDetectors.add(changeDetector ?? () => false);
     notifyListeners();
   }
 
@@ -166,7 +169,7 @@ class NavigationProvider extends ChangeNotifier {
     bool showBottomNavBar = false,
     bool showFAB = false,
     VoidCallback? onPopCallback,
-    bool interceptPop = false,
+    bool Function()? changeDetector,
   }) {
     if (_screenStack.isNotEmpty) {
       pop();
@@ -177,7 +180,7 @@ class NavigationProvider extends ChangeNotifier {
       showDrawerIcon: showDrawerIcon,
       showBottomNavBar: showBottomNavBar,
       onPopCallback: onPopCallback,
-      interceptPop: interceptPop,
+      changeDetector: changeDetector,
     );
   }
 
@@ -200,7 +203,7 @@ class NavigationProvider extends ChangeNotifier {
       _showDrawerIconStack.removeLast();
       _showBottomNavBarStack.removeLast();
       _showFABStack.removeLast();
-      _popInterceptorStack.removeLast();
+      _changeDetectors.removeLast();
       notifyListeners();
       return;
     }

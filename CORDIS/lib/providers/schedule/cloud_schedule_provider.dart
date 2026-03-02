@@ -18,6 +18,7 @@ class CloudScheduleProvider extends ChangeNotifier {
 
   bool _isLoading = false;
   bool _isSaving = false;
+
   final Map<String, bool> _isSyncing = {};
 
   // ===== GETTERS =====
@@ -27,6 +28,7 @@ class CloudScheduleProvider extends ChangeNotifier {
 
   bool get isLoading => _isLoading;
   bool get isSaving => _isSaving;
+
   Map<String, bool> get syncingStatus => _isSyncing;
 
   List<String> get filteredScheduleIds {

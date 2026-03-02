@@ -6,6 +6,7 @@ import 'package:cordis/models/domain/schedule.dart';
 import 'package:cordis/models/dtos/schedule_dto.dart';
 import 'package:cordis/models/dtos/version_dto.dart';
 import 'package:cordis/providers/cipher/cipher_provider.dart';
+import 'package:cordis/providers/section_provider.dart';
 import 'package:cordis/providers/user/my_auth_provider.dart';
 import 'package:cordis/providers/navigation_provider.dart';
 import 'package:cordis/providers/playlist/flow_item_provider.dart';
@@ -298,7 +299,8 @@ class _ViewScheduleScreenState extends State<ViewScheduleScreen> {
                                       mode: EditScheduleMode.details,
                                       scheduleId: widget.scheduleId,
                                     ),
-                                    interceptPop: true,
+                                    changeDetector: () =>
+                                        localScheduleProvider.hasUnsavedChanges,
                                     showBottomNavBar: true,
                                   );
                                 },
@@ -379,7 +381,8 @@ class _ViewScheduleScreenState extends State<ViewScheduleScreen> {
                                     ViewPlaylistScreen(
                                       playlistId: playlist!.id,
                                     ),
-                                    interceptPop: true,
+                                    changeDetector: () =>
+                                        playlistProvider.hasUnsavedChanges,
                                     showBottomNavBar: true,
                                   );
                                 },
@@ -445,7 +448,11 @@ class _ViewScheduleScreenState extends State<ViewScheduleScreen> {
                                       mode: EditScheduleMode.roleMember,
                                       scheduleId: widget.scheduleId,
                                     ),
-                                    interceptPop: true,
+                                    changeDetector: () =>
+                                        (localScheduleProvider
+                                            .hasUnsavedChanges ||
+                                        context.read<SectionProvider>().hasUnsavedChanges ||
+                                        context.read<CipherProvider>().hasUnsavedChanges),
                                     showBottomNavBar: true,
                                   );
                                 },

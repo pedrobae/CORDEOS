@@ -2,6 +2,7 @@ import 'package:cordis/models/domain/cipher/version.dart';
 import 'package:cordis/l10n/app_localizations.dart';
 import 'package:cordis/providers/navigation_provider.dart';
 import 'package:cordis/providers/version/cloud_version_provider.dart';
+import 'package:cordis/providers/version/local_version_provider.dart';
 import 'package:cordis/screens/cipher/edit_cipher.dart';
 import 'package:cordis/screens/cipher/view_cipher.dart';
 import 'package:cordis/utils/date_utils.dart';
@@ -22,10 +23,11 @@ class CloudCipherCard extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Consumer3<
+    return Consumer4<
       SelectionProvider,
       NavigationProvider,
-      CloudVersionProvider
+      CloudVersionProvider,
+      LocalVersionProvider
     >(
       builder:
           (
@@ -33,6 +35,7 @@ class CloudCipherCard extends StatelessWidget {
             selectionProvider,
             navigationProvider,
             cloudVersionProvider,
+            localVersionProvider,
             child,
           ) {
             final version = cloudVersionProvider.getVersion(versionId)!;
@@ -130,7 +133,9 @@ class CloudCipherCard extends StatelessWidget {
                             isEnabled: false,
                             versionID: versionId,
                           ),
-                          interceptPop: true,
+                          changeDetector: () {
+                            return localVersionProvider.hasUnsavedChanges;
+                          },
                           showBottomNavBar: true,
                         );
                       } else {

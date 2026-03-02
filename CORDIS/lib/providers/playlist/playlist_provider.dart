@@ -14,11 +14,13 @@ class PlaylistProvider extends ChangeNotifier {
   bool _isLoading = false;
   bool _isSaving = false;
   bool _isDeleting = false;
+  bool _hasUnsavedChanges = false;
 
   String? _error;
 
   // Getters
   Map<int, Playlist> get playlists => _playlists;
+  bool get hasUnsavedChanges => _hasUnsavedChanges;
   List<int> get filteredPlaylists {
     if (_searchTerm.isEmpty) {
       return _playlists.keys.toList();
@@ -66,11 +68,13 @@ class PlaylistProvider extends ChangeNotifier {
       _error = e.toString();
     } finally {
       _isSaving = false;
+      _hasUnsavedChanges = false;
       notifyListeners();
     }
   }
 
-  // Create a new playlist from the Domain model
+  /// Create a new playlist from the Domain model
+  /// Used when duplicating a Schedule or Playlist
   Future<int> createPlaylistFromDomain(Playlist playlist) async {
     int playlistId;
     try {
@@ -95,6 +99,7 @@ class PlaylistProvider extends ChangeNotifier {
 
   void setPlaylist(Playlist playlist) {
     _playlists[playlist.id] = playlist;
+    _hasUnsavedChanges = true;
     notifyListeners();
   }
 
@@ -164,6 +169,7 @@ class PlaylistProvider extends ChangeNotifier {
       _error = e.toString();
     } finally {
       _isSaving = false;
+      _hasUnsavedChanges = false;
       notifyListeners();
     }
   }
@@ -212,6 +218,7 @@ class PlaylistProvider extends ChangeNotifier {
       _error = e.toString();
     } finally {
       _isSaving = false;
+      _hasUnsavedChanges = false;
       notifyListeners();
     }
   }
@@ -246,6 +253,7 @@ class PlaylistProvider extends ChangeNotifier {
         position: playlist.items.length,
       );
       playlist.items.add(newItem);
+      _hasUnsavedChanges = true;
       notifyListeners();
     }
   }
@@ -257,6 +265,7 @@ class PlaylistProvider extends ChangeNotifier {
       if (oldPosition < items.length && newPosition < items.length) {
         final item = items.removeAt(oldPosition);
         items.insert(newPosition, item);
+        _hasUnsavedChanges = true;
         notifyListeners();
       }
     }
@@ -270,6 +279,7 @@ class PlaylistProvider extends ChangeNotifier {
         position: playlist.items.length,
       );
       playlist.items.add(newItem);
+      _hasUnsavedChanges = true;
       notifyListeners();
     }
   }
@@ -278,6 +288,7 @@ class PlaylistProvider extends ChangeNotifier {
     final playlist = _playlists[playlistID];
     if (playlist != null) {
       playlist.items.removeWhere((item) => item.id == itemID);
+      _hasUnsavedChanges = true;
       notifyListeners();
     }
   }
@@ -289,6 +300,7 @@ class PlaylistProvider extends ChangeNotifier {
     _isLoading = false;
     _isSaving = false;
     _isDeleting = false;
+    _hasUnsavedChanges = false;
     notifyListeners();
   }
 

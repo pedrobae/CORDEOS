@@ -1,8 +1,11 @@
 import 'package:cordis/l10n/app_localizations.dart';
 import 'package:cordis/models/domain/cipher/version.dart';
 import 'package:cordis/models/domain/parsing_cipher.dart';
+import 'package:cordis/providers/cipher/cipher_provider.dart';
 import 'package:cordis/providers/navigation_provider.dart';
 import 'package:cordis/providers/cipher/parser_provider.dart';
+import 'package:cordis/providers/section_provider.dart';
+import 'package:cordis/providers/version/local_version_provider.dart';
 import 'package:cordis/screens/cipher/edit_cipher.dart';
 import 'package:cordis/widgets/common/filled_text_button.dart';
 import 'package:flutter/material.dart';
@@ -26,7 +29,9 @@ class _ImportTextScreenState extends State<ImportTextScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ImportProvider>().setImportType(ImportType.text);
-      context.read<ImportProvider>().setParsingStrategy(ParsingStrategy.doubleNewLine);
+      context.read<ImportProvider>().setParsingStrategy(
+        ParsingStrategy.doubleNewLine,
+      );
     });
   }
 
@@ -41,9 +46,25 @@ class _ImportTextScreenState extends State<ImportTextScreen> {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Consumer3<ImportProvider, NavigationProvider, ParserProvider>(
+    return Consumer6<
+      ImportProvider,
+      NavigationProvider,
+      ParserProvider,
+      LocalVersionProvider,
+      CipherProvider,
+      SectionProvider
+    >(
       builder:
-          (context, importProvider, navigationProvider, parserProvider, child) {
+          (
+            context,
+            importProvider,
+            navigationProvider,
+            parserProvider,
+            localVersionProvider,
+            cipherProvider,
+            sectionProvider,
+            child,
+          ) {
             return Scaffold(
               appBar: AppBar(
                 title: Text(AppLocalizations.of(context)!.importFromText),
@@ -115,6 +136,7 @@ class _ImportTextScreenState extends State<ImportTextScreen> {
                                 ),
                               ),
                             ),
+
                             /// Parsing method switch
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -124,35 +146,49 @@ class _ImportTextScreenState extends State<ImportTextScreen> {
                                   style: textTheme.titleMedium,
                                 ),
                                 Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  AppLocalizations.of(context)!.doubleNewLine,
-                                  style: textTheme.labelLarge,
-                                  textAlign: TextAlign.center,
-                                ),
-                                Switch(
-                                  inactiveTrackColor: colorScheme.primary,
-                                  inactiveThumbColor: colorScheme.surface,
-                                  trackOutlineColor: WidgetStatePropertyAll<Color>(colorScheme.primary),
-                                  thumbIcon: WidgetStatePropertyAll<Icon>(Icon(Icons.circle)),
-                                  value: importProvider.parsingStrategy == ParsingStrategy.sectionLabels, 
-                                  onChanged: (value) {
-                                    importProvider.setParsingStrategy(
-                                      value ? ParsingStrategy.sectionLabels : ParsingStrategy.doubleNewLine,
-                                    );
-                                  }
-                                ),
-                                Text(
-                                  AppLocalizations.of(context)!.sectionLabels,
-                                  style: textTheme.labelLarge,
-                                  textAlign: TextAlign.center,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      AppLocalizations.of(
+                                        context,
+                                      )!.doubleNewLine,
+                                      style: textTheme.labelLarge,
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    Switch(
+                                      inactiveTrackColor: colorScheme.primary,
+                                      inactiveThumbColor: colorScheme.surface,
+                                      trackOutlineColor:
+                                          WidgetStatePropertyAll<Color>(
+                                            colorScheme.primary,
+                                          ),
+                                      thumbIcon: WidgetStatePropertyAll<Icon>(
+                                        Icon(Icons.circle),
+                                      ),
+                                      value:
+                                          importProvider.parsingStrategy ==
+                                          ParsingStrategy.sectionLabels,
+                                      onChanged: (value) {
+                                        importProvider.setParsingStrategy(
+                                          value
+                                              ? ParsingStrategy.sectionLabels
+                                              : ParsingStrategy.doubleNewLine,
+                                        );
+                                      },
+                                    ),
+                                    Text(
+                                      AppLocalizations.of(
+                                        context,
+                                      )!.sectionLabels,
+                                      style: textTheme.labelLarge,
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
-                              ],
-                            ),
-                            
+
                             FilledTextButton(
                               text: AppLocalizations.of(context)!.import,
                               isDark: true,
@@ -173,7 +209,12 @@ class _ImportTextScreenState extends State<ImportTextScreen> {
                                       versionID: -1,
                                       cipherID: -1,
                                     ),
-                                    interceptPop: true,
+                                    changeDetector: () {
+                                      return cipherProvider.hasUnsavedChanges ||
+                                          localVersionProvider
+                                              .hasUnsavedChanges ||
+                                          sectionProvider.hasUnsavedChanges;
+                                    },
                                     showBottomNavBar: true,
                                   );
                                 }

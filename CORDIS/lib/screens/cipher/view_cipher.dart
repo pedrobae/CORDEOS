@@ -214,7 +214,13 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
                           versionID: widget.versionID,
                           versionType: widget.versionType,
                         ),
-                        interceptPop: true,
+                        changeDetector: () {
+                          return widget.versionID is String
+                              ? false
+                              : (lvp.hasUnsavedChanges ||
+                                    cp.hasUnsavedChanges ||
+                                    sp.hasUnsavedChanges);
+                        },
                         showBottomNavBar: true,
                       );
                     },

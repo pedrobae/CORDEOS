@@ -14,10 +14,14 @@ class SectionProvider extends ChangeNotifier {
       {}; // versionId -> (sectionCode -> Section) -1 versionId for new/importing versions
   bool _isLoading = false;
   bool _isSaving = false;
+  bool _hasUnsavedChanges = false;
+
   String? _error;
 
   bool get isLoading => _isLoading;
   bool get isSaving => _isSaving;
+  bool get hasUnsavedChanges => _hasUnsavedChanges;
+
   String? get error => _error;
 
   Map<String, Section> getSections(dynamic versionKey) {
@@ -57,6 +61,7 @@ class SectionProvider extends ChangeNotifier {
 
     _sections[newSection.versionId] ??= {};
     _sections[newSection.versionId]![newSection.contentCode] = newSection;
+    _hasUnsavedChanges = true;
     notifyListeners();
     return newSection.contentCode;
   }
@@ -67,6 +72,7 @@ class SectionProvider extends ChangeNotifier {
     Map<String, Section> sections,
   ) {
     _sections[versionKey] = sections;
+    _hasUnsavedChanges = true;
     notifyListeners();
   }
 
@@ -81,6 +87,7 @@ class SectionProvider extends ChangeNotifier {
       final newSection = originalSection.copyWith(versionId: -1);
       _sections[-1]![newSection.contentCode] = newSection;
     }
+    _hasUnsavedChanges = true;
 
     notifyListeners();
   }
@@ -94,6 +101,7 @@ class SectionProvider extends ChangeNotifier {
       );
     }
     _sections.remove(-1);
+    _hasUnsavedChanges = false;
     notifyListeners();
   }
 
@@ -154,6 +162,7 @@ class SectionProvider extends ChangeNotifier {
       section.contentText = newContentText ?? section.contentText;
       section.contentColor = newColor ?? section.contentColor;
     }
+    _hasUnsavedChanges = true;
     notifyListeners();
     return newCode;
   }
@@ -170,6 +179,7 @@ class SectionProvider extends ChangeNotifier {
     _sections[versionID]!.remove(oldCode);
     _sections[versionID]![newCode] = section;
 
+    _hasUnsavedChanges = true;
     notifyListeners();
   }
 
@@ -177,6 +187,7 @@ class SectionProvider extends ChangeNotifier {
   // Remove all sections by its code
   void cacheDeleteSection(dynamic versionKey, String sectionCode) {
     _sections[versionKey]!.remove(sectionCode);
+    _hasUnsavedChanges = true;
     notifyListeners();
   }
 
@@ -207,6 +218,7 @@ class SectionProvider extends ChangeNotifier {
       }
     } finally {
       _isSaving = false;
+      _hasUnsavedChanges = false;
       notifyListeners();
     }
   }
@@ -258,6 +270,7 @@ class SectionProvider extends ChangeNotifier {
       debugPrint(
         'Section with code $newBaseCode already exists in version $versionID.',
       );
+      _hasUnsavedChanges = true;
       return '$newBaseCode${matchingCodes.length + 1}'; // New section gets the next available suffix
     }
     return newBaseCode; // No conflicts, return just the base code

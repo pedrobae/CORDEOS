@@ -77,7 +77,7 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard> {
     updatedStructure.insert(newIndex, item);
 
     // Persist to database
-    context.read<LocalVersionProvider>().saveUpdatedSongStructure(
+    context.read<LocalVersionProvider>().cacheSongStructure(
       widget.versionId,
       updatedStructure,
     );

@@ -1,8 +1,10 @@
 import 'package:cordis/l10n/app_localizations.dart';
 import 'package:cordis/models/domain/cipher/version.dart';
 import 'package:cordis/models/domain/parsing_cipher.dart';
+import 'package:cordis/providers/cipher/cipher_provider.dart';
 import 'package:cordis/providers/navigation_provider.dart';
 import 'package:cordis/providers/cipher/parser_provider.dart';
+import 'package:cordis/providers/version/local_version_provider.dart';
 import 'package:cordis/screens/cipher/edit_cipher.dart';
 import 'package:cordis/widgets/common/filled_text_button.dart';
 import 'package:file_picker/file_picker.dart';
@@ -64,9 +66,23 @@ class _ImportPdfScreenState extends State<ImportPdfScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer3<ImportProvider, ParserProvider, NavigationProvider>(
+    return Consumer5<
+      ImportProvider,
+      ParserProvider,
+      NavigationProvider,
+      LocalVersionProvider,
+      CipherProvider
+    >(
       builder:
-          (context, importProvider, parserProvider, navigationProvider, child) {
+          (
+            context,
+            importProvider,
+            parserProvider,
+            navigationProvider,
+            localVersionProvider,
+            cipherProvider,
+            child,
+          ) {
             final textTheme = Theme.of(context).textTheme;
             final colorScheme = Theme.of(context).colorScheme;
 
@@ -176,10 +192,14 @@ class _ImportPdfScreenState extends State<ImportPdfScreen> {
                           style: textTheme.titleMedium,
                         ),
                         Switch(
-                          value: importProvider.importVariation == ImportVariation.pdfWithColumns,
+                          value:
+                              importProvider.importVariation ==
+                              ImportVariation.pdfWithColumns,
                           onChanged: (value) {
                             importProvider.setImportVariation(
-                              value ? ImportVariation.pdfWithColumns : ImportVariation.pdfNoColumns,
+                              value
+                                  ? ImportVariation.pdfWithColumns
+                                  : ImportVariation.pdfNoColumns,
                             );
                           },
                         ),
@@ -272,7 +292,10 @@ class _ImportPdfScreenState extends State<ImportPdfScreen> {
                                   versionType: VersionType.import,
                                   versionID: -1,
                                 ),
-                                interceptPop: true,
+                                changeDetector: () {
+                                  return localVersionProvider.hasUnsavedChanges ||
+                                         cipherProvider.hasUnsavedChanges;
+                                },
                                 showBottomNavBar: true,
                               );
                             },

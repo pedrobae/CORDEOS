@@ -17,6 +17,7 @@ class LocalScheduleProvider extends ChangeNotifier {
 
   bool _isLoading = false;
   bool _isSaving = false;
+  bool _hasUnsavedChanges = false;
 
   String? _error;
 
@@ -25,6 +26,7 @@ class LocalScheduleProvider extends ChangeNotifier {
 
   bool get isLoading => _isLoading;
   bool get isSaving => _isSaving;
+  bool get hasUnsavedChanges => _hasUnsavedChanges;
 
   String? get error => _error;
 
@@ -125,6 +127,8 @@ class LocalScheduleProvider extends ChangeNotifier {
       roles: [],
       shareCode: generateShareCode(),
     );
+    _hasUnsavedChanges = true;
+    notifyListeners();
   }
 
   Future<bool> createFromCache(String ownerFirebaseId) async {
@@ -141,6 +145,8 @@ class LocalScheduleProvider extends ChangeNotifier {
         schedule.copyWith(ownerFirebaseId: ownerFirebaseId),
       );
       _schedules.remove(-1);
+      _hasUnsavedChanges = false;
+      notifyListeners();
 
       await loadSchedule(localId);
     } catch (e) {
@@ -203,7 +209,10 @@ class LocalScheduleProvider extends ChangeNotifier {
   }
 
   /// Uploads changes of a local schedule to the cloud.
-  Future<void> uploadScheduleToCloud(int scheduleId, String ownerFirebaseId) async {
+  Future<void> uploadScheduleToCloud(
+    int scheduleId,
+    String ownerFirebaseId,
+  ) async {
     final schedule = _schedules[scheduleId];
     if (schedule == null) return;
 
@@ -265,6 +274,8 @@ class LocalScheduleProvider extends ChangeNotifier {
     final newRole = Role(id: -1, name: roleName, users: []);
     (_schedules[scheduleId] as Schedule).roles.add(newRole);
 
+    _hasUnsavedChanges = true;
+
     notifyListeners();
   }
 
@@ -274,6 +285,8 @@ class LocalScheduleProvider extends ChangeNotifier {
 
     final role = schedule.roles.firstWhere((role) => role.name == oldName);
     role.name = newName;
+
+    _hasUnsavedChanges = true;
 
     notifyListeners();
   }
@@ -285,6 +298,8 @@ class LocalScheduleProvider extends ChangeNotifier {
     _schedules[scheduleId] = (_schedules[scheduleId] as Schedule).copyWith(
       playlistId: playlistId,
     );
+
+    _hasUnsavedChanges = true;
 
     notifyListeners();
   }
@@ -326,6 +341,8 @@ class LocalScheduleProvider extends ChangeNotifier {
       annotations: annotations,
     );
 
+    _hasUnsavedChanges = true;
+
     notifyListeners();
   }
 
@@ -343,6 +360,7 @@ class LocalScheduleProvider extends ChangeNotifier {
       _error = e.toString();
     } finally {
       _isSaving = false;
+      _hasUnsavedChanges = false;
       notifyListeners();
     }
   }
@@ -356,6 +374,9 @@ class LocalScheduleProvider extends ChangeNotifier {
     final role = schedule.roles.firstWhere((role) => role.id == roleId);
 
     role.users.add(user);
+
+    _hasUnsavedChanges = true;
+
     notifyListeners();
   }
 
@@ -366,6 +387,9 @@ class LocalScheduleProvider extends ChangeNotifier {
     final role = schedule.roles.firstWhere((role) => role.id == roleId);
 
     role.users.removeWhere((user) => user.id == userId);
+
+    _hasUnsavedChanges = true;
+
     notifyListeners();
   }
 
@@ -376,6 +400,9 @@ class LocalScheduleProvider extends ChangeNotifier {
     final role = schedule.roles.firstWhere((role) => role.id == roleId);
 
     role.users.clear();
+
+    _hasUnsavedChanges = true;
+
     notifyListeners();
   }
 
@@ -398,6 +425,7 @@ class LocalScheduleProvider extends ChangeNotifier {
       _error = e.toString();
     } finally {
       _isLoading = false;
+      _hasUnsavedChanges = false;
       notifyListeners();
     }
   }
@@ -417,6 +445,7 @@ class LocalScheduleProvider extends ChangeNotifier {
       _error = e.toString();
     } finally {
       _isLoading = false;
+      _hasUnsavedChanges = false;
       notifyListeners();
     }
   }

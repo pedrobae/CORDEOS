@@ -1,5 +1,6 @@
 import 'package:cordis/l10n/app_localizations.dart';
 import 'package:cordis/providers/navigation_provider.dart';
+import 'package:cordis/providers/schedule/local_schedule_provider.dart';
 import 'package:cordis/providers/selection_provider.dart';
 import 'package:cordis/screens/schedule/create_new_schedule.dart';
 import 'package:cordis/screens/user/share_code_screen.dart';
@@ -61,7 +62,7 @@ class ScheduleActionsSheet extends StatelessWidget {
                       navigationProvider.push(
                         CreateScheduleScreen(creationStep: 1),
                         showBottomNavBar: true,
-                        interceptPop: true,
+                        changeDetector: () => context.read<LocalScheduleProvider>().hasUnsavedChanges,
                         onPopCallback: () {
                           selectionProvider.disableSelectionMode();
                         },
