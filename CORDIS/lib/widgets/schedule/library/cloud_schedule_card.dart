@@ -3,11 +3,11 @@ import 'package:cordis/screens/schedule/play_schedule.dart';
 import 'package:cordis/widgets/schedule/status_chip.dart';
 
 import 'package:provider/provider.dart';
-import 'package:cordis/providers/my_auth_provider.dart';
+import 'package:cordis/providers/user/my_auth_provider.dart';
 import 'package:cordis/providers/navigation_provider.dart';
 import 'package:cordis/providers/playlist/playlist_provider.dart';
 import 'package:cordis/providers/schedule/cloud_schedule_provider.dart';
-import 'package:cordis/providers/user_provider.dart';
+import 'package:cordis/providers/user/user_provider.dart';
 
 import 'package:cordis/utils/date_utils.dart';
 

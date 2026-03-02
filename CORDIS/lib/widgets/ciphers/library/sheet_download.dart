@@ -3,8 +3,6 @@ import 'package:cordis/l10n/app_localizations.dart';
 import 'package:cordis/models/domain/cipher/cipher.dart';
 
 import 'package:provider/provider.dart';
-import 'package:cordis/providers/my_auth_provider.dart';
-import 'package:cordis/providers/user_provider.dart';
 import 'package:cordis/providers/cipher/cipher_provider.dart';
 import 'package:cordis/providers/version/cloud_version_provider.dart';
 import 'package:cordis/providers/version/local_version_provider.dart';
@@ -50,12 +48,10 @@ class _DownloadVersionSheetState extends State<DownloadVersionSheet> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return Consumer5<
+    return Consumer3<
       CipherProvider,
       LocalVersionProvider,
-      CloudVersionProvider,
-      UserProvider,
-      MyAuthProvider
+      CloudVersionProvider
     >(
       builder:
           (
@@ -63,8 +59,6 @@ class _DownloadVersionSheetState extends State<DownloadVersionSheet> {
             cipherProvider,
             localVersionProvider,
             cloudVersionProvider,
-            userProvider,
-            authProvider,
             child,
           ) {
             return Container(

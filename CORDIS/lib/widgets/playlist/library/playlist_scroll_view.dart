@@ -1,7 +1,5 @@
 import 'package:cordis/l10n/app_localizations.dart';
-import 'package:cordis/providers/my_auth_provider.dart';
 import 'package:cordis/providers/playlist/playlist_provider.dart';
-import 'package:cordis/providers/user_provider.dart';
 import 'package:cordis/widgets/playlist/library/playlist_card.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -18,9 +16,9 @@ class _PlaylistScrollViewState extends State<PlaylistScrollView> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Consumer3<PlaylistProvider, MyAuthProvider, UserProvider>(
+    return Consumer<PlaylistProvider>(
       builder:
-          (context, playlistProvider, myAuthProvider, userProvider, child) {
+          (context, playlistProvider, child) {
             // Handle loading state
             if (playlistProvider.isLoading) {
               return const Center(child: CircularProgressIndicator());

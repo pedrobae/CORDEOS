@@ -1,15 +1,20 @@
 import 'dart:io';
 
 import 'package:cordis/l10n/app_localizations.dart';
-import 'package:cordis/providers/user_provider.dart';
+
 import 'package:cordis/routes/app_routes.dart';
+
 import 'package:cordis/screens/user/password_reset_screen.dart';
 import 'package:cordis/screens/user/register_screen.dart';
 import 'package:cordis/screens/user/share_code_screen.dart';
+
 import 'package:cordis/widgets/common/filled_text_button.dart';
 import 'package:cordis/widgets/common/labeled_text_field.dart';
+
+import 'package:cordis/providers/user/my_auth_provider.dart';
+import 'package:cordis/providers/user/user_provider.dart';
+
 import 'package:flutter/material.dart';
-import 'package:cordis/providers/my_auth_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 

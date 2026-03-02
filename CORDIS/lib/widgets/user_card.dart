@@ -1,4 +1,4 @@
-import 'package:cordis/providers/my_auth_provider.dart';
+import 'package:cordis/providers/user/my_auth_provider.dart';
 import 'package:cordis/providers/navigation_provider.dart';
 import 'package:cordis/screens/user/profile_screen.dart';
 import 'package:flutter/material.dart';

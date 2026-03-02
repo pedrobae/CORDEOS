@@ -24,8 +24,10 @@ class _ImportTextScreenState extends State<ImportTextScreen> {
   @override
   void initState() {
     super.initState();
-
-    context.read<ImportProvider>().setImportType(ImportType.text);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ImportProvider>().setImportType(ImportType.text);
+      context.read<ImportProvider>().setParsingStrategy(ParsingStrategy.doubleNewLine);
+    });
   }
 
   @override
@@ -130,13 +132,14 @@ class _ImportTextScreenState extends State<ImportTextScreen> {
                                   textAlign: TextAlign.center,
                                 ),
                                 Switch(
-                                  trackOutlineColor: WidgetStateColor.resolveWith(
-                                    (states) => colorScheme.primary,
-                                  ),
-                                  value: importProvider.parsingStrategy == ParsingStrategy.doubleNewLine, 
+                                  inactiveTrackColor: colorScheme.primary,
+                                  inactiveThumbColor: colorScheme.surface,
+                                  trackOutlineColor: WidgetStatePropertyAll<Color>(colorScheme.primary),
+                                  thumbIcon: WidgetStatePropertyAll<Icon>(Icon(Icons.circle)),
+                                  value: importProvider.parsingStrategy == ParsingStrategy.sectionLabels, 
                                   onChanged: (value) {
                                     importProvider.setParsingStrategy(
-                                      value ? ParsingStrategy.doubleNewLine : ParsingStrategy.sectionLabels,
+                                      value ? ParsingStrategy.sectionLabels : ParsingStrategy.doubleNewLine,
                                     );
                                   }
                                 ),
@@ -153,6 +156,7 @@ class _ImportTextScreenState extends State<ImportTextScreen> {
                             FilledTextButton(
                               text: AppLocalizations.of(context)!.import,
                               isDark: true,
+                              isDisabled: _importTextController.text.isEmpty,
                               onPressed: () async {
                                 final text = _importTextController.text;
                                 if (text.isNotEmpty) {

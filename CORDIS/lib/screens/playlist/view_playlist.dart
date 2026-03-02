@@ -3,7 +3,7 @@ import 'package:cordis/l10n/app_localizations.dart';
 import 'package:cordis/models/domain/playlist/playlist.dart';
 import 'package:cordis/models/domain/playlist/playlist_item.dart';
 import 'package:cordis/models/domain/schedule.dart';
-import 'package:cordis/providers/my_auth_provider.dart';
+import 'package:cordis/providers/user/my_auth_provider.dart';
 import 'package:cordis/providers/navigation_provider.dart';
 
 import 'package:cordis/providers/playlist/flow_item_provider.dart';

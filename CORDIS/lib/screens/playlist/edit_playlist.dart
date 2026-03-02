@@ -1,8 +1,8 @@
 import 'package:cordis/l10n/app_localizations.dart';
-import 'package:cordis/providers/my_auth_provider.dart';
+import 'package:cordis/providers/user/my_auth_provider.dart';
 import 'package:cordis/providers/navigation_provider.dart';
 import 'package:cordis/providers/playlist/playlist_provider.dart';
-import 'package:cordis/providers/user_provider.dart';
+import 'package:cordis/providers/user/user_provider.dart';
 import 'package:cordis/widgets/common/filled_text_button.dart';
 import 'package:cordis/widgets/common/labeled_text_field.dart';
 import 'package:flutter/material.dart';

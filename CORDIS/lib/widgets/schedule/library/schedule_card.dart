@@ -1,9 +1,9 @@
 import 'package:cordis/l10n/app_localizations.dart';
-import 'package:cordis/providers/my_auth_provider.dart';
+import 'package:cordis/providers/user/my_auth_provider.dart';
 import 'package:cordis/providers/navigation_provider.dart';
 import 'package:cordis/providers/playlist/playlist_provider.dart';
 import 'package:cordis/providers/schedule/local_schedule_provider.dart';
-import 'package:cordis/providers/user_provider.dart';
+import 'package:cordis/providers/user/user_provider.dart';
 import 'package:cordis/screens/schedule/view_schedule.dart';
 import 'package:cordis/utils/date_utils.dart';
 import 'package:cordis/widgets/common/delete_confirmation.dart';
