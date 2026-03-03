@@ -1,3 +1,7 @@
+# Secrets - config folder in lib
+lib/config/
+
+
 # Miscellaneous
 *.class
 *.log
