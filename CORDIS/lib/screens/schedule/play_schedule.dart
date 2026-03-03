@@ -332,7 +332,6 @@ class PlayScheduleScreenState extends State<PlayScheduleScreen>
                                       stateProvider.setShowSettings(false);
                                       showModalBottomSheet(
                                         context: context,
-                                        barrierColor: Colors.transparent,
                                         builder: (context) {
                                           return BottomSheet(
                                             onClosing: () {},
