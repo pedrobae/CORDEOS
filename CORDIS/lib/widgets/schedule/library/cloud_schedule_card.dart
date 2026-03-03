@@ -1,4 +1,5 @@
 import 'package:cordis/l10n/app_localizations.dart';
+import 'package:cordis/providers/auto_scroll_provider.dart';
 import 'package:cordis/screens/schedule/play_schedule.dart';
 import 'package:cordis/widgets/schedule/status_chip.dart';
 
@@ -212,6 +213,9 @@ class CloudScheduleCard extends StatelessWidget {
                           onPressed: () {
                             navigationProvider.push(
                               PlayScheduleScreen(scheduleId: scheduleId),
+                              onPopCallback: () {
+                                context.read<AutoScrollProvider>().clearCache();
+                              },
                             );
                           },
                           text: AppLocalizations.of(context)!.play,

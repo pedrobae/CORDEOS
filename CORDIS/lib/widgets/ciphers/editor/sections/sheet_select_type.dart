@@ -173,7 +173,6 @@ class SelectType extends StatelessWidget {
       return newCode;
     } else {
       final newCode = sectionProvider.cacheUpdate(
-        context.read<LocalVersionProvider>(),
         versionID!,
         sectionCode!,
         newContentCode: section.code,

@@ -52,7 +52,6 @@ class _TokenContentCardState extends State<TokenContentCard> {
     );
 
     context.read<SectionProvider>().cacheUpdate(
-      context.read<LocalVersionProvider>(),
       widget.versionID,
       widget.sectionCode,
       newContentText: newContent,

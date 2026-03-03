@@ -7,9 +7,10 @@ class AutoScrollProvider extends ChangeNotifier {
   AutoScrollProvider() {
     _loadSettings();
   }
-  bool isAutoScrolling = false;
   bool scrollModeEnabled = false;
   double scrollSpeed = 1.0; // 0.5 = slow, 1 = normal, 1.5 = fast
+
+  bool isAutoScrolling = false;
 
   late final ValueNotifier<int> currentSectionIndex = ValueNotifier(
     0,
@@ -91,7 +92,9 @@ class AutoScrollProvider extends ChangeNotifier {
     autoScrollTimer = Timer.periodic(durationPerSection, (_) {
       if (sectionKeys.isEmpty) return;
 
-      debugPrint('Scrolling to ${currentSectionIndex.value + 1} / $_totalSections');
+      debugPrint(
+        'Scrolling to ${currentSectionIndex.value + 1} / $_totalSections',
+      );
 
       // Move to next section
       if (currentSectionIndex.value < _totalSections - 1) {
@@ -166,10 +169,23 @@ class AutoScrollProvider extends ChangeNotifier {
     return currentSectionIndex.value; // Fallback to current
   }
 
+  /// Clears cache
+  void clearCache() {
+    sectionKeys.clear();
+    currentSectionIndex.value = 0;
+    _updateTimer?.cancel();
+    _timerStartTime = null;
+    autoScrollTimer?.cancel();
+    autoScrollTimer = null;
+    isAutoScrolling = false;
+    notifyListeners();
+  }
+
   // ===== CLEANUP =====
   @override
   void dispose() {
     autoScrollTimer?.cancel();
+    currentSectionIndex.dispose();
     _updateTimer?.cancel();
     super.dispose();
   }

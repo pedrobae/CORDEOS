@@ -62,7 +62,7 @@ class _PlayVersionState extends State<PlayVersion> {
     final headerContext = _headerSectionKey.currentContext;
     if (headerContext != null) {
       final box = headerContext.findRenderObject() as RenderBox?;
-      if (box != null) {
+      if (box != null && box.hasSize) {
         _headerHeight = box.size.height + kToolbarHeight + 10;
       }
     }
@@ -380,56 +380,56 @@ class _PlayVersionState extends State<PlayVersion> {
     ColorScheme colorScheme,
     List<String> filteredStructure,
   ) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.only(top: 10.0, bottom: 10.0, left: 8),
-          decoration: BoxDecoration(
-            color: colorScheme.surface,
-            border: Border(
-              top: BorderSide(
-                color: colorScheme.surfaceContainerHigh,
-                width: 1,
+    return SizedBox(
+      height: 66,
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.only(top: 10.0, bottom: 10.0, left: 8),
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                border: Border(
+                  top: BorderSide(
+                    color: colorScheme.surfaceContainerHigh,
+                    width: 1,
+                  ),
+                  bottom: BorderSide(
+                    color: colorScheme.surfaceContainerHigh,
+                    width: 1,
+                  ),
+                ),
               ),
-              bottom: BorderSide(
-                color: colorScheme.surfaceContainerHigh,
-                width: 1,
-              ),
-            ),
-          ),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxWidth: MediaQuery.of(context).size.width - 74,
-            ),
-            child: StructureList(
-              versionId: widget.localVersionID ?? widget.cloudVersionID!,
-              filteredStructure: filteredStructure,
-              scrollController: _scrollController,
-            ),
-          ),
-        ),
-        Container(
-          decoration: BoxDecoration(
-            color: colorScheme.surface,
-            border: Border(
-              left: BorderSide(
-                color: colorScheme.surfaceContainerHigh,
-                width: 1,
-              ),
-              bottom: BorderSide(
-                color: colorScheme.surfaceContainerHigh,
-                width: 1,
-              ),
-              top: BorderSide(
-                color: colorScheme.surfaceContainerHigh,
-                width: 1,
+              child: StructureList(
+                versionId: widget.localVersionID ?? widget.cloudVersionID!,
+                filteredStructure: filteredStructure,
+                scrollController: _scrollController,
               ),
             ),
           ),
-          height: 66,
-          width: 66,
-        ),
-      ],
+          Container(
+            decoration: BoxDecoration(
+              color: colorScheme.surface,
+              border: Border(
+                left: BorderSide(
+                  color: colorScheme.surfaceContainerHigh,
+                  width: 1,
+                ),
+                bottom: BorderSide(
+                  color: colorScheme.surfaceContainerHigh,
+                  width: 1,
+                ),
+                top: BorderSide(
+                  color: colorScheme.surfaceContainerHigh,
+                  width: 1,
+                ),
+              ),
+            ),
+            height: 66,
+            width: 66,
+          ),
+        ],
+      ),
     );
   }
 }

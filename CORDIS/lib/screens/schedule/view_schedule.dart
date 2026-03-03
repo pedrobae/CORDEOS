@@ -5,6 +5,7 @@ import 'package:cordis/models/domain/playlist/playlist_item.dart';
 import 'package:cordis/models/domain/schedule.dart';
 import 'package:cordis/models/dtos/schedule_dto.dart';
 import 'package:cordis/models/dtos/version_dto.dart';
+import 'package:cordis/providers/auto_scroll_provider.dart';
 import 'package:cordis/providers/cipher/cipher_provider.dart';
 import 'package:cordis/providers/section_provider.dart';
 import 'package:cordis/providers/user/my_auth_provider.dart';
@@ -226,6 +227,9 @@ class _ViewScheduleScreenState extends State<ViewScheduleScreen> {
           onPressed: () {
             context.read<NavigationProvider>().push(
               PlayScheduleScreen(scheduleId: widget.scheduleId),
+              onPopCallback: () {
+                context.read<AutoScrollProvider>().clearCache();
+              },
             );
           },
         ),
@@ -533,7 +537,9 @@ class _ViewScheduleScreenState extends State<ViewScheduleScreen> {
 
   int _getMemberCount(dynamic schedule) {
     int count = 0;
-    final roles = isCloud ? (schedule as ScheduleDto).roles : (schedule as Schedule).roles;
+    final roles = isCloud
+        ? (schedule as ScheduleDto).roles
+        : (schedule as Schedule).roles;
     for (var role in roles) {
       final userCount = isCloud
           ? (role as RoleDto).users.length

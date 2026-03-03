@@ -1,3 +1,4 @@
+import 'package:cordis/providers/user/user_provider.dart';
 import 'package:cordis/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -23,14 +24,17 @@ class _SplashScreenState extends State<SplashScreen> {
 
     if (!mounted) return;
 
-    final authProvider = context.read<MyAuthProvider>();
+    final auth = Provider.of<MyAuthProvider>(context, listen: false);
+    final user = Provider.of<UserProvider>(context, listen: false);
 
     // Redirect based on authentication status
-    if (authProvider.isAuthenticated) {
+    if (auth.isAuthenticated) {
       if (mounted) {
         Navigator.of(context).pushReplacementNamed(AppRoutes.main);
       }
     } else {
+      await user.ensureUserExists(auth.id!);
+      await user.loadUsers();
       if (mounted) {
         Navigator.of(context).pushReplacementNamed(AppRoutes.login);
       }
@@ -53,9 +57,7 @@ class _SplashScreenState extends State<SplashScreen> {
               height: 120,
             ),
             const SizedBox(height: 32),
-            CircularProgressIndicator(
-              color: colorScheme.primary,
-            ),
+            CircularProgressIndicator(color: colorScheme.primary),
           ],
         ),
       ),

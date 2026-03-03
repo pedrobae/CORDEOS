@@ -2,7 +2,6 @@ import 'package:cordis/l10n/app_localizations.dart';
 import 'package:cordis/providers/user/my_auth_provider.dart';
 import 'package:cordis/providers/navigation_provider.dart';
 import 'package:cordis/providers/playlist/playlist_provider.dart';
-import 'package:cordis/providers/user/user_provider.dart';
 import 'package:cordis/widgets/common/filled_text_button.dart';
 import 'package:cordis/widgets/common/labeled_text_field.dart';
 import 'package:flutter/material.dart';
@@ -114,20 +113,17 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
     );
   }
 
-  Future<void> _handleSave(PlaylistProvider play, NavigationProvider nav) async {
-    final localId = Provider.of<UserProvider>(
-      context,
-      listen: false,
-    ).getLocalIdByFirebaseId(
-      Provider.of<MyAuthProvider>(
-        context,
-        listen: false,
-      ).id!,
-    )!;
-
+  Future<void> _handleSave(
+    PlaylistProvider play,
+    NavigationProvider nav,
+  ) async {
     if (widget.playlistId != null) {
       await play.updateName(widget.playlistId!, playlistNameController.text);
     } else {
+      final localId = Provider.of<MyAuthProvider>(
+        context,
+        listen: false,
+      ).userLocalId!;
       await play.createPlaylist(playlistNameController.text, localId);
     }
 

@@ -17,6 +17,7 @@ class MyAuthProvider extends ChangeNotifier {
   bool get isAdmin => _isAdmin;
   bool get isLoading => _isLoading;
   String? get error => _error;
+  int? get userLocalId => _userData?.id;
   String? get userName => _userData?.username;
   String? get userEmail => _userData?.email;
   String? get userCountry => _userData?.country;

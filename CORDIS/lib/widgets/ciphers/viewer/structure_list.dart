@@ -34,6 +34,7 @@ class _StructureListState extends State<StructureList> {
 
   void _scrollStructureListToIndex(int index) {
     if (!listScrollController.hasClients) return;
+    if (!listScrollController.position.hasViewportDimension) return;
 
     // Each button: 44px wide + 8px spacing = 52px per item
     // Plus initial padding of 8px

@@ -204,7 +204,6 @@ class _EditSectionScreenState extends State<EditSectionScreen> {
     // New section was added when selecting type, so just update it
     // Update the section with new values
     final newCode = context.read<SectionProvider>().cacheUpdate(
-      context.read<LocalVersionProvider>(),
       widget.versionID,
       widget.sectionCode!,
       newContentCode: contentCodeController.text,

@@ -1,4 +1,3 @@
-import 'package:cordis/providers/version/local_version_provider.dart';
 import 'package:cordis/repositories/local/section_repository.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -129,7 +128,6 @@ class SectionProvider extends ChangeNotifier {
   /// ===== UPDATE =====
   // Modify a section (content_text)
   String cacheUpdate(
-    LocalVersionProvider localVersionProvider,
     dynamic versionID,
     String contentCode, {
     String? newContentCode,
