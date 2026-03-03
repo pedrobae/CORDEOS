@@ -13,7 +13,6 @@ import 'package:cordis/providers/playlist/flow_item_provider.dart';
 import 'package:cordis/providers/playlist/playlist_provider.dart';
 import 'package:cordis/providers/schedule/cloud_schedule_provider.dart';
 import 'package:cordis/providers/schedule/local_schedule_provider.dart';
-import 'package:cordis/providers/selection_provider.dart';
 import 'package:cordis/providers/user/user_provider.dart';
 import 'package:cordis/providers/version/cloud_version_provider.dart';
 import 'package:cordis/providers/version/local_version_provider.dart';
@@ -69,508 +68,509 @@ class _ViewScheduleScreenState extends State<ViewScheduleScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final nav = Provider.of<NavigationProvider>(context, listen: false);
+    final user = Provider.of<UserProvider>(context, listen: false);
+
+    return Consumer3<
+      LocalScheduleProvider,
+      CloudScheduleProvider,
+      PlaylistProvider
+    >(
+      builder: (context, localSch, cloudSch, play, child) {
+        if (localSch.isLoading ||
+            cloudSch.isLoading ||
+            (isCloud && cloudSch.syncingStatus[widget.scheduleId] == true)) {
+          return _buildLoadingState(nav);
+        }
+
+        if (localSch.error != null && cloudSch.error != null) {
+          return _buildErrorState(nav, localSch, cloudSch);
+        }
+
+        final schedule = isCloud
+            ? cloudSch.getSchedule(widget.scheduleId)
+            : localSch.getSchedule(widget.scheduleId);
+
+        if (schedule == null) {
+          return _buildNotFoundState(nav);
+        }
+
+        final playlist = _getPlaylist(schedule, play, user);
+        final memberCount = _getMemberCount(schedule);
+
+        return _buildContent(
+          nav,
+          localSch,
+          play,
+          schedule,
+          playlist,
+          memberCount,
+        );
+      },
+    );
+  }
+
+  Scaffold _buildLoadingState(NavigationProvider nav) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(AppLocalizations.of(context)!.loading),
+        leading: BackButton(onPressed: () => nav.attemptPop(context)),
+      ),
+      body: const Center(child: CircularProgressIndicator()),
+    );
+  }
+
+  Scaffold _buildErrorState(
+    NavigationProvider nav,
+    LocalScheduleProvider localSch,
+    CloudScheduleProvider cloudSch,
+  ) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(AppLocalizations.of(context)!.error),
+        leading: BackButton(onPressed: () => nav.attemptPop(context)),
+      ),
+      body: Center(
+        child: Column(
+          children: [
+            Text(
+              AppLocalizations.of(context)!.errorMessage(
+                AppLocalizations.of(context)!.load,
+                localSch.error ?? cloudSch.error ?? '',
+              ),
+              style: const TextStyle(color: Colors.red),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                localSch.loadSchedules();
+                cloudSch.loadSchedules(context.read<MyAuthProvider>().id!);
+                for (var schedule in cloudSch.schedules.values) {
+                  for (var versionEntry in schedule.playlist.versions.entries) {
+                    context.read<CloudVersionProvider>().setVersion(
+                      versionEntry.key,
+                      versionEntry.value,
+                    );
+                  }
+                }
+              },
+              child: Text(AppLocalizations.of(context)!.tryAgain),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Scaffold _buildNotFoundState(NavigationProvider nav) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(AppLocalizations.of(context)!.scheduleNotFound),
+        leading: BackButton(onPressed: () => nav.attemptPop(context)),
+      ),
+      body: Center(
+        child: Text(AppLocalizations.of(context)!.scheduleNotFoundMessage),
+      ),
+    );
+  }
+
+  Scaffold _buildContent(
+    NavigationProvider nav,
+    LocalScheduleProvider localSch,
+    PlaylistProvider play,
+    dynamic schedule,
+    dynamic playlist,
+    int memberCount,
+  ) {
+    final textTheme = Theme.of(context).textTheme;
+
+    return Scaffold(
+      appBar: _buildAppBar(nav, textTheme),
+      body: SingleChildScrollView(
+        child: Container(
+          decoration: BoxDecoration(
+            border: Border(
+              top: BorderSide(
+                color: Theme.of(context).colorScheme.surfaceContainerLowest,
+                width: 0.5,
+              ),
+            ),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+          child: Column(
+            spacing: 28,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildScheduleDetails(nav, localSch, schedule),
+              _buildPlaylistSection(nav, play, playlist),
+              _buildMembersSection(nav, localSch, schedule),
+              _buildPublishButton(schedule),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  AppBar _buildAppBar(NavigationProvider nav, TextTheme textTheme) {
+    return AppBar(
+      title: Text(
+        AppLocalizations.of(
+          context,
+        )!.viewPlaceholder(AppLocalizations.of(context)!.schedule),
+        style: textTheme.titleMedium,
+      ),
+      leading: BackButton(onPressed: () => nav.attemptPop(context)),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.play_circle_fill),
+          onPressed: () {
+            context.read<NavigationProvider>().push(
+              PlayScheduleScreen(scheduleId: widget.scheduleId),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildScheduleDetails(
+    NavigationProvider nav,
+    LocalScheduleProvider localSch,
+    dynamic schedule,
+  ) {
+    final textTheme = Theme.of(context).textTheme;
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      spacing: 4,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Wrap(
+                spacing: 8,
+                children: [
+                  Text(schedule.name, style: textTheme.headlineSmall),
+                  StatusChip(schedule: schedule),
+                ],
+              ),
+              Row(
+                spacing: 16,
+                children: [
+                  Text(
+                    DateTimeUtils.formatDate(_getScheduleDate(schedule)),
+                    style: textTheme.bodySmall,
+                  ),
+                  Text(
+                    _formatScheduleTime(schedule),
+                    style: textTheme.bodySmall,
+                  ),
+                  Text(schedule.location, style: textTheme.bodySmall),
+                ],
+              ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(right: 9.0),
+          child: SizedBox(
+            width: 75,
+            child: FilledTextButton(
+              text: AppLocalizations.of(context)!.editPlaceholder(''),
+              onPressed: () {
+                nav.push(
+                  EditScheduleScreen(
+                    mode: EditScheduleMode.details,
+                    scheduleId: widget.scheduleId,
+                  ),
+                  changeDetector: () => localSch.hasUnsavedChanges,
+                  showBottomNavBar: true,
+                );
+              },
+              isDark: true,
+              isDense: true,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPlaylistSection(
+    NavigationProvider nav,
+    PlaylistProvider play,
+    dynamic playlist,
+  ) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Consumer6<
-      LocalScheduleProvider,
-      CloudScheduleProvider,
-      PlaylistProvider,
-      NavigationProvider,
-      SelectionProvider,
-      UserProvider
-    >(
-      builder:
-          (
-            context,
-            localScheduleProvider,
-            cloudScheduleProvider,
-            playlistProvider,
-            navigationProvider,
-            selectionProvider,
-            userProvider,
-            child,
-          ) {
-            // LOADING STATE
-            if (localScheduleProvider.isLoading ||
-                cloudScheduleProvider.isLoading ||
-                (isCloud &&
-                    cloudScheduleProvider.syncingStatus[widget.scheduleId] ==
-                        true)) {
-              return Scaffold(
-                appBar: AppBar(
-                  title: Text(AppLocalizations.of(context)!.loading),
-                  leading: BackButton(
-                    onPressed: () {
-                      navigationProvider.attemptPop(context);
-                    },
+    return Container(
+      padding: const EdgeInsets.all(8.0),
+      decoration: BoxDecoration(
+        border: Border.all(color: colorScheme.surfaceContainerLowest),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  AppLocalizations.of(context)!.playlist,
+                  style: textTheme.bodySmall?.copyWith(
+                    color: colorScheme.surfaceContainerLowest,
                   ),
                 ),
-                body: const Center(child: CircularProgressIndicator()),
-              );
-            }
-
-            // ERROR STATE
-            if (localScheduleProvider.error != null &&
-                cloudScheduleProvider.error != null) {
-              return Scaffold(
-                appBar: AppBar(
-                  title: Text(AppLocalizations.of(context)!.error),
-                  leading: BackButton(
-                    onPressed: () {
-                      navigationProvider.attemptPop(context);
-                    },
-                  ),
-                ),
-                body: Center(
-                  child: Column(
+                if (playlist == null)
+                  Text(
+                    AppLocalizations.of(context)!.noPlaylistAssigned,
+                    style: textTheme.titleMedium,
+                  )
+                else ...[
+                  Text(playlist.name, style: textTheme.titleMedium),
+                  Row(
+                    spacing: 16,
                     children: [
                       Text(
-                        AppLocalizations.of(context)!.errorMessage(
-                          AppLocalizations.of(context)!.load,
-                          localScheduleProvider.error ??
-                              cloudScheduleProvider.error ??
-                              '',
-                        ),
-                        style: const TextStyle(color: Colors.red),
+                        (playlist.items.length == 1)
+                            ? '1 ${AppLocalizations.of(context)!.item}'
+                            : '${playlist.items.length} ${AppLocalizations.of(context)!.pluralPlaceholder(AppLocalizations.of(context)!.item)}',
+                        style: textTheme.bodyMedium,
                       ),
-                      ElevatedButton(
-                        onPressed: () {
-                          localScheduleProvider.loadSchedules();
-                          cloudScheduleProvider.loadSchedules(
-                            context.read<MyAuthProvider>().id!,
-                          );
-                          for (var schedule
-                              in cloudScheduleProvider.schedules.values) {
-                            for (var versionEntry
-                                in schedule.playlist.versions.entries) {
-                              context.read<CloudVersionProvider>().setVersion(
-                                versionEntry.key,
-                                versionEntry.value,
-                              );
-                            }
-                          }
-                        },
-                        child: Text(AppLocalizations.of(context)!.tryAgain),
+                      Text(
+                        (playlist.getTotalDuration() == Duration.zero)
+                            ? '-'
+                            : '${AppLocalizations.of(context)!.duration}: ${DateTimeUtils.formatDuration(playlist.getTotalDuration())}',
+                        style: textTheme.bodyMedium,
                       ),
                     ],
-                  ),
-                ),
-              );
-            }
-
-            // FETCH SCHEDULE DEPENDING ON PROVIDER
-            final dynamic schedule = isCloud
-                ? cloudScheduleProvider.getSchedule(widget.scheduleId)
-                : localScheduleProvider.getSchedule(widget.scheduleId);
-
-            if (schedule == null) {
-              return Scaffold(
-                appBar: AppBar(
-                  title: Text(AppLocalizations.of(context)!.scheduleNotFound),
-                  leading: BackButton(
-                    onPressed: () {
-                      navigationProvider.attemptPop(context);
-                    },
-                  ),
-                ),
-                body: Center(
-                  child: Text(
-                    AppLocalizations.of(context)!.scheduleNotFoundMessage,
-                  ),
-                ),
-              );
-            }
-
-            final playlist = schedule is Schedule
-                ? playlistProvider.getPlaylistById(schedule.playlistId!)
-                : (schedule as ScheduleDto).playlist.toDomain(
-                    userProvider.getLocalIdByFirebaseId(
-                      schedule.ownerFirebaseId,
-                    )!,
-                  );
-
-            int memberCount = 0;
-            for (var role in schedule.roles) {
-              memberCount += role.users.length as int;
-            }
-
-            return Scaffold(
-              appBar: AppBar(
-                title: Text(
-                  AppLocalizations.of(
-                    context,
-                  )!.viewPlaceholder(AppLocalizations.of(context)!.schedule),
-                  style: textTheme.titleMedium,
-                ),
-                leading: BackButton(
-                  onPressed: () {
-                    navigationProvider.attemptPop(context);
-                  },
-                ),
-                actions: [
-                  // PLAY MODE
-                  IconButton(
-                    icon: const Icon(Icons.play_circle_fill),
-                    onPressed: () {
-                      navigationProvider.push(
-                        PlayScheduleScreen(scheduleId: widget.scheduleId),
-                      );
-                    },
                   ),
                 ],
-              ),
-              body: SingleChildScrollView(
-                child: Container(
-                  decoration: BoxDecoration(
-                    border: Border(
-                      top: BorderSide(
-                        color: colorScheme.surfaceContainerLowest,
-                        width: 0.5,
+              ],
+            ),
+          ),
+          SizedBox(
+            width: 75,
+            child: FilledTextButton(
+              isDisabled: playlist == null,
+              text: AppLocalizations.of(context)!.editPlaceholder(''),
+              onPressed: () {
+                if (isCloud) return;
+                nav.push(
+                  ViewPlaylistScreen(playlistId: playlist!.id),
+                  changeDetector: () => play.hasUnsavedChanges,
+                  showBottomNavBar: true,
+                );
+              },
+              isDark: true,
+              isDense: true,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMembersSection(
+    NavigationProvider nav,
+    LocalScheduleProvider localSch,
+    dynamic schedule,
+  ) {
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+    final memberCount = _getMemberCount(schedule);
+
+    return Container(
+      padding: const EdgeInsets.all(8.0),
+      decoration: BoxDecoration(
+        border: Border.all(color: colorScheme.surfaceContainerLowest),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${AppLocalizations.of(context)!.roles} & ${AppLocalizations.of(context)!.pluralPlaceholder(AppLocalizations.of(context)!.member)}',
+                  style: textTheme.bodySmall?.copyWith(
+                    color: colorScheme.surfaceContainerLowest,
+                  ),
+                ),
+                if (schedule.roles.isEmpty)
+                  Text(
+                    AppLocalizations.of(context)!.noRoles,
+                    style: textTheme.titleMedium,
+                  )
+                else ...[
+                  Text(
+                    (schedule.roles.length == 1)
+                        ? '1 ${AppLocalizations.of(context)!.role}'
+                        : '${schedule.roles.length} ${AppLocalizations.of(context)!.roles}',
+                    style: textTheme.titleMedium,
+                  ),
+                  Text(
+                    (memberCount == 1)
+                        ? '1 ${AppLocalizations.of(context)!.member}'
+                        : '$memberCount ${AppLocalizations.of(context)!.pluralPlaceholder(AppLocalizations.of(context)!.member)}',
+                    style: textTheme.bodySmall,
+                  ),
+                ],
+              ],
+            ),
+          ),
+          SizedBox(
+            width: 75,
+            child: FilledTextButton(
+              text: AppLocalizations.of(context)!.editPlaceholder(''),
+              onPressed: () {
+                nav.push(
+                  EditScheduleScreen(
+                    mode: EditScheduleMode.roleMember,
+                    scheduleId: widget.scheduleId,
+                  ),
+                  changeDetector: () =>
+                      (localSch.hasUnsavedChanges ||
+                      context.read<SectionProvider>().hasUnsavedChanges ||
+                      context.read<CipherProvider>().hasUnsavedChanges),
+                  showBottomNavBar: true,
+                );
+              },
+              isDark: true,
+              isDense: true,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPublishButton(dynamic schedule) {
+    if (isCloud || schedule.isPublic == true) {
+      return const SizedBox.shrink();
+    }
+
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return FilledTextButton(
+      isDark: true,
+      text: AppLocalizations.of(context)!.publishPlaceholder(''),
+      onPressed: () {
+        showDialog(
+          context: context,
+          builder: (context) {
+            return Dialog(
+              child: Container(
+                padding: const EdgeInsets.all(16.0),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(0),
+                  color: colorScheme.surface,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  spacing: 8,
+                  children: [
+                    Text(
+                      AppLocalizations.of(context)!.publishPlaceholder(
+                        AppLocalizations.of(context)!.schedule,
+                      ),
+                      style: textTheme.headlineSmall,
+                      textAlign: TextAlign.center,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 28),
+                      child: Text(
+                        AppLocalizations.of(context)!.publishScheduleWarning,
+                        style: textTheme.bodySmall,
+                        textAlign: TextAlign.center,
                       ),
                     ),
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16.0,
-                    vertical: 24.0,
-                  ),
-                  child: Column(
-                    spacing: 28,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // SCHEDULE DETAILS
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        spacing: 4,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Wrap(
-                                  spacing: 8,
-                                  children: [
-                                    Text(
-                                      schedule.name,
-                                      style: textTheme.headlineSmall,
-                                    ),
-                                    StatusChip(schedule: schedule),
-                                  ],
-                                ),
-                                Row(
-                                  spacing: 16,
-                                  children: [
-                                    Text(
-                                      DateTimeUtils.formatDate(
-                                        (schedule is Schedule)
-                                            ? schedule.date
-                                            : (schedule as ScheduleDto).datetime
-                                                  .toDate(),
-                                      ),
-                                      style: textTheme.bodySmall,
-                                    ),
-                                    Text(
-                                      (schedule is Schedule)
-                                          ? schedule.time.format(context)
-                                          : '${schedule.datetime.toDate().hour.toString().padLeft(2, '0')}:${ //
-                                            schedule.datetime.toDate().minute.toString().padLeft(2, '0')}',
-                                      style: textTheme.bodySmall,
-                                    ),
-                                    Text(
-                                      schedule.location,
-                                      style: textTheme.bodySmall,
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(right: 9.0),
-                            child: SizedBox(
-                              width: 75,
-                              child: FilledTextButton(
-                                text: AppLocalizations.of(
-                                  context,
-                                )!.editPlaceholder(''),
-                                onPressed: () {
-                                  navigationProvider.push(
-                                    EditScheduleScreen(
-                                      mode: EditScheduleMode.details,
-                                      scheduleId: widget.scheduleId,
-                                    ),
-                                    changeDetector: () =>
-                                        localScheduleProvider.hasUnsavedChanges,
-                                    showBottomNavBar: true,
-                                  );
-                                },
-                                isDark: true,
-                                isDense: true,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      // PLAYLIST SECTION
-                      Container(
-                        padding: const EdgeInsets.all(8.0),
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: colorScheme.surfaceContainerLowest,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  AppLocalizations.of(context)!.playlist,
-                                  style: textTheme.bodySmall?.copyWith(
-                                    color: colorScheme.surfaceContainerLowest,
-                                  ),
-                                ),
-                                if (playlist == null) ...[
-                                  Text(
-                                    AppLocalizations.of(
-                                      context,
-                                    )!.noPlaylistAssigned,
-                                    style: textTheme.titleMedium,
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ] else ...[
-                                  Text(
-                                    playlist.name,
-                                    style: textTheme.titleMedium,
-                                  ),
-                                  Row(
-                                    spacing: 16,
-                                    children: [
-                                      Text(
-                                        (playlist.items.length == 1)
-                                            ? '1 ${AppLocalizations.of(context)!.item}'
-                                            : '${playlist.items.length} ${AppLocalizations.of(context)!.pluralPlaceholder(
-                                                AppLocalizations.of(context)!.item, //
-                                              )}',
-                                        style: textTheme.bodyMedium,
-                                      ),
-                                      Text(
-                                        (playlist.getTotalDuration() ==
-                                                Duration.zero)
-                                            ? '-'
-                                            : '${AppLocalizations.of(context)!.duration}: ${DateTimeUtils.formatDuration(playlist.getTotalDuration())}',
-                                        style: textTheme.bodyMedium,
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ],
-                            ),
-                            SizedBox(
-                              width: 75,
-                              child: FilledTextButton(
-                                isDisabled: playlist == null,
-                                text: AppLocalizations.of(
-                                  context,
-                                )!.editPlaceholder(''),
-                                onPressed: () {
-                                  if (isCloud) return;
-                                  navigationProvider.push(
-                                    ViewPlaylistScreen(
-                                      playlistId: playlist!.id,
-                                    ),
-                                    changeDetector: () =>
-                                        playlistProvider.hasUnsavedChanges,
-                                    showBottomNavBar: true,
-                                  );
-                                },
-                                isDark: true,
-                                isDense: true,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // MEMBERS SECTION
-                      Container(
-                        padding: const EdgeInsets.all(8.0),
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: colorScheme.surfaceContainerLowest,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  '${AppLocalizations.of(context)!.roles} & ${AppLocalizations.of(context)!.pluralPlaceholder(AppLocalizations.of(context)!.member)}',
-                                  style: textTheme.bodySmall?.copyWith(
-                                    color: colorScheme.surfaceContainerLowest,
-                                  ),
-                                ),
-                                if (schedule.roles.isEmpty) ...[
-                                  Text(
-                                    AppLocalizations.of(context)!.noRoles,
-                                    style: textTheme.titleMedium,
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ] else ...[
-                                  Text(
-                                    (schedule.roles.length == 1)
-                                        ? '1 ${AppLocalizations.of(context)!.role}'
-                                        : '${schedule.roles.length} ${AppLocalizations.of(context)!.roles}',
-                                    style: textTheme.titleMedium,
-                                  ),
-                                  Text(
-                                    (memberCount == 1)
-                                        ? '1 ${AppLocalizations.of(context)!.member}'
-                                        : '$memberCount ${AppLocalizations.of(context)!.pluralPlaceholder(AppLocalizations.of(context)!.member)}',
-                                    style: textTheme.bodySmall,
-                                  ),
-                                ],
-                              ],
-                            ),
-                            SizedBox(
-                              width: 75,
-                              child: FilledTextButton(
-                                text: AppLocalizations.of(
-                                  context,
-                                )!.editPlaceholder(''),
-                                onPressed: () {
-                                  final sectionProvider = context.read<SectionProvider>();
-                                  final cipherProvider = context.read<CipherProvider>();
-                                  
-                                  navigationProvider.push(
-                                    EditScheduleScreen(
-                                      mode: EditScheduleMode.roleMember,
-                                      scheduleId: widget.scheduleId,
-                                    ),
-                                    changeDetector: () =>
-                                        (localScheduleProvider
-                                            .hasUnsavedChanges ||
-                                        sectionProvider.hasUnsavedChanges ||
-                                        cipherProvider.hasUnsavedChanges),
-                                    showBottomNavBar: true,
-                                  );
-                                },
-                                isDark: true,
-                                isDense: true,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // PUBLISH BUTTON
-                      if (!isCloud && schedule.isPublic == false)
-                        FilledTextButton(
-                          isDark: true,
-                          text: AppLocalizations.of(
-                            context,
-                          )!.publishPlaceholder(''),
-                          onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder: (context) {
-                                return Dialog(
-                                  child: Container(
-                                    padding: const EdgeInsets.all(16.0),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(0),
-                                      color: colorScheme.surface,
-                                    ),
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.stretch,
-                                      spacing: 8,
-                                      children: [
-                                        Text(
-                                          AppLocalizations.of(
-                                            context,
-                                          )!.publishPlaceholder(
-                                            AppLocalizations.of(
-                                              context,
-                                            )!.schedule,
-                                          ),
-                                          style: textTheme.headlineSmall,
-                                          textAlign: TextAlign.center,
-                                        ),
-
-                                        Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 28,
-                                          ),
-                                          child: Text(
-                                            AppLocalizations.of(
-                                              context,
-                                            )!.publishScheduleWarning,
-                                            style: textTheme.bodySmall,
-                                            textAlign: TextAlign.center,
-                                          ),
-                                        ),
-                                        SizedBox(height: 8),
-                                        FilledTextButton(
-                                          text: AppLocalizations.of(
-                                            context,
-                                          )!.publishPlaceholder(''),
-                                          isDark: true,
-                                          onPressed: () {
-                                            if (isCloud) return;
-                                            _publishSchedule();
-                                            Navigator.of(
-                                              context,
-                                            ).pop(); // CLOSE DIALOG
-                                            navigationProvider
-                                                .pop(); // GO BACK TO LIBRARY
-                                          },
-                                        ),
-                                        FilledTextButton(
-                                          onPressed: () {
-                                            Navigator.of(context).pop();
-                                          },
-                                          text: AppLocalizations.of(
-                                            context,
-                                          )!.cancel,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              },
-                            );
-                          },
-                        ),
-                    ],
-                  ),
+                    const SizedBox(height: 8),
+                    FilledTextButton(
+                      text: AppLocalizations.of(
+                        context,
+                      )!.publishPlaceholder(''),
+                      isDark: true,
+                      onPressed: () {
+                        _publishSchedule();
+                        Navigator.of(context).pop();
+                        context.read<NavigationProvider>().pop();
+                      },
+                    ),
+                    FilledTextButton(
+                      text: AppLocalizations.of(context)!.cancel,
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ],
                 ),
               ),
             );
           },
+        );
+      },
     );
   }
 
+  dynamic _getPlaylist(
+    dynamic schedule,
+    PlaylistProvider play,
+    UserProvider user,
+  ) {
+    if (!isCloud) {
+      return play.getPlaylistById((schedule as Schedule).playlistId!);
+    } else {
+      final dto = schedule as ScheduleDto;
+      return dto.playlist.toDomain(
+        user.getLocalIdByFirebaseId(dto.ownerFirebaseId)!,
+      );
+    }
+  }
+
+  int _getMemberCount(dynamic schedule) {
+    int count = 0;
+    final roles = isCloud ? (schedule as ScheduleDto).roles : (schedule as Schedule).roles;
+    for (var role in roles) {
+      final userCount = isCloud
+          ? (role as RoleDto).users.length
+          : (role as Role).users.length;
+      count += userCount;
+    }
+    return count;
+  }
+
+  String _formatScheduleTime(dynamic schedule) {
+    if (!isCloud) {
+      return (schedule as Schedule).time.format(context);
+    } else {
+      final dt = (schedule as ScheduleDto).datetime.toDate();
+      return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+    }
+  }
+
+  DateTime _getScheduleDate(dynamic schedule) {
+    if (!isCloud) {
+      return (schedule as Schedule).date;
+    } else {
+      return (schedule as ScheduleDto).datetime.toDate();
+    }
+  }
+
   void _publishSchedule() {
-    final cloudScheduleProvider = context.read<CloudScheduleProvider>();
-    final localScheduleProvider = context.read<LocalScheduleProvider>();
-    final playlistProvider = context.read<PlaylistProvider>();
-    final localVersionProvider = context.read<LocalVersionProvider>();
-    final cipherProvider = context.read<CipherProvider>();
-    final flowItemProvider = context.read<FlowItemProvider>();
+    final cloudSch = context.read<CloudScheduleProvider>();
+    final localSch = context.read<LocalScheduleProvider>();
+    final play = context.read<PlaylistProvider>();
+    final localVer = context.read<LocalVersionProvider>();
+    final ciph = context.read<CipherProvider>();
+    final flow = context.read<FlowItemProvider>();
 
-    final domainSchedule = localScheduleProvider.getSchedule(
-      widget.scheduleId,
-    )!;
+    final domainSchedule = localSch.getSchedule(widget.scheduleId)!;
 
-    final domainPlaylist = playlistProvider.getPlaylistById(
-      domainSchedule.playlistId!,
-    )!;
+    final domainPlaylist = play.getPlaylistById(domainSchedule.playlistId!)!;
 
     // Build Item DTOs
     final itemOrder = <String>[];
@@ -579,26 +579,24 @@ class _ViewScheduleScreenState extends State<ViewScheduleScreen> {
     for (var item in domainPlaylist.items) {
       switch (item.type) {
         case PlaylistItemType.version:
-          final version = localVersionProvider.cachedVersion(item.contentId!);
+          final version = localVer.cachedVersion(item.contentId!);
 
           if (version == null) break;
           String firebaseId;
           if (version.firebaseId == null) {
             firebaseId = generateFirebaseId();
-            localVersionProvider.updateVersion(
-              version.copyWith(firebaseId: firebaseId),
-            );
+            localVer.updateVersion(version.copyWith(firebaseId: firebaseId));
           } else {
             firebaseId = version.firebaseId!;
           }
 
-          final cipher = cipherProvider.getCipher(version.cipherId);
+          final cipher = ciph.getCipher(version.cipherId);
 
           if (cipher == null) break;
           versions['v:$firebaseId'] = version.toDto(cipher);
           break;
         case PlaylistItemType.flowItem:
-          final flowItem = flowItemProvider.getFlowItem(item.contentId!);
+          final flowItem = flow.getFlowItem(item.contentId!);
           if (flowItem == null) break;
 
           String firebaseId;
@@ -612,7 +610,7 @@ class _ViewScheduleScreenState extends State<ViewScheduleScreen> {
       }
     }
 
-    cloudScheduleProvider.publishSchedule(
+    cloudSch.publishSchedule(
       domainSchedule.toDto(
         domainPlaylist.toDto(
           itemOrder: itemOrder,
@@ -622,6 +620,6 @@ class _ViewScheduleScreenState extends State<ViewScheduleScreen> {
       ),
     );
 
-    localScheduleProvider.publishSchedule(widget.scheduleId);
+    localSch.publishSchedule(widget.scheduleId);
   }
 }

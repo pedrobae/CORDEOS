@@ -43,189 +43,184 @@ class _ImportTextScreenState extends State<ImportTextScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final nav = Provider.of<NavigationProvider>(context, listen: false);
+
+    return Consumer2<ImportProvider, ParserProvider>(
+      builder: (context, imp, par, child) {
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(AppLocalizations.of(context)!.importFromText),
+            leading: BackButton(onPressed: () => nav.attemptPop(context)),
+          ),
+          body: imp.error != null
+              ? _buildErrorState(imp)
+              : imp.isImporting
+                  ? _buildLoadingState()
+                  : _buildContentState(imp, par),
+        );
+      },
+    );
+  }
+
+  Widget _buildErrorState(ImportProvider imp) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            AppLocalizations.of(context)!.errorMessage(
+              AppLocalizations.of(context)!.importFromText,
+              imp.error!,
+            ),
+            style: const TextStyle(color: Colors.red),
+          ),
+          FilledButton.icon(
+            label: Text(AppLocalizations.of(context)!.tryAgain),
+            onPressed: () => imp.clearError(),
+            icon: const Icon(Icons.refresh),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLoadingState() {
+    return const Center(child: CircularProgressIndicator());
+  }
+
+  Widget _buildContentState(ImportProvider imp, ParserProvider par) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          spacing: 16.0,
+          mainAxisSize: MainAxisSize.max,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildTextInputField(),
+            _buildParsingStrategySection(imp),
+            _buildImportButton(imp, par),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextInputField() {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Expanded(
+      child: TextField(
+        expands: true,
+        maxLines: null,
+        selectAllOnFocus: true,
+        onTapOutside: (event) => FocusScope.of(context).unfocus(),
+        textAlignVertical: TextAlignVertical(y: -1),
+        controller: _importTextController,
+        decoration: InputDecoration(
+          hintText: AppLocalizations.of(context)!.pasteTextPrompt,
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(0),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(0),
+            borderSide: BorderSide(
+              color: colorScheme.primary,
+              width: 2,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildParsingStrategySection(ImportProvider imp) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Consumer6<
-      ImportProvider,
-      NavigationProvider,
-      ParserProvider,
-      LocalVersionProvider,
-      CipherProvider,
-      SectionProvider
-    >(
-      builder:
-          (
-            context,
-            importProvider,
-            navigationProvider,
-            parserProvider,
-            localVersionProvider,
-            cipherProvider,
-            sectionProvider,
-            child,
-          ) {
-            return Scaffold(
-              appBar: AppBar(
-                title: Text(AppLocalizations.of(context)!.importFromText),
-                leading: BackButton(
-                  onPressed: () {
-                    navigationProvider.attemptPop(context);
-                  },
-                ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          AppLocalizations.of(context)!.parsingStrategy,
+          style: textTheme.titleMedium,
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              AppLocalizations.of(context)!.doubleNewLine,
+              style: textTheme.labelLarge,
+              textAlign: TextAlign.center,
+            ),
+            Switch(
+              inactiveTrackColor: colorScheme.primary,
+              inactiveThumbColor: colorScheme.surface,
+              trackOutlineColor: WidgetStatePropertyAll<Color>(
+                colorScheme.primary,
               ),
-              body:
-                  // Handle Error State
-                  (importProvider.error != null)
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            AppLocalizations.of(context)!.errorMessage(
-                              AppLocalizations.of(context)!.importFromText,
-                              importProvider.error!,
-                            ),
-                            style: const TextStyle(color: Colors.red),
-                          ),
-                          FilledButton.icon(
-                            label: Text(AppLocalizations.of(context)!.tryAgain),
-                            onPressed: () {
-                              importProvider.clearError();
-                            },
-                            icon: const Icon(Icons.refresh),
-                          ),
-                        ],
-                      ),
-                    )
-                  // Loading State
-                  : importProvider.isImporting
-                  ? const Center(child: CircularProgressIndicator())
-                  // Default State
-                  : Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          spacing: 16.0,
-                          mainAxisSize: MainAxisSize.max,
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Expanded(
-                              child: TextField(
-                                expands: true,
-                                maxLines: null,
-                                selectAllOnFocus: true,
-                                onTapOutside: (event) =>
-                                    FocusScope.of(context).unfocus(),
-                                textAlignVertical: TextAlignVertical(y: -1),
-                                controller: _importTextController,
-                                decoration: InputDecoration(
-                                  hintText: AppLocalizations.of(
-                                    context,
-                                  )!.pasteTextPrompt,
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(0),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(0),
-                                    borderSide: BorderSide(
-                                      color: colorScheme.primary,
-                                      width: 2,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-
-                            /// Parsing method switch
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  AppLocalizations.of(context)!.parsingStrategy,
-                                  style: textTheme.titleMedium,
-                                ),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      AppLocalizations.of(
-                                        context,
-                                      )!.doubleNewLine,
-                                      style: textTheme.labelLarge,
-                                      textAlign: TextAlign.center,
-                                    ),
-                                    Switch(
-                                      inactiveTrackColor: colorScheme.primary,
-                                      inactiveThumbColor: colorScheme.surface,
-                                      trackOutlineColor:
-                                          WidgetStatePropertyAll<Color>(
-                                            colorScheme.primary,
-                                          ),
-                                      thumbIcon: WidgetStatePropertyAll<Icon>(
-                                        Icon(Icons.circle),
-                                      ),
-                                      value:
-                                          importProvider.parsingStrategy ==
-                                          ParsingStrategy.sectionLabels,
-                                      onChanged: (value) {
-                                        importProvider.setParsingStrategy(
-                                          value
-                                              ? ParsingStrategy.sectionLabels
-                                              : ParsingStrategy.doubleNewLine,
-                                        );
-                                      },
-                                    ),
-                                    Text(
-                                      AppLocalizations.of(
-                                        context,
-                                      )!.sectionLabels,
-                                      style: textTheme.labelLarge,
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-
-                            FilledTextButton(
-                              text: AppLocalizations.of(context)!.import,
-                              isDark: true,
-                              isDisabled: _importTextController.text.isEmpty,
-                              onPressed: () async {
-                                final text = _importTextController.text;
-                                if (text.isNotEmpty) {
-                                  await importProvider.importText(data: text);
-
-                                  parserProvider.parseCipher(
-                                    importProvider.importedCipher!,
-                                  );
-
-                                  // Navigate to parsing screen
-                                  navigationProvider.push(
-                                    EditCipherScreen(
-                                      versionType: VersionType.import,
-                                      versionID: -1,
-                                      cipherID: -1,
-                                    ),
-                                    changeDetector: () {
-                                      return cipherProvider.hasUnsavedChanges ||
-                                          localVersionProvider
-                                              .hasUnsavedChanges ||
-                                          sectionProvider.hasUnsavedChanges;
-                                    },
-                                    showBottomNavBar: true,
-                                  );
-                                }
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-            );
-          },
+              thumbIcon: WidgetStatePropertyAll<Icon>(
+                Icon(Icons.circle),
+              ),
+              value: imp.parsingStrategy == ParsingStrategy.sectionLabels,
+              onChanged: (value) {
+                imp.setParsingStrategy(
+                  value
+                      ? ParsingStrategy.sectionLabels
+                      : ParsingStrategy.doubleNewLine,
+                );
+              },
+            ),
+            Text(
+              AppLocalizations.of(context)!.sectionLabels,
+              style: textTheme.labelLarge,
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ],
     );
+  }
+
+  Widget _buildImportButton(ImportProvider imp, ParserProvider par) {
+    return FilledTextButton(
+      text: AppLocalizations.of(context)!.import,
+      isDark: true,
+      isDisabled: _importTextController.text.isEmpty,
+      onPressed: () => _parse(context, imp, par),
+    );
+  }
+
+  Future<void> _parse(
+    BuildContext context,
+    ImportProvider imp,
+    ParserProvider par,
+  ) async {
+    final localVer = Provider.of<LocalVersionProvider>(context, listen: false);
+    final ciph = Provider.of<CipherProvider>(context, listen: false);
+    final sect = Provider.of<SectionProvider>(context, listen: false);
+    final nav = Provider.of<NavigationProvider>(context, listen: false);
+
+    final text = _importTextController.text;
+    if (text.isNotEmpty) {
+      await imp.importText(data: text);
+
+      par.parseCipher(imp.importedCipher!);
+
+      // Navigate to parsing screen
+      nav.push(
+        EditCipherScreen(
+          versionType: VersionType.import,
+          versionID: -1,
+          cipherID: -1,
+        ),
+        changeDetector: () {
+          return ciph.hasUnsavedChanges ||
+              localVer.hasUnsavedChanges ||
+              sect.hasUnsavedChanges;
+        },
+        showBottomNavBar: true,
+      );
+    }
   }
 }

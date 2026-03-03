@@ -3,6 +3,7 @@ import 'package:cordis/providers/schedule/cloud_schedule_provider.dart';
 import 'package:cordis/providers/schedule/local_schedule_provider.dart';
 import 'package:cordis/providers/version/cloud_version_provider.dart';
 import 'package:cordis/services/cache_service.dart';
+import 'package:cordis/utils/locale.dart';
 
 import 'package:cordis/l10n/app_localizations.dart';
 
@@ -18,6 +19,7 @@ import 'package:cordis/providers/version/local_version_provider.dart';
 
 import 'package:cordis/widgets/common/delete_confirmation.dart';
 import 'package:cordis/widgets/common/filled_text_button.dart';
+import 'package:cordis/widgets/common/labeled_language_picker.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
@@ -34,134 +36,136 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-
     return Consumer<SettingsProvider>(
-      builder: (context, settingsProvider, child) => SingleChildScrollView(
+      builder: (context, set, child) => SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           spacing: 8,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // App Settings Section
             _buildSectionHeader(
               AppLocalizations.of(context)!.settings,
               Icons.settings,
             ),
-
-            /// theme mode toggle
-            Row(
-              children: [
-                Text(
-                  AppLocalizations.of(context)!.theme,
-                  style: textTheme.titleMedium,
-                ),
-                const Spacer(),
-
-                Icon(
-                  settingsProvider.themeMode == ThemeMode.dark
-                      ? Icons.dark_mode
-                      : Icons.light_mode,
-                ),
-                SizedBox(width: 8),
-                Switch(
-                  value: settingsProvider.themeMode == ThemeMode.dark,
-                  onChanged: (value) {
-                    context.read<SettingsProvider>().setThemeMode(
-                      value ? ThemeMode.dark : ThemeMode.light,
-                    );
-                  },
-                ),
-              ],
-            ),
-
-            /// variant color toggle
-            Row(
-              children: [
-                Text(
-                  AppLocalizations.of(context)!.colorVariant,
-                  style: textTheme.titleMedium,
-                ),
-                const Spacer(),
-
-                Icon(
-                  settingsProvider.isColorVariant
-                      ? Icons.palette
-                      : Icons.palette_outlined,
-                ),
-                SizedBox(width: 8),
-                Switch(
-                  value: settingsProvider.isColorVariant,
-                  onChanged: (value) {
-                    context.read<SettingsProvider>().toggleColorVariant();
-                  },
-                ),
-              ],
-            ),
-
-            /// language
-            FilledTextButton(
-              icon: Icons.language,
-              text: AppLocalizations.of(context)!.changeLanguage,
-              tooltip: AppLocalizations.of(context)!.changeLanguageSubtitle,
-              trailingIcon: Icons.chevron_right,
-              onPressed: () {
-                _showLanguageDialog(context);
-              },
-              isDiscrete: true,
-            ),
-
+            _buildThemeToggle(set),
+            _buildColorVariantToggle(set),
+            _buildLanguageButton(set),
             const SizedBox(height: 32),
-
-            // Development Tools Section (only in debug mode)
             if (kDebugMode) ...[
               _buildSectionHeader(
                 AppLocalizations.of(context)!.developmentTools,
                 Icons.build,
               ),
-
-              FilledTextButton(
-                icon: Icons.refresh,
-                text: AppLocalizations.of(context)!.resetDatabase,
-                tooltip: AppLocalizations.of(context)!.resetDatabaseSubtitle,
-                trailingIcon: Icons.chevron_right,
-                onPressed: () => showModalBottomSheet(
-                  context: context,
-                  builder: (context) {
-                    return DeleteConfirmationSheet(
-                      itemType: AppLocalizations.of(context)!.database,
-                      onConfirm: () {
-                        _resetDatabase();
-                      },
-                    );
-                  },
-                ),
-                isDangerous: true,
-                isDiscrete: true,
-              ),
-              FilledTextButton(
-                icon: Icons.cached,
-                text: AppLocalizations.of(context)!.reloadInterface,
-                tooltip: AppLocalizations.of(context)!.reloadInterfaceSubtitle,
-                trailingIcon: Icons.chevron_right,
-                onPressed: _reloadAllData,
-                isDiscrete: true,
-              ),
-
-              FilledTextButton(
-                icon: Icons.storage,
-                text: AppLocalizations.of(context)!.databaseInformation,
-                tooltip: AppLocalizations.of(context)!.databaseInfoSubtitle,
-                onPressed: () => _showDatabaseInfo(),
-                trailingIcon: Icons.chevron_right,
-                isDiscrete: true,
-              ),
-
+              _buildResetDatabaseButton(),
+              _buildReloadInterfaceButton(),
+              _buildDatabaseInfoButton(),
               const SizedBox(height: 32),
             ],
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildThemeToggle(SettingsProvider settings) {
+    final textTheme = Theme.of(context).textTheme;
+    return Row(
+      children: [
+        Text(
+          AppLocalizations.of(context)!.theme,
+          style: textTheme.titleMedium,
+        ),
+        const Spacer(),
+        Icon(
+          settings.themeMode == ThemeMode.dark
+              ? Icons.dark_mode
+              : Icons.light_mode,
+        ),
+        SizedBox(width: 8),
+        Switch(
+          value: settings.themeMode == ThemeMode.dark,
+          onChanged: (value) {
+            context.read<SettingsProvider>().setThemeMode(
+              value ? ThemeMode.dark : ThemeMode.light,
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildColorVariantToggle(SettingsProvider settings) {
+    final textTheme = Theme.of(context).textTheme;
+    return Row(
+      children: [
+        Text(
+          AppLocalizations.of(context)!.colorVariant,
+          style: textTheme.titleMedium,
+        ),
+        const Spacer(),
+        Icon(
+          settings.isColorVariant ? Icons.palette : Icons.palette_outlined,
+        ),
+        SizedBox(width: 8),
+        Switch(
+          value: settings.isColorVariant,
+          onChanged: (value) {
+            context.read<SettingsProvider>().toggleColorVariant();
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLanguageButton(SettingsProvider settings) {
+    return LabeledLanguagePicker(
+      language: LocaleUtils.getLanguageName(settings.locale, context),
+      onLanguageChanged: (value) {
+        final locale = LocaleUtils.getLocaleFromLanguageName(value, context);
+        settings.setLocale(locale);
+      },
+    );
+  }
+
+  Widget _buildResetDatabaseButton() {
+    return FilledTextButton(
+      icon: Icons.refresh,
+      text: AppLocalizations.of(context)!.resetDatabase,
+      tooltip: AppLocalizations.of(context)!.resetDatabaseSubtitle,
+      trailingIcon: Icons.chevron_right,
+      onPressed: () => showModalBottomSheet(
+        context: context,
+        builder: (context) {
+          return DeleteConfirmationSheet(
+            itemType: AppLocalizations.of(context)!.database,
+            onConfirm: () => _resetDatabase(),
+          );
+        },
+      ),
+      isDangerous: true,
+      isDiscrete: true,
+    );
+  }
+
+  Widget _buildReloadInterfaceButton() {
+    return FilledTextButton(
+      icon: Icons.cached,
+      text: AppLocalizations.of(context)!.reloadInterface,
+      tooltip: AppLocalizations.of(context)!.reloadInterfaceSubtitle,
+      trailingIcon: Icons.chevron_right,
+      onPressed: _reloadAllData,
+      isDiscrete: true,
+    );
+  }
+
+  Widget _buildDatabaseInfoButton() {
+    return FilledTextButton(
+      icon: Icons.storage,
+      text: AppLocalizations.of(context)!.databaseInformation,
+      tooltip: AppLocalizations.of(context)!.databaseInfoSubtitle,
+      onPressed: () => _showDatabaseInfo(),
+      trailingIcon: Icons.chevron_right,
+      isDiscrete: true,
     );
   }
 
@@ -501,59 +505,5 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  void _showLanguageDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => Consumer<SettingsProvider>(
-        builder: (context, settingsProvider, child) => AlertDialog.adaptive(
-          title: Text(AppLocalizations.of(context)!.chooseLanguage),
-          content: SizedBox(
-            width: 300,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  AppLocalizations.of(context)!.selectAppLanguage,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 12),
-                DropdownButton<Locale>(
-                  onChanged: (value) {
-                    if (value != null) {
-                      settingsProvider.setLocale(value);
-                      Navigator.pop(context);
-                    }
-                  },
-                  items: [
-                    DropdownMenuItem(
-                      value: const Locale('pt', 'BR'),
-                      child: Text(AppLocalizations.of(context)!.portuguese),
-                    ),
-                    DropdownMenuItem(
-                      value: const Locale('en', ''),
-                      child: Text(AppLocalizations.of(context)!.english),
-                    ),
-                  ],
-                  value: settingsProvider.locale,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 
-  void showComingSoon(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: Colors.amberAccent,
-        content: Text(
-          AppLocalizations.of(context)!.comingSoon,
-          style: TextStyle(color: Colors.black),
-        ),
-      ),
-    );
-  }
 }

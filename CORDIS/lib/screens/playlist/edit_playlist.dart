@@ -41,96 +41,96 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final nav = Provider.of<NavigationProvider>(context, listen: false);
+    final play = Provider.of<PlaylistProvider>(context, listen: false);
 
-    return Consumer4<
-      NavigationProvider,
-      PlaylistProvider,
-      UserProvider,
-      MyAuthProvider
-    >(
-      builder:
-          (
-            context,
-            navigationProvider,
-            playlistProvider,
-            userProvider,
-            authProvider,
-            child,
-          ) {
-            return Scaffold(
-              appBar: AppBar(
-                leading: BackButton(
-                  onPressed: () => navigationProvider.attemptPop(context),
-                ),
-                title: Text(
-                  AppLocalizations.of(context)!.namePlaylistPrompt,
-                  style: theme.textTheme.titleMedium,
-                ),
-              ),
-              body: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  spacing: 32,
-                  children: [
-                    Column(
-                      spacing: 8,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        if (widget.playlistId == null)
-                          Text(
-                            AppLocalizations.of(
-                              context,
-                            )!.createPlaylistInstructions,
-                            style: theme.textTheme.bodyLarge,
-                          ),
-                      ],
-                    ),
-                    // FORM
-                    LabeledTextField(
-                      label: AppLocalizations.of(context)!.playlistNameLabel,
-                      controller: playlistNameController,
-                      hint: AppLocalizations.of(context)!.playlistNameHint,
-                    ),
-
-                    // ACTIONS
-                    Column(
-                      spacing: 16,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        FilledTextButton(
-                          text: widget.playlistId != null
-                              ? AppLocalizations.of(context)!.save
-                              : AppLocalizations.of(context)!.create,
-                          isDark: true,
-                          onPressed: () async {
-                            widget.playlistId != null
-                                ? await playlistProvider.updateName(
-                                    widget.playlistId!,
-                                    playlistNameController.text,
-                                  )
-                                : await playlistProvider.createPlaylist(
-                                    playlistNameController.text,
-                                    userProvider.getLocalIdByFirebaseId(
-                                      authProvider.id!,
-                                    )!,
-                                  );
-                            navigationProvider.pop();
-                          },
-                        ),
-                        FilledTextButton(
-                          text: AppLocalizations.of(context)!.cancel,
-                          onPressed: () {
-                            navigationProvider.attemptPop(context);
-                          },
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
+    return Scaffold(
+      appBar: _buildAppBar(nav),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          spacing: 32,
+          children: [
+            _buildInstructionsSection(),
+            _buildNameField(),
+            _buildActionButtons(play, nav),
+          ],
+        ),
+      ),
     );
+  }
+
+  AppBar _buildAppBar(NavigationProvider nav) {
+    final theme = Theme.of(context);
+    return AppBar(
+      leading: BackButton(onPressed: () => nav.attemptPop(context)),
+      title: Text(
+        AppLocalizations.of(context)!.namePlaylistPrompt,
+        style: theme.textTheme.titleMedium,
+      ),
+    );
+  }
+
+  Widget _buildInstructionsSection() {
+    final theme = Theme.of(context);
+    return Column(
+      spacing: 8,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (widget.playlistId == null)
+          Text(
+            AppLocalizations.of(context)!.createPlaylistInstructions,
+            style: theme.textTheme.bodyLarge,
+          ),
+      ],
+    );
+  }
+
+  Widget _buildNameField() {
+    return LabeledTextField(
+      label: AppLocalizations.of(context)!.playlistNameLabel,
+      controller: playlistNameController,
+      hint: AppLocalizations.of(context)!.playlistNameHint,
+    );
+  }
+
+  Widget _buildActionButtons(PlaylistProvider play, NavigationProvider nav) {
+    return Column(
+      spacing: 16,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        FilledTextButton(
+          text: widget.playlistId != null
+              ? AppLocalizations.of(context)!.save
+              : AppLocalizations.of(context)!.create,
+          isDark: true,
+          onPressed: () => _handleSave(play, nav),
+        ),
+        FilledTextButton(
+          text: AppLocalizations.of(context)!.cancel,
+          onPressed: () => nav.attemptPop(context),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _handleSave(PlaylistProvider play, NavigationProvider nav) async {
+    final localId = Provider.of<UserProvider>(
+      context,
+      listen: false,
+    ).getLocalIdByFirebaseId(
+      Provider.of<MyAuthProvider>(
+        context,
+        listen: false,
+      ).id!,
+    )!;
+
+    if (widget.playlistId != null) {
+      await play.updateName(widget.playlistId!, playlistNameController.text);
+    } else {
+      await play.createPlaylist(playlistNameController.text, localId);
+    }
+
+    nav.pop();
   }
 }

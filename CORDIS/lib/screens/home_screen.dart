@@ -1,9 +1,7 @@
 import 'package:cordis/l10n/app_localizations.dart';
 import 'package:cordis/models/domain/schedule.dart';
-import 'package:cordis/providers/navigation_provider.dart';
 import 'package:cordis/providers/schedule/cloud_schedule_provider.dart';
 import 'package:cordis/providers/schedule/local_schedule_provider.dart';
-import 'package:cordis/providers/selection_provider.dart';
 import 'package:cordis/providers/user/user_provider.dart';
 import 'package:cordis/providers/version/cloud_version_provider.dart';
 import 'package:cordis/widgets/schedule/library/cloud_schedule_card.dart';
@@ -59,132 +57,119 @@ class _HomeScreenState extends State<HomeScreen> {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child:
-          Consumer5<
+          Consumer3<
             MyAuthProvider,
             LocalScheduleProvider,
-            CloudScheduleProvider,
-            NavigationProvider,
-            SelectionProvider
+            CloudScheduleProvider
           >(
-            builder:
-                (
-                  context,
-                  authProvider,
-                  localScheduleProvider,
-                  cloudScheduleProvider,
-                  navigationProvider,
-                  selectionProvider,
-                  child,
-                ) {
-                  final textTheme = Theme.of(context).textTheme;
-                  final colorScheme = Theme.of(context).colorScheme;
-                  final locale = Localizations.localeOf(context);
+            builder: (context, auth, localSch, cloudSch, child) {
+              if (auth.isLoading) {
+                return _buildLoadingState();
+              }
+              if (auth.error != null) {
+                return _buildErrorState(auth);
+              }
 
-                  if (authProvider.isLoading) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          CircularProgressIndicator(),
-                          SizedBox(height: 16),
-                          Text(AppLocalizations.of(context)!.loading),
-                        ],
-                      ),
-                    );
-                  }
-
-                  if (authProvider.error != null) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            AppLocalizations.of(context)!.errorMessage(
-                              AppLocalizations.of(context)!.authentication,
-                              authProvider.error!,
-                            ),
-                            style: const TextStyle(color: Colors.red),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 16),
-                          ElevatedButton(
-                            onPressed: () => authProvider.signInAnonymously(),
-                            child: Text(AppLocalizations.of(context)!.tryAgain),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-
-                  final nextLocalSchedule = localScheduleProvider
-                      .getNextSchedule();
-                  final nextCloudSchedule = cloudScheduleProvider
-                      .getNextSchedule();
-
-                  dynamic nextSchedule;
-                  if (nextLocalSchedule != null && nextCloudSchedule != null) {
-                    nextSchedule =
-                        nextLocalSchedule.time.isBefore(
-                          TimeOfDay.fromDateTime(
-                            nextCloudSchedule.datetime.toDate(),
-                          ),
-                        )
-                        ? nextLocalSchedule
-                        : nextCloudSchedule;
-                  } else {
-                    nextSchedule = nextLocalSchedule ?? nextCloudSchedule;
-                  }
-                  // HOME SCREEN
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    spacing: 24,
-                    children: [
-                      // Current date
-                      Text(
-                        DateFormat(
-                          'EEEE, MMM d',
-                          locale.languageCode,
-                        ).format(DateTime.now()),
-                        style: textTheme.bodyLarge,
-                      ),
-
-                      _buildWelcomeMessage(context, authProvider, textTheme),
-
-                      _buildNextSchedule(
-                        context,
-                        localScheduleProvider,
-                        nextSchedule,
-                        textTheme,
-                        colorScheme,
-                      ),
-                    ],
-                  );
-                },
+              final nextSchedule = _getNextSchedule(localSch, cloudSch);
+              return _buildContent(auth, localSch, nextSchedule);
+            },
           ),
     );
   }
 
-  Widget _buildWelcomeMessage(
-    BuildContext context,
-    MyAuthProvider authProvider,
-    TextTheme textTheme,
-  ) {
-    return Text(
-      AppLocalizations.of(context)!.helloUser(
-        authProvider.userName ?? AppLocalizations.of(context)!.guest,
+  Widget _buildLoadingState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(),
+          SizedBox(height: 16),
+          Text(AppLocalizations.of(context)!.loading),
+        ],
       ),
+    );
+  }
+
+  Widget _buildErrorState(MyAuthProvider auth) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            AppLocalizations.of(context)!.errorMessage(
+              AppLocalizations.of(context)!.authentication,
+              auth.error!,
+            ),
+            style: const TextStyle(color: Colors.red),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () => auth.signInAnonymously(),
+            child: Text(AppLocalizations.of(context)!.tryAgain),
+          ),
+        ],
+      ),
+    );
+  }
+
+  dynamic _getNextSchedule(
+    LocalScheduleProvider localSch,
+    CloudScheduleProvider cloudSch,
+  ) {
+    final nextLocal = localSch.getNextSchedule();
+    final nextCloud = cloudSch.getNextSchedule();
+
+    if (nextLocal != null && nextCloud != null) {
+      return nextLocal.time.isBefore(
+            TimeOfDay.fromDateTime(nextCloud.datetime.toDate()),
+          )
+          ? nextLocal
+          : nextCloud;
+    }
+
+    return nextLocal ?? nextCloud;
+  }
+
+  Widget _buildContent(
+    MyAuthProvider auth,
+    LocalScheduleProvider localSch,
+    dynamic nextSchedule,
+  ) {
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+    final locale = Localizations.localeOf(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: 24,
+      children: [
+        Text(
+          DateFormat('EEEE, MMM d', locale.languageCode).format(DateTime.now()),
+          style: textTheme.bodyLarge,
+        ),
+        _buildWelcomeMessage(auth, textTheme),
+        _buildNextSchedule(localSch, nextSchedule, textTheme, colorScheme),
+      ],
+    );
+  }
+
+  Widget _buildWelcomeMessage(MyAuthProvider auth, TextTheme textTheme) {
+    return Text(
+      AppLocalizations.of(
+        context,
+      )!.helloUser(auth.userName ?? AppLocalizations.of(context)!.guest),
       style: textTheme.headlineSmall,
     );
   }
 
   Widget _buildNextSchedule(
-    BuildContext context,
-    LocalScheduleProvider scheduleProvider,
+    LocalScheduleProvider localSch,
     dynamic nextSchedule,
     TextTheme textTheme,
     ColorScheme colorScheme,
   ) {
-    if (scheduleProvider.isLoading) {
+    if (localSch.isLoading) {
       return Center(child: CircularProgressIndicator());
     }
 
@@ -210,12 +195,10 @@ class _HomeScreenState extends State<HomeScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: 16,
       children: [
-        // SCHEDULE LABEL
         Text(
           AppLocalizations.of(context)!.nextUp,
           style: textTheme.titleMedium,
         ),
-        // SCHEDULE CARD
         (nextSchedule is Schedule)
             ? ScheduleCard(scheduleId: nextSchedule.id)
             : CloudScheduleCard(scheduleId: nextSchedule.firebaseId),

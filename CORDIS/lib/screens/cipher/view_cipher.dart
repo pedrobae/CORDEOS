@@ -52,310 +52,384 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
   }
 
   void _setOriginalKey() {
-    final tp = context.read<TranspositionProvider>();
-    final cloudVersionProvider = context.read<CloudVersionProvider>();
-    final localVersionProvider = context.read<LocalVersionProvider>();
-    final cipherProvider = context.read<CipherProvider>();
+    final trans = context.read<TranspositionProvider>();
+    final cloudVer = context.read<CloudVersionProvider>();
+    final localVer = context.read<LocalVersionProvider>();
+    final ciph = context.read<CipherProvider>();
 
     final String originalKey;
     final String? transposedKey;
-    // Set original key for transposer
+
     if (widget.versionType == VersionType.cloud) {
-      final version = cloudVersionProvider.getVersion(widget.versionID)!;
+      final version = cloudVer.getVersion(widget.versionID)!;
       originalKey = version.originalKey;
       transposedKey = version.transposedKey;
     } else {
-      final cipher = cipherProvider.getCipher(widget.cipherID!);
-
-      final version = localVersionProvider.cachedVersion(widget.versionID);
+      final cipher = ciph.getCipher(widget.cipherID!);
+      final version = localVer.cachedVersion(widget.versionID);
       originalKey = cipher!.musicKey;
       transposedKey = version?.transposedKey;
     }
-    tp.setOriginalKey(originalKey);
-    tp.setTransposedKey(transposedKey);
+    trans.setOriginalKey(originalKey);
+    trans.setTransposedKey(transposedKey);
   }
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Consumer6<
+    return Consumer4<
       CipherProvider,
       LocalVersionProvider,
       CloudVersionProvider,
-      SectionProvider,
-      LayoutSettingsProvider,
-      TranspositionProvider
+      SectionProvider
     >(
-      builder: (context, cp, lvp, cvp, sp, lsp, tp, child) {
-        final scrollProvider = context.read<AutoScrollProvider>();
-        // Handle loading states
-        if (cp.isLoading || lvp.isLoading || cvp.isLoading || sp.isLoading) {
-          return Scaffold(
-            appBar: AppBar(title: const Text('Carregando...')),
-            body: const Center(child: CircularProgressIndicator()),
-          );
+      builder: (context, ciph, localVer, cloudVer, sect, child) {
+        if (_isLoading(ciph, localVer, cloudVer, sect)) {
+          return _buildLoadingState();
         }
 
-        // Handle error states
-        if (cp.error != null ||
-            lvp.error != null ||
-            cvp.error != null ||
-            sp.error != null) {
-          return Scaffold(
-            appBar: AppBar(title: const Text('Erro')),
-            body: Center(
+        if (_hasError(ciph, localVer, cloudVer, sect)) {
+          return _buildErrorState(ciph, localVer, cloudVer, sect);
+        }
+
+        return _buildContentState(ciph, localVer, cloudVer, sect);
+      },
+    );
+  }
+
+  bool _isLoading(
+    CipherProvider ciph,
+    LocalVersionProvider localVer,
+    CloudVersionProvider cloudVer,
+    SectionProvider sect,
+  ) {
+    return ciph.isLoading ||
+        localVer.isLoading ||
+        cloudVer.isLoading ||
+        sect.isLoading;
+  }
+
+  bool _hasError(
+    CipherProvider ciph,
+    LocalVersionProvider localVer,
+    CloudVersionProvider cloudVer,
+    SectionProvider sect,
+  ) {
+    return ciph.error != null ||
+        localVer.error != null ||
+        cloudVer.error != null ||
+        sect.error != null;
+  }
+
+  Scaffold _buildLoadingState() {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Carregando...')),
+      body: const Center(child: CircularProgressIndicator()),
+    );
+  }
+
+  Scaffold _buildErrorState(
+    CipherProvider ciph,
+    LocalVersionProvider localVer,
+    CloudVersionProvider cloudVer,
+    SectionProvider sect,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final errorMessage =
+        ciph.error ?? localVer.error ?? cloudVer.error ?? sect.error;
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Erro')),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, size: 64, color: colorScheme.error),
+            const SizedBox(height: 16),
+            Text('Erro: $errorMessage'),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _loadData,
+              child: const Text('Tentar Novamente'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContentState(
+    CipherProvider cipherProvider,
+    LocalVersionProvider localVersionProvider,
+    CloudVersionProvider cloudVersionProvider,
+    SectionProvider sectionProvider,
+  ) {
+    final versionData = _extractVersionData(
+      cipherProvider,
+      localVersionProvider,
+      cloudVersionProvider,
+    );
+    final filteredStructure = _filterSongStructure(versionData.songStructure);
+    final sectionCardList = _buildSectionCards(
+      sectionProvider,
+      filteredStructure,
+    );
+
+    return Column(
+      mainAxisSize: MainAxisSize.max,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: 16,
+      children: [
+        _buildActionBar(cipherProvider, localVersionProvider, sectionProvider),
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: SingleChildScrollView(
+              controller: scrollController,
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                spacing: 16,
                 children: [
-                  Icon(Icons.error_outline, size: 64, color: colorScheme.error),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Erro: ${cp.error ?? lvp.error ?? cvp.error ?? sp.error}',
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: _loadData,
-                    child: const Text('Tentar Novamente'),
-                  ),
+                  _buildHeaderSection(versionData),
+                  _buildSongStructureSection(filteredStructure),
+                  _buildSectionsGrid(sectionCardList),
                 ],
               ),
             ),
-          );
-        }
+          ),
+        ),
+      ],
+    );
+  }
 
-        String title;
-        String author;
-        int bpm;
-        Duration duration;
-        List<String> songStructure;
+  _VersionData _extractVersionData(
+    CipherProvider ciph,
+    LocalVersionProvider localVer,
+    CloudVersionProvider cloudVer,
+  ) {
+    if (widget.versionID is String) {
+      final versionDto = cloudVer.getVersion(widget.versionID)!;
+      return _VersionData(
+        title: versionDto.title,
+        author: versionDto.author,
+        bpm: versionDto.bpm,
+        duration: Duration(seconds: versionDto.duration),
+        songStructure: versionDto.songStructure,
+      );
+    } else {
+      final cipher = ciph.getCipher(widget.cipherID!);
+      final version = localVer.cachedVersion(widget.versionID);
+      return _VersionData(
+        title: cipher?.title ?? '',
+        author: cipher?.author ?? '',
+        bpm: version?.bpm ?? 0,
+        duration: version?.duration ?? Duration.zero,
+        songStructure: version?.songStructure ?? [],
+      );
+    }
+  }
 
-        (
-          title,
-          author,
-          bpm,
-          duration,
-          songStructure,
-        ) = widget.versionID is String
-            ? () {
-                final versionDto = cvp.getVersion(widget.versionID)!;
-                return (
-                  versionDto.title,
-                  versionDto.author,
-                  versionDto.bpm,
-                  Duration(seconds: versionDto.duration),
-                  songStructure = versionDto.songStructure,
-                );
-              }()
-            : () {
-                final cipher = cp.getCipher(widget.cipherID!);
-                final version = lvp.cachedVersion(widget.versionID);
-                return (
-                  cipher?.title ?? '',
-                  cipher?.author ?? '',
-                  version?.bpm ?? 0,
-                  version?.duration ?? Duration.zero,
-                  songStructure = version?.songStructure ?? [],
-                );
-              }();
+  List<String> _filterSongStructure(List<String> songStructure) {
+    final laySet = context.read<LayoutSettingsProvider>();
+    final filtered = <String>[];
+    for (var sectionCode in songStructure) {
+      if (!laySet.showAnnotations && isAnnotation(sectionCode)) continue;
+      if (!laySet.showTransitions && isTransition(sectionCode)) continue;
+      filtered.add(sectionCode);
+    }
+    return filtered;
+  }
 
-        final filteredStructure = <String>[];
-        for (var sectionCode in songStructure) {
-          if (!lsp.showAnnotations && isAnnotation(sectionCode)) {
-            continue;
-          }
-          if (!lsp.showTransitions && isTransition(sectionCode)) {
-            continue;
-          }
-          filteredStructure.add(sectionCode);
-        }
+  List<Widget> _buildSectionCards(
+    SectionProvider sect,
+    List<String> filteredStructure,
+  ) {
+    final scrollProvider = context.read<AutoScrollProvider>();
+    final sectionCardList = <Widget>[];
 
-        final sectionCardList = filteredStructure.asMap().entries.map((entry) {
-          String trimmedCode = entry.value.trim();
-          final section = sp.getSection(widget.versionID, trimmedCode);
+    for (var (index, sectionCode) in filteredStructure.indexed) {
+      final trimmedCode = sectionCode.trim();
+      final section = sect.getSection(widget.versionID, trimmedCode);
 
-          if (section == null) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      if (section == null || section.contentText.isEmpty) continue;
 
-          if (section.contentText.isEmpty) {
-            return const SizedBox.shrink();
-          }
-          
-          if (scrollProvider.sectionKeys[entry.key] == null) {
-            scrollProvider.sectionKeys[entry.key] = GlobalKey();
-          }
-          final key = scrollProvider.sectionKeys[entry.key]!;
+      if (scrollProvider.sectionKeys[index] == null) {
+        scrollProvider.sectionKeys[index] = GlobalKey();
+      }
+      final key = scrollProvider.sectionKeys[index]!;
 
-          if (isAnnotation(trimmedCode)) {
-            return AnnotationCard(
-              key: key,
-              sectionText: section.contentText,
-              sectionType: section.contentType,
-            );
-          } else {
-            return SectionCard(
-              key: key,
-              sectionType: section.contentType,
-              sectionCode: trimmedCode,
-              sectionText: section.contentText,
-              sectionColor: section.contentColor,
-            );
-          }
-        }).toList();
-
-        // Add space at the end of the list for better scrolling
-        sectionCardList.add(SizedBox(height: 200));
-
-        return Column(
-          mainAxisSize: MainAxisSize.max,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          spacing: 16,
-          children: [
-            // ACTIONS
-            Row(
-              children: [
-                if (widget.versionType == VersionType.local)
-                  IconButton(
-                    icon: const Icon(Icons.edit),
-                    onPressed: () {
-                      context.read<NavigationProvider>().push(
-                        EditCipherScreen(
-                          cipherID: widget.cipherID,
-                          versionID: widget.versionID,
-                          versionType: widget.versionType,
-                        ),
-                        changeDetector: () {
-                          return widget.versionID is String
-                              ? false
-                              : (lvp.hasUnsavedChanges ||
-                                    cp.hasUnsavedChanges ||
-                                    sp.hasUnsavedChanges);
-                        },
-                        showBottomNavBar: true,
-                      );
-                    },
-                  ),
-                const Spacer(),
-                IconButton(
-                  icon: const Icon(Icons.text_fields),
-                  onPressed: _showStyleSettings(),
-                ),
-                IconButton(
-                  icon: Icon(Icons.filter_alt),
-                  onPressed: _showFilters(),
-                ),
-                const Spacer(),
-                Transposer(),
-                const Spacer(),
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () {
-                    context.read<NavigationProvider>().attemptPop(context);
-                  },
-                ),
-              ],
-            ),
-
-            Expanded(
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                child: SingleChildScrollView(
-                  controller: scrollController,
-                  child: Column(
-                    spacing: 16,
-                    children: [
-                      // HEADER
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            title,
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                          Text(
-                            '${AppLocalizations.of(context)!.by} $author',
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(fontStyle: FontStyle.italic),
-                          ),
-                          SizedBox(height: 8.0),
-                          // info
-                          Row(
-                            spacing: 16.0,
-                            children: [
-                              Text(
-                                AppLocalizations.of(
-                                  context,
-                                )!.keyWithPlaceholder(
-                                  tp.transposedKey ?? tp.originalKey,
-                                ),
-                                style: textTheme.bodySmall,
-                              ),
-                              bpm != 0
-                                  ? Text(
-                                      AppLocalizations.of(
-                                        context,
-                                      )!.bpmWithPlaceholder(bpm.toString()),
-                                      style: textTheme.bodySmall,
-                                    )
-                                  : Text('-'),
-                              duration != Duration.zero
-                                  ? Text(
-                                      AppLocalizations.of(
-                                        context,
-                                      )!.durationWithPlaceholder(
-                                        DateTimeUtils.formatDuration(duration),
-                                      ),
-                                      style: textTheme.bodySmall,
-                                    )
-                                  : Text('-'),
-                            ],
-                          ),
-                        ],
-                      ),
-
-                      // SONG STRUCTURE
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            AppLocalizations.of(context)!.songStructure,
-                            style: textTheme.titleMedium,
-                          ),
-                          StructureList(
-                            versionId: widget.versionID,
-                            filteredStructure: filteredStructure,
-                            scrollController: scrollController,
-                          ),
-                        ],
-                      ),
-
-                      // SECTIONS
-                      MasonryGridView.count(
-                        crossAxisCount: lsp.columnCount,
-                        mainAxisSpacing: 16,
-                        crossAxisSpacing: 16,
-                        itemCount: sectionCardList.length,
-                        physics: const NeverScrollableScrollPhysics(),
-                        shrinkWrap: true,
-                        itemBuilder: (context, index) => sectionCardList[index],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
+      if (isAnnotation(trimmedCode)) {
+        sectionCardList.add(
+          AnnotationCard(
+            key: key,
+            sectionText: section.contentText,
+            sectionType: section.contentType,
+          ),
         );
+      } else {
+        sectionCardList.add(
+          SectionCard(
+            key: key,
+            sectionType: section.contentType,
+            sectionCode: trimmedCode,
+            sectionText: section.contentText,
+            sectionColor: section.contentColor,
+          ),
+        );
+      }
+    }
+
+    sectionCardList.add(const SizedBox(height: 200));
+    return sectionCardList;
+  }
+
+  Widget _buildActionBar(
+    CipherProvider ciph,
+    LocalVersionProvider localVer,
+    SectionProvider sect,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Row(
+        children: [
+          if (widget.versionType == VersionType.local)
+            IconButton(
+              icon: const Icon(Icons.edit),
+              onPressed: () => _navigateToEditScreen(ciph, localVer, sect),
+            ),
+          const Spacer(),
+          IconButton(
+            icon: const Icon(Icons.text_fields),
+            onPressed: _showStyleSettings(),
+          ),
+          IconButton(
+            icon: const Icon(Icons.filter_alt),
+            onPressed: _showFilters(),
+          ),
+          const Spacer(),
+          const Transposer(),
+          const Spacer(),
+          IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () =>
+                context.read<NavigationProvider>().attemptPop(context),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _navigateToEditScreen(
+    CipherProvider ciph,
+    LocalVersionProvider localVer,
+    SectionProvider sect,
+  ) {
+    context.read<NavigationProvider>().push(
+      EditCipherScreen(
+        cipherID: widget.cipherID,
+        versionID: widget.versionID,
+        versionType: widget.versionType,
+      ),
+      changeDetector: () {
+        return widget.versionID is String
+            ? false
+            : (localVer.hasUnsavedChanges ||
+                  ciph.hasUnsavedChanges ||
+                  sect.hasUnsavedChanges);
       },
+      showBottomNavBar: true,
+    );
+  }
+
+  Widget _buildHeaderSection(_VersionData versionData) {
+    final textTheme = Theme.of(context).textTheme;
+    final transpositionProvider = context.read<TranspositionProvider>();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(versionData.title, style: textTheme.titleMedium),
+        Text(
+          '${AppLocalizations.of(context)!.by} ${versionData.author}',
+          style: textTheme.bodyMedium?.copyWith(fontStyle: FontStyle.italic),
+        ),
+        const SizedBox(height: 8.0),
+        _buildMetadataRow(versionData, transpositionProvider, textTheme),
+      ],
+    );
+  }
+
+  Widget _buildMetadataRow(
+    _VersionData versionData,
+    TranspositionProvider trans,
+    TextTheme textTheme,
+  ) {
+    return Row(
+      spacing: 16.0,
+      children: [
+        Text(
+          AppLocalizations.of(
+            context,
+          )!.keyWithPlaceholder(trans.transposedKey ?? trans.originalKey),
+          style: textTheme.bodySmall,
+        ),
+        if (versionData.bpm != 0)
+          Text(
+            AppLocalizations.of(
+              context,
+            )!.bpmWithPlaceholder(versionData.bpm.toString()),
+            style: textTheme.bodySmall,
+          )
+        else
+          Text('-', style: textTheme.bodySmall),
+        if (versionData.duration != Duration.zero)
+          Text(
+            AppLocalizations.of(context)!.durationWithPlaceholder(
+              DateTimeUtils.formatDuration(versionData.duration),
+            ),
+            style: textTheme.bodySmall,
+          )
+        else
+          Text('-', style: textTheme.bodySmall),
+      ],
+    );
+  }
+
+  Widget _buildSongStructureSection(List<String> filteredStructure) {
+    final textTheme = Theme.of(context).textTheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          AppLocalizations.of(context)!.songStructure,
+          style: textTheme.titleMedium,
+        ),
+        StructureList(
+          versionId: widget.versionID,
+          filteredStructure: filteredStructure,
+          scrollController: scrollController,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSectionsGrid(List<Widget> sectionCardList) {
+    final laySet = context.read<LayoutSettingsProvider>();
+
+    return MasonryGridView.count(
+      crossAxisCount: laySet.columnCount,
+      mainAxisSpacing: 16,
+      crossAxisSpacing: 16,
+      itemCount: sectionCardList.length,
+      physics: const NeverScrollableScrollPhysics(),
+      shrinkWrap: true,
+      itemBuilder: (context, index) => sectionCardList[index],
     );
   }
 
   Future<void> _loadData() async {
     if (!mounted) return;
-    final sectionProvider = context.read<SectionProvider>();
-    final cloudVersionProvider = context.read<CloudVersionProvider>();
+    final sect = context.read<SectionProvider>();
+    final cloudVer = context.read<CloudVersionProvider>();
 
     switch (widget.versionType) {
       case VersionType.import:
@@ -364,13 +438,13 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
       case VersionType.local:
       case VersionType.playlist:
         if (widget.versionID != null) {
-          await sectionProvider.loadSectionsOfVersion(widget.versionID);
+          await sect.loadSectionsOfVersion(widget.versionID);
         }
         break;
       case VersionType.cloud:
         if (widget.versionID != null) {
-          final version = cloudVersionProvider.getVersion(widget.versionID);
-          sectionProvider.setNewSectionsInCache(
+          final version = cloudVer.getVersion(widget.versionID);
+          sect.setNewSectionsInCache(
             widget.versionID,
             version!.toDomain().sections!,
           );
@@ -385,12 +459,10 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
         backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
         context: context,
         isScrollControlled: true,
-        builder: (context) {
-          return BottomSheet(
-            onClosing: () {},
-            builder: (context) => const StyleSettings(),
-          );
-        },
+        builder: (context) => BottomSheet(
+          onClosing: () {},
+          builder: (context) => const StyleSettings(),
+        ),
       );
     };
   }
@@ -401,15 +473,27 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
         backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
         context: context,
         isScrollControlled: true,
-        builder: (context) {
-          return BottomSheet(
-            onClosing: () {},
-            builder: (context) {
-              return const ContentFilters();
-            },
-          );
-        },
+        builder: (context) => BottomSheet(
+          onClosing: () {},
+          builder: (context) => const ContentFilters(),
+        ),
       );
     };
   }
+}
+
+class _VersionData {
+  final String title;
+  final String author;
+  final int bpm;
+  final Duration duration;
+  final List<String> songStructure;
+
+  _VersionData({
+    required this.title,
+    required this.author,
+    required this.bpm,
+    required this.duration,
+    required this.songStructure,
+  });
 }

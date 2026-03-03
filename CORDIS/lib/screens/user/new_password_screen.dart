@@ -38,113 +38,134 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final colorScheme = Theme.of(context).colorScheme;
+    final nav = Provider.of<NavigationProvider>(context, listen: false);
 
-    return Consumer2<MyAuthProvider, NavigationProvider>(
-      builder: (context, authProvider, navProvider, child) {
-        if (authProvider.error != null &&
-            authProvider.error!.contains('requires-recent-login')) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              builder: (context) => ReAuthSheet(
-                onReAuthSuccess: () {
-                  Navigator.of(context).pop();
-                  authProvider.updatePassword(_passwordController.text);
-                },
-              ),
-            );
-          });
-        }
-
+    return Consumer<MyAuthProvider>(
+      builder: (context, auth, child) {
+        _handleReauthIfNeeded(auth);
         return Column(
           spacing: 24,
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            /// HEADER
-            Padding(
-              padding: const EdgeInsets.all(4.0),
-              child: BackButton(
-                color: colorScheme.onSurface,
-                onPressed: () => navProvider.attemptPop(context),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                spacing: 16,
-                children: [
-                  LabeledTextField(
-                    label: AppLocalizations.of(
-                      context,
-                    )!.newPlaceholder(AppLocalizations.of(context)!.password),
-                    controller: _passwordController,
-                    obscureText: _obscurePassword,
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword
-                            ? Icons.visibility_off
-                            : Icons.visibility,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _obscurePassword = !_obscurePassword;
-                        });
-                      },
-                    ),
-                  ),
-                  LabeledTextField(
-                    label: AppLocalizations.of(context)!.confirmPassword,
-                    controller: _confirmPasswordController,
-                    obscureText: _obscureConfirmPassword,
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscureConfirmPassword
-                            ? Icons.visibility_off
-                            : Icons.visibility,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _obscureConfirmPassword = !_obscureConfirmPassword;
-                        });
-                      },
-                    ),
-                  ),
-                  if (authProvider.isLoading)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 8),
-                      child: CircularProgressIndicator(),
-                    ),
-                  if (authProvider.error != null)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Text(
-                        authProvider.error!,
-                        style: TextStyle(
-                          color: colorScheme.error,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-
-                  FilledTextButton(
-                    text: AppLocalizations.of(context)!.save,
-                    isDark: true,
-                    onPressed: () {
-                      if (_validate()) {
-                        authProvider.updatePassword(_passwordController.text);
-                      }
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ],
+          children: [_buildHeader(nav), _buildContent(auth)],
         );
+      },
+    );
+  }
+
+  void _handleReauthIfNeeded(MyAuthProvider auth) {
+    if (auth.error != null && auth.error!.contains('requires-recent-login')) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          builder: (context) => ReAuthSheet(
+            onReAuthSuccess: () {
+              Navigator.of(context).pop();
+              auth.updatePassword(_passwordController.text);
+            },
+          ),
+        );
+      });
+    }
+  }
+
+  Widget _buildHeader(NavigationProvider nav) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.all(4.0),
+      child: BackButton(
+        color: colorScheme.onSurface,
+        onPressed: () => nav.attemptPop(context),
+      ),
+    );
+  }
+
+  Widget _buildContent(MyAuthProvider auth) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: 16,
+        children: [
+          _buildPasswordField(),
+          _buildConfirmPasswordField(),
+          _buildStatusIndicators(auth),
+          _buildSaveButton(auth),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPasswordField() {
+    return LabeledTextField(
+      label: AppLocalizations.of(
+        context,
+      )!.newPlaceholder(AppLocalizations.of(context)!.password),
+      controller: _passwordController,
+      obscureText: _obscurePassword,
+      suffixIcon: IconButton(
+        icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
+        onPressed: () {
+          setState(() {
+            _obscurePassword = !_obscurePassword;
+          });
+        },
+      ),
+    );
+  }
+
+  Widget _buildConfirmPasswordField() {
+    return LabeledTextField(
+      label: AppLocalizations.of(context)!.confirmPassword,
+      controller: _confirmPasswordController,
+      obscureText: _obscureConfirmPassword,
+      suffixIcon: IconButton(
+        icon: Icon(
+          _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
+        ),
+        onPressed: () {
+          setState(() {
+            _obscureConfirmPassword = !_obscureConfirmPassword;
+          });
+        },
+      ),
+    );
+  }
+
+  Widget _buildStatusIndicators(MyAuthProvider auth) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Column(
+      spacing: 8,
+      children: [
+        if (auth.isLoading)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 8),
+            child: CircularProgressIndicator(),
+          ),
+        if (auth.error != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Text(
+              auth.error!,
+              style: TextStyle(
+                color: colorScheme.error,
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildSaveButton(MyAuthProvider auth) {
+    return FilledTextButton(
+      text: AppLocalizations.of(context)!.save,
+      isDark: true,
+      onPressed: () {
+        if (_validate()) {
+          auth.updatePassword(_passwordController.text);
+        }
       },
     );
   }

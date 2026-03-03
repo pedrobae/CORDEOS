@@ -16,6 +16,10 @@ class _WebViewScreenState extends State<WebViewScreen> {
   @override
   void initState() {
     super.initState();
+    _initializeWebViewController();
+  }
+
+  void _initializeWebViewController() {
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(
@@ -42,21 +46,27 @@ class _WebViewScreenState extends State<WebViewScreen> {
     return false;
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildWebView() {
+    return WebViewWidget(controller: _controller);
+  }
+
+  Widget _buildPopScope(Widget child) {
     return PopScope(
       canPop: true,
       onPopInvokedWithResult: (didPop, _) async {
         if (didPop) return;
 
-        // Try to go back in webview history first
         final canGoBack = await _handleBackNavigation();
-        if (!canGoBack && context.mounted) {
-          // If no webview history, pop the screen
+        if (!canGoBack && mounted) {
           context.read<NavigationProvider>().attemptPop(context);
         }
       },
-      child: WebViewWidget(controller: _controller),
+      child: child,
     );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _buildPopScope(_buildWebView());
   }
 }

@@ -23,14 +23,14 @@ class MainScreen extends StatefulWidget {
 }
 
 class MainScreenState extends State<MainScreen> {
-  late MyAuthProvider _authProvider;
+  late MyAuthProvider _auth;
 
   @override
   void initState() {
     super.initState();
 
-    _authProvider = context.read<MyAuthProvider>();
-    _authProvider.addListener(_authListener);
+    _auth = Provider.of<MyAuthProvider>(context, listen: false);
+    _auth.addListener(_authListener);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _redirectIfNeeded();
@@ -38,11 +38,13 @@ class MainScreenState extends State<MainScreen> {
   }
 
   void _authListener() {
-    _redirectIfNeeded();
+    if (mounted) {
+      _redirectIfNeeded();
+    }
   }
 
   void _redirectIfNeeded() {
-    if (_authProvider.isAuthenticated) return;
+    if (!mounted || _auth.isAuthenticated) return;
 
     Navigator.of(
       context,
@@ -51,75 +53,37 @@ class MainScreenState extends State<MainScreen> {
 
   @override
   void dispose() {
-    _authProvider.removeListener(_authListener);
+    _auth.removeListener(_authListener);
+    _auth.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Consumer3<MyAuthProvider, NavigationProvider, CipherProvider>(
-      builder:
-          (context, authProvider, navigationProvider, cipherProvider, child) {
-            return PopScope(
-              canPop: false,
-              onPopInvokedWithResult: (didPop, _) async {
-                if (didPop) return;
-                await navigationProvider.attemptPop(context);
-              },
-              child: Scaffold(
-                appBar: navigationProvider.showAppBar
-                    ? _buildAppBar(colorScheme)
-                    : null,
-                drawer: navigationProvider.showDrawerIcon
-                    ? SideMenu() //
-                    : null,
-                bottomNavigationBar: navigationProvider.showBottomNavBar
-                    ? _buildBottomNavigationBar(
-                        colorScheme,
-                        textTheme,
-                        navigationProvider,
-                      )
-                    : null,
-                floatingActionButton: navigationProvider.showFAB
-                    ? _buildFAB(colorScheme, navigationProvider, cipherProvider)
-                    : null,
-                body: SafeArea(
-                  child: Builder(
-                    builder: (context) {
-                      return AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 400),
-                        transitionBuilder: (child, animation) {
-                          return FadeTransition(
-                            opacity: animation,
-                            child: child,
-                          );
-                        },
-                        layoutBuilder: (currentChild, previousChildren) {
-                          return Stack(
-                            children: <Widget>[
-                              ...previousChildren,
-                              currentChild ?? const SizedBox.shrink(),
-                            ],
-                          );
-                        },
-                        child: KeyedSubtree(
-                          key: ValueKey(navigationProvider.currentRoute),
-                          child: navigationProvider.buildCurrentScreen(context),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-            );
+    return Consumer<NavigationProvider>(
+      builder: (context, nav, child) {
+        return PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, _) async {
+            if (didPop) return;
+            await nav.attemptPop(context);
           },
+          child: Scaffold(
+            appBar: nav.showAppBar ? _buildAppBar() : null,
+            drawer: nav.showDrawerIcon ? SideMenu() : null,
+            bottomNavigationBar: nav.showBottomNavBar
+                ? _buildBottomNavigationBar(nav)
+                : null,
+            floatingActionButton: nav.showFAB ? _buildFAB(nav) : null,
+            body: _buildBody(nav),
+          ),
+        );
+      },
     );
   }
 
-  AppBar _buildAppBar(ColorScheme colorScheme) {
+  AppBar _buildAppBar() {
+    final colorScheme = Theme.of(context).colorScheme;
     return AppBar(
       backgroundColor: colorScheme.surface,
       centerTitle: true,
@@ -127,11 +91,8 @@ class MainScreenState extends State<MainScreen> {
     );
   }
 
-  Container _buildBottomNavigationBar(
-    ColorScheme colorScheme,
-    TextTheme textTheme,
-    NavigationProvider navProvider,
-  ) {
+  Widget _buildBottomNavigationBar(NavigationProvider nav) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       decoration: BoxDecoration(
         border: Border(
@@ -142,18 +103,15 @@ class MainScreenState extends State<MainScreen> {
         ),
       ),
       child: BottomNavigationBar(
-        currentIndex: navProvider.currentRoute.index,
+        currentIndex: nav.currentRoute.index,
         type: BottomNavigationBarType.shifting,
         selectedItemColor: colorScheme.primary,
         onTap: (index) {
           if (mounted) {
-            navProvider.attemptPop(
-              context,
-              route: NavigationRoute.values[index],
-            );
+            nav.attemptPop(context, route: NavigationRoute.values[index]);
           }
         },
-        items: navProvider
+        items: nav
             .getNavigationItems(
               context,
               iconSize: 28,
@@ -173,56 +131,38 @@ class MainScreenState extends State<MainScreen> {
     );
   }
 
-  GestureDetector _buildFAB(
-    ColorScheme colorScheme,
-    NavigationProvider navProvider,
-    CipherProvider cipherProvider,
-  ) {
-    return GestureDetector(
-      onLongPress: () {
-        if (navProvider.currentRoute == NavigationRoute.library) {
-          showModalBottomSheet(
-            context: context,
-            isScrollControlled: true,
-            builder: (context) {
-              return NewSectionSheet(secret: true);
+  Widget _buildBody(NavigationProvider nav) {
+    return SafeArea(
+      child: Builder(
+        builder: (context) {
+          return AnimatedSwitcher(
+            duration: const Duration(milliseconds: 400),
+            transitionBuilder: (child, animation) {
+              return FadeTransition(opacity: animation, child: child);
             },
+            layoutBuilder: (currentChild, previousChildren) {
+              return Stack(
+                children: <Widget>[
+                  ...previousChildren,
+                  currentChild ?? const SizedBox.shrink(),
+                ],
+              );
+            },
+            child: KeyedSubtree(
+              key: ValueKey(nav.currentRoute),
+              child: nav.buildCurrentScreen(context),
+            ),
           );
-        }
-      },
-      onTap: () {
-        final sectionProvider = context.read<SectionProvider>();
-        final localVersionProvider = context.read<LocalVersionProvider>();
-        switch (navProvider.currentRoute) {
-          case NavigationRoute.library:
-            navProvider.push(
-              EditCipherScreen(
-                versionID: -1,
-                cipherID: -1,
-                versionType: VersionType.brandNew,
-              ),
-              changeDetector: () =>
-                  cipherProvider.hasUnsavedChanges ||
-                  sectionProvider.hasUnsavedChanges ||
-                  localVersionProvider.hasUnsavedChanges,
-              showBottomNavBar: true,
-              onPopCallback: () => cipherProvider.clearNewCipherFromCache(),
-            );
-            break;
-          case NavigationRoute.playlists:
-            navProvider.push(
-              EditPlaylistScreen(),
-              changeDetector: () =>
-                  localVersionProvider.hasUnsavedChanges,
-              showBottomNavBar: true,
-            );
-            break;
-          case NavigationRoute.home:
-          case NavigationRoute.schedule:
-            _showBottomSheetForCurrentRoute(navProvider.currentRoute);
-            break;
-        }
-      },
+        },
+      ),
+    );
+  }
+
+  GestureDetector _buildFAB(NavigationProvider nav) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return GestureDetector(
+      onLongPress: () => _handleLongPressFAB(nav),
+      onTap: () => _handleFABTap(nav),
       child: Container(
         width: 56,
         height: 56,
@@ -240,6 +180,61 @@ class MainScreenState extends State<MainScreen> {
         ),
         child: Icon(Icons.add, color: colorScheme.surface),
       ),
+    );
+  }
+
+  void _handleLongPressFAB(NavigationProvider nav) {
+    if (nav.currentRoute == NavigationRoute.library) {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        builder: (context) => NewSectionSheet(secret: true),
+      );
+    }
+  }
+
+  void _handleFABTap(NavigationProvider nav) {
+    switch (nav.currentRoute) {
+      case NavigationRoute.library:
+        _handleLibraryFAB(nav);
+        break;
+      case NavigationRoute.playlists:
+        _handlePlaylistsFAB(nav);
+        break;
+      case NavigationRoute.home:
+      case NavigationRoute.schedule:
+        _showBottomSheetForCurrentRoute(nav.currentRoute);
+        break;
+    }
+  }
+
+  void _handleLibraryFAB(NavigationProvider nav) {
+    final ciph = context.read<CipherProvider>();
+    final sect = context.read<SectionProvider>();
+    final localVer = context.read<LocalVersionProvider>();
+
+    nav.push(
+      EditCipherScreen(
+        versionID: -1,
+        cipherID: -1,
+        versionType: VersionType.brandNew,
+      ),
+      changeDetector: () =>
+          ciph.hasUnsavedChanges ||
+          sect.hasUnsavedChanges ||
+          localVer.hasUnsavedChanges,
+      showBottomNavBar: true,
+      onPopCallback: () => ciph.clearNewCipherFromCache(),
+    );
+  }
+
+  void _handlePlaylistsFAB(NavigationProvider nav) {
+    final localVer = context.read<LocalVersionProvider>();
+
+    nav.push(
+      EditPlaylistScreen(),
+      changeDetector: () => localVer.hasUnsavedChanges,
+      showBottomNavBar: true,
     );
   }
 

@@ -26,12 +26,14 @@ class _CipherLibraryScreenState extends State<CipherLibraryScreen> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Consumer3<CipherProvider, SelectionProvider, CloudVersionProvider>(
+    final selectionProvider = Provider.of<SelectionProvider>(context, listen: false);
+
+
+    return Consumer2<CipherProvider, CloudVersionProvider>(
       builder:
           (
             context,
             cipherProvider,
-            selectionProvider,
             cloudVersionProvider,
             child,
           ) {

@@ -36,42 +36,52 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
         title: Text(AppLocalizations.of(context)!.passwordResetTitle),
       ),
       body: Consumer<MyAuthProvider>(
-        builder: (context, authProvider, child) {
+        builder: (context, auth, child) {
           return Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
               spacing: 16,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 32.0),
-                  child: Text(
-                    AppLocalizations.of(context)!.passwordResetInstructions,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
-                ),
-                LabeledTextField(
-                  label: AppLocalizations.of(context)!.email,
-                  controller: _emailController,
-                ),
-                FilledTextButton(
-                  text: AppLocalizations.of(
-                    context,
-                  )!.sendPlaceholder(AppLocalizations.of(context)!.email),
-                  isDark: true,
-                  onPressed: () async {
-                    await authProvider.sendPasswordResetEmail(
-                      widget.loginEmail,
-                    );
-                    if (context.mounted) Navigator.of(context).pop();
-                  },
-                ),
+                _buildInstructions(),
+                _buildEmailField(),
+                _buildSendButton(auth),
               ],
             ),
           );
         },
       ),
+    );
+  }
+
+  Widget _buildInstructions() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 32.0),
+      child: Text(
+        AppLocalizations.of(context)!.passwordResetInstructions,
+        textAlign: TextAlign.center,
+        style: Theme.of(context).textTheme.bodyLarge,
+      ),
+    );
+  }
+
+  Widget _buildEmailField() {
+    return LabeledTextField(
+      label: AppLocalizations.of(context)!.email,
+      controller: _emailController,
+    );
+  }
+
+  Widget _buildSendButton(MyAuthProvider auth) {
+    return FilledTextButton(
+      text: AppLocalizations.of(
+        context,
+      )!.sendPlaceholder(AppLocalizations.of(context)!.email),
+      isDark: true,
+      onPressed: () async {
+        await auth.sendPasswordResetEmail(widget.loginEmail);
+        if (mounted) Navigator.of(context).pop();
+      },
     );
   }
 }

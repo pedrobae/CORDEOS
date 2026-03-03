@@ -219,23 +219,25 @@ class CloudScheduleProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> joinScheduleWithCode(String shareCode) async {
-    if (_isLoading) return false;
-    bool result = false;
+  void clearError() {
+    _error = null;
+    notifyListeners();
+  }
+
+  Future<void> joinScheduleWithCode(String shareCode) async {
+    if (_isLoading) return;
     try {
       _isLoading = true;
       _error = null;
       notifyListeners();
 
-      result = await _repo.joinWithCode(shareCode);
+      await _repo.joinWithCode(shareCode);
     } catch (e) {
       _error = e.toString();
-      result = false;
     } finally {
       _isLoading = false;
       notifyListeners();
     }
-    return result;
   }
 
   // ===== SEARCH & FILTER =====

@@ -96,114 +96,101 @@ class _EditScheduleScreenState extends State<EditScheduleScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer4<
-      SelectionProvider,
-      NavigationProvider,
-      LocalScheduleProvider,
-      PlaylistProvider
-    >(
-      builder:
-          (
-            context,
-            selectionProvider,
-            navigationProvider,
-            scheduleProvider,
-            playlistProvider,
-            child,
-          ) {
-            final textTheme = Theme.of(context).textTheme;
+    final nav = Provider.of<NavigationProvider>(context, listen: false);
 
-            return Scaffold(
-              appBar: AppBar(
-                leading: BackButton(
-                  onPressed: () => navigationProvider.attemptPop(context),
-                ),
-                title: Text(
-                  AppLocalizations.of(context)!.editPlaceholder(
-                    AppLocalizations.of(context)!.scheduleDetails,
-                  ),
-                  style: textTheme.titleMedium,
-                ),
-              ),
-              body: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  spacing: 16,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // MODE CONTENT
-                    Expanded(
-                      child: switch (widget.mode) {
-                        EditScheduleMode.details => ScheduleForm(
-                          nameController: nameController,
-                          dateController: dateController,
-                          startTimeController: startTimeController,
-                          locationController: locationController,
-                          roomVenueController: roomVenueController,
-                          annotationsController: annotationsController,
-                        ),
-                        EditScheduleMode.playlist => PlaylistLibraryScreen(),
-                        EditScheduleMode.roleMember => RolesAndUsersForm(
-                          scheduleId: widget.scheduleId,
-                        ),
-                      },
-                    ),
-                    // SAVE BUTTON
-                    FilledTextButton(
-                      text: AppLocalizations.of(context)!.save,
-                      onPressed: () {
-                        switch (widget.mode) {
-                          case EditScheduleMode.details:
-                            _saveDetails(navigationProvider, scheduleProvider);
-                            break;
-                          case EditScheduleMode.playlist:
-                            _savePlaylist(
-                              navigationProvider,
-                              scheduleProvider,
-                              playlistProvider,
-                              selectionProvider,
-                            );
-                            break;
-                          case EditScheduleMode.roleMember:
-                            _saveRoleMember(
-                              navigationProvider,
-                              scheduleProvider,
-                            );
-                            break;
-                        }
-                        // Sync to cloud if public
-                        if (scheduleProvider.isLive(widget.scheduleId)) {
-                          scheduleProvider.uploadScheduleToCloud(
-                            widget.scheduleId,
-                            context.read<MyAuthProvider>().id!,
-                          );
-                        }
-                        navigationProvider.pop();
-                      },
-                      isDisabled:
-                          (selectionProvider.isSelectionMode &&
-                          selectionProvider.selectedItemIds.length != 1),
-                      isDark: true,
-                    ),
-
-                    // CANCEL BUTTON
-                    FilledTextButton(
-                      text: AppLocalizations.of(context)!.cancel,
-                      onPressed: () => navigationProvider.attemptPop(context),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
+    return Scaffold(
+      appBar: _buildAppBar(nav),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          spacing: 16,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [_buildModeContent(), _buildActionButtons(context, nav)],
+        ),
+      ),
     );
   }
 
-  Future<void> _saveDetails(
-    NavigationProvider navigationProvider,
-    LocalScheduleProvider scheduleProvider,
+  AppBar _buildAppBar(NavigationProvider nav) {
+    final textTheme = Theme.of(context).textTheme;
+    return AppBar(
+      leading: BackButton(onPressed: () => nav.attemptPop(context)),
+      title: Text(
+        AppLocalizations.of(
+          context,
+        )!.editPlaceholder(AppLocalizations.of(context)!.scheduleDetails),
+        style: textTheme.titleMedium,
+      ),
+    );
+  }
+
+  Widget _buildModeContent() {
+    return Expanded(
+      child: switch (widget.mode) {
+        EditScheduleMode.details => ScheduleForm(
+          nameController: nameController,
+          dateController: dateController,
+          startTimeController: startTimeController,
+          locationController: locationController,
+          roomVenueController: roomVenueController,
+          annotationsController: annotationsController,
+        ),
+        EditScheduleMode.playlist => const PlaylistLibraryScreen(),
+        EditScheduleMode.roleMember => RolesAndUsersForm(
+          scheduleId: widget.scheduleId,
+        ),
+      },
+    );
+  }
+
+  Widget _buildActionButtons(BuildContext context, NavigationProvider nav) {
+    final sel = Provider.of<SelectionProvider>(context, listen: false);
+
+    return Column(
+      spacing: 8,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        FilledTextButton(
+          text: AppLocalizations.of(context)!.save,
+          onPressed: () => _handleSave(context, nav, sel),
+          isDisabled: sel.isSelectionMode && sel.selectedItemIds.length != 1,
+          isDark: true,
+        ),
+        FilledTextButton(
+          text: AppLocalizations.of(context)!.cancel,
+          onPressed: () => nav.attemptPop(context),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _handleSave(
+    BuildContext context,
+    NavigationProvider nav,
+    SelectionProvider sel,
   ) async {
-    scheduleProvider.cacheScheduleDetails(
+    final auth = Provider.of<MyAuthProvider>(context, listen: false);
+    final localSch = Provider.of<LocalScheduleProvider>(context, listen: false);
+    final play = Provider.of<PlaylistProvider>(context, listen: false);
+
+    switch (widget.mode) {
+      case EditScheduleMode.details:
+        await _saveDetails(localSch);
+      case EditScheduleMode.playlist:
+        await _savePlaylist(localSch, play, sel);
+      case EditScheduleMode.roleMember:
+        await _saveRoleMember(localSch);
+    }
+
+    if (localSch.isLive(widget.scheduleId)) {
+      localSch.uploadScheduleToCloud(widget.scheduleId, auth.id!);
+    }
+
+    nav.pop();
+  }
+
+  Future<void> _saveDetails(LocalScheduleProvider localSch) async {
+    localSch.cacheScheduleDetails(
       widget.scheduleId,
       name: nameController.text,
       date: dateController.text,
@@ -212,35 +199,26 @@ class _EditScheduleScreenState extends State<EditScheduleScreen> {
       roomVenue: roomVenueController.text,
       annotations: annotationsController.text,
     );
-    await scheduleProvider.saveSchedule(widget.scheduleId);
+    await localSch.saveSchedule(widget.scheduleId);
   }
 
   Future<void> _savePlaylist(
-    NavigationProvider navigationProvider,
-    LocalScheduleProvider scheduleProvider,
-    PlaylistProvider playlistProvider,
-    SelectionProvider selectionProvider,
+    LocalScheduleProvider localSch,
+    PlaylistProvider play,
+    SelectionProvider sel,
   ) async {
-    if (selectionProvider.selectedItemIds.isEmpty) return;
+    if (sel.selectedItemIds.isEmpty) return;
 
-    final selectedPlaylistId = selectionProvider.selectedItemIds.first as int;
-    final selectedPlaylist = playlistProvider.getPlaylistById(
-      selectedPlaylistId,
-    );
+    final selectedPlaylistId = sel.selectedItemIds.first as int;
+    final selectedPlaylist = play.getPlaylistById(selectedPlaylistId);
     if (selectedPlaylist == null) return;
 
-    scheduleProvider.assignPlaylistToSchedule(
-      widget.scheduleId,
-      selectedPlaylistId,
-    );
+    localSch.assignPlaylistToSchedule(widget.scheduleId, selectedPlaylistId);
 
-    await scheduleProvider.saveSchedule(widget.scheduleId);
+    await localSch.saveSchedule(widget.scheduleId);
   }
 
-  Future<void> _saveRoleMember(
-    NavigationProvider navigationProvider,
-    LocalScheduleProvider scheduleProvider,
-  ) async {
-    await scheduleProvider.saveSchedule(widget.scheduleId);
+  Future<void> _saveRoleMember(LocalScheduleProvider localSch) async {
+    await localSch.saveSchedule(widget.scheduleId);
   }
 }
