@@ -113,7 +113,7 @@ class ScheduleCard extends StatelessWidget {
                                   DateTimeUtils.formatDate(schedule.date),
                                   style: theme.textTheme.bodyMedium,
                                 ),
-                                Text(DateTimeUtils.formatDate(schedule.date)),
+                                Text(DateTimeUtils.formatTime(schedule.date)),
                                 Text(
                                   schedule.location,
                                   style: theme.textTheme.bodyMedium!,

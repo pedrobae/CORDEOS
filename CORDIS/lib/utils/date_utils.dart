@@ -3,6 +3,12 @@ class DateTimeUtils {
     return '${date.day}/${date.month}/${date.year}';
   }
 
+  static String formatTime(DateTime date) {
+    final hours = date.hour.toString().padLeft(2, '0');
+    final minutes = date.minute.toString().padLeft(2, '0');
+    return '$hours:$minutes';
+  }
+
   static bool isToday(DateTime date) {
     final now = DateTime.now();
     return date.year == now.year &&

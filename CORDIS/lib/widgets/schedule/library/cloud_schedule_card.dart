@@ -131,7 +131,7 @@ class CloudScheduleCard extends StatelessWidget {
                                       style: theme.textTheme.bodyMedium,
                                     ),
                                     Text(
-                                      DateTimeUtils.formatDate(
+                                      DateTimeUtils.formatTime(
                                         schedule.datetime.toDate(),
                                       ),
                                       style: theme.textTheme.bodyMedium,
