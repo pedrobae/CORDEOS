@@ -55,3 +55,88 @@ app.*.map.json
 CORDIS/android/app/debug
 CORDIS/android/app/profile
 CORDIS/android/app/release
+# Environment Variables
+.env
+.env.local
+.env.*.local
+
+# IDE - VSCode
+.vscode/launch.json
+.vscode/settings.json
+.vscode/extensions.json
+
+# IDE - Android Studio, IntelliJ
+*.jks
+*.keystore
+*.gradle
+local.properties
+google-services.json
+GoogleService-Info.plist
+
+# IDE - Xcode
+*.xcworkspace/xcuserdata/
+*.xcworkspace/xcshareddata/
+*.xcodeproj/xcuserdata/
+*.xcodeproj/xcshareddata/
+DerivedData/
+build/
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Platform builds
+CORDIS/android/.gradle/
+CORDIS/android/local.properties
+CORDIS/ios/Flutter/flutter_export_environment.sh
+CORDIS/windows/flutter/ephemeral/
+CORDIS/linux/flutter/ephemeral/
+CORDIS/macos/Flutter/ephemeral/
+
+# Generated files
+CORDIS/lib/generated_plugin_registrant.dart
+CORDIS/.dart_tool/
+CORDIS/.flutter-plugins
+CORDIS/.flutter-plugins-dependencies
+
+# Firebase
+functions/node_modules/
+functions/lib/
+.firebase/
+.firebaserc
+.runtimeconfig.json
+
+# Node (for Firebase Cloud Functions)
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# Testing & Coverage
+coverage/
+.*/coverage/
+*.lcov
+test/.test_coverage.dart
+.dart_code_metrics/
+
+# Logs
+*.log
+logs/
+*.log.*
+
+# Operating System files
+.DS_Store
+*.swp
+*.swo
+*~
+.Thumbs.db
+Thumbs.db
+
+# Development & Temporary
+*.tmp
+.temp/
+!.gitkeep
+*.bak
+*.backup
+*.orig
