@@ -133,7 +133,6 @@ class _EditScheduleScreenState extends State<EditScheduleScreen> {
           startTimeController: startTimeController,
           locationController: locationController,
           roomVenueController: roomVenueController,
-          annotationsController: annotationsController,
         ),
         EditScheduleMode.playlist => const PlaylistLibraryScreen(),
         EditScheduleMode.roleMember => RolesAndUsersForm(

@@ -162,7 +162,8 @@ class LocalScheduleProvider extends ChangeNotifier {
     }
   }
 
-  /// Duplicates an existing schedule (local or cloud) with new details.
+  /// Duplicates an existing schedule with new details,
+  /// with the same playlist
   Future<void> duplicateSchedule(
     int scheduleID,
     String name,

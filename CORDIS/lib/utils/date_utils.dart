@@ -21,10 +21,10 @@ class DateTimeUtils {
       try {
         return DateTime.parse(value);
       } catch (e) {
-        return null;
+        return DateTime.now();
       }
     }
-    return null;
+    return DateTime.now();
   }
 
   /// Formats a Duration into a human-readable string like "HH:MM:SS"

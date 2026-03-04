@@ -224,6 +224,16 @@ class CloudScheduleProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void startSyncing(String scheduleId) {
+    _isSyncing[scheduleId] = true;
+    notifyListeners();
+  }
+
+  void stopSyncing(String scheduleId) {
+    _isSyncing[scheduleId] = false;
+    notifyListeners();
+  }
+
   Future<void> joinScheduleWithCode(String shareCode) async {
     if (_isLoading) return;
     try {

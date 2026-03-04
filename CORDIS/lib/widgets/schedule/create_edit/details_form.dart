@@ -15,7 +15,6 @@ class ScheduleForm extends StatefulWidget {
   final TextEditingController startTimeController;
   final TextEditingController locationController;
   final TextEditingController roomVenueController;
-  final TextEditingController? annotationsController;
 
   const ScheduleForm({
     super.key,
@@ -25,7 +24,6 @@ class ScheduleForm extends StatefulWidget {
     required this.startTimeController,
     required this.locationController,
     required this.roomVenueController,
-    this.annotationsController,
   });
 
   @override
@@ -49,7 +47,6 @@ class _ScheduleFormState extends State<ScheduleForm> {
         widget.startTimeController.text =
             '${schedule.time.hour}:${schedule.time.minute.toString().padLeft(2, '0')}';
         widget.locationController.text = schedule.location;
-        widget.annotationsController?.text = schedule.annotations ?? '';
       } else {
         final schedule = cloudScheduleProvider.getSchedule(widget.scheduleId)!;
         widget.nameController.text = schedule.name;
@@ -58,78 +55,66 @@ class _ScheduleFormState extends State<ScheduleForm> {
         widget.startTimeController.text =
             '${schedule.datetime.toDate().hour}:${schedule.datetime.toDate().minute.toString().padLeft(2, '0')}';
         widget.locationController.text = schedule.location;
-        widget.annotationsController?.text = schedule.annotations ?? '';
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<LocalScheduleProvider>(
-      builder: (context, value, child) => Form(
-        autovalidateMode: AutovalidateMode.onUnfocus,
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            spacing: 16,
-            children: [
-              LabeledTextField(
-                label: AppLocalizations.of(context)!.scheduleName,
-                controller: widget.nameController,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return AppLocalizations.of(
-                      context,
-                    )!.pleaseEnterScheduleName;
-                  }
-                  return null;
-                },
-              ),
-              _buildDatePickerField(
-                label: AppLocalizations.of(context)!.date,
-                controller: widget.dateController,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return AppLocalizations.of(context)!.pleaseEnterDate;
-                  }
-                  return null;
-                },
-              ),
-              _buildTimePickerField(
-                AppLocalizations.of(context)!.startTime,
-                widget.startTimeController,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return AppLocalizations.of(context)!.pleaseEnterStartTime;
-                  }
-                  return null;
-                },
-              ),
-              LabeledTextField(
-                label: AppLocalizations.of(context)!.location,
-                controller: widget.locationController,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return AppLocalizations.of(context)!.pleaseEnterLocation;
-                  }
-                  return null;
-                },
-              ),
-              LabeledTextField(
-                label: AppLocalizations.of(
-                  context,
-                )!.optionalPlaceholder(AppLocalizations.of(context)!.roomVenue),
-                controller: widget.roomVenueController,
-              ),
-              if (widget.annotationsController != null)
-                LabeledTextField(
-                  label: AppLocalizations.of(context)!.optionalPlaceholder(
-                    AppLocalizations.of(context)!.annotations,
-                  ),
-                  controller: widget.annotationsController!,
-                ),
-            ],
-          ),
+    return Form(
+      autovalidateMode: AutovalidateMode.onUnfocus,
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 16,
+          children: [
+            LabeledTextField(
+              label: AppLocalizations.of(context)!.scheduleName,
+              controller: widget.nameController,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return AppLocalizations.of(context)!.pleaseEnterScheduleName;
+                }
+                return null;
+              },
+            ),
+            _buildDatePickerField(
+              label: AppLocalizations.of(context)!.date,
+              controller: widget.dateController,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return AppLocalizations.of(context)!.pleaseEnterDate;
+                }
+                return null;
+              },
+            ),
+            _buildTimePickerField(
+              AppLocalizations.of(context)!.startTime,
+              widget.startTimeController,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return AppLocalizations.of(context)!.pleaseEnterStartTime;
+                }
+                return null;
+              },
+            ),
+            LabeledTextField(
+              label: AppLocalizations.of(context)!.location,
+              controller: widget.locationController,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return AppLocalizations.of(context)!.pleaseEnterLocation;
+                }
+                return null;
+              },
+            ),
+            LabeledTextField(
+              label: AppLocalizations.of(
+                context,
+              )!.optionalPlaceholder(AppLocalizations.of(context)!.roomVenue),
+              controller: widget.roomVenueController,
+            ),
+          ],
         ),
       ),
     );
@@ -208,7 +193,7 @@ class _ScheduleFormState extends State<ScheduleForm> {
     TextEditingController controller,
   ) async {
     final settingsProvider = context.read<SettingsProvider>();
-    
+
     // Get current time in user's timezone
     final tzNow = TimezoneUtils.now(settingsProvider.timeZone);
     DateTime initialDate = tzNow;
@@ -232,9 +217,7 @@ class _ScheduleFormState extends State<ScheduleForm> {
 
     final selectedDate = await showDatePicker(
       context: context,
-      initialDate: initialDate.isAfter(DateTime(2020))
-          ? initialDate
-          : tzNow,
+      initialDate: initialDate.isAfter(DateTime(2020)) ? initialDate : tzNow,
       firstDate: DateTime(2020),
       lastDate: DateTime(2100),
       builder: (context, child) {

@@ -12,7 +12,6 @@ class ScheduleDto {
   final Timestamp datetime;
   final String location;
   final String? roomVenue;
-  final String? annotations;
   final PlaylistDto playlist;
   final List<RoleDto> roles;
   final String shareCode;
@@ -24,7 +23,6 @@ class ScheduleDto {
     required this.datetime,
     required this.location,
     this.roomVenue,
-    this.annotations,
     required this.playlist,
     required this.roles,
     required this.shareCode,
@@ -38,7 +36,6 @@ class ScheduleDto {
       datetime: json['datetime'] as Timestamp,
       location: json['location'] as String,
       roomVenue: json['roomVenue'] as String?,
-      annotations: json['annotations'] as String?,
       playlist: PlaylistDto.fromFirestore(
         json['playlist'] as Map<String, dynamic>,
       ),
@@ -66,7 +63,6 @@ class ScheduleDto {
       'datetime': datetime,
       'location': location,
       'roomVenue': roomVenue,
-      'annotations': annotations,
       'playlist': playlist.toFirestore(),
       'roles': roles.map((role) => role.toFirestore()).toList(),
       'shareCode': shareCode,
@@ -82,7 +78,6 @@ class ScheduleDto {
       'datetime': datetime.millisecondsSinceEpoch,
       'location': location,
       'roomVenue': roomVenue,
-      'annotations': annotations,
       'playlist': playlist.toCache(),
       'roles': roles.map((role) => role.toFirestore()).toList(),
       'shareCode': shareCode,
@@ -97,7 +92,6 @@ class ScheduleDto {
       datetime: Timestamp.fromMillisecondsSinceEpoch(json['datetime'] as int),
       location: json['location'] as String,
       roomVenue: json['roomVenue'] as String?,
-      annotations: json['annotations'] as String?,
       playlist: PlaylistDto.fromCache(json['playlist'] as Map<String, dynamic>),
       roles: (json['roles'] as List)
           .map((role) => RoleDto.fromFirestore(role))
@@ -135,22 +129,21 @@ class ScheduleDto {
   ScheduleDto copyWith({
     String? firebaseId,
     String? name,
+    String? ownerFirebaseId,
     Timestamp? datetime,
     String? location,
     String? roomVenue,
-    String? annotations,
     PlaylistDto? playlist,
     List<RoleDto>? roles,
     String? shareCode,
   }) {
     return ScheduleDto(
       firebaseId: firebaseId ?? this.firebaseId,
-      ownerFirebaseId: ownerFirebaseId,
+      ownerFirebaseId: ownerFirebaseId ?? this.ownerFirebaseId,
       name: name ?? this.name,
       datetime: datetime ?? this.datetime,
       location: location ?? this.location,
       roomVenue: roomVenue ?? this.roomVenue,
-      annotations: annotations ?? this.annotations,
       playlist: playlist ?? this.playlist,
       roles: roles ?? this.roles,
       shareCode: shareCode ?? this.shareCode,

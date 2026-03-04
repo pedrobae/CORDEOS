@@ -135,7 +135,6 @@ class Schedule {
       datetime: Timestamp.fromDate(timestamp),
       location: location,
       roomVenue: roomVenue,
-      annotations: annotations,
       shareCode: shareCode,
       playlist: playlist,
       roles: roles.map((role) => role.toDto()).toList(),
@@ -178,7 +177,6 @@ class Schedule {
           : target.roomVenue,
       playlistId: source.playlistId ?? target.playlistId,
       roles: source.roles.isNotEmpty ? source.roles : target.roles,
-      annotations: source.annotations ?? target.annotations,
       shareCode: source.shareCode,
       isPublic: true,
     );

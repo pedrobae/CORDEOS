@@ -26,7 +26,6 @@ class _CreateScheduleScreenState extends State<CreateScheduleScreen> {
   final TextEditingController _startTimeController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _roomVenueController = TextEditingController();
-  final TextEditingController _annotationsController = TextEditingController();
 
   @override
   void initState() {
@@ -62,7 +61,6 @@ class _CreateScheduleScreenState extends State<CreateScheduleScreen> {
     _startTimeController.dispose();
     _locationController.dispose();
     _roomVenueController.dispose();
-    _annotationsController.dispose();
 
     super.dispose();
   }
@@ -151,7 +149,6 @@ class _CreateScheduleScreenState extends State<CreateScheduleScreen> {
           startTimeController: _startTimeController,
           locationController: _locationController,
           roomVenueController: _roomVenueController,
-          annotationsController: _annotationsController,
         ),
       ),
       3 => const Expanded(child: RolesAndUsersForm(scheduleId: -1)),
@@ -220,7 +217,6 @@ class _CreateScheduleScreenState extends State<CreateScheduleScreen> {
       startTime: _startTimeController.text,
       location: _locationController.text,
       roomVenue: _roomVenueController.text,
-      annotations: _annotationsController.text,
     );
     nav.push(CreateScheduleScreen(creationStep: 3), showBottomNavBar: true);
   }
