@@ -147,6 +147,7 @@ class NavigationProvider extends ChangeNotifier {
     VoidCallback? onPopCallback,
     bool Function()? changeDetector,
   }) {
+    debugPrint('Pushing screen: ${screen.runtimeType}, showAppBar: $showAppBar, showDrawerIcon: $showDrawerIcon, showBottomNavBar: $showBottomNavBar, showFAB: $showFAB');
     _screenStack.add(screen);
     _showAppBarStack.add(showAppBar);
     _showDrawerIconStack.add(showDrawerIcon);
@@ -179,6 +180,7 @@ class NavigationProvider extends ChangeNotifier {
       showAppBar: showAppBar,
       showDrawerIcon: showDrawerIcon,
       showBottomNavBar: showBottomNavBar,
+      showFAB: showFAB,
       onPopCallback: onPopCallback,
       changeDetector: changeDetector,
     );

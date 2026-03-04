@@ -6,10 +6,14 @@ import 'package:flutter/material.dart';
 class LabeledLanguagePicker extends StatelessWidget {
   final String? language;
   final Function(String) onLanguageChanged;
+  final bool singleLine;
+  final bool isDiscrete;
 
   const LabeledLanguagePicker({
     super.key,
     this.language,
+    this.singleLine = false,
+    this.isDiscrete = false,
     required this.onLanguageChanged,
   });
 
@@ -20,36 +24,54 @@ class LabeledLanguagePicker extends StatelessWidget {
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      spacing: 8,
+      spacing: singleLine ? 0 : 8,
       children: [
-        Text(
-          AppLocalizations.of(context)!.language,
-          style: textTheme.labelLarge,
-        ),
-        GestureDetector(
-          onTap: showLanguageSheet(context),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              border: Border.all(color: colorScheme.shadow, width: 1),
-              borderRadius: BorderRadius.circular(0),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  language?.isEmpty ?? true
-                      ? AppLocalizations.of(context)!.languageHint
-                      : language!,
-                  style: textTheme.bodyLarge?.copyWith(
-                    color: language?.isEmpty ?? true
-                        ? colorScheme.shadow
-                        : colorScheme.onSurface,
+        singleLine
+            ? SizedBox.shrink()
+            : Text(
+                AppLocalizations.of(context)!.language,
+                style: textTheme.labelLarge,
+              ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            border: Border.all(color: isDiscrete ? colorScheme.surfaceContainer : colorScheme.shadow, width: 1),
+            borderRadius: BorderRadius.circular(0),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              singleLine
+                  ? Text(
+                      AppLocalizations.of(context)!.language,
+                      style: textTheme.labelLarge,
+                    )
+                  : SizedBox.shrink(),
+              Expanded(
+                child: GestureDetector(
+                  onTap: showLanguageSheet(context),
+                  child: Row(
+                    mainAxisAlignment: singleLine
+                        ? MainAxisAlignment.end
+                        : MainAxisAlignment.spaceBetween,
+                    spacing: 8,
+                    children: [
+                      Text(
+                        language?.isEmpty ?? true
+                            ? AppLocalizations.of(context)!.languageHint
+                            : language!,
+                        style: textTheme.bodyLarge?.copyWith(
+                          color: language?.isEmpty ?? true
+                              ? colorScheme.shadow
+                              : colorScheme.onSurface,
+                        ),
+                      ),
+                      Icon(Icons.arrow_drop_down, color: colorScheme.onSurface),
+                    ],
                   ),
                 ),
-                Icon(Icons.arrow_drop_down, color: colorScheme.onSurface),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ],

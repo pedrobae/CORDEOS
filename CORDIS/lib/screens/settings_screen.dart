@@ -47,6 +47,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               AppLocalizations.of(context)!.settings,
               Icons.settings,
             ),
+            SizedBox(),
             _buildThemeToggle(set),
             _buildColorVariantToggle(set),
             _buildLanguageButton(set),
@@ -56,6 +57,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 AppLocalizations.of(context)!.developmentTools,
                 Icons.build,
               ),
+            SizedBox(),
               _buildResetDatabaseButton(),
               _buildReloadInterfaceButton(),
               _buildDatabaseInfoButton(),
@@ -69,51 +71,71 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildThemeToggle(SettingsProvider settings) {
     final textTheme = Theme.of(context).textTheme;
-    return Row(
-      children: [
-        Text(
-          AppLocalizations.of(context)!.theme,
-          style: textTheme.titleMedium,
-        ),
-        const Spacer(),
-        Icon(
-          settings.themeMode == ThemeMode.dark
-              ? Icons.dark_mode
-              : Icons.light_mode,
-        ),
-        SizedBox(width: 8),
-        Switch(
-          value: settings.themeMode == ThemeMode.dark,
-          onChanged: (value) {
-            context.read<SettingsProvider>().setThemeMode(
-              value ? ThemeMode.dark : ThemeMode.light,
-            );
-          },
-        ),
-      ],
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        border: Border.all(color: colorScheme.surfaceContainer, width: 1),
+        borderRadius: BorderRadius.circular(0),
+      ),
+      child: Row(
+        children: [
+          Text(
+            AppLocalizations.of(context)!.theme,
+            style: textTheme.labelLarge,
+          ),
+          const Spacer(),
+          Icon(
+            settings.themeMode == ThemeMode.dark
+                ? Icons.dark_mode
+                : Icons.light_mode,
+                color: colorScheme.primary,
+          ),
+          SizedBox(width: 8),
+          Switch(
+            value: settings.themeMode == ThemeMode.dark,
+            onChanged: (value) {
+              context.read<SettingsProvider>().setThemeMode(
+                value ? ThemeMode.dark : ThemeMode.light,
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildColorVariantToggle(SettingsProvider settings) {
     final textTheme = Theme.of(context).textTheme;
-    return Row(
-      children: [
-        Text(
-          AppLocalizations.of(context)!.colorVariant,
-          style: textTheme.titleMedium,
-        ),
-        const Spacer(),
-        Icon(
-          settings.isColorVariant ? Icons.palette : Icons.palette_outlined,
-        ),
-        SizedBox(width: 8),
-        Switch(
-          value: settings.isColorVariant,
-          onChanged: (value) {
-            context.read<SettingsProvider>().toggleColorVariant();
-          },
-        ),
-      ],
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        border: Border.all(color: colorScheme.surfaceContainer, width: 1),
+        borderRadius: BorderRadius.circular(0),
+      ),
+      child: Row(
+        children: [
+          Text(
+            AppLocalizations.of(context)!.colorVariant,
+            style: textTheme.labelLarge,
+          ),
+          const Spacer(),
+          Icon(
+            settings.isColorVariant ? Icons.palette : Icons.palette_outlined,
+            color: colorScheme.primary,
+          ),
+          SizedBox(width: 8),
+          Switch(
+            value: settings.isColorVariant,
+            onChanged: (value) {
+              context.read<SettingsProvider>().toggleColorVariant();
+            },
+          ),
+        ],
+      ),
     );
   }
 
@@ -124,6 +146,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         final locale = LocaleUtils.getLocaleFromLanguageName(value, context);
         settings.setLocale(locale);
       },
+      singleLine: true,
+      isDiscrete: true,
     );
   }
 
@@ -180,6 +204,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
             color: Theme.of(context).colorScheme.primary,
           ),
+          softWrap: true,
         ),
       ],
     );
@@ -504,6 +529,4 @@ class _SettingsScreenState extends State<SettingsScreen> {
       );
     }
   }
-
-
 }

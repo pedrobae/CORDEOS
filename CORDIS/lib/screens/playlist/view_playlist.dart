@@ -41,8 +41,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
       await play.loadPlaylist(widget.playlistId);
 
       // Load versions for the playlist items
-      final items =
-          play.getPlaylistById(widget.playlistId)?.items ?? [];
+      final items = play.getPlaylistById(widget.playlistId)?.items ?? [];
 
       for (var item in items) {
         if (item.type == PlaylistItemType.version) {
@@ -143,10 +142,8 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
       builder: (context) {
         return ReorderableListView.builder(
           shrinkWrap: true,
-          proxyDecorator: (child, index, animation) => Material(
-            type: MaterialType.transparency,
-            child: child,
-          ),
+          proxyDecorator: (child, index, animation) =>
+              Material(type: MaterialType.transparency, child: child),
           buildDefaultDragHandles: false,
           physics: const ClampingScrollPhysics(),
           scrollDirection: Axis.vertical,
@@ -165,6 +162,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
   Widget _buildPlaylistItem(PlaylistItem item, int index) {
     switch (item.type) {
       case PlaylistItemType.version:
+        if (item.id == null) return SizedBox.shrink(key: GlobalKey(),);
         return PlaylistVersionCard(
           key: ValueKey('playlist_version_${item.id}'),
           index: index,
@@ -191,13 +189,16 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
   ) async {
     play.updatePlaylistFromCache(widget.playlistId);
 
-    final schedule = await localSch.getScheduleWithPlaylistId(widget.playlistId);
+    final schedule = await localSch.getScheduleWithPlaylistId(
+      widget.playlistId,
+    );
     if (schedule != null && schedule.scheduleState == ScheduleState.published) {
       ScheduleSyncService().scheduleToCloud(schedule, auth.id!);
     }
 
     nav.pop();
   }
+
   void _openPlaylistEditSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
