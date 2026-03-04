@@ -142,21 +142,16 @@ class CloudScheduleProvider extends ChangeNotifier {
         forceFetch: forceFetch,
       );
 
-      _isLoading = false;
-      notifyListeners();
-
       for (var schedule in schedules) {
         _schedules[schedule.firebaseId!] = schedule;
       }
 
       for (var schedule in schedules) {
         if (schedule.ownerFirebaseId == userId) {
-          _isSyncing.addEntries([MapEntry(schedule.firebaseId!, true)]);
-          notifyListeners();
+          _isSyncing[schedule.firebaseId!] = true;
           await _syncService.scheduleToLocal(schedule);
           _schedules.remove(schedule.firebaseId!);
           _isSyncing[schedule.firebaseId!] = false;
-          notifyListeners();
         }
       }
     } catch (e) {

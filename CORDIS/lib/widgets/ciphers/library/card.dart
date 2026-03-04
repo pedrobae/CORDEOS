@@ -5,7 +5,6 @@ import 'package:cordis/models/domain/cipher/section.dart';
 import 'package:cordis/models/domain/cipher/version.dart';
 import 'package:cordis/providers/cipher/cipher_provider.dart';
 import 'package:cordis/providers/navigation_provider.dart';
-import 'package:cordis/providers/playlist/playlist_provider.dart';
 import 'package:cordis/providers/section_provider.dart';
 import 'package:cordis/providers/selection_provider.dart';
 import 'package:cordis/providers/version/local_version_provider.dart';
@@ -33,72 +32,34 @@ class _CipherCardState extends State<CipherCard> {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Consumer6<
-      CipherProvider,
-      LocalVersionProvider,
-      SectionProvider,
-      SelectionProvider,
-      PlaylistProvider,
-      NavigationProvider
-    >(
-      builder:
-          (
-            context,
-            cipherProvider,
-            versionProvider,
-            sectionProvider,
-            selectionProvider,
-            playlistProvider,
-            navigationProvider,
-            child,
-          ) {
-            // Error handling
-            if (cipherProvider.error != null || versionProvider.error != null) {
-              return Container(
-                padding: const EdgeInsets.all(16.0),
-                child: Text(
-                  AppLocalizations.of(context)!.errorMessage(
-                    AppLocalizations.of(context)!.loading,
-                    cipherProvider.error ?? versionProvider.error!,
-                  ),
-                ),
-              );
-            }
+    final nav = context.read<NavigationProvider>();
+    final sel = context.read<SelectionProvider>();
+    final sect = context.read<SectionProvider>();
 
-            final cipher = cipherProvider.getCipher(widget.cipherId);
-
-            final versionId = versionProvider.getIdOfOldestVersionOfCipher(
-              widget.cipherId,
-            );
-
-            if (versionId == null) {
-              return Container();
-            }
-
-            // Loading state
-            if (cipherProvider.isLoading || versionProvider.isLoading) {
-              return Center(
-                child: CircularProgressIndicator(color: colorScheme.primary),
-              );
-            }
-
-            final version = versionProvider.cachedVersion(versionId);
-
-            if (version == null || cipher == null) {
-              return SizedBox();
-            }
-
-            // Card content
-            return Padding(
-              padding: const EdgeInsets.only(
-                bottom: 8.0,
-              ), // Spacing between cards
-              child: Container(
-                decoration: BoxDecoration(
-                  border: Border.all(color: colorScheme.surfaceContainerLowest),
-                ),
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
+    return Consumer2<CipherProvider, LocalVersionProvider>(
+      builder: (context, ciph, localVer, child) {
+        // Card content
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 8.0), // Spacing between cards
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: colorScheme.surfaceContainerLowest),
+            ),
+            padding: const EdgeInsets.all(8.0),
+            child: Builder(
+              builder: (context) {
+                final cipher = ciph.getCipher(widget.cipherId);
+                final versionId = localVer.getIdOfOldestVersionOfCipher(
+                  widget.cipherId,
+                );
+                if (versionId == null) {
+                  return CircularProgressIndicator();
+                }
+                final version = localVer.cachedVersion(versionId);
+                if (version == null || cipher == null) {
+                  return CircularProgressIndicator();
+                }
+                return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Row(
@@ -205,10 +166,8 @@ class _CipherCardState extends State<CipherCard> {
 
                         // ACTIONS SHEET
                         IconButton(
-                          onPressed: () => _openCipherActionsSheet(
-                            context,
-                            selectionProvider,
-                          ),
+                          onPressed: () =>
+                              _openCipherActionsSheet(context, sel),
                           icon: Icon(Icons.more_vert),
                         ),
                       ],
@@ -216,14 +175,14 @@ class _CipherCardState extends State<CipherCard> {
 
                     // VIEW / ADD TO PLAYLIST
                     FilledTextButton(
-                      text: (selectionProvider.isSelectionMode)
+                      text: (sel.isSelectionMode)
                           ? AppLocalizations.of(context)!.addToPlaylist
                           : AppLocalizations.of(context)!.viewPlaceholder(''),
                       isDense: true,
                       onPressed: () {
-                        if (selectionProvider.isSelectionMode) {
-                          selectionProvider.select(versionId);
-                          navigationProvider.push(
+                        if (sel.isSelectionMode) {
+                          sel.select(versionId);
+                          nav.push(
                             EditCipherScreen(
                               cipherID: widget.cipherId,
                               versionID: versionId,
@@ -233,16 +192,16 @@ class _CipherCardState extends State<CipherCard> {
                             ),
                             showBottomNavBar: true,
                             changeDetector: () =>
-                                (versionProvider.hasUnsavedChanges ||
-                                sectionProvider.hasUnsavedChanges ||
-                                cipherProvider.hasUnsavedChanges),
+                                (localVer.hasUnsavedChanges ||
+                                sect.hasUnsavedChanges ||
+                                ciph.hasUnsavedChanges),
                             onPopCallback: () {
-                              selectionProvider.deselect(versionId);
-                              selectionProvider.enableSelectionMode();
+                              sel.deselect(versionId);
+                              sel.enableSelectionMode();
                             },
                           );
                         } else {
-                          navigationProvider.push(
+                          nav.push(
                             ViewCipherScreen(
                               cipherID: widget.cipherId,
                               versionID: versionId,
@@ -253,29 +212,31 @@ class _CipherCardState extends State<CipherCard> {
                         }
                       },
                       onLongPress: () async {
-                        if (selectionProvider.isSelectionMode) {
-                          selectionProvider.select(versionId);
+                        if (sel.isSelectionMode) {
+                          sel.select(versionId);
                         } else {
-                          navigationProvider.push(
+                          nav.push(
                             EditCipherScreen(
                               cipherID: widget.cipherId,
                               versionID: versionId,
                               versionType: VersionType.local,
                             ),
                             changeDetector: () =>
-                                (versionProvider.hasUnsavedChanges ||
-                                sectionProvider.hasUnsavedChanges ||
-                                cipherProvider.hasUnsavedChanges),
+                                (localVer.hasUnsavedChanges ||
+                                sect.hasUnsavedChanges ||
+                                ciph.hasUnsavedChanges),
                             showBottomNavBar: true,
                           );
                         }
                       },
                     ),
                   ],
-                ),
-              ),
-            );
-          },
+                );
+              },
+            ),
+          ),
+        );
+      },
     );
   }
 

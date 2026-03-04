@@ -17,9 +17,6 @@ class CipherScrollView extends StatefulWidget {
 }
 
 class _CipherScrollViewState extends State<CipherScrollView> {
-  List<int> localIds = [];
-  List<String> cloudIds = [];
-
   @override
   void initState() {
     super.initState();
@@ -44,33 +41,21 @@ class _CipherScrollViewState extends State<CipherScrollView> {
       localCiphers: cipherProvider.ciphers.values.toList(),
     );
 
-    // On initial load, set localIds and cloudIds directly to avoid unnecessary setState calls
-    if (isInitiating) {
-      localIds = cipherProvider.filteredCipherIds;
-      cloudIds = cloudVersionProvider.filteredCloudVersionIds;
-    } else {
-      setState(() {
-        localIds = cipherProvider.filteredCipherIds;
-        cloudIds = cloudVersionProvider.filteredCloudVersionIds;
-      });
-
-    }
-
-    for (var cipherId in localIds) {
-      await localVersionProvider.loadVersionsOfCipher(cipherId);
+    for (var cipher in cipherProvider.ciphers.values) {
+      await localVersionProvider.loadVersionsOfCipher(cipher.id);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Consumer2<CipherProvider, CloudVersionProvider>(
-      builder: (context, cipherProvider, cloudVersionProvider, child) {
+      builder: (context, ciph, cloudVer, child) {
         // Handle loading state
-        if (cipherProvider.isLoading || cloudVersionProvider.isLoading) {
+        if (ciph.isLoading || cloudVer.isLoading) {
           return const Center(child: CircularProgressIndicator());
         }
         // Handle error state
-        if (cipherProvider.error != null) {
+        if (ciph.error != null) {
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -84,13 +69,13 @@ class _CipherScrollViewState extends State<CipherScrollView> {
                 Text(
                   AppLocalizations.of(context)!.errorMessage(
                     AppLocalizations.of(context)!.loading,
-                    cipherProvider.error!,
+                    ciph.error!,
                   ),
                 ),
                 const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: () =>
-                      cipherProvider.loadCiphers(forceReload: true),
+                      ciph.loadCiphers(forceReload: true),
                   child: Text(AppLocalizations.of(context)!.tryAgain),
                 ),
               ],
@@ -98,12 +83,7 @@ class _CipherScrollViewState extends State<CipherScrollView> {
           );
         }
 
-        return Stack(
-          children: [
-            // Display cipher list
-            _buildCiphersList(context, cipherProvider, cloudVersionProvider),
-          ],
-        );
+        return _buildCiphersList(context, ciph, cloudVer);
       },
     );
   }
@@ -117,7 +97,7 @@ class _CipherScrollViewState extends State<CipherScrollView> {
       onRefresh: () async {
         _loadData(context, forceReload: true);
       },
-      child: (localIds.isEmpty && cloudIds.isEmpty)
+      child: (cipherProvider.filteredCipherIds.isEmpty && cloudVersionProvider.filteredCloudVersionIds.isEmpty)
           ? Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -132,22 +112,22 @@ class _CipherScrollViewState extends State<CipherScrollView> {
           : ListView.builder(
               cacheExtent: 500,
               physics: const AlwaysScrollableScrollPhysics(),
-              itemCount: (localIds.length + cloudIds.length),
+              itemCount: (cipherProvider.filteredCipherIds.length + cloudVersionProvider.filteredCloudVersionIds.length),
               itemBuilder: (context, index) {
-                if (index >= localIds.length) {
+                if (index >= cipherProvider.filteredCipherIds.length) {
                   return Padding(
                     padding: const EdgeInsets.only(
                       bottom: 8.0,
                     ), // Spacing between cards
                     child: CloudCipherCard(
-                      versionId: cloudIds[index - localIds.length],
+                      versionId: cloudVersionProvider.filteredCloudVersionIds[index - cipherProvider.filteredCipherIds.length],
                       playlistId: widget.playlistId,
                     ),
                   );
                 }
 
                 return CipherCard(
-                  cipherId: localIds[index],
+                  cipherId: cipherProvider.filteredCipherIds[index],
                   playlistId: widget.playlistId,
                 );
               },

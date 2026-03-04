@@ -26,14 +26,22 @@ class _ScheduleLibraryScreenState extends State<ScheduleLibraryScreen> {
       final cloudVersionProvider = context.read<CloudVersionProvider>();
 
       if (mounted) {
-        await cloudScheduleProvider.loadSchedules(
-          context.read<MyAuthProvider>().id!,
-        );
-        await localScheduleProvider.loadSchedules();
-      }
-      for (var schedule in cloudScheduleProvider.schedules.values) {
-        for (var versionEntry in schedule.playlist.versions.entries) {
-          cloudVersionProvider.setVersion(versionEntry.key, versionEntry.value);
+        await Future.wait([
+          cloudScheduleProvider.loadSchedules(
+            context.read<MyAuthProvider>().id!,
+          ),
+          localScheduleProvider.loadSchedules(),
+        ]);
+
+        if (mounted) {
+          for (var schedule in cloudScheduleProvider.schedules.values) {
+            for (var versionEntry in schedule.playlist.versions.entries) {
+              cloudVersionProvider.setVersion(
+                versionEntry.key,
+                versionEntry.value,
+              );
+            }
+          }
         }
       }
     });
@@ -41,35 +49,24 @@ class _ScheduleLibraryScreenState extends State<ScheduleLibraryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Consumer2<LocalScheduleProvider, CloudScheduleProvider>(
-      builder: (context, localSch, cloudSch, child) {
-        return Padding(
-          padding: const EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            spacing: 16,
-            children: [
-              _buildSearchBar(localSch, cloudSch, colorScheme),
-              if (localSch.isLoading || cloudSch.isLoading)
-                _buildLoadingState(colorScheme)
-              else if (localSch.error != null || cloudSch.error != null)
-                _buildErrorState(localSch, cloudSch, colorScheme)
-              else
-                _buildScheduleList(),
-            ],
-          ),
-        );
-      },
+    return Padding(
+      padding: const EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: 16,
+        children: [
+          _buildSearchBar(context),
+          const Expanded(child: ScheduleScrollView()),
+        ],
+      ),
     );
   }
 
-  Widget _buildSearchBar(
-    LocalScheduleProvider localSch,
-    CloudScheduleProvider cloudSch,
-    ColorScheme colorScheme,
-  ) {
+  Widget _buildSearchBar(BuildContext context) {
+    final localSch = context.read<LocalScheduleProvider>();
+    final cloudSch = context.read<CloudScheduleProvider>();
+    final colorScheme = Theme.of(context).colorScheme;
+
     return TextField(
       controller: _searchController,
       decoration: InputDecoration(
@@ -91,33 +88,5 @@ class _ScheduleLibraryScreenState extends State<ScheduleLibraryScreen> {
         cloudSch.setSearchTerm(value);
       },
     );
-  }
-
-  Widget _buildLoadingState(ColorScheme colorScheme) {
-    return Expanded(
-      child: Center(
-        child: CircularProgressIndicator(color: colorScheme.primary),
-      ),
-    );
-  }
-
-  Widget _buildErrorState(
-    LocalScheduleProvider localSch,
-    CloudScheduleProvider cloudSch,
-    ColorScheme colorScheme,
-  ) {
-    final theme = Theme.of(context);
-    return Expanded(
-      child: Center(
-        child: Text(
-          localSch.error ?? cloudSch.error ?? '',
-          style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.error),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildScheduleList() {
-    return const Expanded(child: ScheduleScrollView());
   }
 }

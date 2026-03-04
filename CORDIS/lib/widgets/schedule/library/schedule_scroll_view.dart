@@ -53,57 +53,70 @@ class _ScheduleScrollViewState extends State<ScheduleScrollView> {
       CloudScheduleProvider,
       MyAuthProvider
     >(
-      builder:
-          (
-            context,
-            localScheduleProvider,
-            cloudScheduleProvider,
-            authProvider,
-            child,
-          ) {
-            // Handle loading state
-            if (localScheduleProvider.isLoading ||
-                cloudScheduleProvider.isLoading) {
-              return const Center(child: CircularProgressIndicator());
-            }
+      builder: (context, localSch, cloudSch, auth, child) {
+        if ((localSch.error != null && localSch.error!.isNotEmpty) ||
+            (cloudSch.error != null && cloudSch.error!.isNotEmpty)) {
+          return _buildErrorState(
+            localSch,
+            cloudSch,
+            Theme.of(context).colorScheme,
+          );
+        }
 
-            final localfuture = localScheduleProvider.futureScheduleIDs;
-            final localPast = localScheduleProvider.pastScheduleIDs;
-            final cloudFuture = cloudScheduleProvider.futureScheduleIDs;
-            final cloudPast = cloudScheduleProvider.pastScheduleIDs;
+        final localFuture = localSch.futureScheduleIDs;
+        final localPast = localSch.pastScheduleIDs;
+        final cloudFuture = cloudSch.futureScheduleIDs;
+        final cloudPast = cloudSch.pastScheduleIDs;
 
-            final futureScheduleIds = [...localfuture, ...cloudFuture];
+        final futureSchIds = [...localFuture, ...cloudFuture];
 
-            final pastScheduleIds = [...localPast, ...cloudPast];
+        final pastSchIds = [...localPast, ...cloudPast];
 
-            // If there are no past schedules, remove the listner
-            if (pastScheduleIds.isEmpty) {
-              _scrollController.removeListener(_listenForEndOfFutureSchedules);
-            }
-            // Handle empty state
-            if (futureScheduleIds.isEmpty && pastScheduleIds.isEmpty) {
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  SizedBox(height: 64),
-                  Text(
-                    AppLocalizations.of(context)!.emptyScheduleLibrary,
-                    style: textTheme.bodyLarge!,
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              );
-            }
+        // If there are no past schedules, remove the listener
+        if (pastSchIds.isEmpty) {
+          _scrollController.removeListener(_listenForEndOfFutureSchedules);
+        }
 
-            return _buildScheduleList(
-              pastScheduleIds,
-              futureScheduleIds,
-              localScheduleProvider,
-              cloudScheduleProvider,
-              authProvider,
-              textTheme,
-            );
-          },
+        // Handle empty state
+        if (futureSchIds.isEmpty && pastSchIds.isEmpty) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SizedBox(height: 64),
+              Text(
+                AppLocalizations.of(context)!.emptyScheduleLibrary,
+                style: textTheme.bodyLarge!,
+                textAlign: TextAlign.center,
+              ),
+            ],
+          );
+        }
+
+        return _buildScheduleList(
+          pastSchIds,
+          futureSchIds,
+          localSch,
+          cloudSch,
+          auth,
+          textTheme,
+        );
+      },
+    );
+  }
+
+  Widget _buildErrorState(
+    LocalScheduleProvider localSch,
+    CloudScheduleProvider cloudSch,
+    ColorScheme colorScheme,
+  ) {
+    final theme = Theme.of(context);
+    return Expanded(
+      child: Center(
+        child: Text(
+          localSch.error ?? cloudSch.error ?? '',
+          style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.error),
+        ),
+      ),
     );
   }
 
