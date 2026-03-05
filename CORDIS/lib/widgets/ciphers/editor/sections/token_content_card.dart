@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:cordis/l10n/app_localizations.dart';
 import 'package:cordis/providers/layout_settings_provider.dart';
 import 'package:cordis/providers/navigation_provider.dart';
@@ -5,12 +7,13 @@ import 'package:cordis/providers/section_provider.dart';
 import 'package:cordis/providers/selection_provider.dart';
 import 'package:cordis/providers/transposition_provider.dart';
 import 'package:cordis/providers/version/local_version_provider.dart';
+import 'package:cordis/services/tokenization/helper_classes.dart';
 import 'package:cordis/widgets/ciphers/editor/sections/edit_section.dart';
 import 'package:cordis/widgets/ciphers/section_badge.dart';
 import 'package:cordis/widgets/common/delete_confirmation.dart';
 import 'package:cordis/widgets/common/filled_text_button.dart';
 import 'package:flutter/material.dart';
-import 'package:cordis/services/tokenization_service.dart';
+import 'package:cordis/services/tokenization/tokenization_service.dart';
 import 'package:provider/provider.dart';
 
 class TokenContentCard extends StatefulWidget {
@@ -30,7 +33,7 @@ class TokenContentCard extends StatefulWidget {
 }
 
 class _TokenContentCardState extends State<TokenContentCard> {
-  final TokenizationService _tokenizer = TokenizationService();
+  static const TokenizationService _tokenizer = TokenizationService();
 
   bool _isDragging = false;
 
@@ -95,14 +98,7 @@ class _TokenContentCardState extends State<TokenContentCard> {
       TranspositionProvider
     >(
       builder:
-          (
-            context,
-            laySet,
-            sectionProvider,
-            selectionProvider,
-            tp,
-            child,
-          ) {
+          (context, laySet, sectionProvider, selectionProvider, tp, child) {
             final section = sectionProvider.getSection(
               widget.versionID,
               widget.sectionCode,
@@ -217,37 +213,39 @@ class _TokenContentCardState extends State<TokenContentCard> {
                   /// CONTENT
                   LayoutBuilder(
                     builder: (context, constraints) {
-                      for (var token in tokens) {
-                        if (token.type == TokenType.chord) {
-                          token.text = tp.transposeChord(token.text);
-                        }
-                      }
-                      final contentTokens = _tokenizer.organize(tokens);
-
-                      final contentWidgets = _tokenizer.buildEditWidgets(
-                        contentTokens,
-                        tokens,
-                        laySet.chordTextStyle(colorScheme.surface),
-                        laySet.lyricTextStyle,
-                        section.contentColor,
-                        _toggleDrag,
-                        _addChord,
-                        _addPrecedingChord,
-                        _removeChordAt,
-                        _isEnabled(selectionProvider),
+                      final chordStyle = laySet.chordTextStyle(colorScheme.surface);
+                      final lyricStyle = laySet.lyricTextStyle;
+                      final contentWidth = max(
+                        0.0,
+                        constraints.maxWidth - TokenizationConstants.contentPaddingEdit,
                       );
 
-                      final positionedWidgets = _tokenizer.positionWidgets(
-                        context,
-                        contentWidgets,
-                        underLineColor: colorScheme.onSurface,
-                        chordStyle: laySet.chordTextStyle(colorScheme.surface),
-                        lyricStyle: laySet.lyricTextStyle,
+                      final editContext = EditBuildContext(
+                        chordStyle: chordStyle,
+                        lyricStyle: lyricStyle,
+                        contentColor: section.contentColor,
+                        surfaceColor: colorScheme.surface,
+                        onSurfaceColor: colorScheme.onSurface,
+                        maxWidth: contentWidth,
+                        isEnabled: _isEnabled(selectionProvider),
+                        cache: {},
+                        toggleDrag: _toggleDrag,
+                        onAddChord: _addChord,
+                        onAddPrecedingChord: _addPrecedingChord,
+                        onRemoveChord: _removeChordAt,
                       );
 
-                      final content = _tokenizer.checkHumongousWords(
-                        context,
-                        positionedWidgets,
+                      final content = _tokenizer.createContent(
+                        content: section.contentText,
+                        ctx: PositioningContext(
+                          underLineColor: colorScheme.onSurface,
+                          maxWidth: constraints.maxWidth,
+                          isEditMode: true,
+                        ),
+                        chordStyle: chordStyle,
+                        lyricStyle: lyricStyle,
+                        editCtx: editContext,
+                        transposeChord: tp.transposeChord,
                       );
 
                       return Padding(
@@ -255,7 +253,10 @@ class _TokenContentCardState extends State<TokenContentCard> {
                         child: SizedBox(
                           width: double.infinity,
                           height: content.contentHeight,
-                          child: Stack(clipBehavior: Clip.none, children: [...content.tokens]),
+                          child: Stack(
+                            clipBehavior: Clip.none,
+                            children: [...content.tokens],
+                          ),
                         ),
                       );
                     },

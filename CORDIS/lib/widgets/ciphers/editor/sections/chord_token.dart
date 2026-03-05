@@ -1,4 +1,4 @@
-import 'package:cordis/services/tokenization_service.dart';
+import 'package:cordis/services/tokenization/helper_classes.dart';
 import 'package:flutter/material.dart';
 
 class ChordToken extends StatelessWidget {
@@ -18,7 +18,7 @@ class ChordToken extends StatelessWidget {
     return IntrinsicWidth(
       child: Container(
         constraints: const BoxConstraints(minWidth: 36),
-        padding: const EdgeInsets.only(left: 10, right: 10, top: 3, bottom: 3),
+        padding: const EdgeInsets.symmetric(horizontal: TokenizationConstants.chordTokenWidthPadding/2, vertical: TokenizationConstants.chordTokenHeightPadding/2),
         decoration: BoxDecoration(
           color: sectionColor,
           borderRadius: BorderRadius.circular(100),

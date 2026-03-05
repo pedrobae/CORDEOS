@@ -9,6 +9,26 @@
 # packages, and plugins designed to encourage good coding practices.
 include: package:flutter_lints/flutter.yaml
 
+analyzer:
+  exclude:
+    # Exclude generated localization files
+    - "lib/l10n/app_localizations*.dart"
+    # Exclude generated files (if any)
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+    - "**/*.gr.dart"
+    # Exclude build directories
+    - "build/**"
+    - ".dart_tool/**"
+    # Exclude Firebase generated options
+    - "lib/firebase_options.dart"
+  
+  # Enable stricter type checking (optional, but recommended)
+  language:
+    strict-casts: false
+    strict-inference: false
+    strict-raw-types: false
+
 linter:
   # The lint rules applied to this project can be customized in the
   # section below to disable rules from the `package:flutter_lints/flutter.yaml`
