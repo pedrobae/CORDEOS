@@ -199,6 +199,38 @@ class _ShareScheduleSheetState extends State<ShareScheduleSheet> {
                         final bool success = await emailProvider.sendInvites(
                           schedule,
                           selectedRoles,
+                          EmailStrings(
+                            invitationGreeting: (String username) =>
+                                AppLocalizations.of(
+                                  context,
+                                )!.invitationGreeting(username),
+                            invitationMessage:
+                                (String scheduleName, String roleName) =>
+                                    AppLocalizations.of(
+                                      context,
+                                    )!.invitationMessage(
+                                      scheduleName,
+                                      roleName,
+                                    ),
+                            instructions: (String shareCode) =>
+                                AppLocalizations.of(
+                                  context,
+                                )!.instructions(shareCode),
+                            contactSupport: AppLocalizations.of(
+                              context,
+                            )!.contactSupport,
+                            bestRegards: AppLocalizations.of(
+                              context,
+                            )!.bestRegards,
+                            invitationSubject:
+                                (String scheduleName, String roleName) =>
+                                    AppLocalizations.of(
+                                      context,
+                                    )!.invitationSubject(
+                                      scheduleName,
+                                      roleName,
+                                    ),
+                          ),
                         );
                         if (success) {
                           scaffoldMessenger.showSnackBar(
@@ -214,9 +246,9 @@ class _ShareScheduleSheetState extends State<ShareScheduleSheet> {
                           );
                         } else {
                           scaffoldMessenger.showSnackBar(
-                                  SnackBar(
-                                    backgroundColor: Colors.amber,
-                                    content: Text(
+                            SnackBar(
+                              backgroundColor: Colors.amber,
+                              content: Text(
                                 failureMessage,
                                 style: textTheme.bodyMedium?.copyWith(
                                   color: colorScheme.onSurface,

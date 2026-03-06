@@ -1020,4 +1020,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String pluralPlaceholder(Object label) {
     return '${label}s';
   }
+
+  @override
+  String invitationGreeting(Object username) {
+    return 'Hello $username!';
+  }
+
+  @override
+  String invitationMessage(Object role, Object scheduleName) {
+    return 'You have been invited to participate as $role in $scheduleName.';
+  }
+
+  @override
+  String instructions(Object shareCode) {
+    return 'To accept your invitation, please use this code: $shareCode';
+  }
+
+  @override
+  String get contactSupport =>
+      'If you have any questions, please contact our support team.';
+
+  @override
+  String get bestRegards => 'Best regards,\nThe CORDIS Team';
+
+  @override
+  String invitationSubject(Object scheduleName, Object role) {
+    return 'Invitation: $scheduleName - $role';
+  }
 }

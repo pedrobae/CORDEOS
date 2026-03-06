@@ -671,5 +671,18 @@
   "optionalPlaceholder": "{field} (Optional)",
   "@optionalPlaceholder": {"description": "Generic optional field placeholder", "placeholders": {"field": {}}},
   "pluralPlaceholder": "{label}s",
-  "@pluralPlaceholder": {"description": "Generic plural placeholder for labels", "placeholders": {"label": {}}}
+  "@pluralPlaceholder": {"description": "Generic plural placeholder for labels", "placeholders": {"label": {}}},
+
+  "invitationGreeting": "Hello {username}!",
+  "@invitationGreeting": {"description": "Greeting in invitation email", "placeholders": {"username": {}}},
+  "invitationMessage": "You have been invited to participate as {role} in {scheduleName}.",
+  "@invitationMessage": {"description": "Main message in invitation email", "placeholders": {"role": {}, "scheduleName": {}}},
+  "instructions": "If you have an account with this email, just sign in. \n Otherwise, you can use this share code to gain access to the schedule: <strong>{shareCode}</strong>",
+  "@instructions": {"description": "Instructions paragraph in invitation email", "placeholders": {"shareCode": {}}},
+  "contactSupport": "If you have any questions, please contact our support team.",
+  "@contactSupport": {"description": "Support contact paragraph in invitation email"},
+  "bestRegards": "Best regards,\nThe CORDIS Team",
+  "@bestRegards": {"description": "Sign-off in invitation email"},
+  "invitationSubject": "Invitation: {scheduleName} - {role}",
+  "@invitationSubject": {"description": "Subject line for invitation email", "placeholders": {"scheduleName": {}, "role": {}}}
 }

@@ -2,6 +2,25 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:cordis/models/domain/schedule.dart';
 import 'package:flutter/foundation.dart';
 
+/// Holds localized email strings to avoid context dependency in async operations.
+class EmailStrings {
+  final String Function(String username) invitationGreeting;
+  final String Function(String scheduleName, String role) invitationMessage;
+  final String Function(String shareCode) instructions;
+  final String contactSupport;
+  final String bestRegards;
+  final String Function(String scheduleName, String role) invitationSubject;
+
+  EmailStrings({
+    required this.invitationGreeting,
+    required this.invitationMessage,
+    required this.instructions,
+    required this.contactSupport,
+    required this.bestRegards,
+    required this.invitationSubject,
+  });
+}
+
 class EmailProvider extends ChangeNotifier {
   // State management
   String? _error;
@@ -11,10 +30,16 @@ class EmailProvider extends ChangeNotifier {
   bool get isSending => _isSending;
 
   /// Sends invitation emails for the given schedule to users with the selected roles.
+  /// 
+  /// The [emailStrings] parameter should contain all localized email strings.
+  /// Flutter handles localization, server only validates and sends.
+  /// This prevents context invalidation errors in async operations.
+  ///
   /// Returns true if emails were sent successfully, false otherwise.
   Future<bool> sendInvites(
     Schedule schedule,
     List<String> selectedRoles,
+    EmailStrings emailStrings,
   ) async {
     try {
       _isSending = true;
@@ -34,11 +59,33 @@ class EmailProvider extends ChangeNotifier {
               debugPrint(
                 '[EmailProvider] Sending invite to ${user.email} for role ${role.name}',
               );
+
+              // Build HTML with proper HTML escaping for user data
+              final greeting = _escapeHtml(emailStrings.invitationGreeting(user.username));
+              final message = _escapeHtml(
+                emailStrings.invitationMessage(schedule.name, role.name),
+              );
+              final instructions = _escapeHtml(emailStrings.instructions(schedule.shareCode));
+              final support = _escapeHtml(emailStrings.contactSupport);
+              final regards = _escapeHtml(emailStrings.bestRegards);
+
+              final htmlString = '''
+                <p>$greeting</p>
+                <p>$message</p>
+                <p>$instructions</p>
+                <p>$support</p>
+                <p>${regards.replaceAll('\n', '<br>')}</p>
+              ''';
+
+              // Build subject line with localized text
+              final subject = emailStrings.invitationSubject(schedule.name, role.name);
+
               await sendInviteEmail.call({
                 'email': user.email,
-                'userName': user.username,
                 'roleName': role.name,
                 'scheduleTitle': schedule.name,
+                'subject': subject,
+                'emailHtml': htmlString,
               });
               successCount++;
               debugPrint(
@@ -83,6 +130,17 @@ class EmailProvider extends ChangeNotifier {
       debugPrint('Error in sendInvites: $e');
       return false;
     }
+  }
+
+  /// Escapes HTML special characters to prevent XSS attacks.
+  /// Converts user data safely for inclusion in HTML emails.
+  String _escapeHtml(String text) {
+    return text
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
   }
 
   void clearError() {

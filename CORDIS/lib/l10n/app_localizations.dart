@@ -1903,6 +1903,42 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'{label}s'**
   String pluralPlaceholder(Object label);
+
+  /// Greeting in invitation email
+  ///
+  /// In pt, this message translates to:
+  /// **'Olá {username}!'**
+  String invitationGreeting(Object username);
+
+  /// Main message in invitation email
+  ///
+  /// In pt, this message translates to:
+  /// **'Você foi convidado para participar como {role} em {scheduleName}.'**
+  String invitationMessage(Object role, Object scheduleName);
+
+  /// Instructions paragraph in invitation email
+  ///
+  /// In pt, this message translates to:
+  /// **'Para aceitar seu convite, use este código: {shareCode}'**
+  String instructions(Object shareCode);
+
+  /// Support contact paragraph in invitation email
+  ///
+  /// In pt, this message translates to:
+  /// **'Se tiver alguma dúvida, entre em contato com nossa equipe de suporte.'**
+  String get contactSupport;
+
+  /// Sign-off in invitation email
+  ///
+  /// In pt, this message translates to:
+  /// **'Atenciosamente,\nEquipe CORDIS'**
+  String get bestRegards;
+
+  /// Subject line for invitation email
+  ///
+  /// In pt, this message translates to:
+  /// **'Convite: {scheduleName} - {role}'**
+  String invitationSubject(Object scheduleName, Object role);
 }
 
 class _AppLocalizationsDelegate

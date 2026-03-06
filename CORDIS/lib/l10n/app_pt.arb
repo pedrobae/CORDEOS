@@ -675,5 +675,18 @@
   "optionalPlaceholder": "{field} (Opcional)",
   "@optionalPlaceholder": {"description": "Generic optional field placeholder", "placeholders": {"field": {}}},
   "pluralPlaceholder": "{label}s",
-  "@pluralPlaceholder": {"description": "Generic plural placeholder for labels", "placeholders": {"label": {}}}
+  "@pluralPlaceholder": {"description": "Generic plural placeholder for labels", "placeholders": {"label": {}}},
+
+  "invitationGreeting": "Olá {username}!",
+  "@invitationGreeting": {"description": "Greeting in invitation email", "placeholders": {"username": {}}},
+  "invitationMessage": "Você foi convidado para participar como {role} em {scheduleName}.",
+  "@invitationMessage": {"description": "Main message in invitation email", "placeholders": {"role": {}, "scheduleName": {}}},
+  "instructions": "Se você já possui uma conta com este e-mail, basta entrar. \n Caso contrário, você pode usar este código de compartilhamento para acessar a agenda: {shareCode}",
+  "@instructions": {"description": "Instructions paragraph in invitation email", "placeholders": {"shareCode": {}}},
+  "contactSupport": "Se tiver alguma dúvida, entre em contato com nossa equipe de suporte.",
+  "@contactSupport": {"description": "Support contact paragraph in invitation email"},
+  "bestRegards": "Atenciosamente,\nEquipe CORDIS",
+  "@bestRegards": {"description": "Sign-off in invitation email"},
+  "invitationSubject": "Convite: {scheduleName} - {role}",
+  "@invitationSubject": {"description": "Subject line for invitation email", "placeholders": {"scheduleName": {}, "role": {}}}
 }
