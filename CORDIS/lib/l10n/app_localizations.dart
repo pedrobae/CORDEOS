@@ -1919,7 +1919,7 @@ abstract class AppLocalizations {
   /// Instructions paragraph in invitation email
   ///
   /// In pt, this message translates to:
-  /// **'Para aceitar seu convite, use este código: {shareCode}'**
+  /// **'Se você já possui uma conta com este e-mail, basta entrar. \n Caso contrário, você pode usar este código de compartilhamento para acessar a agenda: {shareCode}'**
   String instructions(Object shareCode);
 
   /// Support contact paragraph in invitation email
@@ -1939,6 +1939,18 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Convite: {scheduleName} - {role}'**
   String invitationSubject(Object scheduleName, Object role);
+
+  /// Support section label
+  ///
+  /// In pt, this message translates to:
+  /// **'Apoio'**
+  String get support;
+
+  /// Report a bug button label
+  ///
+  /// In pt, this message translates to:
+  /// **'Relatar um Erro'**
+  String get reportBug;
 }
 
 class _AppLocalizationsDelegate

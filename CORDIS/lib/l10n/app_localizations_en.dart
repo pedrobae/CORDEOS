@@ -1033,7 +1033,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String instructions(Object shareCode) {
-    return 'To accept your invitation, please use this code: $shareCode';
+    return 'If you have an account with this email, just sign in. \n Otherwise, you can use this share code to gain access to the schedule: <strong>$shareCode</strong>';
   }
 
   @override
@@ -1047,4 +1047,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String invitationSubject(Object scheduleName, Object role) {
     return 'Invitation: $scheduleName - $role';
   }
+
+  @override
+  String get support => 'Support';
+
+  @override
+  String get reportBug => 'Report a Bug';
 }

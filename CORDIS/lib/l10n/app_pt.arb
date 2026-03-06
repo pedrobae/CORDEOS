@@ -688,5 +688,10 @@
   "bestRegards": "Atenciosamente,\nEquipe CORDIS",
   "@bestRegards": {"description": "Sign-off in invitation email"},
   "invitationSubject": "Convite: {scheduleName} - {role}",
-  "@invitationSubject": {"description": "Subject line for invitation email", "placeholders": {"scheduleName": {}, "role": {}}}
+  "@invitationSubject": {"description": "Subject line for invitation email", "placeholders": {"scheduleName": {}, "role": {}}},
+
+  "support": "Apoio",
+  "@support": {"description": "Support section label"},
+  "reportBug": "Relatar um Erro",
+  "@reportBug": {"description": "Report a bug button label"}
 }

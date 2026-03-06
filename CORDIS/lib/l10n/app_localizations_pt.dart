@@ -1043,7 +1043,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String instructions(Object shareCode) {
-    return 'Para aceitar seu convite, use este código: $shareCode';
+    return 'Se você já possui uma conta com este e-mail, basta entrar. \n Caso contrário, você pode usar este código de compartilhamento para acessar a agenda: $shareCode';
   }
 
   @override
@@ -1057,4 +1057,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String invitationSubject(Object scheduleName, Object role) {
     return 'Convite: $scheduleName - $role';
   }
+
+  @override
+  String get support => 'Apoio';
+
+  @override
+  String get reportBug => 'Relatar um Erro';
 }

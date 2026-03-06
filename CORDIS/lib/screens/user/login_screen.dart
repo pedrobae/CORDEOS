@@ -5,7 +5,7 @@ import 'package:cordis/screens/main_screen.dart';
 
 import 'package:cordis/screens/user/password_reset_screen.dart';
 import 'package:cordis/screens/user/register_screen.dart';
-import 'package:cordis/screens/share_code_screen.dart';
+import 'package:cordis/screens/schedule/share_code_screen.dart';
 
 import 'package:cordis/widgets/common/filled_text_button.dart';
 import 'package:cordis/widgets/common/labeled_text_field.dart';

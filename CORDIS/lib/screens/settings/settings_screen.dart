@@ -1,7 +1,9 @@
 import 'package:cordis/helpers/database.dart';
+import 'package:cordis/providers/navigation_provider.dart';
 import 'package:cordis/providers/schedule/cloud_schedule_provider.dart';
 import 'package:cordis/providers/schedule/local_schedule_provider.dart';
 import 'package:cordis/providers/version/cloud_version_provider.dart';
+import 'package:cordis/screens/settings/report_bug_screen.dart';
 import 'package:cordis/services/cache_service.dart';
 import 'package:cordis/utils/locale.dart';
 
@@ -36,6 +38,8 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
+    final nav = context.read<NavigationProvider>();
+
     return Consumer<SettingsProvider>(
       builder: (context, set, child) => SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -52,12 +56,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildColorVariantToggle(set),
             _buildLanguageButton(set),
             const SizedBox(height: 32),
+
+            _buildSectionHeader(
+              AppLocalizations.of(context)!.support,
+              Icons.support_agent,
+            ),
+            SizedBox(),
+            _buildDebugButton(nav),
+            const SizedBox(height: 32),
+
             if (kDebugMode) ...[
               _buildSectionHeader(
                 AppLocalizations.of(context)!.developmentTools,
                 Icons.build,
               ),
-            SizedBox(),
+              SizedBox(),
               _buildResetDatabaseButton(),
               _buildReloadInterfaceButton(),
               _buildDatabaseInfoButton(),
@@ -90,7 +103,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             settings.themeMode == ThemeMode.dark
                 ? Icons.dark_mode
                 : Icons.light_mode,
-                color: colorScheme.primary,
+            color: colorScheme.primary,
           ),
           SizedBox(width: 8),
           Switch(
@@ -147,6 +160,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
         settings.setLocale(locale);
       },
       singleLine: true,
+      isDiscrete: true,
+    );
+  }
+
+  Widget _buildDebugButton(NavigationProvider nav) {
+    return FilledTextButton(
+      icon: Icons.bug_report,
+      text: AppLocalizations.of(context)!.reportBug,
+      trailingIcon: Icons.chevron_right,
+      onPressed: () {
+        nav.pop();
+        nav.push(
+          () => ReportBugScreen(),
+          showAppBar: true,
+          showBottomNavBar: true,
+          showDrawerIcon: true,
+        );
+      },
       isDiscrete: true,
     );
   }

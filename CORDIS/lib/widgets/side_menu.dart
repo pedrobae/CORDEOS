@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 import 'package:cordis/l10n/app_localizations.dart';
-import 'package:cordis/screens/settings_screen.dart';
+import 'package:cordis/screens/settings/settings_screen.dart';
 import 'package:cordis/screens/web_view_screen.dart';
 import 'package:cordis/widgets/user_card.dart';
 import 'package:flutter/material.dart';
