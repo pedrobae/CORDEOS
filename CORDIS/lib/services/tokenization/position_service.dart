@@ -251,7 +251,6 @@ class PositionService {
   }
 
   /// Calculates preceding chord offset.
-  /// Only calc preceding offset on edit mode
   /// Preceding chords are indicated with a space before lyrics
   /// [C]lyrics -> 0
   /// [C] lyrics -> len([C])
@@ -263,9 +262,6 @@ class PositionService {
     PositioningContext ctx,
   ) {
     double precedingOffset = 0;
-    if (!ctx.isEditMode) {
-      return precedingOffset;
-    }
     for (var line in contentTokens.lines) {
       double linePrecedingOffset = 0;
       bool hasSpaceBeforeLyrics = false;

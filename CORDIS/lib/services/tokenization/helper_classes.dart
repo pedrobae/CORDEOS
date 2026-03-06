@@ -75,8 +75,8 @@ class TokenizationConstants {
   static const double precedingTargetWidth = 24.0;
 
   /// CHORD TOKEN
-  static const double chordTokenHeightPadding = 2.0;
-  static const double chordTokenWidthPadding = 10.0;
+  static const double chordTokenHeightPadding = -2;
+  static const double chordTokenWidthPadding = 20.0;
 
   /// DRAG TARGET FEEDBACK
   static const int dragFeedbackTokensBefore = 5;
@@ -120,6 +120,20 @@ class Measurements {
     required this.baseline,
     required this.size,
   });
+
+  Measurements copyWith({
+    double? width,
+    double? height,
+    double? baseline,
+    double? size,
+  }) {
+    return Measurements(
+      width: width ?? this.width,
+      height: height ?? this.height,
+      baseline: baseline ?? this.baseline,
+      size: size ?? this.size,
+    );
+  }
 }
 
 class MeasuredWidget {

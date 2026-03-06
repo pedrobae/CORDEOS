@@ -188,22 +188,30 @@ class TokenizationBuilder {
               );
               break;
             case TokenType.chord:
-              final measurement = measureText(
+              final tokenMsr = measureText(
                 text: token.text,
                 style: ctx.chordStyle,
                 cache: ctx.cache,
               );
 
-              measurement.width += TokenizationConstants.chordTokenWidthPadding;
+              final widgetMsr = tokenMsr.copyWith(
+                width:
+                    tokenMsr.width +
+                    TokenizationConstants.chordTokenWidthPadding,
+                height:
+                    tokenMsr.height +
+                    TokenizationConstants.chordTokenHeightPadding,
+              );
 
               wordWidgets.add(
                 MeasuredWidget(
                   widget: _buildDraggableChord(
+                    tokenSize: Size(tokenMsr.width, tokenMsr.height),
                     ctx: ctx,
                     token: token,
                     position: position,
                   ),
-                  measurements: measurement,
+                  measurements: widgetMsr,
                   type: TokenType.chord,
                   token: token,
                 ),
@@ -337,6 +345,7 @@ class TokenizationBuilder {
   Widget _buildDraggableChord({
     required EditBuildContext ctx,
     required ContentToken token,
+    required Size tokenSize,
     required int position,
   }) {
     // Assign position to token for reference
@@ -344,12 +353,14 @@ class TokenizationBuilder {
 
     // ChordTokens
     final chordWidget = ChordToken(
+      tokenSize: tokenSize,
       token: token,
       sectionColor: ctx.contentColor,
       textStyle: ctx.chordStyle,
     );
 
     final dimChordWidget = ChordToken(
+      tokenSize: tokenSize,
       token: token,
       sectionColor: ctx.contentColor.withValues(alpha: .5),
       textStyle: ctx.chordStyle,
@@ -485,12 +496,12 @@ class TokenizationBuilder {
     required TokenLine tokenLine,
   }) {
     final chordMsr = measureText(
-      text: 'test',
+      text: draggedChord.text,
       style: ctx.chordStyle,
       cache: ctx.cache,
     );
     final lyricMsr = measureText(
-      text: 'test',
+      text: draggedToToken.text,
       style: ctx.lyricStyle,
       cache: ctx.cache,
     );
@@ -534,13 +545,9 @@ class TokenizationBuilder {
         cutoutWidgets.add(
           Positioned(
             left: xOffset,
-            top: TokenizationConstants.dragFeedbackCutoutPadding,
-            child: ChordToken(
-              token: draggedChord,
-              sectionColor: ctx.contentColor,
-              textStyle: ctx.chordStyle,
+            top: TokenizationConstants.dragFeedbackCutoutPadding - chordMsr.bottomPadding,
+            child: Text(draggedChord.text, style: ctx.chordStyle.copyWith(color: ctx.onSurfaceColor)),
             ),
-          ),
         );
       }
       cutoutWidgets.add(
