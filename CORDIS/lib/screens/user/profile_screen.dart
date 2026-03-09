@@ -95,7 +95,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   _buildCountryPicker(auth, settings, user),
                   _buildLanguagePicker(auth, settings, user),
                   _buildTimezonePicker(auth, settings, user),
-                  Spacer(),
                   _buildSaveButton(user, auth),
                   _buildChangePasswordButton(nav),
                   _buildDeleteAccountButton(auth, user),
@@ -125,7 +124,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 return ReAuthSheet(
                   onReAuthSuccess: () {
                     auth.deleteAccount();
-                    Navigator.of(context).pop();
                   },
                 );
               },

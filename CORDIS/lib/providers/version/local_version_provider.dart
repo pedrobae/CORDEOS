@@ -229,7 +229,7 @@ class LocalVersionProvider extends ChangeNotifier {
 
     try {
       // Check if version exists by its firebaseId
-      final existingVersion = await getVersionByFirebaseId(version.firebaseId!);
+      final existingVersion = await _repo.getVersionWithFirebaseId(version.firebaseId!);
 
       if (existingVersion != null) {
         // Update existing version
