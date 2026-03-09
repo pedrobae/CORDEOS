@@ -1,9 +1,10 @@
 // firebase deploy --only functions
 // npm run lint -- --fix
 
-const {setGlobalOptions} = require("firebase-functions");
+const {setGlobalOptions} = require("firebase-functions/v2");
 const {onCall} = require("firebase-functions/v2/https");
 const {beforeUserCreated} = require("firebase-functions/v2/identity");
+const {auth} = require("firebase-functions/v1");
 
 setGlobalOptions({maxInstances: 5});
 
@@ -58,8 +59,7 @@ async function auditLog(action, details) {
 
 
 // === ADMIN FUNCTIONS ===
-
-// Grant admin privileges to a user by email (admin-only)
+/// Grant admin privileges to a user by email (admin-only)
 exports.grantAdminRole = onCall(async (request) => {
   // Only existing admins can grant admin role
   if (!request.auth || !request.auth.token.admin) {
@@ -107,8 +107,8 @@ exports.grantAdminRole = onCall(async (request) => {
   }
 });
 
-// Bootstrap function to grant first admin (run once, requires secret)
-// After first admin created, this endpoint becomes disabled
+/// Bootstrap function to grant first admin (run once, requires secret)
+/// After first admin created, this endpoint becomes disabled
 exports.grantFirstAdmin = functions.https.onRequest(async (req, res) => {
   // Only allow POST
   if (req.method !== "POST") {
@@ -169,7 +169,7 @@ exports.grantFirstAdmin = functions.https.onRequest(async (req, res) => {
   }
 });
 
-// Remove admin role (with safeguards)
+/// Revoke admin role (with safeguards)
 exports.revokeAdminRole = functions.https.onCall(async (request) => {
   if (!request.auth || !request.auth.token.admin) {
     throw new functions.https.HttpsError(
@@ -220,9 +220,8 @@ exports.revokeAdminRole = functions.https.onCall(async (request) => {
 });
 
 
-// === USER INITIALIZATION ===
-
-// Create user document in Firestore when a new user signs up
+// === USER ===
+/// Create user document in Firestore when a new user signs up
 exports.createUserDocument = beforeUserCreated(async (event) => {
   const {uid, email, displayName} = event.data;
 
@@ -249,6 +248,58 @@ exports.createUserDocument = beforeUserCreated(async (event) => {
   }
 });
 
+
+/// Cleanup user-related data after Firebase Auth account deletion
+exports.cleanSchedulesOfUser = auth.user().onDelete(async (user) => {
+  const {uid, email} = user;
+
+  try {
+    // Remove user profile document if it exists.
+    await admin.firestore().collection("users").doc(uid).delete();
+
+    // Delete schedules where the user is the owner
+    const schedulesSnap = await admin.firestore().collection("schedules")
+        .where("owner", "==", uid)
+        .get();
+
+    const batch = admin.firestore().batch();
+    schedulesSnap.forEach((doc) => {
+      batch.delete(doc.ref);
+    });
+    await batch.commit();
+
+    // Remove user from collaborators in schedules they are part of
+    const collaboratorSnap = await admin.firestore().collection("schedules")
+        .where("collaborators", "array-contains", uid)
+        .get();
+
+    const collaboratorBatch = admin.firestore().batch();
+    collaboratorSnap.forEach((doc) => {
+      collaboratorBatch.update(doc.ref, {
+        collaborators: admin.firestore.FieldValue.arrayRemove(uid),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+    });
+    await collaboratorBatch.commit();
+
+    await auditLog("user_deleted_cleanup_success", {
+      uid,
+      email: email || "",
+    });
+
+    return null;
+  } catch (error) {
+    console.error("Error cleaning up deleted user data:", error);
+
+    await auditLog("user_deleted_cleanup_failed", {
+      uid,
+      email: email || "",
+      error: error.message || "unknown",
+    });
+
+    throw error;
+  }
+});
 
 // === PLAYLIST SHARING ===
 

@@ -123,7 +123,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 return ReAuthSheet(
                   onReAuthSuccess: () {
                     auth.deleteAccount();
-                    user.deleteUserData(auth.id!);
                     Navigator.of(context).pop();
                   },
                 );
@@ -249,9 +248,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               itemType: AppLocalizations.of(context)!.account,
               onConfirm: () async {
                 await auth.deleteAccount();
-                if (auth.error == null && context.mounted) {
-                  user.deleteUserData(auth.id!);
-                }
               },
             );
           },
