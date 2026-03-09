@@ -48,63 +48,39 @@ class TokenizationBuilder {
   /// Widget sizes are measured and cached for efficient positioning.
   OrganizedWidgets buildViewWidgets({
     required OrganizedTokens organizedTokens,
+    required Map<ContentToken, Measurements> tokenMeasurements,
     required List<ContentToken> tokens,
-    required TextStyle lyricStyle,
-    required TextStyle chordStyle,
+    required TokenBuildContext ctx,
+    required TokenPositionMap tokenPositions
   }) {
     final lines = <WidgetLine>[];
-
-    final msrCache = <String, Measurements>{};
 
     for (var line in organizedTokens.lines) {
       final words = <WidgetWord>[];
       for (var word in line.words) {
-        final wordWidgets = <MeasuredWidget>[];
+        final wordWidgets = <TokenWidget>[];
         for (var token in word.tokens) {
           switch (token.type) {
             case TokenType.chord:
-              final measurement = measureText(
-                text: token.text,
-                style: chordStyle,
-                cache: msrCache,
-              );
               wordWidgets.add(
-                MeasuredWidget(
-                  widget: Text(token.text, style: chordStyle),
-                  measurements: measurement,
-                  type: TokenType.chord,
+                TokenWidget(
+                  widget: Text(token.text, style: ctx.chordStyle),
                   token: token,
                 ),
               );
               break;
             case TokenType.lyric:
-              final measurement = measureText(
-                text: token.text,
-                style: lyricStyle,
-                cache: msrCache,
-              );
-
               wordWidgets.add(
-                MeasuredWidget(
-                  widget: Text(token.text, style: lyricStyle),
-                  measurements: measurement,
-                  type: TokenType.lyric,
+                TokenWidget(
+                  widget: Text(token.text, style: ctx.lyricStyle),
                   token: token,
                 ),
               );
               break;
             case TokenType.space:
-              final measurement = measureText(
-                text: ' ',
-                style: lyricStyle,
-                cache: msrCache,
-              );
-
               wordWidgets.add(
-                MeasuredWidget(
-                  widget: Text(' ', style: lyricStyle),
-                  measurements: measurement,
-                  type: TokenType.space,
+                TokenWidget(
+                  widget: Text(' ', style: ctx.lyricStyle),
                   token: token,
                 ),
               );
@@ -112,21 +88,25 @@ class TokenizationBuilder {
             case TokenType.newline:
               // NEW LINE TOKENS INDICATE LINE BREAKS
               wordWidgets.add(
-                MeasuredWidget(
+                TokenWidget(
                   widget: SizedBox.shrink(),
-                  measurements: Measurements(
-                    width: 0,
-                    height: 0,
-                    baseline: 0,
-                    size: 0,
-                  ),
-                  type: TokenType.newline,
                   token: token,
                 ),
               );
               break;
             case TokenType.precedingChordTarget:
+              // Preceding chord targets are only relevant in edit mode, so we skip them in view mode
+              break;
             case TokenType.underline:
+              wordWidgets.add(
+                TokenWidget(
+                  widget: buildUnderlineWidget(
+                    msr: tokenMeasurements[token]!,
+                    color: ctx.onSurfaceColor,
+                  ),
+                  token: token,
+                ),
+              );
               break;
           }
         }
@@ -152,8 +132,9 @@ class TokenizationBuilder {
   /// Returns organized structure with lines -> words -> widgets.
   OrganizedWidgets buildEditWidgets({
     required OrganizedTokens contentTokens,
+    required Map<ContentToken, Measurements> tokenMeasurements,
     required List<ContentToken> tokens,
-    required EditBuildContext ctx,
+    required TokenBuildContext ctx,
     required TokenPositionMap tokenPositions,
   }) {
     /// Build all token widgets, and calculate their sizes for positioning
@@ -162,12 +143,12 @@ class TokenizationBuilder {
     for (var line in contentTokens.lines) {
       final words = <WidgetWord>[];
       for (var word in line.words) {
-        final wordWidgets = <MeasuredWidget>[];
+        final wordWidgets = <TokenWidget>[];
         for (var token in word.tokens) {
           switch (token.type) {
             case TokenType.precedingChordTarget:
               wordWidgets.add(
-                MeasuredWidget(
+                TokenWidget(
                   widget: _buildPrecedingChordDragTarget(
                     ctx: ctx,
                     tokenLine: line,
@@ -176,13 +157,6 @@ class TokenizationBuilder {
                     position: position,
                     tokenPositions: tokenPositions,
                   ),
-                  measurements: Measurements(
-                    width: TokenizationConstants.precedingTargetWidth,
-                    height: 0,
-                    baseline: 0,
-                    size: 0,
-                  ),
-                  type: TokenType.precedingChordTarget,
                   token: token,
                 ),
               );
@@ -193,39 +167,21 @@ class TokenizationBuilder {
                 style: ctx.chordStyle,
                 cache: ctx.cache,
               );
-
-              final widgetMsr = tokenMsr.copyWith(
-                width:
-                    tokenMsr.width +
-                    TokenizationConstants.chordTokenWidthPadding,
-                height:
-                    tokenMsr.height +
-                    TokenizationConstants.chordTokenHeightPadding,
-              );
-
               wordWidgets.add(
-                MeasuredWidget(
+                TokenWidget(
                   widget: _buildDraggableChord(
                     tokenSize: Size(tokenMsr.width, tokenMsr.height),
                     ctx: ctx,
                     token: token,
                     position: position,
                   ),
-                  measurements: widgetMsr,
-                  type: TokenType.chord,
                   token: token,
                 ),
               );
               break;
             case TokenType.lyric:
-              final measurement = measureText(
-                text: token.text,
-                style: ctx.lyricStyle,
-                cache: ctx.cache,
-              );
-
               wordWidgets.add(
-                MeasuredWidget(
+                TokenWidget(
                   widget: _buildLyricDragTarget(
                     ctx: ctx,
                     tokenLine: line,
@@ -234,8 +190,6 @@ class TokenizationBuilder {
                     position: position,
                     tokenPositions: tokenPositions,
                   ),
-                  measurements: measurement,
-                  type: TokenType.lyric,
                   token: token,
                 ),
               );
@@ -249,7 +203,7 @@ class TokenizationBuilder {
               );
 
               wordWidgets.add(
-                MeasuredWidget(
+                TokenWidget(
                   widget: _buildSpaceDragTarget(
                     ctx: ctx,
                     tokenLine: line,
@@ -259,8 +213,6 @@ class TokenizationBuilder {
                     spaceMeasurements: measurement,
                     tokenPositions: tokenPositions,
                   ),
-                  measurements: measurement,
-                  type: TokenType.space,
                   token: token,
                 ),
               );
@@ -269,20 +221,22 @@ class TokenizationBuilder {
             case TokenType.newline:
               // Newline tokens dont have fixed width
               wordWidgets.add(
-                MeasuredWidget(
+                TokenWidget(
                   widget: SizedBox.shrink(),
-                  measurements: Measurements(
-                    width: 0,
-                    height: 0,
-                    baseline: 0,
-                    size: 0,
-                  ),
-                  type: TokenType.newline,
                   token: token,
                 ),
               );
               break;
             case TokenType.underline:
+              wordWidgets.add(
+                TokenWidget(
+                  widget: buildUnderlineWidget(
+                    msr: tokenMeasurements[token]!,
+                    color: ctx.onSurfaceColor,
+                  ),
+                  token: token,
+                ),
+              );
               break;
           }
           position++;
@@ -301,7 +255,7 @@ class TokenizationBuilder {
   /// Generic drag target builder to reduce code duplication.
   /// Wraps a child widget with DragTarget functionality if enabled.
   Widget _buildGenericDragTarget({
-    required EditBuildContext ctx,
+    required TokenBuildContext ctx,
     required Widget child,
     required TokenLine tokenLine,
     required List<ContentToken> tokens,
@@ -316,13 +270,13 @@ class TokenizationBuilder {
     onAccept,
     required TokenPositionMap tokenPositions,
   }) {
-    return ctx.isEnabled
+    return ctx.isEnabled!
         ? DragTarget<ContentToken>(
             onAcceptWithDetails: (details) {
               onAccept(tokens, details.data, position);
               if (details.data.position != null) {
                 final index = indexAdjuster(details.data.position!, position);
-                ctx.onRemoveChord(tokens, index);
+                ctx.onRemoveChord!(tokens, index);
               }
             },
             builder: (context, candidateData, rejectedData) {
@@ -343,7 +297,7 @@ class TokenizationBuilder {
   }
 
   Widget _buildDraggableChord({
-    required EditBuildContext ctx,
+    required TokenBuildContext ctx,
     required ContentToken token,
     required Size tokenSize,
     required int position,
@@ -367,11 +321,11 @@ class TokenizationBuilder {
     );
 
     // GestureDetector to handle long press to drag transition
-    return ctx.isEnabled
+    return ctx.isEnabled!
         ? LongPressDraggable<ContentToken>(
             data: token,
             onDragStarted: ctx.toggleDrag,
-            onDragEnd: (details) => ctx.toggleDrag(),
+            onDragEnd: (details) => ctx.toggleDrag!(),
             feedback: Material(
               color: Colors.transparent,
               child: dimChordWidget,
@@ -383,7 +337,7 @@ class TokenizationBuilder {
   }
 
   Widget _buildPrecedingChordDragTarget({
-    required EditBuildContext ctx,
+    required TokenBuildContext ctx,
     required TokenLine tokenLine,
     required List<ContentToken> tokens,
     required ContentToken token,
@@ -421,7 +375,7 @@ class TokenizationBuilder {
       tokens: tokens,
       token: token,
       position: position,
-      onAccept: ctx.onAddPrecedingChord,
+      onAccept: ctx.onAddPrecedingChord!,
       indexAdjuster: (originalIndex, pos) {
         // Adjust for two insertions (Chord + Space)
         return originalIndex > pos ? originalIndex + 2 : originalIndex;
@@ -431,7 +385,7 @@ class TokenizationBuilder {
   }
 
   Widget _buildLyricDragTarget({
-    required EditBuildContext ctx,
+    required TokenBuildContext ctx,
     required TokenLine tokenLine,
     required List<ContentToken> tokens,
     required ContentToken token,
@@ -450,13 +404,13 @@ class TokenizationBuilder {
       indexAdjuster: (originalIndex, pos) {
         return originalIndex > pos ? originalIndex + 1 : originalIndex;
       },
-      onAccept: ctx.onAddChord,
+      onAccept: ctx.onAddChord!,
       tokenPositions: tokenPositions,
     );
   }
 
   Widget _buildSpaceDragTarget({
-    required EditBuildContext ctx,
+    required TokenBuildContext ctx,
     required TokenLine tokenLine,
     required List<ContentToken> tokens,
     required ContentToken token,
@@ -476,7 +430,7 @@ class TokenizationBuilder {
       tokens: tokens,
       token: token,
       position: position,
-      onAccept: ctx.onAddChord,
+      onAccept: ctx.onAddChord!,
       indexAdjuster: (originalIndex, pos) {
         return originalIndex > pos ? originalIndex + 1 : originalIndex;
       },
@@ -488,7 +442,7 @@ class TokenizationBuilder {
   /// Showing the chord above the target, with the close by tokens,
   /// Similar to what is shown when selecting text in a text editor, to give better context of where the chord will be dropped.
   Widget _buildDragTargetFeedback({
-    required EditBuildContext ctx,
+    required TokenBuildContext ctx,
     required Widget dragTargetChild,
     required ContentToken draggedChord,
     required ContentToken draggedToToken,
@@ -545,9 +499,14 @@ class TokenizationBuilder {
         cutoutWidgets.add(
           Positioned(
             left: xOffset,
-            top: TokenizationConstants.dragFeedbackCutoutPadding - chordMsr.bottomPadding,
-            child: Text(draggedChord.text, style: ctx.chordStyle.copyWith(color: ctx.onSurfaceColor)),
+            top:
+                TokenizationConstants.dragFeedbackCutoutPadding -
+                chordMsr.bottomPadding,
+            child: Text(
+              draggedChord.text,
+              style: ctx.chordStyle.copyWith(color: ctx.onSurfaceColor),
             ),
+          ),
         );
       }
       cutoutWidgets.add(
@@ -620,41 +579,21 @@ class TokenizationBuilder {
     );
   }
 
-  PositionedWithRef buildUnderlineWidget({
-    required double width,
-    required double leftOffset,
-    required Measurements lyricMeasurements,
-    required double topOffset,
+  Widget buildUnderlineWidget({
+    required Measurements msr,
     required Color color,
   }) {
-    lyricMeasurements.width = width;
-
-    final underLine = SizedBox(
-      height: lyricMeasurements.size,
-      width: width,
+    return SizedBox(
+      height: msr.size,
+      width: msr.width,
       child: Stack(
         children: [
           Positioned(
-            top: lyricMeasurements.baseline,
-            width: width,
-            child: Container(width: width, height: 2, color: color),
+            top: msr.baseline,
+            width: msr.width,
+            child: Container(width: msr.width, height: 1, color: color),
           ),
         ],
-      ),
-    );
-
-    return PositionedWithRef(
-      positioned: Positioned(
-        left: leftOffset,
-        top: topOffset,
-        width: width,
-        child: underLine,
-      ),
-      ref: MeasuredWidget(
-        widget: underLine,
-        measurements: lyricMeasurements,
-        type: TokenType.underline,
-        token: ContentToken(text: '', type: TokenType.underline),
       ),
     );
   }

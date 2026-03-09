@@ -222,7 +222,7 @@ class _TokenContentCardState extends State<TokenContentCard> {
                             TokenizationConstants.contentPaddingEdit,
                       );
 
-                      final editContext = EditBuildContext(
+                      final editContext = TokenBuildContext(
                         chordStyle: chordStyle,
                         lyricStyle: lyricStyle,
                         contentColor: section.contentColor,
@@ -239,14 +239,12 @@ class _TokenContentCardState extends State<TokenContentCard> {
 
                       final content = _tokenizer.createContent(
                         content: section.contentText,
-                        ctx: PositioningContext(
+                        posCtx: PositioningContext(
                           underLineColor: colorScheme.onSurface,
                           maxWidth: contentWidth,
                           isEditMode: true,
                         ),
-                        chordStyle: chordStyle,
-                        lyricStyle: lyricStyle,
-                        editCtx: editContext,
+                        buildCtx: editContext,
                         transposeChord: tp.transposeChord,
                       );
 

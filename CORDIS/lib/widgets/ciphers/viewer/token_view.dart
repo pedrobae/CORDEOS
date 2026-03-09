@@ -29,13 +29,22 @@ class TokenView extends StatelessWidget {
 
             final content = _tokenizer.createContent(
               content: chordPro,
-              ctx: PositioningContext(
+              posCtx: PositioningContext(
                 underLineColor: colorScheme.onSurface,
                 maxWidth: contentWidth,
               ),
-              chordStyle: laySet.chordTextStyle(colorScheme.primary),
-              lyricStyle: laySet.lyricTextStyle,
               contentFilters: laySet.contentFilters,
+              buildCtx: TokenBuildContext(
+                chordStyle: laySet.chordTextStyle(colorScheme.primary),
+                lyricStyle: laySet.lyricTextStyle,
+                contentColor: colorScheme.onSurface,
+                surfaceColor: colorScheme.surface,
+                onSurfaceColor: colorScheme.onSurface,
+                maxWidth: contentWidth,
+                cache: {},),
+              transposeChord: (chord) {
+                return trans.transposeChord(chord);
+              },
             );
             return SizedBox(
               height: content.contentHeight,

@@ -115,7 +115,7 @@ class TokenizationService {
 
   /// Creates tokenized and positioned content for both edit and view modes.
   ///
-  /// **Edit Mode** (provide [content] and [editCtx])
+  /// **Edit Mode** (provide [content] and [buildCtx])
   /// **View Mode** (provide [content] and [contentFilters])
   /// Orchestrates the complete content creation workflow from a content string:
   /// 1. Tokenizes content into ChordPro format
@@ -129,21 +129,13 @@ class TokenizationService {
   /// Returns [ContentTokenized] with positioned widgets and total content height.
   ContentTokenized createContent({
     required String content,
-    required PositioningContext ctx,
-    required TextStyle chordStyle,
-    required TextStyle lyricStyle,
-    // Edit mode parameters
-    EditBuildContext? editCtx,
-    String Function(String)? transposeChord,
+    required PositioningContext posCtx,
+    required TokenBuildContext buildCtx,
+    required String Function(String)? transposeChord,
     // View mode parameters
     Map<ContentFilter, bool>? contentFilters,
   }) {
-    assert(
-      editCtx != null || contentFilters != null,
-      'Either provide editCtx for edit mode, or contentFilters for view mode',
-    );
-
-    final isEditMode = editCtx != null;
+    final isEditMode = contentFilters == null;
 
     // Step 1: Tokenize content (shared)
     final tokens = tokenize(content);
@@ -159,7 +151,7 @@ class TokenizationService {
         }
       }
     } else {
-      filterTokens(tokens, contentFilters!);
+      filterTokens(tokens, contentFilters);
     }
 
     // Step 3: Organize tokens
@@ -170,8 +162,8 @@ class TokenizationService {
     for (var token in tokens) {
       if (token.type != TokenType.newline &&
           token.type != TokenType.underline) {
-        final style = token.type == TokenType.chord ? chordStyle : lyricStyle;
-        final cache = isEditMode ? editCtx.cache : null;
+        final style = token.type == TokenType.chord ? buildCtx.chordStyle : buildCtx.lyricStyle;
+        final cache = isEditMode ? buildCtx.cache : null;
         final measured = _builder.measureText(
           text: token.text,
           style: style,
@@ -197,11 +189,10 @@ class TokenizationService {
 
     // Step 5: Calculate positions for all tokens
     final tokenPositions = _positioner.calculateTokenPositions(
-      organizedTokens,
-      ctx,
-      tokenMeasurements,
-      chordStyle: chordStyle,
-      lyricStyle: lyricStyle,
+      organizedTokens: organizedTokens,
+      posCtx: posCtx,
+      buildCtx: buildCtx,
+      tokenMsr: tokenMeasurements,
     );
 
     // Step 6: Build widgets (mode-specific)
@@ -210,27 +201,29 @@ class TokenizationService {
       // Build edit widgets with pre-calculated positions
       contentWidgets = _builder.buildEditWidgets(
         contentTokens: organizedTokens,
+        tokenMeasurements: tokenMeasurements,
         tokens: tokens,
-        ctx: editCtx,
+        ctx: buildCtx,
         tokenPositions: tokenPositions,
       );
     } else {
       // Build view widgets
       contentWidgets = _builder.buildViewWidgets(
         organizedTokens: organizedTokens,
+        tokenMeasurements: tokenMeasurements,
         tokens: tokens,
-        lyricStyle: lyricStyle,
-        chordStyle: chordStyle,
+        ctx: buildCtx,
+        tokenPositions: tokenPositions
       );
     }
 
     // Step 7: Apply positions to widgets (shared)
     final positionedContent = _positioner.applyPositionsToWidgets(
       contentWidgets,
+      tokenMeasurements,
       tokenPositions,
-      ctx,
-      chordStyle: chordStyle,
-      lyricStyle: lyricStyle,
+      posCtx,
+      buildCtx
     );
 
     return positionedContent;

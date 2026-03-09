@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 /// Context object to hold common styling and behavior parameters
 /// for edit mode widget building, reducing parameter clutter.
-class EditBuildContext {
+class TokenBuildContext {
   /// TEXT PARAMETERS
   final TextStyle chordStyle;
   final TextStyle lyricStyle;
@@ -17,25 +17,25 @@ class EditBuildContext {
   final double maxWidth;
 
   /// EDIT MODE SPECIFIC PARAMETERS
-  final bool isEnabled;
-  final VoidCallback toggleDrag;
-  final Function(List<ContentToken>, ContentToken, int) onAddChord;
-  final Function(List<ContentToken>, ContentToken, int) onAddPrecedingChord;
-  final Function(List<ContentToken>, int) onRemoveChord;
+  final bool? isEnabled;
+  final VoidCallback? toggleDrag;
+  final Function(List<ContentToken>, ContentToken, int)? onAddChord;
+  final Function(List<ContentToken>, ContentToken, int)? onAddPrecedingChord;
+  final Function(List<ContentToken>, int)? onRemoveChord;
 
-  const EditBuildContext({
+  const TokenBuildContext({
     required this.chordStyle,
     required this.lyricStyle,
     required this.contentColor,
     required this.surfaceColor,
     required this.onSurfaceColor,
     required this.maxWidth,
-    required this.isEnabled,
     required this.cache,
-    required this.toggleDrag,
-    required this.onAddChord,
-    required this.onAddPrecedingChord,
-    required this.onRemoveChord,
+     this.isEnabled,
+     this.toggleDrag,
+     this.onAddChord,
+     this.onAddPrecedingChord,
+     this.onRemoveChord,
   });
 }
 
@@ -136,23 +136,21 @@ class Measurements {
   }
 }
 
-class MeasuredWidget {
+class TokenWidget {
   final Widget widget;
-  final Measurements measurements;
-  final TokenType type;
   final ContentToken token;
 
-  MeasuredWidget({
+  TokenWidget({
     required this.widget,
-    required this.measurements,
-    required this.type,
     required this.token,
   });
+
+  TokenType get type => token.type;
 }
 
 class PositionedWithRef {
   final Positioned positioned;
-  final MeasuredWidget ref;
+  final TokenWidget ref;
 
   PositionedWithRef({required this.positioned, required this.ref});
 }
@@ -172,6 +170,13 @@ class TokenWord {
 
   bool get isEmpty => tokens.isEmpty;
   bool get isNotEmpty => tokens.isNotEmpty;
+
+  void add(ContentToken token, int position) {
+    if (position < 0 || position > tokens.length) {
+      throw RangeError('Position $position is out of bounds for tokens of length ${tokens.length}');
+    }
+    tokens.insert(position, token);
+  }
 }
 
 class TokenLine {
@@ -199,7 +204,7 @@ class OrganizedTokens {
 
 /// Hierarchical structures to organize tokens into lines and words.
 class WidgetWord {
-  final List<MeasuredWidget> widgets;
+  final List<TokenWidget> widgets;
 
   WidgetWord(this.widgets);
 
