@@ -19,6 +19,7 @@ class CipherProvider extends ChangeNotifier {
   bool _isLoading = false;
   bool _isSaving = false;
   bool _hasUnsavedChanges = false;
+  bool _hasLoadedCiphers = false;
 
   String? _error;
 
@@ -63,9 +64,7 @@ class CipherProvider extends ChangeNotifier {
   Future<int?> createCipher() async {
     if (_isSaving) return null;
     if (_ciphers[-1] == null) {
-      if (kDebugMode) {
-        print('No new cipher to create in local cache');
-      }
+      debugPrint('CIPHER - No new cipher to create in local cache');
       return null;
     }
 
@@ -80,14 +79,10 @@ class CipherProvider extends ChangeNotifier {
 
       // Load the new ID into the cache
       _ciphers[cipherId] = _ciphers[-1]!.copyWith(id: cipherId);
-      if (kDebugMode) {
-        print('Created a new cipher with id $cipherId');
-      }
+      debugPrint('CIPHER - Created a new cipher with id $cipherId');
     } catch (e) {
       _error = e.toString();
-      if (kDebugMode) {
-        print('Error creating cipher: $e');
-      }
+      debugPrint('CIPHER - Error creating cipher: $e');
     } finally {
       _isSaving = false;
       _hasUnsavedChanges = false;
@@ -106,7 +101,12 @@ class CipherProvider extends ChangeNotifier {
   /// Load ciphers from local SQLite
   Future<void> loadCiphers({bool forceReload = false}) async {
     if (_isLoading) return;
-    // Debounce rapid calls
+    if (_hasLoadedCiphers && !forceReload) {
+      debugPrint('CIPHER - Ciphers already loaded, skipping reload');
+      return;
+    }
+
+    _ciphers.clear();
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -122,15 +122,11 @@ class CipherProvider extends ChangeNotifier {
         }
         _ciphers[cipher.id] = cipher;
       }
-
-      if (kDebugMode) {
-        print('Loaded ${_ciphers.length} ciphers from SQLite');
-      }
+      _hasLoadedCiphers = true;
+      debugPrint('CIPHER - Loaded ${_ciphers.length} ciphers');
     } catch (e) {
       _error = e.toString();
-      if (kDebugMode) {
-        print('Error loading ciphers: $e');
-      }
+      debugPrint('CIPHER - Error loading ciphers: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -155,9 +151,7 @@ class CipherProvider extends ChangeNotifier {
 
       _ciphers[cipherId] = loadedCipher;
     } catch (e) {
-      if (kDebugMode) {
-        print('Error loading cipher: $e');
-      }
+      debugPrint('CIPHER - Error loading cipher: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -184,9 +178,7 @@ class CipherProvider extends ChangeNotifier {
       _ciphers[cipher.id] = cipher;
     } catch (e) {
       _error = e.toString();
-      if (kDebugMode) {
-        print('Error loading cipher of Version: $e');
-      }
+      debugPrint('CIPHER - Error loading cipher of Version: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -221,16 +213,12 @@ class CipherProvider extends ChangeNotifier {
         cipherId = await _cipherRepository.insertPrunedCipher(cipher);
       }
 
-      if (kDebugMode) {
-        print(
-          'Upserted cipher with Title ${cipher.title} - Cipher ID: $cipherId',
-        );
-      }
+      debugPrint(
+        'CIPHER - Upserted cipher with Title ${cipher.title} - Cipher ID: $cipherId',
+      );
     } catch (e) {
       _error = e.toString();
-      if (kDebugMode) {
-        print('Error upserting cipher: $e');
-      }
+      debugPrint('CIPHER - Error upserting cipher: $e');
     } finally {
       _isSaving = false;
       notifyListeners();
@@ -251,9 +239,7 @@ class CipherProvider extends ChangeNotifier {
       await _cipherRepository.updateCipher(_ciphers[cipherId]!);
     } catch (e) {
       _error = e.toString();
-      if (kDebugMode) {
-        print('Error saving cipher: $e');
-      }
+      debugPrint('CIPHER - Error saving cipher: $e');
     } finally {
       _hasUnsavedChanges = false;
       _isSaving = false;
@@ -306,9 +292,7 @@ class CipherProvider extends ChangeNotifier {
       _ciphers.remove(cipherID);
     } catch (e) {
       _error = e.toString();
-      if (kDebugMode) {
-        print('Error deleting cipher: $e');
-      }
+      debugPrint('CIPHER - Error deleting cipher: $e');
     } finally {
       _isSaving = false;
       notifyListeners();
@@ -351,10 +335,5 @@ class CipherProvider extends ChangeNotifier {
   /// Get cipher from cache
   Cipher? getCipher(int cipherId) {
     return _ciphers[cipherId];
-  }
-
-  /// Check if a cipher is already cached
-  bool cipherIsCached(int cipherId) {
-    return _ciphers.containsKey(cipherId);
   }
 }
