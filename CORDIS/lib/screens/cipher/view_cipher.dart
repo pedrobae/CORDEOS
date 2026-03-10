@@ -250,7 +250,7 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
     final sect = context.read<SectionProvider>();
     context.read<NavigationProvider>().push(
       () => EditCipherScreen(
-        cipherID: widget.cipherID,
+        cipherID: widget.cipherID!,
         versionID: widget.versionID,
         versionType: widget.versionType,
       ),
@@ -332,7 +332,6 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
         StructureList(
           versionId: widget.versionID,
           filteredStructure: filteredStructure,
-          scrollController: scrollController,
         ),
       ],
     );

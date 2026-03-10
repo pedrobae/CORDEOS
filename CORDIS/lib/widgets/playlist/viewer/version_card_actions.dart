@@ -88,8 +88,7 @@ class VersionCardActionsSheet extends StatelessWidget {
                         () => EditCipherScreen(
                           versionType: VersionType.playlist,
                           versionID: versionID,
-                          cipherID: (versionID is String) ? null : cipherID,
-                          playlistID: playlistID,
+                          cipherID: cipherID,
                           isEnabled: false,
                         ),
                         changeDetector: () => playlistProvider.hasUnsavedChanges,

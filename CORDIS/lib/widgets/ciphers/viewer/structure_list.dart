@@ -7,13 +7,11 @@ import 'package:provider/provider.dart';
 class StructureList extends StatefulWidget {
   final dynamic versionId;
   final List<String> filteredStructure;
-  final ScrollController scrollController;
 
   const StructureList({
     super.key,
     required this.versionId,
     required this.filteredStructure,
-    required this.scrollController,
   });
 
   @override
@@ -29,7 +27,7 @@ class _StructureListState extends State<StructureList> {
     super.dispose();
   }
 
-  void _scrollStructureListToIndex(int index) {
+  void _scrollToIndex(int index) {
     if (!listScrollController.hasClients) return;
     if (!listScrollController.position.hasViewportDimension) return;
 
@@ -60,9 +58,7 @@ class _StructureListState extends State<StructureList> {
     return Consumer<SectionProvider>(
       builder: (context, sect, child) {
         if (sect.isLoading) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
+          return const Center(child: CircularProgressIndicator());
         }
 
         return SizedBox(
@@ -77,10 +73,10 @@ class _StructureListState extends State<StructureList> {
                 )
               : ValueListenableBuilder<int>(
                   valueListenable: scroll.currentSectionIndex,
-                  builder: (context, currentIndex, child) {
+                  builder: (context, scrollIndex, child) {
                     // Auto-scroll structure list to show current section
                     WidgetsBinding.instance.addPostFrameCallback((_) {
-                      _scrollStructureListToIndex(currentIndex);
+                      _scrollToIndex(scrollIndex);
                     });
 
                     return SingleChildScrollView(
@@ -95,7 +91,7 @@ class _StructureListState extends State<StructureList> {
                           ) {
                             final index = entry.key;
                             final sectionCode = entry.value;
-                            final isCurrentSection = index == currentIndex;
+                            final isCurrentSection = index == scrollIndex;
                             final section = sect.getSection(
                               widget.versionId,
                               sectionCode,

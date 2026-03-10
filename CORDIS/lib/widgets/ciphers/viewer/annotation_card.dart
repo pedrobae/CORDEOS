@@ -14,11 +14,11 @@ class AnnotationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<LayoutSettingsProvider>(
-      builder: (context, layoutSettingsProvider, child) {
-        final textTheme = Theme.of(context).textTheme;
-        final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
 
+    return Consumer<LayoutSettingsProvider>(
+      builder: (context, laySet, child) {
         if (sectionText.trim().isEmpty) {
           return SizedBox.shrink();
         }
@@ -41,16 +41,13 @@ class AnnotationCard extends StatelessWidget {
                     ? sectionType[0].toUpperCase() + sectionType.substring(1)
                     : sectionType,
                 style: textTheme.labelLarge?.copyWith(
-                  fontSize: layoutSettingsProvider.fontSize * 1.1,
+                  fontSize: laySet.fontSize * 1.1,
                   fontWeight: FontWeight.w500,
                 ),
               ),
 
               // CONTENT
-              Text(
-                sectionText,
-                style: TextStyle(fontSize: layoutSettingsProvider.fontSize),
-              ),
+              Text(sectionText, style: TextStyle(fontSize: laySet.fontSize)),
             ],
           ),
         );

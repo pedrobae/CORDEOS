@@ -90,6 +90,7 @@ class TokenizationService {
     if (tokens.isNotEmpty && tokens.last.type == TokenType.newline) {
       tokens.removeLast();
     }
+
     return tokens;
   }
 
@@ -131,26 +132,24 @@ class TokenizationService {
     required String content,
     required PositioningContext posCtx,
     required TokenBuildContext buildCtx,
-    required String Function(String)? transposeChord,
+    required String Function(String) transposeChord,
+    List<ContentToken>? initialTokens,
     // View mode parameters
     Map<ContentFilter, bool>? contentFilters,
   }) {
     final isEditMode = contentFilters == null;
 
     // Step 1: Tokenize content (shared)
-    final tokens = tokenize(content);
+    final tokens = initialTokens ?? tokenize(content);
 
-    // Step 2: Apply mode-specific filtering/transposition
-    if (isEditMode) {
-      // Apply transposition if provided
-      if (transposeChord != null) {
-        for (var token in tokens) {
-          if (token.type == TokenType.chord) {
-            token.text = transposeChord(token.text);
-          }
-        }
+    // Step 2: Apply mode-specific processing
+    for (var token in tokens) {
+      if (token.type == TokenType.chord) {
+        token.text = transposeChord(token.text);
       }
-    } else {
+    }
+
+    if (!isEditMode) {
       filterTokens(tokens, contentFilters);
     }
 
@@ -162,7 +161,9 @@ class TokenizationService {
     for (var token in tokens) {
       if (token.type != TokenType.newline &&
           token.type != TokenType.underline) {
-        final style = token.type == TokenType.chord ? buildCtx.chordStyle : buildCtx.lyricStyle;
+        final style = token.type == TokenType.chord
+            ? buildCtx.chordStyle
+            : buildCtx.lyricStyle;
         final cache = isEditMode ? buildCtx.cache : null;
         final measured = _builder.measureText(
           text: token.text,
@@ -213,7 +214,7 @@ class TokenizationService {
         tokenMeasurements: tokenMeasurements,
         tokens: tokens,
         ctx: buildCtx,
-        tokenPositions: tokenPositions
+        tokenPositions: tokenPositions,
       );
     }
 
@@ -223,7 +224,7 @@ class TokenizationService {
       tokenMeasurements,
       tokenPositions,
       posCtx,
-      buildCtx
+      buildCtx,
     );
 
     return positionedContent;

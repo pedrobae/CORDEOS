@@ -4,7 +4,6 @@ import 'package:cordis/models/domain/cipher/version.dart';
 import 'package:cordis/providers/cipher/cipher_provider.dart';
 import 'package:cordis/providers/transposition_provider.dart';
 import 'package:cordis/providers/version/local_version_provider.dart';
-import 'package:cordis/providers/version/cloud_version_provider.dart';
 import 'package:cordis/utils/date_utils.dart';
 import 'package:cordis/widgets/ciphers/editor/metadata.dart/add_tag_sheet.dart';
 import 'package:cordis/widgets/ciphers/editor/metadata.dart/select_key_sheet.dart';
@@ -27,15 +26,15 @@ enum InfoField {
 }
 
 class MetadataTab extends StatefulWidget {
-  final int? cipherID;
-  final dynamic versionID;
+  final int cipherID;
+  final int versionID;
   final VersionType versionType;
   final bool isEnabled;
 
   const MetadataTab({
     super.key,
-    this.cipherID,
-    this.versionID,
+    required this.cipherID,
+    required this.versionID,
     required this.versionType,
     this.isEnabled = true,
   });
@@ -76,40 +75,21 @@ class _MetadataTabState extends State<MetadataTab> {
 
   void _syncWithProviderData() {
     if (mounted) {
-      final versionProvider = context.read<LocalVersionProvider>();
-      final cloudVersionProvider = context.read<CloudVersionProvider>();
-      final cipherProvider = context.read<CipherProvider>();
+      final localVer = context.read<LocalVersionProvider>();
+      final ciph = context.read<CipherProvider>();
 
       switch (widget.versionType) {
         case VersionType.cloud:
-          final version = cloudVersionProvider.getVersion(widget.versionID!)!;
-
-          controllers[InfoField.title]!.text = version.title;
-          controllers[InfoField.author]!.text = version.author;
-          controllers[InfoField.versionName]!.text = version.versionName;
-          controllers[InfoField.bpm]!.text = version.bpm.toString();
-          controllers[InfoField.language]!.text = version.language;
-          controllers[InfoField.duration]!.text = DateTimeUtils.formatDuration(
-            Duration(seconds: version.duration),
-          );
-          // TAGS CONTROLLER IS NOT USED, ADDING TAGS IS HANDLED BY A BOTTOM SHEET
-          break;
-
+          throw Exception("Cannot edit Cloud version");
         case VersionType.local:
-        case VersionType.import:
-          final cipher = cipherProvider.getCipher(widget.cipherID ?? -1)!;
-          final version = versionProvider.cachedVersion(
-            (widget.versionID is int) ? widget.versionID : -1,
-          )!;
-          _syncLocalVersion(cipher, version);
-          break;
         case VersionType.playlist:
-          final cipher = cipherProvider.getCipher(widget.cipherID ?? -1)!;
-          final version = versionProvider.cachedVersion(-1)!;
+        case VersionType.import:
+          final cipher = ciph.getCipher(widget.cipherID)!;
+          final version = localVer.cachedVersion(widget.versionID)!;
           _syncLocalVersion(cipher, version);
           break;
         case VersionType.brandNew:
-          // Do nothing for brand new versions
+          // Empty controllers for brand new versions
           break;
       }
     }
@@ -129,9 +109,8 @@ class _MetadataTabState extends State<MetadataTab> {
   }
 
   void _addListeners() {
-    final cipherProvider = context.read<CipherProvider>();
-    final localVersionProvider = context.read<LocalVersionProvider>();
-    final cloudVersionProvider = context.read<CloudVersionProvider>();
+    final ciph = context.read<CipherProvider>();
+    final localVer = context.read<LocalVersionProvider>();
 
     for (var field in InfoField.values) {
       switch (field) {
@@ -144,82 +123,25 @@ class _MetadataTabState extends State<MetadataTab> {
             final text = controllers[field]!.text;
             switch (field) {
               case InfoField.title:
-                if (widget.versionType == VersionType.cloud) {
-                  cloudVersionProvider.cacheUpdates(
-                    widget.versionID,
-                    title: text,
-                  );
-                } else {
-                  cipherProvider.cacheUpdates(
-                    widget.cipherID ?? -1,
-                    title: text,
-                  );
-                }
+                ciph.cacheUpdates(widget.cipherID, title: text);
                 break;
 
               case InfoField.author:
-                if (widget.versionType == VersionType.cloud) {
-                  cloudVersionProvider.cacheUpdates(
-                    widget.versionID,
-                    author: text,
-                  );
-                } else {
-                  cipherProvider.cacheUpdates(
-                    widget.cipherID ?? -1,
-                    author: text,
-                  );
-                }
+                ciph.cacheUpdates(widget.cipherID, author: text);
                 break;
               case InfoField.versionName:
-                if (widget.versionType == VersionType.cloud) {
-                  cloudVersionProvider.cacheUpdates(
-                    widget.versionID,
-                    versionName: text,
-                  );
-                } else {
-                  localVersionProvider.cacheUpdates(
-                    widget.versionID ?? -1,
-                    versionName: text,
-                  );
-                }
+                localVer.cacheUpdates(widget.versionID, versionName: text);
                 break;
               case InfoField.language:
-                if (widget.versionType == VersionType.cloud) {
-                  cloudVersionProvider.cacheUpdates(
-                    widget.versionID,
-                    language: text,
-                  );
-                } else {
-                  cipherProvider.cacheUpdates(
-                    widget.cipherID ?? -1,
-                    language: text,
-                  );
-                }
+                ciph.cacheUpdates(widget.cipherID, language: text);
                 break;
               case InfoField.bpm:
                 final bpm = int.tryParse(text) ?? 0;
-                if (widget.versionType == VersionType.cloud) {
-                  cloudVersionProvider.cacheUpdates(widget.versionID, bpm: bpm);
-                } else {
-                  localVersionProvider.cacheUpdates(
-                    widget.versionID ?? -1,
-                    bpm: bpm,
-                  );
-                }
+                localVer.cacheUpdates(widget.versionID, bpm: bpm);
                 break;
               case InfoField.duration:
                 final duration = DateTimeUtils.parseDuration(text);
-                if (widget.versionType == VersionType.cloud) {
-                  cloudVersionProvider.cacheUpdates(
-                    widget.versionID,
-                    duration: duration.inSeconds,
-                  );
-                } else {
-                  localVersionProvider.cacheUpdates(
-                    widget.versionID ?? -1,
-                    duration: duration,
-                  );
-                }
+                localVer.cacheUpdates(widget.versionID, duration: duration);
                 break;
               case InfoField.tags:
               case InfoField.key:
@@ -265,83 +187,59 @@ class _MetadataTabState extends State<MetadataTab> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer3<
-      CipherProvider,
-      LocalVersionProvider,
-      CloudVersionProvider
-    >(
-      builder:
-          (
-            context,
-            cipherProvider,
-            versionProvider,
-            cloudVersionProvider,
-            child,
-          ) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              spacing: 16.0,
-              children: [
-                for (var field in InfoField.values)
-                  switch (field) {
-                    InfoField.duration => DurationPickerField(
-                      controller: _getController(field),
-                      label: _getLabel(field),
-                    ),
-                    InfoField.tags => _buildTags(
-                      context: context,
-                      cipherProvider: cipherProvider,
-                      versionProvider: versionProvider,
-                      cloudVersionProvider: cloudVersionProvider,
-                      field: field,
-                    ),
-                    InfoField.bpm => LabeledTextField(
-                      label: _getLabel(field),
-                      hint: _getHint(field),
-                      controller: _getController(field),
-                      isEnabled: widget.isEnabled,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return null;
-                        }
-                        final bpm = int.tryParse(value);
-                        if (bpm == null || bpm <= 0) {
-                          return AppLocalizations.of(
-                            context,
-                          )!.intValidationError;
-                        }
-                        return null;
-                      },
-                    ),
-                    InfoField.key => _buildKeySelector(
-                      context: context,
-                      cipherProvider: cipherProvider,
-                      versionProvider: versionProvider,
-                      field: field,
-                    ),
-                    InfoField.language => LabeledLanguagePicker(
-                      language: _getController(field).text,
-                      onLanguageChanged: (value) {
-                        _getController(field).text = value;
-                      },
-                    ),
-                    _ => LabeledTextField(
-                      label: _getLabel(field),
-                      hint: _getHint(field),
-                      controller: _getController(field),
-                      isEnabled: widget.isEnabled,
-                    ),
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: 16.0,
+          children: [
+            for (var field in InfoField.values)
+              switch (field) {
+                InfoField.duration => DurationPickerField(
+                  controller: _getController(field),
+                  label: _getLabel(field),
+                ),
+                InfoField.tags => _buildTags(
+                  context: context,
+                  field: field,
+                ),
+                InfoField.bpm => LabeledTextField(
+                  label: _getLabel(field),
+                  hint: _getHint(field),
+                  controller: _getController(field),
+                  isEnabled: widget.isEnabled,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return null;
+                    }
+                    final bpm = int.tryParse(value);
+                    if (bpm == null || bpm <= 0) {
+                      return AppLocalizations.of(context)!.intValidationError;
+                    }
+                    return null;
                   },
-              ],
-            );
-          },
-    );
+                ),
+                InfoField.key => _buildKeySelector(
+                  context: context,
+                  field: field,
+                ),
+                InfoField.language => LabeledLanguagePicker(
+                  language: _getController(field).text,
+                  onLanguageChanged: (value) {
+                    _getController(field).text = value;
+                  },
+                ),
+                _ => LabeledTextField(
+                  label: _getLabel(field),
+                  hint: _getHint(field),
+                  controller: _getController(field),
+                  isEnabled: widget.isEnabled,
+                ),
+              },
+          ],
+        );
   }
 
   Widget _buildKeySelector({
     required BuildContext context,
-    required CipherProvider cipherProvider,
-    required LocalVersionProvider versionProvider,
     required InfoField field,
   }) {
     final theme = Theme.of(context);
@@ -393,58 +291,58 @@ class _MetadataTabState extends State<MetadataTab> {
 
   Widget _buildTags({
     required BuildContext context,
-    required CipherProvider cipherProvider,
-    required LocalVersionProvider versionProvider,
-    required CloudVersionProvider cloudVersionProvider,
     required InfoField field,
   }) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
-    final tags = widget.versionType == VersionType.cloud
-        ? cloudVersionProvider.getVersion(widget.versionID!)?.tags ?? []
-        : cipherProvider.getCipher(widget.cipherID ?? -1)?.tags ?? [];
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text(_getLabel(field), style: textTheme.labelLarge),
-        SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 0,
+    return Consumer<CipherProvider>(
+      builder: (context, ciph, child) {
+    final tags = ciph.getCipher(widget.cipherID)?.tags ?? [];
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            for (var tag in tags)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                margin: const EdgeInsets.only(bottom: 4),
-                decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainerHigh,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(tag, style: textTheme.labelMedium),
+            Text(_getLabel(field), style: textTheme.labelLarge),
+            SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 0,
+              children: [
+                for (var tag in tags)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    margin: const EdgeInsets.only(bottom: 4),
+                    decoration: BoxDecoration(
+                      color: colorScheme.surfaceContainerHigh,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(tag, style: textTheme.labelMedium),
+                  ),
+              ],
+            ),
+            FilledTextButton(
+              text: AppLocalizations.of(
+                context,
+              )!.addPlaceholder(AppLocalizations.of(context)!.tag),
+              icon: Icons.add,
+              isDense: true,
+              onPressed: () => showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                builder: (context) {
+                  return AddTagSheet(
+                    cipherID: widget.cipherID,
+                    versionID: widget.versionID,
+                    versionType: widget.versionType,
+                  );
+                },
               ),
+            ),
           ],
-        ),
-        FilledTextButton(
-          text: AppLocalizations.of(
-            context,
-          )!.addPlaceholder(AppLocalizations.of(context)!.tag),
-          icon: Icons.add,
-          isDense: true,
-          onPressed: () => showModalBottomSheet(
-            context: context,
-            isScrollControlled: true,
-            builder: (context) {
-              return AddTagSheet(
-                cipherID: widget.cipherID,
-                versionID: widget.versionID,
-                versionType: widget.versionType,
-              );
-            },
-          ),
-        ),
-      ],
+        );
+      }
     );
   }
 }

@@ -30,10 +30,8 @@ class _DownloadVersionSheetState extends State<DownloadVersionSheet> {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final cloudVersionProvider = context.read<CloudVersionProvider>();
-
-      final version = cloudVersionProvider.getVersion(widget.versionId);
-
+      final cloudVer = context.read<CloudVersionProvider>();
+      final version = cloudVer.getVersion(widget.versionId);
       _versionNameController.text = version?.versionName ?? '';
     });
   }
@@ -41,7 +39,6 @@ class _DownloadVersionSheetState extends State<DownloadVersionSheet> {
   @override
   void dispose() {
     _versionNameController.dispose();
-
     super.dispose();
   }
 

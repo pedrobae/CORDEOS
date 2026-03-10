@@ -10,32 +10,35 @@ class Transposer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<TranspositionProvider>(
       builder: (context, tp, child) {
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.remove),
-              onPressed: () => tp.transposeDown(),
-            ),
-            GestureDetector(
-              onTap: () {
-                showModalBottomSheet(
-                  context: context,
-                  builder: (context) {
-                    return SelectKeySheet(needsSave: false);
-                  },
-                );
-              },
-              child: Text(
-                tp.transposedKey ?? tp.originalKey,
-                style: Theme.of(context).textTheme.labelLarge,
+        return SizedBox(
+          width: 125,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.remove),
+                onPressed: () => tp.transposeDown(),
               ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.add),
-              onPressed: () => tp.transposeUp(),
-            ),
-          ],
+              GestureDetector(
+                onTap: () {
+                  showModalBottomSheet(
+                    context: context,
+                    builder: (context) {
+                      return SelectKeySheet(needsSave: false);
+                    },
+                  );
+                },
+                child: Text(
+                  tp.transposedKey ?? tp.originalKey,
+                  style: Theme.of(context).textTheme.labelLarge,
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.add),
+                onPressed: () => tp.transposeUp(),
+              ),
+            ],
+          ),
         );
       },
     );

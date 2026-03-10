@@ -17,7 +17,7 @@ import 'package:cordis/services/tokenization/tokenization_service.dart';
 import 'package:provider/provider.dart';
 
 class TokenContentCard extends StatefulWidget {
-  final dynamic versionID;
+  final int versionID;
   final String sectionCode;
   final bool isEnabled;
 
@@ -36,11 +36,8 @@ class _TokenContentCardState extends State<TokenContentCard> {
   static const TokenizationService _tokenizer = TokenizationService();
 
   bool _isDragging = false;
-
-  bool _isEnabled(SelectionProvider selectionProvider) {
-    if (!widget.isEnabled) return false;
-    return !selectionProvider.isSelectionMode;
-  }
+  List<ContentToken>? _activeTokens;
+  String? _activeContent;
 
   void _toggleDrag() {
     setState(() {
@@ -48,10 +45,25 @@ class _TokenContentCardState extends State<TokenContentCard> {
     });
   }
 
+  List<ContentToken> _tokensForContent(String content) {
+    final shouldRetokenize =
+        _activeTokens == null || (!_isDragging && _activeContent != content);
+
+    if (shouldRetokenize) {
+      _activeTokens = _tokenizer.tokenize(content);
+      _activeContent = content;
+    }
+
+    return _activeTokens!;
+  }
+
   void _cacheChanges(List<ContentToken> tokens) {
     final newContent = _tokenizer.reconstructContent(
       tokens, // Excludes the last newline token
     );
+
+    _activeTokens = tokens;
+    _activeContent = newContent;
 
     context.read<SectionProvider>().cacheUpdate(
       widget.versionID,
@@ -60,28 +72,45 @@ class _TokenContentCardState extends State<TokenContentCard> {
     );
   }
 
-  void _addChord(List<ContentToken> tokens, ContentToken token, int position) {
-    tokens.insert(position, token);
+  void _addChord(
+    List<ContentToken> tokens,
+    ContentToken draggable,
+    ContentToken target,
+  ) {
+    int index = 0;
+    for (var token in tokens) {
+      if (token == target) break;
+      index++;
+    }
+    tokens.insert(index, draggable);
 
     _cacheChanges(tokens);
   }
 
   void _addPrecedingChord(
     List<ContentToken> tokens,
-    ContentToken token,
-    int position,
+    ContentToken draggable,
+    ContentToken target,
   ) {
     final emptySpaceToken = ContentToken(text: ' ', type: TokenType.space);
-    final newToken = ContentToken(text: token.text, type: token.type);
 
-    tokens.insert(position, emptySpaceToken);
-    tokens.insert(position, newToken);
+    int index = 0;
+    for (var token in tokens) {
+      if (token == target) break;
+      index++;
+    }
+
+    if (index < tokens.length) {
+      tokens.insert(index, emptySpaceToken);
+      tokens.insert(index, draggable);
+    }
 
     _cacheChanges(tokens);
   }
 
-  void _removeChordAt(List<ContentToken> tokens, int position) {
-    tokens.removeAt(position);
+  void _removeChord(List<ContentToken> tokens, ContentToken draggable) {
+    final index = tokens.indexOf(draggable);
+    if (index >= 0 && index < tokens.length) tokens.removeAt(index);
 
     _cacheChanges(tokens);
   }
@@ -123,6 +152,8 @@ class _TokenContentCardState extends State<TokenContentCard> {
                 ),
               );
             }
+
+            final tokens = _tokensForContent(section.contentText);
 
             return Container(
               decoration: BoxDecoration(
@@ -174,10 +205,7 @@ class _TokenContentCardState extends State<TokenContentCard> {
                         _isDragging
                             ? DragTarget<ContentToken>(
                                 onAcceptWithDetails: (details) => {
-                                  _removeChordAt(
-                                    _tokenizer.tokenize(section.contentText),
-                                    details.data.position!,
-                                  ),
+                                  _removeChord(tokens, details.data),
                                 },
                                 builder:
                                     (context, candidateData, rejectedData) {
@@ -196,7 +224,7 @@ class _TokenContentCardState extends State<TokenContentCard> {
                             : const SizedBox.shrink(),
 
                         /// Edit Section button
-                        if (_isEnabled(selectionProvider))
+                        if (widget.isEnabled)
                           GestureDetector(
                             onTap: _showQuickActions,
                             child: Icon(
@@ -228,17 +256,18 @@ class _TokenContentCardState extends State<TokenContentCard> {
                         contentColor: section.contentColor,
                         surfaceColor: colorScheme.surface,
                         onSurfaceColor: colorScheme.onSurface,
-                        isEnabled: _isEnabled(selectionProvider),
+                        isEnabled: widget.isEnabled,
                         cache: {},
                         maxWidth: contentWidth,
                         toggleDrag: _toggleDrag,
                         onAddChord: _addChord,
                         onAddPrecedingChord: _addPrecedingChord,
-                        onRemoveChord: _removeChordAt,
+                        onRemoveChord: _removeChord,
                       );
 
                       final content = _tokenizer.createContent(
                         content: section.contentText,
+                        initialTokens: tokens,
                         posCtx: PositioningContext(
                           underLineColor: colorScheme.onSurface,
                           maxWidth: contentWidth,
@@ -323,7 +352,7 @@ class _TokenContentCardState extends State<TokenContentCard> {
                 isDiscrete: true,
                 onPressed: () {
                   context.read<LocalVersionProvider>().addSectionToStruct(
-                    widget.versionID ?? -1,
+                    widget.versionID,
                     widget.sectionCode,
                   );
                 },
@@ -342,13 +371,13 @@ class _TokenContentCardState extends State<TokenContentCard> {
                         itemType: AppLocalizations.of(context)!.section,
                         onConfirm: () {
                           context.read<SectionProvider>().cacheDeleteSection(
-                            widget.versionID!,
+                            widget.versionID,
                             widget.sectionCode,
                           );
                           context
                               .read<LocalVersionProvider>()
                               .removeSectionFromStructByCode(
-                                widget.versionID!,
+                                widget.versionID,
                                 widget.sectionCode,
                               );
                           Navigator.pop(context); // Close quick actions sheet

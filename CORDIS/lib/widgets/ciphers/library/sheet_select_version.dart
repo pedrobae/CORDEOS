@@ -18,91 +18,75 @@ class SelectVersionSheet extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Consumer3<NavigationProvider, CipherProvider, LocalVersionProvider>(
-      builder:
-          (
-            context,
-            navigationProvider,
-            cipherProvider,
-            versionProvider,
-            child,
-          ) {
-            final title = cipherProvider.getCipher(cipherId)?.title;
+    final nav = context.read<NavigationProvider>();
+    final ciph = context.read<CipherProvider>();
+    final localVer = context.read<LocalVersionProvider>();
 
-            if (title == null) {
-              return CircularProgressIndicator();
-            }
+    final title = ciph.getCipher(cipherId)?.title;
 
-            return Container(
-              padding: const EdgeInsets.all(16.0),
-              color: colorScheme.surface,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                spacing: 8,
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      color: colorScheme.surface,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: 8,
+        children: [
+          // HEADER
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // HEADER
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '${AppLocalizations.of(context)!.selectPlaceholder(AppLocalizations.of(context)!.version)} ${AppLocalizations.of(context)!.belongingTo} $title',
-                        style: textTheme.titleMedium,
-                        textAlign: TextAlign.center,
-                      ),
-                      IconButton(
-                        icon: Icon(
-                          Icons.close,
-                          color: colorScheme.onSurface,
-                          size: 32,
-                        ),
-                        onPressed: () => Navigator.of(context).pop(),
-                      ),
-                    ],
+                  Text(
+                    AppLocalizations.of(
+                      context,
+                    )!.selectPlaceholder(AppLocalizations.of(context)!.version),
+                    style: textTheme.titleMedium,
                   ),
-                  // VERSIONS
-                  ...versionProvider.getVersionsByCipherId(cipherId).map((
-                    versionID,
-                  ) {
-                    return FutureBuilder(
-                      future: versionProvider.getVersion(versionID),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return CircularProgressIndicator();
-                        } else if (snapshot.hasError) {
-                          return Text('Error: ${snapshot.error}');
-                        } else if (!snapshot.hasData) {
-                          return Text('No data');
-                        } else {
-                          final version = snapshot.data!;
-                          return FilledTextButton(
-                            text: version.versionName,
-                            trailingIcon: Icons.chevron_right,
-                            isDiscrete: true,
-                            onPressed: () {
-                              Navigator.of(
-                                context,
-                              ).pop(); // Close the bottom sheet
-                              navigationProvider.push(
-                                () => ViewCipherScreen(
-                                  versionType: VersionType.local,
-                                  cipherID: cipherId,
-                                  versionID: versionID,
-                                ),
-                                showBottomNavBar: true,
-                              );
-                            },
-                          );
-                        }
-                      },
-                    );
-                  }),
-                  SizedBox(),
+                  if (title != null)
+                    Text(title, style: textTheme.titleSmall)
+                  else
+                    Center(child: CircularProgressIndicator()),
                 ],
               ),
+              IconButton(
+                icon: Icon(Icons.close, color: colorScheme.onSurface, size: 32),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
+          ),
+          // VERSIONS
+          ...localVer.getVersionsByCipherId(cipherId).map((versionID) {
+            return Builder(
+              builder: (context) {
+                final version = localVer.cachedVersion(versionID);
+                if (version == null) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                return FilledTextButton(
+                  text: version.versionName,
+                  trailingIcon: Icons.chevron_right,
+                  isDiscrete: true,
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Close the bottom sheet
+                    nav.push(
+                      () => ViewCipherScreen(
+                        versionType: VersionType.local,
+                        cipherID: cipherId,
+                        versionID: versionID,
+                      ),
+                      showBottomNavBar: true,
+                    );
+                  },
+                );
+              },
             );
-          },
+          }),
+          SizedBox(),
+        ],
+      ),
     );
   }
 }

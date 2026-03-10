@@ -10,9 +10,7 @@ import 'package:cordis/providers/selection_provider.dart';
 import 'package:cordis/widgets/ciphers/library/scroll_view.dart';
 
 class CipherLibraryScreen extends StatefulWidget {
-  final int? playlistId;
-
-  const CipherLibraryScreen({super.key, this.playlistId});
+  const CipherLibraryScreen({super.key});
 
   @override
   State<CipherLibraryScreen> createState() => _CipherLibraryScreenState();
@@ -47,7 +45,7 @@ class _CipherLibraryScreenState extends State<CipherLibraryScreen> {
           spacing: 16,
           children: [
             _buildSearchBar(context),
-            Expanded(child: CipherScrollView(playlistId: widget.playlistId)),
+            Expanded(child: CipherScrollView()),
           ],
         ),
       ),

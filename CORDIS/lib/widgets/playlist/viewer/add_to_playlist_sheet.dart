@@ -65,7 +65,7 @@ class AddToPlaylistSheet extends StatelessWidget {
 
                   // Navigate to Cipher Library Screen
                   navigationProvider.push(
-                    () => CipherLibraryScreen(playlistId: playlistId),
+                    () => CipherLibraryScreen(),
                     showBottomNavBar: true,
 
                     onPopCallback: () {

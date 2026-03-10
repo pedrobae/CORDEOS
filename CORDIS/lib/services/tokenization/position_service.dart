@@ -263,10 +263,6 @@ class PositionService {
             ),
           );
 
-          if (tokenWidget.type == TokenType.underline) {
-            debugPrint('TOKENIZATION - positioned underline at: ($x, $y)');
-          }
-
           // Track max Y for total height
           maxY = max(maxY, y + tokenMeasurements[tokenWidget.token]!.height);
         }

@@ -51,7 +51,7 @@ class TokenizationBuilder {
     required Map<ContentToken, Measurements> tokenMeasurements,
     required List<ContentToken> tokens,
     required TokenBuildContext ctx,
-    required TokenPositionMap tokenPositions
+    required TokenPositionMap tokenPositions,
   }) {
     final lines = <WidgetLine>[];
 
@@ -88,10 +88,7 @@ class TokenizationBuilder {
             case TokenType.newline:
               // NEW LINE TOKENS INDICATE LINE BREAKS
               wordWidgets.add(
-                TokenWidget(
-                  widget: SizedBox.shrink(),
-                  token: token,
-                ),
+                TokenWidget(widget: SizedBox.shrink(), token: token),
               );
               break;
             case TokenType.precedingChordTarget:
@@ -139,7 +136,6 @@ class TokenizationBuilder {
   }) {
     /// Build all token widgets, and calculate their sizes for positioning
     final lines = <WidgetLine>[];
-    int position = 0;
     for (var line in contentTokens.lines) {
       final words = <WidgetWord>[];
       for (var word in line.words) {
@@ -154,7 +150,6 @@ class TokenizationBuilder {
                     tokenLine: line,
                     tokens: tokens,
                     token: token,
-                    position: position,
                     tokenPositions: tokenPositions,
                   ),
                   token: token,
@@ -173,7 +168,6 @@ class TokenizationBuilder {
                     tokenSize: Size(tokenMsr.width, tokenMsr.height),
                     ctx: ctx,
                     token: token,
-                    position: position,
                   ),
                   token: token,
                 ),
@@ -187,7 +181,6 @@ class TokenizationBuilder {
                     tokenLine: line,
                     tokens: tokens,
                     token: token,
-                    position: position,
                     tokenPositions: tokenPositions,
                   ),
                   token: token,
@@ -209,7 +202,6 @@ class TokenizationBuilder {
                     tokenLine: line,
                     tokens: tokens,
                     token: token,
-                    position: position,
                     spaceMeasurements: measurement,
                     tokenPositions: tokenPositions,
                   ),
@@ -221,10 +213,7 @@ class TokenizationBuilder {
             case TokenType.newline:
               // Newline tokens dont have fixed width
               wordWidgets.add(
-                TokenWidget(
-                  widget: SizedBox.shrink(),
-                  token: token,
-                ),
+                TokenWidget(widget: SizedBox.shrink(), token: token),
               );
               break;
             case TokenType.underline:
@@ -239,7 +228,6 @@ class TokenizationBuilder {
               );
               break;
           }
-          position++;
         }
         if (wordWidgets.isNotEmpty) {
           words.add(WidgetWord(wordWidgets));
@@ -252,59 +240,11 @@ class TokenizationBuilder {
     return OrganizedWidgets(lines);
   }
 
-  /// Generic drag target builder to reduce code duplication.
-  /// Wraps a child widget with DragTarget functionality if enabled.
-  Widget _buildGenericDragTarget({
-    required TokenBuildContext ctx,
-    required Widget child,
-    required TokenLine tokenLine,
-    required List<ContentToken> tokens,
-    required ContentToken token,
-    required int position,
-    required int Function(int originalIndex, int position) indexAdjuster,
-    required Function(
-      List<ContentToken> tokens,
-      ContentToken token,
-      int position,
-    )
-    onAccept,
-    required TokenPositionMap tokenPositions,
-  }) {
-    return ctx.isEnabled!
-        ? DragTarget<ContentToken>(
-            onAcceptWithDetails: (details) {
-              onAccept(tokens, details.data, position);
-              if (details.data.position != null) {
-                final index = indexAdjuster(details.data.position!, position);
-                ctx.onRemoveChord!(tokens, index);
-              }
-            },
-            builder: (context, candidateData, rejectedData) {
-              if (candidateData.isNotEmpty) {
-                return _buildDragTargetFeedback(
-                  ctx: ctx,
-                  dragTargetChild: child,
-                  draggedChord: candidateData.first!,
-                  draggedToToken: token,
-                  tokenLine: tokenLine,
-                  tokenPositions: tokenPositions,
-                );
-              }
-              return child;
-            },
-          )
-        : child;
-  }
-
   Widget _buildDraggableChord({
     required TokenBuildContext ctx,
     required ContentToken token,
     required Size tokenSize,
-    required int position,
   }) {
-    // Assign position to token for reference
-    token.position = position;
-
     // ChordTokens
     final chordWidget = ChordToken(
       tokenSize: tokenSize,
@@ -341,7 +281,6 @@ class TokenizationBuilder {
     required TokenLine tokenLine,
     required List<ContentToken> tokens,
     required ContentToken token,
-    required int position,
     required TokenPositionMap tokenPositions,
   }) {
     // Calculate lyric measurements for positioning baseline
@@ -369,17 +308,13 @@ class TokenizationBuilder {
     );
 
     return _buildGenericDragTarget(
-      ctx: ctx,
+      tokenBuildCtx: ctx,
       child: dragTargetChild,
-      tokenLine: tokenLine,
       tokens: tokens,
       token: token,
-      position: position,
       onAccept: ctx.onAddPrecedingChord!,
-      indexAdjuster: (originalIndex, pos) {
-        // Adjust for two insertions (Chord + Space)
-        return originalIndex > pos ? originalIndex + 2 : originalIndex;
-      },
+
+      tokenLine: tokenLine,
       tokenPositions: tokenPositions,
     );
   }
@@ -389,21 +324,16 @@ class TokenizationBuilder {
     required TokenLine tokenLine,
     required List<ContentToken> tokens,
     required ContentToken token,
-    required int position,
     required TokenPositionMap tokenPositions,
   }) {
     final dragTargetChild = Text(token.text, style: ctx.lyricStyle);
 
     return _buildGenericDragTarget(
-      ctx: ctx,
+      tokenBuildCtx: ctx,
       child: dragTargetChild,
       tokenLine: tokenLine,
       tokens: tokens,
       token: token,
-      position: position,
-      indexAdjuster: (originalIndex, pos) {
-        return originalIndex > pos ? originalIndex + 1 : originalIndex;
-      },
       onAccept: ctx.onAddChord!,
       tokenPositions: tokenPositions,
     );
@@ -414,7 +344,6 @@ class TokenizationBuilder {
     required TokenLine tokenLine,
     required List<ContentToken> tokens,
     required ContentToken token,
-    required int position,
     required Measurements spaceMeasurements,
     required TokenPositionMap tokenPositions,
   }) {
@@ -424,18 +353,54 @@ class TokenizationBuilder {
     );
 
     return _buildGenericDragTarget(
-      ctx: ctx,
+      tokenBuildCtx: ctx,
       child: dragTargetChild,
       tokenLine: tokenLine,
       tokens: tokens,
       token: token,
-      position: position,
       onAccept: ctx.onAddChord!,
-      indexAdjuster: (originalIndex, pos) {
-        return originalIndex > pos ? originalIndex + 1 : originalIndex;
-      },
       tokenPositions: tokenPositions,
     );
+  }
+
+  /// Generic drag target builder to reduce code duplication.
+  /// Wraps a child widget with DragTarget functionality if enabled.
+  Widget _buildGenericDragTarget({
+    required TokenBuildContext tokenBuildCtx,
+    required Widget child,
+    required List<ContentToken> tokens,
+    required ContentToken token,
+    required Function(
+      List<ContentToken> tokens,
+      ContentToken draggable,
+      ContentToken target,
+    )
+    onAccept,
+    // Feedback
+    required TokenLine tokenLine,
+    required TokenPositionMap tokenPositions,
+  }) {
+    return tokenBuildCtx.isEnabled!
+        ? DragTarget<ContentToken>(
+            onAcceptWithDetails: (details) {
+              tokenBuildCtx.onRemoveChord!(tokens, details.data);
+              onAccept(tokens, details.data, token);
+            },
+            builder: (context, candidateData, rejectedData) {
+              if (candidateData.isNotEmpty) {
+                return _buildDragTargetFeedback(
+                  ctx: tokenBuildCtx,
+                  dragTargetChild: child,
+                  draggedChord: candidateData.first!,
+                  draggedToToken: token,
+                  tokenLine: tokenLine,
+                  tokenPositions: tokenPositions,
+                );
+              }
+              return child;
+            },
+          )
+        : child;
   }
 
   /// Builds the feedback widget shown when dragging a chord over a valid target,

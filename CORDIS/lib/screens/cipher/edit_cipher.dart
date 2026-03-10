@@ -1,7 +1,6 @@
 import 'package:cordis/l10n/app_localizations.dart';
 import 'package:cordis/models/domain/cipher/cipher.dart';
 import 'package:cordis/models/domain/cipher/version.dart';
-import 'package:cordis/models/dtos/version_dto.dart';
 import 'package:cordis/providers/cipher/import_provider.dart';
 import 'package:cordis/providers/navigation_provider.dart';
 import 'package:cordis/providers/cipher/parser_provider.dart';
@@ -12,23 +11,20 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cordis/providers/cipher/cipher_provider.dart';
 import 'package:cordis/providers/version/local_version_provider.dart';
-import 'package:cordis/providers/version/cloud_version_provider.dart';
 import 'package:cordis/providers/section_provider.dart';
 import 'package:cordis/widgets/ciphers/editor/metadata_tab.dart';
 import 'package:cordis/widgets/ciphers/editor/sections_tab.dart';
 
 class EditCipherScreen extends StatefulWidget {
-  final int? cipherID; // Null for new cipher
-  final dynamic versionID; // Null for new version // could be int or String
-  final int? playlistID;
+  final int cipherID;
+  final int versionID;
   final VersionType versionType;
   final bool isEnabled;
 
   const EditCipherScreen({
     super.key,
-    this.cipherID,
-    this.versionID,
-    this.playlistID,
+    required this.cipherID,
+    required this.versionID,
     required this.versionType,
     this.isEnabled = true,
   });
@@ -54,14 +50,16 @@ class _EditCipherScreenState extends State<EditCipherScreen>
     switch (widget.versionType) {
       case VersionType.import:
         await _loadImportedCipher();
-      case VersionType.cloud:
-        await _loadCloudVersion();
       case VersionType.local:
         await _loadLocalVersion();
       case VersionType.brandNew:
         _loadNewCipher();
       case VersionType.playlist:
         await _loadPlaylistVersion();
+      case VersionType.cloud:
+        throw Exception(
+          'Cannot edit directly a cloud version. Please download to create a local copy.',
+        );
     }
   }
 
@@ -83,25 +81,14 @@ class _EditCipherScreenState extends State<EditCipherScreen>
     context.read<ImportProvider>().clearCache();
   }
 
-  Future<void> _loadCloudVersion() async {
-    final cloudVersionProvider = context.read<CloudVersionProvider>();
-    final sectionProvider = context.read<SectionProvider>();
-
-    await cloudVersionProvider.ensureVersionIsLoaded(widget.versionID!);
-    final version = cloudVersionProvider
-        .getVersion(widget.versionID!)!
-        .toDomain();
-    sectionProvider.setNewSectionsInCache(widget.versionID!, version.sections!);
-  }
-
   Future<void> _loadLocalVersion() async {
     final cipherProvider = context.read<CipherProvider>();
     final localVersionProvider = context.read<LocalVersionProvider>();
     final sectionProvider = context.read<SectionProvider>();
 
-    await cipherProvider.loadCipher(widget.cipherID!);
-    await localVersionProvider.loadVersion(widget.versionID!);
-    await sectionProvider.loadSectionsOfVersion(widget.versionID!);
+    await cipherProvider.loadCipher(widget.cipherID);
+    await localVersionProvider.loadVersion(widget.versionID);
+    await sectionProvider.loadSectionsOfVersion(widget.versionID);
   }
 
   void _loadNewCipher() {
@@ -113,32 +100,17 @@ class _EditCipherScreenState extends State<EditCipherScreen>
   }
 
   Future<void> _loadPlaylistVersion() async {
-    final playlistProvider = context.read<PlaylistProvider>();
-    final cipherProvider = context.read<CipherProvider>();
-    final localVersionProvider = context.read<LocalVersionProvider>();
-    final cloudVersionProvider = context.read<CloudVersionProvider>();
-    final sectionProvider = context.read<SectionProvider>();
+    final play = context.read<PlaylistProvider>();
+    final ciph = context.read<CipherProvider>();
+    final localVer = context.read<LocalVersionProvider>();
+    final sect = context.read<SectionProvider>();
+    final sel = context.read<SelectionProvider>();
 
-    final playlistName = AppLocalizations.of(context)!.playlistVersionName(
-      playlistProvider.getPlaylist(widget.playlistID!)!.name,
-    );
+    final playlistName = AppLocalizations.of(
+      context,
+    )!.playlistVersionName(play.getPlaylist(sel.targetId!)!.name);
 
-    if (widget.versionID is int) {
-      await _loadPlaylistVersionFromLocal(
-        playlistName,
-        cipherProvider,
-        localVersionProvider,
-        sectionProvider,
-      );
-    } else {
-      await _loadPlaylistVersionFromCloud(
-        playlistName,
-        cipherProvider,
-        localVersionProvider,
-        cloudVersionProvider,
-        sectionProvider,
-      );
-    }
+    await _loadPlaylistVersionFromLocal(playlistName, ciph, localVer, sect);
   }
 
   Future<void> _loadPlaylistVersionFromLocal(
@@ -148,58 +120,15 @@ class _EditCipherScreenState extends State<EditCipherScreen>
     SectionProvider sectionProvider,
   ) async {
     final originalVersion = localVersionProvider.cachedVersion(
-      widget.versionID!,
+      widget.versionID,
     )!;
     localVersionProvider.setNewVersionInCache(
       originalVersion.copyWith(firebaseId: '', versionName: playlistName),
     );
 
-    await cipherProvider.loadCipher(widget.cipherID!);
-    await sectionProvider.loadSectionsOfVersion(widget.versionID!);
-    sectionProvider.cacheSectionCopy(widget.versionID!);
-  }
-
-  Future<void> _loadPlaylistVersionFromCloud(
-    String playlistName,
-    CipherProvider cipherProvider,
-    LocalVersionProvider localVersionProvider,
-    CloudVersionProvider cloudVersionProvider,
-    SectionProvider sectionProvider,
-  ) async {
-    final originalVersion = cloudVersionProvider.getVersion(widget.versionID!)!;
-    final localCipherID = _findOrCreateLocalCipher(
-      cipherProvider,
-      originalVersion,
-    );
-
-    String? newName;
-    if (mounted) {
-      newName = AppLocalizations.of(context)!.playlistVersionName(playlistName);
-    }
-
-    final newVersion = originalVersion
-        .toDomain(cipherId: localCipherID)
-        .copyWith(versionName: newName);
-
-    localVersionProvider.setNewVersionInCache(newVersion);
-    sectionProvider.setNewSectionsInCache(-1, newVersion.sections!);
-  }
-
-  int? _findOrCreateLocalCipher(
-    CipherProvider cipherProvider,
-    VersionDto versionDto,
-  ) {
-    final localCipherID = cipherProvider.getCipherIdByTitleOrAuthor(
-      versionDto.title,
-      versionDto.author,
-    );
-
-    if (localCipherID != -1 && localCipherID != null) {
-      return localCipherID;
-    }
-
-    cipherProvider.setNewCipherInCache(Cipher.fromVersionDto(versionDto));
-    return null;
+    await cipherProvider.loadCipher(widget.cipherID);
+    await sectionProvider.loadSectionsOfVersion(widget.versionID);
+    sectionProvider.cacheSectionCopy(widget.versionID);
   }
 
   @override
@@ -326,9 +255,7 @@ class _EditCipherScreenState extends State<EditCipherScreen>
 
   Widget _buildSectionsTab() {
     return SectionsTab(
-      versionID: widget.versionType == VersionType.playlist
-          ? -1
-          : widget.versionID,
+      versionID: widget.versionID,
       versionType: widget.versionType,
       isEnabled: widget.isEnabled,
     );
@@ -352,53 +279,44 @@ class _EditCipherScreenState extends State<EditCipherScreen>
   }
 
   void _cacheTransposedKey(String? key) {
-    if (widget.versionID is int) {
-      context.read<LocalVersionProvider>().cacheUpdates(
-        widget.versionID!,
-        transposedKey: key,
-      );
-    } else if (widget.versionID is String) {
-      context.read<CloudVersionProvider>().cacheUpdates(
-        widget.versionID!,
-        transposedKey: key,
-      );
-    }
+    context.read<LocalVersionProvider>().cacheUpdates(
+      widget.versionID,
+      transposedKey: key,
+    );
   }
 
   Future<void> _saveVersionsToPlaylist(BuildContext context) async {
-    final cipherProvider = context.read<CipherProvider>();
-    final localVersionProvider = context.read<LocalVersionProvider>();
-    final sectionProvider = context.read<SectionProvider>();
-    final playlistProvider = context.read<PlaylistProvider>();
-    final navigationProvider = context.read<NavigationProvider>();
-    final selectionProvider = context.read<SelectionProvider>();
+    final ciph = context.read<CipherProvider>();
+    final localVer = context.read<LocalVersionProvider>();
+    final sect = context.read<SectionProvider>();
+    final play = context.read<PlaylistProvider>();
+    final nav = context.read<NavigationProvider>();
+    final sel = context.read<SelectionProvider>();
 
-    for (dynamic verID in selectionProvider.selectedItemIds) {
+    for (dynamic verID in sel.selectedItemIds) {
       int? versionId;
       if (verID.runtimeType == int) {
         // Version is local, create a copy for the playlist
-        versionId = (await localVersionProvider.createVersion())!;
-        playlistProvider.addVersion(selectionProvider.targetId!, versionId);
+        versionId = (await localVer.createVersion())!;
+        play.addVersion(sel.targetId!, versionId);
       } else if (verID.runtimeType == String) {
         // Version is cloud, create a local copy and add to playlist
         int? localCipherID = widget.cipherID;
-        if (widget.cipherID == null) {
-          localCipherID = await cipherProvider.createCipher();
+        if (widget.cipherID == -1) {
+          localCipherID = await ciph.createCipher();
         } else {
-          await cipherProvider.saveCipher(widget.cipherID!);
+          await ciph.saveCipher(widget.cipherID);
         }
 
-        versionId = (await localVersionProvider.createVersion(
-          cipherID: localCipherID,
-        ))!;
+        versionId = (await localVer.createVersion(cipherID: localCipherID))!;
       }
 
-      await sectionProvider.createSections(versionId!);
-      playlistProvider.cacheAddVersion(selectionProvider.targetId!, versionId);
+      await sect.createSections(versionId!);
+      play.cacheAddVersion(sel.targetId!, versionId);
     }
 
-    selectionProvider.clearSelection();
-    navigationProvider.pop();
+    sel.clearSelection();
+    nav.pop();
   }
 
   Future<void> _saveSingleVersion(BuildContext context) async {
@@ -463,7 +381,7 @@ class _EditCipherScreenState extends State<EditCipherScreen>
     final localVersionProvider = context.read<LocalVersionProvider>();
     final sectionProvider = context.read<SectionProvider>();
 
-    await cipherProvider.saveCipher(widget.cipherID!);
+    await cipherProvider.saveCipher(widget.cipherID);
     await localVersionProvider.saveVersion(widget.versionID);
     await sectionProvider.saveSections(versionID: widget.versionID);
   }

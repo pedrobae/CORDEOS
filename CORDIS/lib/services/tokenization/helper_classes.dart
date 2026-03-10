@@ -19,9 +19,9 @@ class TokenBuildContext {
   /// EDIT MODE SPECIFIC PARAMETERS
   final bool? isEnabled;
   final VoidCallback? toggleDrag;
-  final Function(List<ContentToken>, ContentToken, int)? onAddChord;
-  final Function(List<ContentToken>, ContentToken, int)? onAddPrecedingChord;
-  final Function(List<ContentToken>, int)? onRemoveChord;
+  final Function(List<ContentToken>, ContentToken, ContentToken)? onAddChord;
+  final Function(List<ContentToken>, ContentToken, ContentToken)? onAddPrecedingChord;
+  final Function(List<ContentToken>, ContentToken)? onRemoveChord;
 
   const TokenBuildContext({
     required this.chordStyle,

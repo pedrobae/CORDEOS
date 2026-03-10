@@ -15,9 +15,8 @@ import 'package:cordis/providers/selection_provider.dart';
 
 class CloudCipherCard extends StatelessWidget {
   final String versionId;
-  final int? playlistId;
 
-  const CloudCipherCard({super.key, required this.versionId, this.playlistId});
+  const CloudCipherCard({super.key, required this.versionId});
 
   @override
   Widget build(BuildContext context) {
@@ -121,12 +120,13 @@ class CloudCipherCard extends StatelessWidget {
 
                   if (sel.isSelectionMode) {
                     sel.select(versionId);
+
                     nav.push(
                       () => EditCipherScreen(
                         versionType: VersionType.playlist,
-                        playlistID: sel.targetId!,
                         isEnabled: false,
-                        versionID: versionId,
+                        versionID: -1,
+                        cipherID: -1,
                       ),
                       changeDetector: () {
                         return localVer.hasUnsavedChanges;

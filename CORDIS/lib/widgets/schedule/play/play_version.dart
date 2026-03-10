@@ -197,7 +197,6 @@ class _PlayVersionState extends State<PlayVersion> {
                                         widget.localVersionID ??
                                         widget.cloudVersionID!,
                                     filteredStructure: filteredStructure,
-                                    scrollController: _scrollController,
                                   ),
                                 ),
                               ],
@@ -405,7 +404,6 @@ class _PlayVersionState extends State<PlayVersion> {
               child: StructureList(
                 versionId: widget.localVersionID ?? widget.cloudVersionID!,
                 filteredStructure: filteredStructure,
-                scrollController: _scrollController,
               ),
             ),
           ),

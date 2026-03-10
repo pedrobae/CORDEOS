@@ -75,7 +75,7 @@ class CipherCardActionsSheet extends StatelessWidget {
                   versionType: versionType,
                   cipherID: cipherId,
                   isEnabled: versionType == VersionType.local,
-                  versionID: localVer.getIdOfOldestVersionOfCipher(cipherId),
+                  versionID: localVer.getIdOfOldestVersionOfCipher(cipherId)!,
                 ),
                 changeDetector: () =>
                     (localVer.hasUnsavedChanges ||
