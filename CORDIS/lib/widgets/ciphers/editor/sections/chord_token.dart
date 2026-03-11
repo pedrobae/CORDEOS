@@ -30,7 +30,7 @@ class ChordToken extends StatelessWidget {
         ),
         child: Center(
           child: Text(
-            token.text,
+            trans.transposeChord(token.text),
             textAlign: TextAlign.center,
             style: textStyle.copyWith(
               fontSize: textStyle.fontSize! * 0.8,

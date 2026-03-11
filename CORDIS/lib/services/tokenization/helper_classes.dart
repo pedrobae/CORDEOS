@@ -65,9 +65,9 @@ class PositioningContext {
   const PositioningContext({
     required this.underLineColor,
     required this.maxWidth,
-    this.lineSpacing = 4,
-    this.lineBreakSpacing = 4,
-    this.chordLyricSpacing = 4,
+    this.lineSpacing = 0,
+    this.lineBreakSpacing = 0,
+    this.chordLyricSpacing = 0,
     this.minChordSpacing = 4,
     this.letterSpacing = 1,
     this.isEditMode = false,

@@ -64,7 +64,7 @@ class TokenizationBuilder {
             case TokenType.chord:
               wordWidgets.add(
                 TokenWidget(
-                  widget: Text(token.text, style: ctx.chordStyle),
+                  widget: Text(ctx.transposeChord(token.text), style: ctx.chordStyle),
                   token: token,
                 ),
               );
