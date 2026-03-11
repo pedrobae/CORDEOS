@@ -87,13 +87,6 @@ class TokenizationConstants {
   static const int dragFeedbackTokensAfter = 10;
   static const double dragFeedbackCutoutWidth = 130.0;
   static const double dragFeedbackCutoutPadding = 4.0;
-
-  /// CONTENT POSITIONING
-  static const double widthConstraintPaddingEdit = 32.0;
-  static const double widthConstraintPaddingView = 64.0;
-
-  static const double heightPaddingEdit = 4.0;
-  static const double heightPaddingView = 8.0;
 }
 
 class ContentToken {

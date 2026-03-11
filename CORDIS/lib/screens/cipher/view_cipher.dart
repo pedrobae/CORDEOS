@@ -77,17 +77,27 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Consumer3<
+    return Consumer4<
       CipherProvider,
       LocalVersionProvider,
-      CloudVersionProvider
+      CloudVersionProvider,
+      LayoutSettingsProvider
     >(
-      builder: (context, ciph, localVer, cloudVer, child) {
+      builder: (context, ciph, localVer, cloudVer, laySet, child) {
         final versionData = _extractVersionData(ciph, localVer, cloudVer);
 
-        final filteredStructure = _filterSongStructure(
-          versionData.songStructure,
-        );
+        final filteredStructure = <String>[];
+    for (var sectionCode in versionData.songStructure) {
+      if (!laySet.layoutFilters[LayoutFilter.annotations]! &&
+          isAnnotation(sectionCode)) {
+        continue;
+      }
+      if (!laySet.layoutFilters[LayoutFilter.transitions]! &&
+          isTransition(sectionCode)) {
+        continue;
+      }
+      filteredStructure.add(sectionCode);
+    }
 
         return Column(
           mainAxisSize: MainAxisSize.max,
@@ -142,23 +152,6 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
         songStructure: version?.songStructure ?? [],
       );
     }
-  }
-
-  List<String> _filterSongStructure(List<String> songStructure) {
-    final laySet = context.read<LayoutSettingsProvider>();
-    final filtered = <String>[];
-    for (var sectionCode in songStructure) {
-      if (!laySet.layoutFilters[LayoutFilter.annotations]! &&
-          isAnnotation(sectionCode)) {
-        continue;
-      }
-      if (!laySet.layoutFilters[LayoutFilter.transitions]! &&
-          isTransition(sectionCode)) {
-        continue;
-      }
-      filtered.add(sectionCode);
-    }
-    return filtered;
   }
 
   List<Widget> _buildSectionCards(

@@ -121,7 +121,7 @@ class _StructureListState extends State<StructureList> {
                                     border: isCurrentSection
                                         ? Border.all(
                                             color: colorScheme.primary,
-                                            width: 1,
+                                            width: 2,
                                           )
                                         : null,
                                   ),

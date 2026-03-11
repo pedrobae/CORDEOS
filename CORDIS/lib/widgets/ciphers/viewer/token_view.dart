@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:cordis/providers/layout_settings_provider.dart';
 import 'package:cordis/providers/transposition_provider.dart';
 import 'package:cordis/services/tokenization/tokenization_service.dart';
@@ -22,16 +20,11 @@ class TokenView extends StatelessWidget {
       builder: (context, laySet, trans, child) {
         return LayoutBuilder(
           builder: (context, constraints) {
-            final contentWidth = max(
-              0.0,
-              constraints.maxWidth - TokenizationConstants.widthConstraintPaddingView,
-            );
-
             final content = _tokenizer.createContent(
               content: chordPro,
               posCtx: PositioningContext(
                 underLineColor: colorScheme.onSurface,
-                maxWidth: contentWidth,
+                maxWidth: constraints.maxWidth,
               ),
               contentFilters: laySet.contentFilters,
               buildCtx: TokenBuildContext(
@@ -40,7 +33,7 @@ class TokenView extends StatelessWidget {
                 contentColor: colorScheme.onSurface,
                 surfaceColor: colorScheme.surface,
                 onSurfaceColor: colorScheme.onSurface,
-                maxWidth: contentWidth,
+                maxWidth: constraints.maxWidth,
                 transposeChord: (chord) => trans.transposeChord(chord),
                 cache: {},
               ),

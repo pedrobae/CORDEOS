@@ -49,9 +49,8 @@ class PositionService {
 
     final lineHeight = chordMsr.size + lyricMsr.size + posCtx.chordLyricSpacing;
 
-    double yOffset = posCtx.isEditMode
-        ? TokenizationConstants.heightPaddingEdit
-        : TokenizationConstants.heightPaddingView;
+    double yOffset = chordMsr.size;
+            
     final positionMap = TokenPositionMap();
     for (var line in organizedTokens.lines) {
       double chordX = 0;
@@ -238,15 +237,6 @@ class PositionService {
     PositioningContext posCtx,
     TokenBuildContext buildCtx,
   ) {
-    Measurements chordMsr = _builder.measureText(
-      text: 'teste',
-      style: buildCtx.chordStyle,
-    );
-
-    if (posCtx.isEditMode) {
-      chordMsr.height += TokenizationConstants.chordTokenHeightPadding;
-    }
-
     final tokenWidgets = <Positioned>[];
     double maxY = 0;
 

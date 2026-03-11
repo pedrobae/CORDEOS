@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:cordis/l10n/app_localizations.dart';
 import 'package:cordis/providers/layout_settings_provider.dart';
 import 'package:cordis/providers/navigation_provider.dart';
@@ -202,56 +200,51 @@ class _TokenContentCardState extends State<TokenContentCard> {
               ),
 
               /// CONTENT
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final contentWidth = max(
-                    0.0,
-                    constraints.maxWidth -
-                        TokenizationConstants.widthConstraintPaddingEdit,
-                  );
+              Padding(
+                padding: const EdgeInsets.only(
+                  left: TokenizationConstants.chordTokenWidthPadding + 4,
+                  right: 4,
+                ),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final buildCtx = TokenBuildContext(
+                      chordStyle: laySet.chordTextStyle(colorScheme.surface),
+                      lyricStyle: laySet.lyricTextStyle,
+                      contentColor: section.contentColor,
+                      surfaceColor: colorScheme.surface,
+                      onSurfaceColor: colorScheme.onSurface,
+                      isEnabled: widget.isEnabled,
+                      cache: {},
+                      maxWidth: constraints.maxWidth,
+                      transposeChord: (String chord) =>
+                          trans.transposeChord(chord),
+                      toggleDrag: _toggleDrag,
+                      onAddChord: _addChord,
+                      onAddPrecedingChord: _addPrecedingChord,
+                      onRemoveChord: _removeChord,
+                    );
 
-                  final buildCtx = TokenBuildContext(
-                    chordStyle: laySet.chordTextStyle(colorScheme.surface),
-                    lyricStyle: laySet.lyricTextStyle,
-                    contentColor: section.contentColor,
-                    surfaceColor: colorScheme.surface,
-                    onSurfaceColor: colorScheme.onSurface,
-                    isEnabled: widget.isEnabled,
-                    cache: {},
-                    maxWidth: contentWidth,
-                    transposeChord: (String chord) =>
-                        trans.transposeChord(chord),
-                    toggleDrag: _toggleDrag,
-                    onAddChord: _addChord,
-                    onAddPrecedingChord: _addPrecedingChord,
-                    onRemoveChord: _removeChord,
-                  );
+                    final content = _tokenizer.createContent(
+                      content: section.contentText,
+                      initialTokens: tokens,
+                      posCtx: PositioningContext(
+                        underLineColor: colorScheme.onSurface,
+                        maxWidth: constraints.maxWidth,
+                        isEditMode: true,
+                      ),
+                      buildCtx: buildCtx,
+                    );
 
-                  final content = _tokenizer.createContent(
-                    content: section.contentText,
-                    initialTokens: tokens,
-                    posCtx: PositioningContext(
-                      underLineColor: colorScheme.onSurface,
-                      maxWidth: contentWidth,
-                      isEditMode: true,
-                    ),
-                    buildCtx: buildCtx,
-                  );
-
-                  return Padding(
-                    padding: const EdgeInsets.all(
-                      TokenizationConstants.widthConstraintPaddingEdit / 2,
-                    ),
-                    child: SizedBox(
+                    return SizedBox(
                       width: double.infinity,
                       height: content.contentHeight,
                       child: Stack(
                         clipBehavior: Clip.none,
                         children: [...content.tokens],
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
             ],
           ),
