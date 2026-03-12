@@ -16,7 +16,7 @@ class RepeatSectionSheet extends StatelessWidget {
 
     final localVer = context.read<LocalVersionProvider>();
 
-    final songStructure = localVer.cachedVersion(versionID)!.songStructure;
+    final songStructure = localVer.getVersion(versionID)!.songStructure;
 
     return Container(
       decoration: BoxDecoration(

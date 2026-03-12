@@ -272,8 +272,8 @@ class CipherProvider extends ChangeNotifier {
     }
   }
 
-  void clearNewCipherFromCache() {
-    _ciphers.remove(-1);
+  void clearCipherFromCache({int? cipherId = -1}) {
+    _ciphers.remove(cipherId);
     _hasUnsavedChanges = false;
     notifyListeners();
   }

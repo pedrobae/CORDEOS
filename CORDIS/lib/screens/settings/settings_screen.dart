@@ -166,13 +166,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildDebugButton(NavigationProvider nav) {
     return FilledTextButton(
-      icon: Icons.bug_report,
+      icon: Icons.feedback_outlined,
       text: AppLocalizations.of(context)!.reportBug,
       trailingIcon: Icons.chevron_right,
       onPressed: () {
         nav.pop();
         nav.push(
-          () => ReportBugScreen(),
+          () => const ReportBugScreen(),
           showAppBar: true,
           showBottomNavBar: true,
           showDrawerIcon: true,

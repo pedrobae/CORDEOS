@@ -116,49 +116,56 @@ class SideMenu extends StatelessWidget {
               ],
             ),
           ),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: GestureDetector(
+              onTap: () async {
+                final navigator = Navigator.of(context);
+                navigator.pop();
+                nav.push(
+                  () => const ReportBugScreen(),
+                  showAppBar: true,
+                  showBottomNavBar: true,
+                  showDrawerIcon: true,
+                );
+              },
+              child: Row(
+                spacing: 16,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.feedback_outlined),
+                  Text(
+                    AppLocalizations.of(context)!.reportBug,
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                ],
+              ),
+            ),
+          ),
           // LOGOUT BUTTON
           Padding(
-            padding: const EdgeInsets.only(left: 16.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () async {
-                    final navigator = Navigator.of(context);
-                    navigator.pop();
-                    await auth.signOut();
-                    navigator.pushReplacement(
-                      MaterialPageRoute(
-                        builder: (context) => const LoginScreen(),
-                      ),
-                    );
-                  },
-                  child: Row(
-                    spacing: 16,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.logout),
-                      Text(
-                        AppLocalizations.of(context)!.logOut,
-                        style: theme.textTheme.bodyMedium,
-                      ),
-                    ],
+            padding: const EdgeInsets.only(left: 16.0, bottom: 16),
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () async {
+                final navigator = Navigator.of(context);
+                navigator.pop();
+                await auth.signOut();
+                navigator.pushReplacement(
+                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                );
+              },
+              child: Row(
+                spacing: 16,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.logout),
+                  Text(
+                    AppLocalizations.of(context)!.logOut,
+                    style: theme.textTheme.bodyMedium,
                   ),
-                ),
-                IconButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    nav.push(
-                      () => const ReportBugScreen(),
-                      showAppBar: true,
-                      showBottomNavBar: true,
-                      showDrawerIcon: true,
-                    );
-                  },
-                  icon: Icon(Icons.bug_report_outlined),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
 

@@ -1,6 +1,7 @@
 import 'package:cordis/l10n/app_localizations.dart';
 import 'package:cordis/models/domain/playlist/playlist.dart';
 import 'package:cordis/models/domain/playlist/playlist_item.dart';
+import 'package:cordis/providers/cipher/cipher_provider.dart';
 import 'package:cordis/providers/user/my_auth_provider.dart';
 import 'package:cordis/providers/playlist/flow_item_provider.dart';
 import 'package:cordis/providers/navigation_provider.dart';
@@ -123,12 +124,16 @@ class PlaylistCardActionsSheet extends StatelessWidget {
   ) async {
     final play = context.read<PlaylistProvider>();
     final localVer = context.read<LocalVersionProvider>();
+    final ciph = context.read<CipherProvider>();
     final flow = context.read<FlowItemProvider>();
 
     for (var item in play.getPlaylist(playlistId)!.items) {
       if (item.type == PlaylistItemType.version) {
-        await localVer.deleteVersion(item.contentId!);
+        final cipherID = await localVer.deleteVersion(item.contentId!);
 
+        if (cipherID != null) {
+          ciph.clearCipherFromCache(cipherId: cipherID);
+        }
       } else if (item.type == PlaylistItemType.flowItem) {
         await flow.deleteFlowItem(item.contentId!);
       }

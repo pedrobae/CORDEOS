@@ -81,36 +81,6 @@ class CloudScheduleProvider extends ChangeNotifier {
   }
 
   // ===== CREATE =====
-  // Returns a copy of the schedule for local insertion
-  ScheduleDto duplicateSchedule(
-    String scheduleId,
-    String name,
-    String date,
-    String startTime,
-    String location,
-    String? roomVenue,
-  ) {
-    final original = _schedules[scheduleId];
-    if (original == null) throw Exception('Schedule not found');
-
-    final timestamp = Timestamp.fromDate(
-      DateTime(
-        int.parse(date.split('/')[0]),
-        int.parse(date.split('/')[1]),
-        int.parse(date.split('/')[2]),
-        int.parse(startTime.split(':')[0]),
-        int.parse(startTime.split(':')[1]),
-      ),
-    );
-
-    return original.copyWith(
-      name: name,
-      datetime: timestamp,
-      location: location,
-      roomVenue: roomVenue,
-    );
-  }
-
   Future<void> publishSchedule(ScheduleDto schedule) async {
     if (_isSaving) return;
 

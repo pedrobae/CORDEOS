@@ -23,13 +23,13 @@ class _CipherLibraryScreenState extends State<CipherLibraryScreen> {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
 
-    final selectionProvider = Provider.of<SelectionProvider>(
+    final sel = Provider.of<SelectionProvider>(
       context,
       listen: false,
     );
 
     return Scaffold(
-      appBar: selectionProvider.isSelectionMode
+      appBar: sel.isSelectionMode
           ? AppBar(
               leading: const BackButton(),
               title: Text(

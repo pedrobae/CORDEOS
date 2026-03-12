@@ -6,7 +6,6 @@ import 'package:cordis/models/domain/schedule.dart';
 import 'package:cordis/providers/user/my_auth_provider.dart';
 import 'package:cordis/providers/navigation_provider.dart';
 
-import 'package:cordis/providers/playlist/flow_item_provider.dart';
 import 'package:cordis/providers/playlist/playlist_provider.dart';
 import 'package:cordis/providers/schedule/local_schedule_provider.dart';
 import 'package:cordis/providers/version/local_version_provider.dart';
@@ -35,21 +34,8 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final play = context.read<PlaylistProvider>();
-      final localVer = context.read<LocalVersionProvider>();
-      final flow = context.read<FlowItemProvider>();
 
       await play.loadPlaylist(widget.playlistId);
-
-      // Load versions for the playlist items
-      final items = play.getPlaylist(widget.playlistId)?.items ?? [];
-
-      for (var item in items) {
-        if (item.type == PlaylistItemType.version) {
-          await localVer.loadVersion(item.contentId!);
-        } else if (item.type == PlaylistItemType.flowItem) {
-          await flow.loadFlowItem(item.contentId!);
-        }
-      }
     });
   }
 

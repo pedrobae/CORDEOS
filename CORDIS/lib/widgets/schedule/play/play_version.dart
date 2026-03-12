@@ -134,7 +134,7 @@ class _PlayVersionState extends State<PlayVersion> {
                       .getVersion(widget.cloudVersionID!)!
                       .songStructure
                 : localVersionProvider
-                      .cachedVersion(widget.localVersionID!)!
+                      .getVersion(widget.localVersionID!)!
                       .songStructure;
 
             final filteredStructure = songStructure
@@ -281,7 +281,7 @@ class _PlayVersionState extends State<PlayVersion> {
             );
           }()
         : () {
-            final version = localVersionProvider.cachedVersion(
+            final version = localVersionProvider.getVersion(
               widget.localVersionID!,
             )!;
             final cipher = cipherProvider.getCipher(version.cipherId);

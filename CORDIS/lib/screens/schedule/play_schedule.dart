@@ -437,7 +437,7 @@ class PlayScheduleScreenState extends State<PlayScheduleScreen>
                   ?.title) ??
               '';
         } else {
-          final version = versionProvider.cachedVersion(item.contentId!);
+          final version = versionProvider.getVersion(item.contentId!);
           if (version == null) return '';
           return cipherProvider.getCipher(version.cipherId)?.title ?? '';
         }

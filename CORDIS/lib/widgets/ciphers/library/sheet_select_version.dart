@@ -61,7 +61,7 @@ class SelectVersionSheet extends StatelessWidget {
           ...localVer.getVersionsByCipherId(cipherId).map((versionID) {
             return Builder(
               builder: (context) {
-                final version = localVer.cachedVersion(versionID);
+                final version = localVer.getVersion(versionID);
                 if (version == null) {
                   return const Center(child: CircularProgressIndicator());
                 }

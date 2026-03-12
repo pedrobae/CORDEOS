@@ -88,26 +88,6 @@ class LocalScheduleProvider extends ChangeNotifier {
   }
 
   // ===== CREATE =====
-  /// Creates a brand new schedule, used when duplicating a cloud schedule.
-  Future<int?> createSchedule(Schedule schedule) async {
-    int? localId;
-    try {
-      if (_isSaving) throw Exception('A save operation is already in progress');
-
-      _isSaving = true;
-      _error = null;
-      notifyListeners();
-
-      localId = await _repo.insertSchedule(schedule);
-    } catch (e) {
-      _error = e.toString();
-    } finally {
-      _isSaving = false;
-      notifyListeners();
-    }
-    return localId;
-  }
-
   void cacheBrandNewSchedule(int playlistId, String ownerFirebaseId) {
     _schedules[-1] = Schedule(
       id: -1,

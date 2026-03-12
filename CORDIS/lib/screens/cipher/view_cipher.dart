@@ -67,7 +67,7 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
       transposedKey = version.transposedKey;
     } else {
       final cipher = ciph.getCipher(widget.cipherID!);
-      final version = localVer.cachedVersion(widget.versionID);
+      final version = localVer.getVersion(widget.versionID);
       originalKey = cipher!.musicKey;
       transposedKey = version?.transposedKey;
     }
@@ -143,7 +143,7 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
       );
     } else {
       final cipher = ciph.getCipher(widget.cipherID!);
-      final version = localVer.cachedVersion(widget.versionID);
+      final version = localVer.getVersion(widget.versionID);
       return _VersionData(
         title: cipher?.title ?? '',
         author: cipher?.author ?? '',

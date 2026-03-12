@@ -37,7 +37,7 @@ class _SectionsTabState extends State<SectionsTab> {
 
     return Consumer3<SectionProvider, LocalVersionProvider, CipherProvider>(
       builder: (context, sect, localVer, ciph, child) {
-        final uniqueSections = (localVer.cachedVersion(
+        final uniqueSections = (localVer.getVersion(
           widget.versionID,
         ))!.songStructure.toSet().toList();
 

@@ -119,7 +119,7 @@ class _EditCipherScreenState extends State<EditCipherScreen>
     LocalVersionProvider localVersionProvider,
     SectionProvider sectionProvider,
   ) async {
-    final originalVersion = localVersionProvider.cachedVersion(
+    final originalVersion = localVersionProvider.getVersion(
       widget.versionID,
     )!;
     localVersionProvider.setNewVersionInCache(

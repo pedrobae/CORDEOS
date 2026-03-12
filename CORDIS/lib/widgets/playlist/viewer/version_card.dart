@@ -47,11 +47,16 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard> {
       final sectionProvider = context.read<SectionProvider>();
       final ciph = context.read<CipherProvider>();
 
-      final version = localVer.cachedVersion(widget.versionId);
-      if (version == null) return;
+      Version? version = localVer.getVersion(widget.versionId);
+      if (version == null) {
+        await localVer.loadVersion(widget.versionId);
+        version = localVer.getVersion(widget.versionId)!;
+      }
 
       final cipher = ciph.getCipher(version.cipherId);
-      if (cipher == null) await ciph.loadCipher(version.cipherId);
+      if (cipher == null) {
+        await ciph.loadCipher(version.cipherId);
+      }
 
       await sectionProvider.loadSectionsOfVersion(widget.versionId);
     });
@@ -63,13 +68,12 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard> {
     final colorScheme = theme.colorScheme;
 
     final nav = context.read<NavigationProvider>();
-    final ciph = context.read<CipherProvider>();
 
-    return Consumer<LocalVersionProvider>(
-      builder: (context, localVer, child) {
-        final version = localVer.cachedVersion(widget.versionId);
+    return Consumer2<LocalVersionProvider, CipherProvider>(
+      builder: (context, localVer, ciph, child) {
+        final version = localVer.getVersion(widget.versionId);
 
-        // If version is not cached yet, show loading indicator
+        // If version is not loaded yet, show loading indicator
         if (version == null) {
           return Center(child: CircularProgressIndicator());
         }

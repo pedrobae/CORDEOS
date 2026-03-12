@@ -216,7 +216,7 @@ class MainScreenState extends State<MainScreen> {
           sect.hasUnsavedChanges ||
           localVer.hasUnsavedChanges,
       showBottomNavBar: true,
-      onPopCallback: () => ciph.clearNewCipherFromCache(),
+      onPopCallback: () => ciph.clearCipherFromCache(),
     );
   }
 

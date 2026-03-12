@@ -58,7 +58,7 @@ class _CipherCardState extends State<CipherCard> {
                 if (versionId == null) {
                   return Center(child: CircularProgressIndicator());
                 }
-                final version = localVer.cachedVersion(versionId);
+                final version = localVer.getVersion(versionId);
                 if (version == null || cipher == null) {
                   return Center(child: CircularProgressIndicator());
                 }

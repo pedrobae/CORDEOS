@@ -107,10 +107,11 @@ class LocalVersionRepository {
   }
 
   // ===== DELETE =====
-  /// Deletes version by its local ID
-  Future<void> deleteVersion(int id) async {
+  /// Deletes version by its local ID,
+  /// if it leaves the cipher without any versions, deletes the cipher as well and returns its index
+  Future<int?> deleteVersion(int id) async {
     final db = await _databaseHelper.database;
-    await db.transaction((txn) async {
+    final cipherID = await db.transaction((txn) async {
       final result = await txn.query(
         'version',
         where: 'id = ?',
@@ -119,10 +120,10 @@ class LocalVersionRepository {
       );
 
       if (result.isEmpty) {
-        return;
+        return null;
       }
 
-      final cipherId = result.first['cipher_id'];
+      final cipherId = result.first['cipher_id'] as int?;
 
       await txn.delete('version', where: 'id = ?', whereArgs: [id]);
 
@@ -135,8 +136,11 @@ class LocalVersionRepository {
 
       if (remainingVersion.isEmpty) {
         await txn.delete('cipher', where: 'id = ?', whereArgs: [cipherId]);
+        return cipherId;
       }
+      return null;
     });
+    return cipherID;
   }
 
   Future<Version> _buildVersion(Map<String, dynamic> row) async {

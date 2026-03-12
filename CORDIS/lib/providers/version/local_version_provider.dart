@@ -34,18 +34,8 @@ class LocalVersionProvider extends ChangeNotifier {
     return _versions.length;
   }
 
-  Version? cachedVersion(int versionId) {
-    return _versions[versionId];
-  }
-
-  Future<Version?> getVersion(int versionID) async {
-    if (_versions.containsKey(versionID)) {
-      return _versions[versionID];
-    }
-
-    // Not loaded, check repository
-
-    return await _repo.getVersionWithId(versionID);
+  Version? getVersion(int versionID) {
+    return _versions[versionID];
   }
 
   /// Checks if a version exists locally by its Firebase ID
@@ -230,7 +220,9 @@ class LocalVersionProvider extends ChangeNotifier {
 
     try {
       // Check if version exists by its firebaseId
-      final existingVersion = await _repo.getVersionWithFirebaseId(version.firebaseId!);
+      final existingVersion = await _repo.getVersionWithFirebaseId(
+        version.firebaseId!,
+      );
 
       if (existingVersion != null) {
         // Update existing version
@@ -316,7 +308,7 @@ class LocalVersionProvider extends ChangeNotifier {
     return;
   }
 
-  /// Cache the deletion of a version by its ID, 
+  /// Cache the deletion of a version by its ID,
   /// The actual deletion will be done when saving changes
   void cacheDeletion(int versionId) {
     _cachedDeletions.add(versionId);
@@ -326,15 +318,16 @@ class LocalVersionProvider extends ChangeNotifier {
   }
 
   /// ===== DELETE - Version =====
-  Future<void> deleteVersion(int versionId) async {
-    if (_isSaving) return;
+  Future<int?> deleteVersion(int versionId) async {
+    int? cipherID;
+    if (_isSaving) return cipherID;
 
     _isSaving = true;
     _error = null;
     notifyListeners();
 
     try {
-      await _repo.deleteVersion(versionId);
+      cipherID = await _repo.deleteVersion(versionId);
     } catch (e) {
       _error = e.toString();
       debugPrint('Error deleting cipher version: $e');
@@ -342,6 +335,7 @@ class LocalVersionProvider extends ChangeNotifier {
       _isSaving = false;
       notifyListeners();
     }
+    return cipherID;
   }
 
   Future<void> persistCachedDeletions() async {

@@ -85,7 +85,7 @@ class _MetadataTabState extends State<MetadataTab> {
         case VersionType.playlist:
         case VersionType.import:
           final cipher = ciph.getCipher(widget.cipherID)!;
-          final version = localVer.cachedVersion(widget.versionID)!;
+          final version = localVer.getVersion(widget.versionID)!;
           _syncLocalVersion(cipher, version);
           break;
         case VersionType.brandNew:

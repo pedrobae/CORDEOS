@@ -419,7 +419,7 @@ class _ViewScheduleScreenState extends State<ViewScheduleScreen> {
     for (var item in domainPlaylist.items) {
       switch (item.type) {
         case PlaylistItemType.version:
-          final version = localVer.cachedVersion(item.contentId!);
+          final version = localVer.getVersion(item.contentId!);
 
           if (version == null) break;
           String firebaseId;

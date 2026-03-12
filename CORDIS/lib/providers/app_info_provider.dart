@@ -18,8 +18,8 @@ class AppInfoProvider extends ChangeNotifier {
 
   AppInfoProvider();
 
-  void initialize() {
-    _loadAppVersion();
+  Future<void> initialize() async {
+    await _loadAppVersion();
   }
 
   Future<void> _loadAppVersion() async {

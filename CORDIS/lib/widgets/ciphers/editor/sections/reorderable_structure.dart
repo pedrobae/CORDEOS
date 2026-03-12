@@ -17,7 +17,7 @@ class ReorderableStructure extends StatelessWidget {
 
     return Consumer<LocalVersionProvider>(
       builder: (context, localVer, child) {
-        final songStructure = localVer.cachedVersion(versionID)!.songStructure;
+        final songStructure = localVer.getVersion(versionID)!.songStructure;
 
         return Container(
           padding: EdgeInsets.all(8),
