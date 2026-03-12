@@ -446,12 +446,14 @@ class TokenizationBuilder {
         cutoutWidgets.add(
           Positioned(
             left: xOffset,
-            top:
-                TokenizationConstants.dragFeedbackCutoutPadding -
-                lyricMsr.bottomPadding,
+            bottom: lyricMsr.size + TokenizationConstants.dragFeedbackCutoutPadding,
             child: Text(
               ctx.transposeChord(draggedChord.text),
               style: ctx.lyricStyle.copyWith(color: ctx.onSurfaceColor),
+              textHeightBehavior: TextHeightBehavior(
+                applyHeightToFirstAscent: false,
+                applyHeightToLastDescent: false,
+              ),
             ),
           ),
         );
@@ -459,10 +461,15 @@ class TokenizationBuilder {
       cutoutWidgets.add(
         Positioned(
           left: xOffset,
-          bottom:
-              TokenizationConstants.dragFeedbackCutoutPadding -
-              lyricMsr.bottomPadding,
-          child: Text(token.text, style: ctx.lyricStyle),
+          bottom: TokenizationConstants.dragFeedbackCutoutPadding,
+          child: Text(
+            token.text,
+            style: ctx.lyricStyle,
+            textHeightBehavior: TextHeightBehavior(
+              applyHeightToFirstAscent: false,
+              applyHeightToLastDescent: false,
+            ),
+          ),
         ),
       );
       xOffset +=
@@ -504,9 +511,6 @@ class TokenizationBuilder {
                 chordMsr.size +
                 2 * TokenizationConstants.dragFeedbackCutoutPadding,
             width: TokenizationConstants.dragFeedbackCutoutWidth,
-            padding: const EdgeInsets.symmetric(
-              vertical: TokenizationConstants.dragFeedbackCutoutPadding,
-            ),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
               color: ctx.surfaceColor,

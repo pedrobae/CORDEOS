@@ -72,7 +72,7 @@ class PositionService {
               if (lyricsX < chordX) {
                 /// Add underline token to push lyrics below chord
                 /// Only add if chord is ahead of lyrics, otherwise lyrics will be positioned correctly below chord
-                if (wordPositions.isNotEmpty) {
+                if (wordPositions.isNotEmpty && !wordPositions.every((wp) => wp.type != TokenType.lyric)) {
                   final token = ContentToken(
                     text: '',
                     type: TokenType.underline,
