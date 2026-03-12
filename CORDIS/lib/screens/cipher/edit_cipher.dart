@@ -7,6 +7,8 @@ import 'package:cordis/providers/cipher/parser_provider.dart';
 import 'package:cordis/providers/playlist/playlist_provider.dart';
 import 'package:cordis/providers/selection_provider.dart';
 import 'package:cordis/providers/transposition_provider.dart';
+import 'package:cordis/providers/user/my_auth_provider.dart';
+import 'package:cordis/providers/version/cloud_version_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cordis/providers/cipher/cipher_provider.dart';
@@ -119,9 +121,7 @@ class _EditCipherScreenState extends State<EditCipherScreen>
     LocalVersionProvider localVersionProvider,
     SectionProvider sectionProvider,
   ) async {
-    final originalVersion = localVersionProvider.getVersion(
-      widget.versionID,
-    )!;
+    final originalVersion = localVersionProvider.getVersion(widget.versionID)!;
     localVersionProvider.setNewVersionInCache(
       originalVersion.copyWith(firebaseId: '', versionName: playlistName),
     );
@@ -139,25 +139,22 @@ class _EditCipherScreenState extends State<EditCipherScreen>
 
   @override
   Widget build(BuildContext context) {
-    final navigationProvider = Provider.of<NavigationProvider>(
-      context,
-      listen: false,
-    );
+    final nav = Provider.of<NavigationProvider>(context, listen: false);
 
     return Scaffold(
-      appBar: _buildAppBar(navigationProvider),
+      appBar: _buildAppBar(nav),
       body: Column(spacing: 16, children: [_buildTabBar(), _buildTabContent()]),
     );
   }
 
-  AppBar _buildAppBar(NavigationProvider navigationProvider) {
+  AppBar _buildAppBar(NavigationProvider nav) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
+    final auth = context.read<MyAuthProvider>();
+
     return AppBar(
-      leading: BackButton(
-        onPressed: () => navigationProvider.attemptPop(context),
-      ),
+      leading: BackButton(onPressed: () => nav.attemptPop(context)),
       title: Text(
         AppLocalizations.of(
           context,
@@ -165,10 +162,18 @@ class _EditCipherScreenState extends State<EditCipherScreen>
         style: textTheme.titleMedium,
       ),
       actions: [
+        if (auth.isAdmin)
+          IconButton(
+            onPressed: () async {
+              await _publish();
+              nav.pop();
+            },
+            icon: Icon(Icons.publish, color: colorScheme.onSurface),
+          ),
         IconButton(
           onPressed: () async {
             await _save(context);
-            navigationProvider.pop();
+            nav.pop();
           },
           icon: Icon(Icons.save, color: colorScheme.onSurface),
         ),
@@ -398,5 +403,19 @@ class _EditCipherScreenState extends State<EditCipherScreen>
     context.read<LocalVersionProvider>().clearUnsavedChanges();
     context.read<CipherProvider>().clearUnsavedChanges();
     context.read<SectionProvider>().clearUnsavedChanges();
+  }
+
+  Future<void> _publish() async {
+    final localVer = context.read<LocalVersionProvider>();
+    final cloudVer = context.read<CloudVersionProvider>();
+    final ciph = context.read<CipherProvider>();
+
+    final version = localVer.getVersion(widget.versionID);
+    if (version == null) return;
+
+    final cipher = ciph.getCipher(widget.cipherID);
+    if (cipher == null) return;
+
+    await cloudVer.saveVersion(version.toDto(cipher));
   }
 }

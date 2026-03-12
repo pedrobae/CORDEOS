@@ -51,7 +51,7 @@ class CloudVersionProvider extends ChangeNotifier {
 
   // ===== CREATE =====
   /// Persist the cache of an ID to the database
-  Future<void> saveVersion(String versionID) async {
+  Future<void> saveVersion(VersionDto version) async {
     if (_isSaving) return;
 
     _isSaving = true;
@@ -59,11 +59,11 @@ class CloudVersionProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _repo.updatePersonalVersion(_versions[versionID]!);
+      await _repo.publishPublicVersion(version);
     } catch (e) {
       _error = e.toString();
       if (kDebugMode) {
-        print('Error updating cloud version: $e');
+        print('Error publishing public version: $e');
       }
     } finally {
       _isSaving = false;
@@ -76,7 +76,6 @@ class CloudVersionProvider extends ChangeNotifier {
     notifyListeners();
   }
   // ===== READ =====
-
   /// Loads public versions from Firestore
   Future<void> loadVersions({
     bool forceReload = false,
@@ -148,45 +147,6 @@ class CloudVersionProvider extends ChangeNotifier {
   }
 
   // ===== UPDATE =====
-  void cacheUpdates(
-    String versionId, {
-    String? versionName,
-    String? transposedKey,
-    String? title,
-    String? author,
-    int? bpm,
-    int? duration,
-    String? language,
-    List<String>? tags,
-  }) {
-    _versions[versionId] = _versions[versionId]!.copyWith(
-      versionName: versionName,
-      transposedKey: transposedKey,
-      title: title,
-      author: author,
-      bpm: bpm,
-      duration: duration,
-      language: language,
-      tags: tags,
-    );
-    notifyListeners();
-  }
-
-  void reorderSongStructure(String versionID, int oldIndex, int newIndex) {
-    if (newIndex > oldIndex) newIndex--;
-
-    final item = _versions[versionID]!.songStructure.removeAt(oldIndex);
-    _versions[versionID]!.songStructure.insert(newIndex, item);
-    notifyListeners();
-  }
-
-  void addTagToCloudCache(String versionID, String newTag) {
-    final currentTags = _versions[versionID]!.tags;
-    if (!currentTags.contains(newTag)) {
-      currentTags.add(newTag);
-    }
-    notifyListeners();
-  }
 
   // ===== DELETE =====
   void removeVersion(String versionID) {
