@@ -22,6 +22,8 @@ import 'package:cordis/providers/version/local_version_provider.dart';
 import 'package:cordis/widgets/common/delete_confirmation.dart';
 import 'package:cordis/widgets/common/filled_text_button.dart';
 import 'package:cordis/widgets/common/labeled_language_picker.dart';
+import 'package:cordis/widgets/settings/settings_section_header.dart';
+import 'package:cordis/widgets/settings/settings_switch_tile.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
@@ -47,28 +49,46 @@ class _SettingsScreenState extends State<SettingsScreen> {
           spacing: 8,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildSectionHeader(
-              AppLocalizations.of(context)!.settings,
-              Icons.settings,
+            SettingsSectionHeader(
+              title: AppLocalizations.of(context)!.settings,
+              icon: Icons.settings,
             ),
             SizedBox(),
-            _buildThemeToggle(set),
-            _buildColorVariantToggle(set),
+            SettingsSwitchTile(
+              label: AppLocalizations.of(context)!.theme,
+              icon: set.themeMode == ThemeMode.dark
+                  ? Icons.dark_mode
+                  : Icons.light_mode,
+              value: set.themeMode == ThemeMode.dark,
+              onChanged: (value) {
+                context.read<SettingsProvider>().setThemeMode(
+                  value ? ThemeMode.dark : ThemeMode.light,
+                );
+              },
+            ),
+            SettingsSwitchTile(
+              label: AppLocalizations.of(context)!.colorVariant,
+              icon: set.isColorVariant ? Icons.palette : Icons.palette_outlined,
+              value: set.isColorVariant,
+              onChanged: (_) {
+                context.read<SettingsProvider>().toggleColorVariant();
+              },
+            ),
             _buildLanguageButton(set),
             const SizedBox(height: 32),
             
-            _buildSectionHeader(
-              AppLocalizations.of(context)!.support,
-              Icons.support_agent,
+            SettingsSectionHeader(
+              title: AppLocalizations.of(context)!.support,
+              icon: Icons.support_agent,
             ),
             SizedBox(),
             _buildDebugButton(nav),
             const SizedBox(height: 32),
 
             if (kDebugMode) ...[
-              _buildSectionHeader(
-                AppLocalizations.of(context)!.developmentTools,
-                Icons.build,
+              SettingsSectionHeader(
+                title: AppLocalizations.of(context)!.developmentTools,
+                icon: Icons.build,
               ),
               SizedBox(),
               _buildResetDatabaseButton(),
@@ -78,76 +98,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ],
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildThemeToggle(SettingsProvider settings) {
-    final textTheme = Theme.of(context).textTheme;
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        border: Border.all(color: colorScheme.surfaceContainer, width: 1),
-        borderRadius: BorderRadius.circular(0),
-      ),
-      child: Row(
-        children: [
-          Text(
-            AppLocalizations.of(context)!.theme,
-            style: textTheme.labelLarge,
-          ),
-          const Spacer(),
-          Icon(
-            settings.themeMode == ThemeMode.dark
-                ? Icons.dark_mode
-                : Icons.light_mode,
-            color: colorScheme.primary,
-          ),
-          SizedBox(width: 8),
-          Switch(
-            value: settings.themeMode == ThemeMode.dark,
-            onChanged: (value) {
-              context.read<SettingsProvider>().setThemeMode(
-                value ? ThemeMode.dark : ThemeMode.light,
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildColorVariantToggle(SettingsProvider settings) {
-    final textTheme = Theme.of(context).textTheme;
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        border: Border.all(color: colorScheme.surfaceContainer, width: 1),
-        borderRadius: BorderRadius.circular(0),
-      ),
-      child: Row(
-        children: [
-          Text(
-            AppLocalizations.of(context)!.colorVariant,
-            style: textTheme.labelLarge,
-          ),
-          const Spacer(),
-          Icon(
-            settings.isColorVariant ? Icons.palette : Icons.palette_outlined,
-            color: colorScheme.primary,
-          ),
-          SizedBox(width: 8),
-          Switch(
-            value: settings.isColorVariant,
-            onChanged: (value) {
-              context.read<SettingsProvider>().toggleColorVariant();
-            },
-          ),
-        ],
       ),
     );
   }
@@ -224,23 +174,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildSectionHeader(String title, IconData icon) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      spacing: 16,
-      children: [
-        Icon(icon, color: Theme.of(context).colorScheme.primary, size: 20),
-        Text(
-          title,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            color: Theme.of(context).colorScheme.primary,
-          ),
-          softWrap: true,
-        ),
-      ],
-    );
-  }
-
   Future<void> _resetDatabase() async {
     try {
       final dbHelper = DatabaseHelper();
@@ -262,11 +195,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Row(
+          content: Row(
             children: [
-              Icon(Icons.check_circle, color: Colors.white),
-              SizedBox(width: 8),
-              Text('Banco de dados resetado com sucesso!'),
+              const Icon(Icons.check_circle, color: Colors.white),
+              const SizedBox(width: 8),
+              Text(AppLocalizations.of(context)!.databaseResetSuccess),
             ],
           ),
           backgroundColor: Theme.of(context).colorScheme.primary,
@@ -277,7 +210,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Erro ao resetar banco: $e'),
+          content: Text(
+            AppLocalizations.of(context)!.errorMessage(
+              AppLocalizations.of(context)!.resetDatabase,
+              e.toString(),
+            ),
+          ),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
@@ -323,16 +261,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Row(
               children: [
-                Icon(Icons.check_circle, color: Colors.white),
-                SizedBox(width: 8),
-                Text('Interface e dados recarregados completamente!'),
+                const Icon(Icons.check_circle, color: Colors.white),
+                const SizedBox(width: 8),
+                Text(AppLocalizations.of(context)!.reloadInterfaceSuccess),
               ],
             ),
             backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
+            duration: const Duration(seconds: 2),
           ),
         );
       }
@@ -340,7 +278,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erro ao recarregar: $e'),
+            content: Text(
+              AppLocalizations.of(context)!.errorMessage(
+                AppLocalizations.of(context)!.reloadInterface,
+                e.toString(),
+              ),
+            ),
             backgroundColor: Theme.of(context).colorScheme.error,
             duration: const Duration(seconds: 3),
           ),
@@ -450,7 +393,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               ),
                             ),
                             Text(
-                              count == -1 ? 'Error' : count.toString(),
+                              count == -1
+                                  ? AppLocalizations.of(context)!.error
+                                  : count.toString(),
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: count == -1
@@ -554,7 +499,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   child: Text(AppLocalizations.of(context)!.tableData(tableName)),
                 ),
                 IconButton(
-                  tooltip: 'Refresh',
+                  tooltip: AppLocalizations.of(context)!.reloadInterface,
                   onPressed: () => refreshRows(setState),
                   icon: const Icon(Icons.refresh),
                 ),
@@ -572,8 +517,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   borderRadius: BorderRadius.circular(0),
                 ),
                 child: rows.isEmpty
-                    ? const Center(
-                        child: Text('No rows found in this table.'),
+                    ? Center(
+                        child: Text(
+                          AppLocalizations.of(context)!.noRowsInTable,
+                        ),
                       )
                     : SingleChildScrollView(
                         child: SingleChildScrollView(
@@ -586,7 +533,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   label: Text(column.toUpperCase()),
                                 ),
                               ),
-                              const DataColumn(label: Text('ACTIONS')),
+                              DataColumn(
+                                label: Text(
+                                  AppLocalizations.of(context)!.actions,
+                                ),
+                              ),
                             ],
                             rows: rows.map((row) {
                               final dynamic rowId = row['id'];
@@ -606,8 +557,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   DataCell(
                                     IconButton(
                                       tooltip: canDelete
-                                          ? 'Delete row'
-                                          : 'Row has no id',
+                                        ? AppLocalizations.of(context)!
+                                          .deleteRow
+                                        : AppLocalizations.of(context)!
+                                          .rowHasNoId,
                                       icon: Icon(
                                         Icons.delete_outline,
                                         color: canDelete
@@ -620,15 +573,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                                   await showDialog<bool>(
                                                     context: context,
                                                     builder: (context) => AlertDialog(
-                                                      title: const Text('Delete row?'),
+                                                      title: Text(
+                                                        AppLocalizations.of(
+                                                          context,
+                                                        )!.deleteRowQuestion,
+                                                      ),
                                                       content: Text(
-                                                        'Delete id=$rowId from "$tableName"?',
+                                                        AppLocalizations.of(
+                                                          context,
+                                                        )!.deleteRowQuestionBody(
+                                                          rowId.toString(),
+                                                          tableName,
+                                                        ),
                                                       ),
                                                       actions: [
                                                         TextButton(
                                                           onPressed: () =>
                                                               Navigator.of(context).pop(false),
-                                                          child: const Text('Cancel'),
+                                                          child: Text(
+                                                            AppLocalizations.of(
+                                                              context,
+                                                            )!.cancel,
+                                                          ),
                                                         ),
                                                         FilledButton(
                                                           onPressed: () =>
@@ -637,7 +603,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                                             backgroundColor:
                                                                 colorScheme.error,
                                                           ),
-                                                          child: const Text('Delete'),
+                                                          child: Text(
+                                                            AppLocalizations.of(
+                                                              context,
+                                                            )!.delete,
+                                                          ),
                                                         ),
                                                       ],
                                                     ),
@@ -651,15 +621,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                                 whereArgs: [rowId],
                                               );
 
-                                              if (!mounted) return;
                                               await refreshRows(setState);
 
-                                              if (!mounted) return;
+                                              if (!context.mounted) return;
                                               ScaffoldMessenger.of(context)
                                                   .showSnackBar(
                                                     SnackBar(
                                                       content: Text(
-                                                        'Deleted row id=$rowId from $tableName.',
+                                                        AppLocalizations.of(
+                                                          context,
+                                                        )!.rowDeletedFromTable(
+                                                          rowId.toString(),
+                                                          tableName,
+                                                        ),
                                                       ),
                                                     ),
                                                   );

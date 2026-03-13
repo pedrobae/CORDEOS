@@ -1,4 +1,5 @@
 import 'package:cordis/l10n/app_localizations.dart';
+import 'package:cordis/models/domain/schedule.dart';
 import 'package:cordis/providers/user/my_auth_provider.dart';
 import 'package:cordis/providers/navigation_provider.dart';
 import 'package:cordis/providers/playlist/playlist_provider.dart';
@@ -165,7 +166,7 @@ class ScheduleCard extends StatelessWidget {
                     },
                   ),
                   //share
-                  if (schedule.ownerFirebaseId == authProvider.id)
+                  if (schedule.ownerFirebaseId == authProvider.id && schedule.scheduleState == ScheduleState.published)
                     FilledTextButton(
                       text: AppLocalizations.of(context)!.share,
                       isDense: true,

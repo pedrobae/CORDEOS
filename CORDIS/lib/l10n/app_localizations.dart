@@ -242,6 +242,60 @@ abstract class AppLocalizations {
   /// **'Limpa os dados em cache e recarrega todos os provedores'**
   String get reloadInterfaceSubtitle;
 
+  /// Success message after resetting database
+  ///
+  /// In pt, this message translates to:
+  /// **'Banco de dados redefinido com sucesso!'**
+  String get databaseResetSuccess;
+
+  /// Success message after reloading interface and data
+  ///
+  /// In pt, this message translates to:
+  /// **'Interface e dados recarregados completamente!'**
+  String get reloadInterfaceSuccess;
+
+  /// Message shown when selected table has no rows
+  ///
+  /// In pt, this message translates to:
+  /// **'Nenhum registro encontrado nesta tabela.'**
+  String get noRowsInTable;
+
+  /// Header label for actions column in debug table
+  ///
+  /// In pt, this message translates to:
+  /// **'Ações'**
+  String get actions;
+
+  /// Tooltip for deleting a single row
+  ///
+  /// In pt, this message translates to:
+  /// **'Excluir linha'**
+  String get deleteRow;
+
+  /// Tooltip when row cannot be deleted because it has no id
+  ///
+  /// In pt, this message translates to:
+  /// **'A linha não possui id'**
+  String get rowHasNoId;
+
+  /// Confirmation dialog title for deleting a row
+  ///
+  /// In pt, this message translates to:
+  /// **'Excluir linha?'**
+  String get deleteRowQuestion;
+
+  /// Confirmation dialog body for deleting a row
+  ///
+  /// In pt, this message translates to:
+  /// **'Excluir id={rowId} da tabela \"{tableName}\"?'**
+  String deleteRowQuestionBody(Object rowId, Object tableName);
+
+  /// Snackbar message after deleting a row from a table
+  ///
+  /// In pt, this message translates to:
+  /// **'Linha id={rowId} excluida de {tableName}.'**
+  String rowDeletedFromTable(Object rowId, Object tableName);
+
   /// Authentication related messages
   ///
   /// In pt, this message translates to:

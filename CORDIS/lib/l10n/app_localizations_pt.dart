@@ -87,6 +87,38 @@ class AppLocalizationsPt extends AppLocalizations {
       'Limpa os dados em cache e recarrega todos os provedores';
 
   @override
+  String get databaseResetSuccess => 'Banco de dados redefinido com sucesso!';
+
+  @override
+  String get reloadInterfaceSuccess =>
+      'Interface e dados recarregados completamente!';
+
+  @override
+  String get noRowsInTable => 'Nenhum registro encontrado nesta tabela.';
+
+  @override
+  String get actions => 'Ações';
+
+  @override
+  String get deleteRow => 'Excluir linha';
+
+  @override
+  String get rowHasNoId => 'A linha não possui id';
+
+  @override
+  String get deleteRowQuestion => 'Excluir linha?';
+
+  @override
+  String deleteRowQuestionBody(Object rowId, Object tableName) {
+    return 'Excluir id=$rowId da tabela \"$tableName\"?';
+  }
+
+  @override
+  String rowDeletedFromTable(Object rowId, Object tableName) {
+    return 'Linha id=$rowId excluida de $tableName.';
+  }
+
+  @override
   String get authentication => 'Autenticação';
 
   @override

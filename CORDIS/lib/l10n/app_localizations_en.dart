@@ -86,6 +86,37 @@ class AppLocalizationsEn extends AppLocalizations {
       'Clears cached data and reloads all providers';
 
   @override
+  String get databaseResetSuccess => 'Database reset successfully!';
+
+  @override
+  String get reloadInterfaceSuccess => 'Interface and data fully reloaded!';
+
+  @override
+  String get noRowsInTable => 'No rows found in this table.';
+
+  @override
+  String get actions => 'Actions';
+
+  @override
+  String get deleteRow => 'Delete row';
+
+  @override
+  String get rowHasNoId => 'Row has no id';
+
+  @override
+  String get deleteRowQuestion => 'Delete row?';
+
+  @override
+  String deleteRowQuestionBody(Object rowId, Object tableName) {
+    return 'Delete id=$rowId from \"$tableName\"?';
+  }
+
+  @override
+  String rowDeletedFromTable(Object rowId, Object tableName) {
+    return 'Deleted row id=$rowId from $tableName.';
+  }
+
+  @override
   String get authentication => 'Authentication';
 
   @override
