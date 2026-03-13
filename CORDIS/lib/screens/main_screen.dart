@@ -1,14 +1,10 @@
-import 'package:cordis/models/domain/cipher/version.dart';
-import 'package:cordis/providers/cipher/cipher_provider.dart';
-import 'package:cordis/providers/section_provider.dart';
 import 'package:cordis/providers/user/my_auth_provider.dart';
 import 'package:cordis/providers/user/user_provider.dart';
 import 'package:cordis/providers/version/local_version_provider.dart';
-import 'package:cordis/screens/cipher/edit_cipher.dart';
 import 'package:cordis/screens/playlist/edit_playlist.dart';
 import 'package:cordis/screens/splash_screen.dart';
 import 'package:cordis/services/remote_config_service.dart';
-import 'package:cordis/widgets/ciphers/editor/sections/sheet_new_section.dart';
+import 'package:cordis/widgets/ciphers/library/sheet_new_song.dart';
 import 'package:cordis/widgets/home/quick_action_sheet.dart';
 import 'package:cordis/widgets/schedule/library/sheet_actions.dart';
 import 'package:flutter/material.dart';
@@ -32,25 +28,27 @@ class MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    
+
     // Use post-frame callback to avoid setState during build
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
 
       await _runVersionGate();
       if (!mounted || _versionGateTriggered) return;
-      
+
       // Load users
       final user = context.read<UserProvider>();
       final auth = context.read<MyAuthProvider>();
 
-      await user.ensureUserExists(auth.id!);  
+      await user.ensureUserExists(auth.id!);
       await user.loadUsers();
 
       final currentUser = user.getUserByFirebaseId(auth.id!);
 
       if (currentUser == null) {
-        throw Exception("Current user should not be null after ensuring existence and loading users");
+        throw Exception(
+          "Current user should not be null after ensuring existence and loading users",
+        );
       }
 
       auth.setUserData(currentUser);
@@ -88,7 +86,7 @@ class MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
       (route) => false,
     );
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Consumer<NavigationProvider>(
@@ -192,7 +190,6 @@ class MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   GestureDetector _buildFAB(NavigationProvider nav) {
     final colorScheme = Theme.of(context).colorScheme;
     return GestureDetector(
-      onLongPress: () => _handleLongPressFAB(nav),
       onTap: () => _handleFABTap(nav),
       child: Container(
         width: 56,
@@ -214,16 +211,6 @@ class MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     );
   }
 
-  void _handleLongPressFAB(NavigationProvider nav) {
-    if (nav.currentRoute == NavigationRoute.library) {
-      showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        builder: (context) => NewSectionSheet(secret: true, versionId: -1),
-      );
-    }
-  }
-
   void _handleFABTap(NavigationProvider nav) {
     switch (nav.currentRoute) {
       case NavigationRoute.library:
@@ -240,23 +227,10 @@ class MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   }
 
   void _handleLibraryFAB(NavigationProvider nav) {
-    final ciph = context.read<CipherProvider>();
-    final sect = context.read<SectionProvider>();
-    final localVer = context.read<LocalVersionProvider>();
-
-    nav.push(
-      () => 
-      EditCipherScreen(
-        versionID: -1,
-        cipherID: -1,
-        versionType: VersionType.brandNew,
-      ),
-      changeDetector: () =>
-          ciph.hasUnsavedChanges ||
-          sect.hasUnsavedChanges ||
-          localVer.hasUnsavedChanges,
-      showBottomNavBar: true,
-      onPopCallback: () => ciph.clearCipherFromCache(),
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => NewSongSheet(),
     );
   }
 

@@ -198,7 +198,7 @@ class _SectionsTabState extends State<SectionsTab> {
       showModalBottomSheet(
         context: context,
         builder: (context) {
-          return NewSectionSheet(versionId: widget.versionID);
+          return NewSectionSheet(versionID: widget.versionID);
         },
       );
     };
