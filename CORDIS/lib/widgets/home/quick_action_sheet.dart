@@ -1,19 +1,18 @@
+import 'package:flutter/material.dart';
 import 'package:cordis/l10n/app_localizations.dart';
-import 'package:cordis/models/domain/cipher/version.dart';
-import 'package:cordis/providers/cipher/cipher_provider.dart';
+
+import 'package:provider/provider.dart';
 import 'package:cordis/providers/navigation_provider.dart';
 import 'package:cordis/providers/playlist/playlist_provider.dart';
 import 'package:cordis/providers/schedule/local_schedule_provider.dart';
-import 'package:cordis/providers/section_provider.dart';
 import 'package:cordis/providers/selection_provider.dart';
-import 'package:cordis/providers/version/local_version_provider.dart';
-import 'package:cordis/screens/cipher/edit_cipher.dart';
+
 import 'package:cordis/screens/playlist/edit_playlist.dart';
 import 'package:cordis/screens/schedule/create.dart';
 import 'package:cordis/screens/schedule/share_code_screen.dart';
+
+import 'package:cordis/widgets/ciphers/library/sheet_new_song.dart';
 import 'package:cordis/widgets/common/filled_text_button.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class QuickActionSheet extends StatelessWidget {
   const QuickActionSheet({super.key});
@@ -79,23 +78,12 @@ class QuickActionSheet extends StatelessWidget {
               context,
             )!.addPlaceholder(AppLocalizations.of(context)!.cipher),
             onPressed: () {
-              final cipherProvider = context.read<CipherProvider>();
-              final localVersionProvider = context.read<LocalVersionProvider>();
-              final sectionProvider = context.read<SectionProvider>();
-
               Navigator.of(context).pop(); // Close the bottom sheet
               nav.attemptPop(context, route: NavigationRoute.library);
-              nav.push(
-                () => EditCipherScreen(
-                  cipherID: -1,
-                  versionID: -1,
-                  versionType: VersionType.brandNew,
-                ),
-                changeDetector: () =>
-                    (cipherProvider.hasUnsavedChanges ||
-                    localVersionProvider.hasUnsavedChanges ||
-                    sectionProvider.hasUnsavedChanges),
-                showBottomNavBar: true,
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                builder: (context) => NewSongSheet(),
               );
             },
           ),
