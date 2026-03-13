@@ -17,6 +17,10 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get appVersionNotSupported =>
+      'Essa versão do aplicativo não é mais suportada.\nPor favor, atualize para a versão mais recente para continuar usando o CORDIS.';
+
+  @override
   String get newHeart => 'New Heart Music Ministries';
 
   @override

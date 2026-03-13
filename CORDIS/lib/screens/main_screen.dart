@@ -1,4 +1,6 @@
+import 'package:cordis/l10n/app_localizations.dart';
 import 'package:cordis/models/domain/cipher/version.dart';
+import 'package:cordis/providers/app_info_provider.dart';
 import 'package:cordis/providers/cipher/cipher_provider.dart';
 import 'package:cordis/providers/section_provider.dart';
 import 'package:cordis/providers/user/my_auth_provider.dart';
@@ -27,32 +29,49 @@ class MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
-    
+
     // Use post-frame callback to avoid setState during build
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
-      
+
       // Load users
       final user = context.read<UserProvider>();
       final auth = context.read<MyAuthProvider>();
 
-      await user.ensureUserExists(auth.id!);  
+      await user.ensureUserExists(auth.id!);
       await user.loadUsers();
 
       final currentUser = user.getUserByFirebaseId(auth.id!);
 
       if (currentUser == null) {
-        throw Exception("Current user should not be null after ensuring existence and loading users");
+        throw Exception(
+          "Current user should not be null after ensuring existence and loading users",
+        );
       }
 
       auth.setUserData(currentUser);
     });
   }
-  
+
   @override
   Widget build(BuildContext context) {
+    final appInfo = context.read<AppInfoProvider>();
     return Consumer<NavigationProvider>(
       builder: (context, nav, child) {
+        /// APP VERSION BLOCKER (used to disable alpha versions)
+        final splitVersion = appInfo.appVersion.split('.');
+        if (splitVersion[0] == '2') {
+          return Scaffold(
+            body: Center(
+              child: Text(
+                AppLocalizations.of(context)!.appVersionNotSupported,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ),
+          );
+        }
+
         return PopScope(
           canPop: false,
           onPopInvokedWithResult: (didPop, _) async {
@@ -205,8 +224,7 @@ class MainScreenState extends State<MainScreen> {
     final localVer = context.read<LocalVersionProvider>();
 
     nav.push(
-      () => 
-      EditCipherScreen(
+      () => EditCipherScreen(
         versionID: -1,
         cipherID: -1,
         versionType: VersionType.brandNew,

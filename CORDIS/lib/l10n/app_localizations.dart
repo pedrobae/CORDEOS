@@ -110,6 +110,12 @@ abstract class AppLocalizations {
   /// **'Versão: {version}'**
   String appVersion(Object version);
 
+  /// Message displayed when the app version is no longer supported
+  ///
+  /// In pt, this message translates to:
+  /// **'Essa versão do aplicativo não é mais suportada.\nPor favor, atualize para a versão mais recente para continuar usando o CORDIS.'**
+  String get appVersionNotSupported;
+
   /// Company name
   ///
   /// In pt, this message translates to:

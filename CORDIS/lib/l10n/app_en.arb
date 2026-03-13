@@ -5,6 +5,8 @@
   "@appName": {"description": "Application name"},
   "appVersion": "Version: {version}",
   "@appVersion": {"description": "App version label", "placeholders": {"version": {}}},
+  "appVersionNotSupported": "This app version is no longer supported.\nPlease update to the latest version to continue using CORDIS.",
+  "@appVersionNotSupported": {"description": "Message displayed when the app version is no longer supported"},
 
   "newHeart" : "New Heart Music Ministries",
   "@newHeart" : {"description": "Company name"},
