@@ -63,7 +63,9 @@ class _HomeScreenState extends State<HomeScreen> {
             CloudScheduleProvider
           >(
             builder: (context, auth, localSch, cloudSch, child) {
-              return _buildContent(auth, localSch, cloudSch);
+              return SingleChildScrollView(
+                child: _buildContent(auth, localSch, cloudSch),
+              );
             },
           ),
     );

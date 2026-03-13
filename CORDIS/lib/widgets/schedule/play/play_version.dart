@@ -19,7 +19,6 @@ import 'package:cordis/utils/section_constants.dart';
 
 import 'package:cordis/widgets/ciphers/viewer/annotation_card.dart';
 import 'package:cordis/widgets/ciphers/viewer/section_card.dart';
-import 'package:cordis/widgets/ciphers/viewer/structure_list.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
 class PlayVersion extends StatefulWidget {
@@ -35,9 +34,7 @@ class PlayVersion extends StatefulWidget {
 class _PlayVersionState extends State<PlayVersion> {
   late final ScrollController _scrollController;
   late final AutoScrollProvider _scrollProvider;
-  late final ValueNotifier<bool> _showTopBar = ValueNotifier(false);
-  final _headerSectionKey = GlobalKey();
-  double _headerHeight = 0;
+
   bool isCloud = false;
 
   @override
@@ -49,36 +46,17 @@ class _PlayVersionState extends State<PlayVersion> {
     isCloud = widget.cloudVersionID != null;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _calculateHeaderHeight();
       _scrollController.addListener(_scrollListener);
     });
-  }
-
-  void _calculateHeaderHeight() {
-    final headerContext = _headerSectionKey.currentContext;
-    if (headerContext != null) {
-      final box = headerContext.findRenderObject() as RenderBox?;
-      if (box != null && box.hasSize) {
-        _headerHeight = box.size.height + kToolbarHeight + 10;
-      }
-    }
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
-    _showTopBar.dispose();
     super.dispose();
   }
 
   void _scrollListener() {
-    // Always check critical boundaries even when throttled
-    final offset = _scrollController.offset;
-    final shouldShow = offset > _headerHeight && offset > 0;
-    if (shouldShow != _showTopBar.value) {
-      _showTopBar.value = shouldShow; // Update without expensive setState
-    }
-
     final isManualScroll =
         _scrollController.position.userScrollDirection != ScrollDirection.idle;
 
@@ -157,48 +135,9 @@ class _PlayVersionState extends State<PlayVersion> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       spacing: 16,
                       children: [
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 50),
                         // HEADER
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          spacing: 16,
-                          children: [
-                            _buildHeader(textTheme),
-                            // SONG STRUCTURE
-                            Column(
-                              spacing: 4,
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 8.0),
-                                  child: Text(
-                                    AppLocalizations.of(context)!.songStructure,
-                                    style: textTheme.titleMedium,
-                                  ),
-                                ),
-                                Container(
-                                  key: _headerSectionKey,
-                                  padding: EdgeInsets.symmetric(vertical: 8),
-                                  decoration: BoxDecoration(
-                                    color: colorScheme.surface,
-                                    border: Border.fromBorderSide(
-                                      BorderSide(
-                                        color:
-                                            colorScheme.surfaceContainerLowest,
-                                        width: 1,
-                                      ),
-                                    ),
-                                  ),
-                                  child: StructureList(
-                                    versionId:
-                                        widget.localVersionID ??
-                                        widget.cloudVersionID!,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
+                        _buildHeader(textTheme),
                         // SECTION CARDS GRID
                         _buildSectionGrid(
                           sectionProvider,
@@ -211,25 +150,6 @@ class _PlayVersionState extends State<PlayVersion> {
                     ),
                   ),
                 ),
-
-                // SCROLL-CONDITIONAL TOP SONG STRUCTURE BAR
-                Positioned(
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  child: ValueListenableBuilder<bool>(
-                    valueListenable: _showTopBar,
-                    builder: (context, showBar, child) {
-                      return Visibility(
-                        visible: showBar,
-                        maintainState: true,
-                        child: child!,
-                      );
-                    },
-                    child: _buildStickyBar(context, colorScheme),
-                  ),
-                ),
-
                 // AUTO SCROLL INDICATOR
                 Positioned(
                   bottom: 66,
@@ -361,58 +281,6 @@ class _PlayVersionState extends State<PlayVersion> {
           sectionColor: section.contentColor,
         );
       },
-    );
-  }
-
-  Widget _buildStickyBar(BuildContext context, ColorScheme colorScheme) {
-    return SizedBox(
-      height: 66,
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.only(top: 10.0, bottom: 10.0, left: 8),
-              decoration: BoxDecoration(
-                color: colorScheme.surface,
-                border: Border(
-                  top: BorderSide(
-                    color: colorScheme.surfaceContainerHigh,
-                    width: 1,
-                  ),
-                  bottom: BorderSide(
-                    color: colorScheme.surfaceContainerHigh,
-                    width: 1,
-                  ),
-                ),
-              ),
-              child: StructureList(
-                versionId: widget.localVersionID ?? widget.cloudVersionID!,
-              ),
-            ),
-          ),
-          Container(
-            decoration: BoxDecoration(
-              color: colorScheme.surface,
-              border: Border(
-                left: BorderSide(
-                  color: colorScheme.surfaceContainerHigh,
-                  width: 1,
-                ),
-                bottom: BorderSide(
-                  color: colorScheme.surfaceContainerHigh,
-                  width: 1,
-                ),
-                top: BorderSide(
-                  color: colorScheme.surfaceContainerHigh,
-                  width: 1,
-                ),
-              ),
-            ),
-            height: 66,
-            width: 66,
-          ),
-        ],
-      ),
     );
   }
 }

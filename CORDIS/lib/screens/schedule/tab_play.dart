@@ -16,6 +16,7 @@ import 'package:cordis/providers/schedule/play_schedule_state_provider.dart';
 import 'package:cordis/providers/version/cloud_version_provider.dart';
 import 'package:cordis/providers/version/local_version_provider.dart';
 import 'package:cordis/providers/section_provider.dart';
+import 'package:cordis/widgets/ciphers/viewer/structure_list.dart';
 
 import 'package:cordis/widgets/schedule/play/play_flow_item.dart';
 import 'package:cordis/widgets/schedule/play/play_version.dart';
@@ -193,17 +194,65 @@ class PlayScheduleScreenState extends State<PlayScheduleScreen>
   Widget _buildCloseButton(NavigationProvider nav) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Positioned(
-      top: 8,
-      right: 8,
-      child: GestureDetector(
-        onTap: () => nav.attemptPop(context),
-        child: SizedBox(
-          width: 48,
-          height: 48,
-          child: Icon(Icons.close, color: colorScheme.primary, size: 26),
-        ),
-      ),
+    return Selector<PlayScheduleStateProvider, PlaylistItem?>(
+      selector: (context, state) => state.currentItem,
+      builder: (context, item, child) {
+        if (item == null) {
+          return SizedBox.shrink();
+        }
+
+        if (item.type == PlaylistItemType.flowItem) {
+          return Positioned(
+            top: 0,
+            right: 0,
+            child: IconButton(
+              onPressed: () {
+                nav.pop();
+              },
+              icon: Icon(Icons.close),
+            ),
+          );
+        }
+
+        return Positioned(
+          top: 0,
+          child: Container(
+            width: MediaQuery.of(context).size.width,
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              border: Border(
+                top: BorderSide(
+                  color: colorScheme.surfaceContainerHigh,
+                  width: 1,
+                ),
+                bottom: BorderSide(
+                  color: colorScheme.surfaceContainerHigh,
+                  width: 1,
+                ),
+              ),
+              color: colorScheme.surface,
+            ),
+            child: Row(
+              spacing: 8,
+              children: [
+                Expanded(
+                  child: StructureList(
+                    versionId: isCloud
+                        ? item.firebaseContentId
+                        : item.contentId,
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    nav.pop();
+                  },
+                  child: Icon(Icons.close, color: colorScheme.primary),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
