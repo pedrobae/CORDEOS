@@ -6,6 +6,8 @@ import 'package:cordis/providers/user/user_provider.dart';
 import 'package:cordis/providers/version/local_version_provider.dart';
 import 'package:cordis/screens/cipher/edit_cipher.dart';
 import 'package:cordis/screens/playlist/edit_playlist.dart';
+import 'package:cordis/screens/splash_screen.dart';
+import 'package:cordis/services/remote_config_service.dart';
 import 'package:cordis/widgets/ciphers/editor/sections/sheet_new_section.dart';
 import 'package:cordis/widgets/home/quick_action_sheet.dart';
 import 'package:cordis/widgets/schedule/library/sheet_actions.dart';
@@ -23,14 +25,20 @@ class MainScreen extends StatefulWidget {
   MainScreenState createState() => MainScreenState();
 }
 
-class MainScreenState extends State<MainScreen> {
+class MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
+  bool _versionGateTriggered = false;
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     
     // Use post-frame callback to avoid setState during build
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
+
+      await _runVersionGate();
+      if (!mounted || _versionGateTriggered) return;
       
       // Load users
       final user = context.read<UserProvider>();
@@ -47,6 +55,38 @@ class MainScreenState extends State<MainScreen> {
 
       auth.setUserData(currentUser);
     });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _runVersionGate();
+    }
+  }
+
+  Future<void> _runVersionGate() async {
+    if (_versionGateTriggered) {
+      return;
+    }
+
+    await RemoteConfigService.initializeAndFetch();
+    final isSupported = await RemoteConfigService.isCurrentVersionSupported();
+
+    if (!mounted || isSupported || _versionGateTriggered) {
+      return;
+    }
+
+    _versionGateTriggered = true;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => const SplashScreen()),
+      (route) => false,
+    );
   }
   
   @override
