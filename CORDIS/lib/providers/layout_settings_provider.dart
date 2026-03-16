@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/settings_service.dart';
 
 enum ContentFilter { chords, lyrics }
+
 enum LayoutFilter { annotations, transitions }
 
 class LayoutSettingsProvider extends ChangeNotifier {
@@ -9,6 +10,9 @@ class LayoutSettingsProvider extends ChangeNotifier {
   String fontFamily = 'OpenSans';
   bool showSectionHeaders = true;
   Axis scrollDirection = Axis.vertical;
+
+  Axis get wrapDirection =>
+      scrollDirection == Axis.vertical ? Axis.horizontal : Axis.vertical;
 
   bool _showChords = true;
   bool _showLyrics = true;
@@ -24,8 +28,6 @@ class LayoutSettingsProvider extends ChangeNotifier {
     LayoutFilter.annotations: _showAnnotations,
     LayoutFilter.transitions: _showTransitions,
   };
-
-
 
   /// Initialize with stored settings
   Future<void> loadSettings() async {
@@ -54,7 +56,9 @@ class LayoutSettingsProvider extends ChangeNotifier {
   }
 
   void toggleAxisDirection() {
-    scrollDirection = scrollDirection == Axis.vertical ? Axis.horizontal : Axis.vertical;
+    scrollDirection = scrollDirection == Axis.vertical
+        ? Axis.horizontal
+        : Axis.vertical;
     SettingsService.setScrollDirection(scrollDirection);
     notifyListeners();
   }

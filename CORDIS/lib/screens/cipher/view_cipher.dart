@@ -52,6 +52,33 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
     });
   }
 
+  Future<void> _loadData() async {
+    if (!mounted) return;
+    final sect = context.read<SectionProvider>();
+    final cloudVer = context.read<CloudVersionProvider>();
+
+    switch (widget.versionType) {
+      case VersionType.import:
+      case VersionType.brandNew:
+        break;
+      case VersionType.local:
+      case VersionType.playlist:
+        if (widget.versionID != null) {
+          await sect.loadSectionsOfVersion(widget.versionID);
+        }
+        break;
+      case VersionType.cloud:
+        if (widget.versionID != null) {
+          final version = cloudVer.getVersion(widget.versionID);
+          sect.setNewSectionsInCache(
+            widget.versionID,
+            version!.toDomain().sections!,
+          );
+        }
+        break;
+    }
+  }
+
   void _setOriginalKey() {
     final trans = context.read<TranspositionProvider>();
     final cloudVer = context.read<CloudVersionProvider>();
@@ -86,25 +113,17 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
       builder: (context, ciph, localVer, cloudVer, laySet, child) {
         final versionData = _extractVersionData(ciph, localVer, cloudVer);
 
-        final filteredStructure = <String>[];
-        for (var sectionCode in versionData.songStructure) {
-          if (!laySet.layoutFilters[LayoutFilter.annotations]! &&
-              isAnnotation(sectionCode)) {
-            continue;
-          }
-          if (!laySet.layoutFilters[LayoutFilter.transitions]! &&
-              isTransition(sectionCode)) {
-            continue;
-          }
-          filteredStructure.add(sectionCode);
-        }
+        final filteredStructure = _filterStructure(
+          versionData.songStructure,
+          laySet,
+        );
 
         return Column(
           mainAxisSize: MainAxisSize.max,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           spacing: 16,
           children: [
-            _buildActionBar(ciph, localVer, laySet),
+            _buildActionBar(laySet),
             _buildSectionsGrid(filteredStructure, versionData, laySet),
           ],
         );
@@ -137,6 +156,101 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
         songStructure: version?.songStructure ?? [],
       );
     }
+  }
+
+  List<String> _filterStructure(
+    List<String> structure,
+    LayoutSettingsProvider laySet,
+  ) {
+    final filteredStructure = <String>[];
+    for (var sectionCode in structure) {
+      if (!laySet.layoutFilters[LayoutFilter.annotations]! &&
+          isAnnotation(sectionCode)) {
+        continue;
+      }
+      if (!laySet.layoutFilters[LayoutFilter.transitions]! &&
+          isTransition(sectionCode)) {
+        continue;
+      }
+      filteredStructure.add(sectionCode);
+    }
+    return filteredStructure;
+  }
+
+  Widget _buildActionBar(LayoutSettingsProvider laySet) {
+    final isWideScreen = MediaQuery.of(context).size.width > 600;
+
+    return Column(
+      children: [
+        Row(
+          children: [
+            if (isWideScreen)
+              Expanded(child: StructureList(versionId: widget.versionID)),
+
+            if (widget.versionType == VersionType.local) ...[
+              IconButton(
+                icon: const Icon(Icons.edit),
+                onPressed: _navigateToEditScreen(),
+              ),
+              Spacer(),
+            ],
+            IconButton(
+              icon: const Icon(Icons.text_fields),
+              onPressed: _showStyleSettings(),
+            ),
+            IconButton(
+              icon: const Icon(Icons.filter_alt),
+              onPressed: _showFilters(),
+            ),
+            Spacer(),
+
+            const Transposer(),
+            Spacer(),
+            IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: () =>
+                  context.read<NavigationProvider>().attemptPop(context),
+            ),
+          ],
+        ),
+        if (!isWideScreen) StructureList(versionId: widget.versionID),
+      ],
+    );
+  }
+
+  Widget _buildSectionsGrid(
+    List<String> filteredStructure,
+    _VersionData versionData,
+    LayoutSettingsProvider laySet,
+  ) {
+    return Consumer<SectionProvider>(
+      builder: (context, sect, child) {
+        if (sect.isLoading) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final sectionCardList = _buildSectionCards(
+          filteredStructure,
+          versionData,
+          sect,
+        );
+
+        return Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: SingleChildScrollView(
+              scrollDirection: laySet.scrollDirection,
+              child: Wrap(
+                direction: _getOppositeAxis(laySet.scrollDirection),
+                spacing: 16,
+                runSpacing: 16,
+                children: sectionCardList,
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   List<Widget> _buildSectionCards(
@@ -182,71 +296,6 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
     }
     sectionCardList.add(const SizedBox(height: 200));
     return sectionCardList;
-  }
-
-  Widget _buildActionBar(
-    CipherProvider ciph,
-    LocalVersionProvider localVer,
-    LayoutSettingsProvider laySet,
-  ) {
-    final isWideScreen = MediaQuery.of(context).size.width > 600;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              if (isWideScreen)
-                Expanded(child: StructureList(versionId: widget.versionID)),
-
-              if (widget.versionType == VersionType.local) ...[
-                IconButton(
-                  icon: const Icon(Icons.edit),
-                  onPressed: () => _navigateToEditScreen(),
-                ),
-              ],
-              IconButton(
-                icon: const Icon(Icons.text_fields),
-                onPressed: _showStyleSettings(),
-              ),
-              IconButton(
-                icon: const Icon(Icons.filter_alt),
-                onPressed: _showFilters(),
-              ),
-              const Transposer(),
-              IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: () =>
-                    context.read<NavigationProvider>().attemptPop(context),
-              ),
-            ],
-          ),
-          if (!isWideScreen) StructureList(versionId: widget.versionID),
-        ],
-      ),
-    );
-  }
-
-  void _navigateToEditScreen() {
-    final localVer = context.read<LocalVersionProvider>();
-    final ciph = context.read<CipherProvider>();
-    final sect = context.read<SectionProvider>();
-    context.read<NavigationProvider>().push(
-      () => EditCipherScreen(
-        cipherID: widget.cipherID!,
-        versionID: widget.versionID,
-        versionType: widget.versionType,
-      ),
-      changeDetector: () {
-        return widget.versionID is String
-            ? false
-            : (localVer.hasUnsavedChanges ||
-                  ciph.hasUnsavedChanges ||
-                  sect.hasUnsavedChanges);
-      },
-      showBottomNavBar: true,
-    );
   }
 
   Widget _buildHeaderSection(_VersionData versionData) {
@@ -305,72 +354,6 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
     );
   }
 
-  Widget _buildSectionsGrid(
-    List<String> filteredStructure,
-    _VersionData versionData,
-    LayoutSettingsProvider laySet,
-  ) {
-    return Consumer<SectionProvider>(
-      builder: (context, sect, child) {
-        if (sect.isLoading) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        final sectionCardList = _buildSectionCards(
-          filteredStructure,
-          versionData,
-          sect,
-        );
-
-        return Expanded(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: SingleChildScrollView(
-              scrollDirection: laySet.scrollDirection,
-              child: Wrap(
-                direction: _getOppositeAxis(laySet.scrollDirection),
-                spacing: 16,
-                runSpacing: 16,
-                children: sectionCardList,
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Axis _getOppositeAxis(Axis axis) {
-    return axis == Axis.vertical ? Axis.horizontal : Axis.vertical;
-  }
-
-  Future<void> _loadData() async {
-    if (!mounted) return;
-    final sect = context.read<SectionProvider>();
-    final cloudVer = context.read<CloudVersionProvider>();
-
-    switch (widget.versionType) {
-      case VersionType.import:
-      case VersionType.brandNew:
-        break;
-      case VersionType.local:
-      case VersionType.playlist:
-        if (widget.versionID != null) {
-          await sect.loadSectionsOfVersion(widget.versionID);
-        }
-        break;
-      case VersionType.cloud:
-        if (widget.versionID != null) {
-          final version = cloudVer.getVersion(widget.versionID);
-          sect.setNewSectionsInCache(
-            widget.versionID,
-            version!.toDomain().sections!,
-          );
-        }
-        break;
-    }
-  }
-
   VoidCallback _showStyleSettings() {
     return () {
       showModalBottomSheet(
@@ -397,6 +380,33 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
         ),
       );
     };
+  }
+
+  VoidCallback _navigateToEditScreen() {
+    return () {
+      final localVer = context.read<LocalVersionProvider>();
+      final ciph = context.read<CipherProvider>();
+      final sect = context.read<SectionProvider>();
+      context.read<NavigationProvider>().push(
+        () => EditCipherScreen(
+          cipherID: widget.cipherID!,
+          versionID: widget.versionID,
+          versionType: widget.versionType,
+        ),
+        changeDetector: () {
+          return widget.versionID is String
+              ? false
+              : (localVer.hasUnsavedChanges ||
+                    ciph.hasUnsavedChanges ||
+                    sect.hasUnsavedChanges);
+        },
+        showBottomNavBar: true,
+      );
+    };
+  }
+
+  Axis _getOppositeAxis(Axis axis) {
+    return axis == Axis.vertical ? Axis.horizontal : Axis.vertical;
   }
 }
 

@@ -1,9 +1,14 @@
+import 'package:flutter/material.dart';
 import 'package:cordis/helpers/codes.dart';
+
 import 'package:cordis/l10n/app_localizations.dart';
+
 import 'package:cordis/models/domain/playlist/flow_item.dart';
 import 'package:cordis/models/domain/playlist/playlist_item.dart';
 import 'package:cordis/models/domain/schedule.dart';
 import 'package:cordis/models/dtos/version_dto.dart';
+
+import 'package:provider/provider.dart';
 import 'package:cordis/providers/auto_scroll_provider.dart';
 import 'package:cordis/providers/cipher/cipher_provider.dart';
 import 'package:cordis/providers/navigation_provider.dart';
@@ -12,16 +17,16 @@ import 'package:cordis/providers/playlist/playlist_provider.dart';
 import 'package:cordis/providers/schedule/cloud_schedule_provider.dart';
 import 'package:cordis/providers/schedule/local_schedule_provider.dart';
 import 'package:cordis/providers/version/local_version_provider.dart';
+
 import 'package:cordis/screens/playlist/view_playlist.dart';
-import 'package:cordis/screens/schedule/tab_play.dart';
-import 'package:cordis/screens/schedule/vert_play.dart';
+import 'package:cordis/screens/schedule/play.dart';
+
 import 'package:cordis/utils/date_utils.dart';
+
 import 'package:cordis/widgets/common/filled_text_button.dart';
 import 'package:cordis/widgets/schedule/create_edit/edit_details.dart';
 import 'package:cordis/widgets/schedule/create_edit/edit_roles.dart';
 import 'package:cordis/widgets/schedule/status_chip.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class ViewScheduleScreen extends StatefulWidget {
   final int scheduleId;
@@ -129,7 +134,7 @@ class _ViewScheduleScreenState extends State<ViewScheduleScreen> {
         Expanded(
           child: Wrap(
             crossAxisAlignment: WrapCrossAlignment.center,
-                spacing: 16,
+            spacing: 16,
             children: [
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -165,16 +170,8 @@ class _ViewScheduleScreenState extends State<ViewScheduleScreen> {
           ),
         ),
         IconButton(
-          icon: Icon(Icons.play_circle, size: 32,),
+          icon: Icon(Icons.play_circle, size: 32),
           onPressed: () {
-            nav.push(
-              () => PlayScheduleScreen(scheduleId: widget.scheduleId),
-              onPopCallback: () {
-                context.read<AutoScrollProvider>().clearCache();
-              },
-            );
-          },
-          onLongPress: () {
             nav.push(
               () => VertPlaySchedule(scheduleId: widget.scheduleId),
               onPopCallback: () {

@@ -18,7 +18,7 @@ class AnnotationCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
-    final width = MediaQuery.of(context).size.width > 300
+    final width = MediaQuery.of(context).size.width > 600
       ? max(300.0, MediaQuery.of(context).size.width / 4)
         : MediaQuery.of(context).size.width;
 

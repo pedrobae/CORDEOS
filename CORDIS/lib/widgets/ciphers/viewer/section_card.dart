@@ -24,7 +24,7 @@ class SectionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
-    final double width = MediaQuery.of(context).size.width > 300
+    final double width = MediaQuery.of(context).size.width > 600
         ? max(300, MediaQuery.of(context).size.width / 4)
         : MediaQuery.of(context).size.width;
 

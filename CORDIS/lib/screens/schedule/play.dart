@@ -230,7 +230,7 @@ class VertPlayScheduleState extends State<VertPlaySchedule> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
+    return Column(
       children: [
         _buildListView(),
         _buildStructBar(),
@@ -355,7 +355,7 @@ class VertPlayScheduleState extends State<VertPlaySchedule> {
                             ),
                           ),
                         ),
-                        Divider(color: colorScheme.primary)
+                        Divider(color: colorScheme.primary),
                       ],
                     );
                   },
@@ -380,9 +380,9 @@ class VertPlayScheduleState extends State<VertPlaySchedule> {
 
     final nav = context.read<NavigationProvider>();
 
-    return Consumer<PlayScheduleStateProvider>(
-      builder: (context, state, child) {
-        final item = state.currentItem;
+    return Selector<PlayScheduleStateProvider, PlaylistItem?>(
+      selector: (_, state) => state.currentItem,
+      builder: (context, item, child) {
         if (item == null) return SizedBox.shrink();
         if (item.type == PlaylistItemType.flowItem) {
           return Positioned(
@@ -453,11 +453,13 @@ class VertPlayScheduleState extends State<VertPlaySchedule> {
           ),
         ),
         width: MediaQuery.of(context).size.width,
-        child: Consumer<PlayScheduleStateProvider>(
-          builder: (context, state, child) {
+        child: Selector<PlayScheduleStateProvider, bool>(
+          selector: (_, state) => state.showSettings,
+          builder: (context, showSettings, child) {
+            final state = context.read<PlayScheduleStateProvider>();
             return Column(
               children: [
-                if (state.showSettings) _buildSettingsControls(state),
+                if (showSettings) _buildSettingsControls(state),
                 _buildPlayControls(state),
               ],
             );
@@ -527,16 +529,19 @@ class VertPlayScheduleState extends State<VertPlaySchedule> {
   }
 
   Widget _buildPlayControls(PlayScheduleStateProvider state) {
-    final currentIndex = state.currentItemIndex;
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      mainAxisSize: MainAxisSize.max,
-      children: [
-        _buildPreviousButton(state, currentIndex),
-        _buildNextTitleSection(currentIndex, state),
-        _buildNextButton(state, currentIndex),
-      ],
+    return Selector<PlayScheduleStateProvider, int>(
+      selector: (_, value) => value.currentItemIndex,
+      builder: (context, currentIndex, child) {
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            _buildPreviousButton(state, currentIndex),
+            _buildNextTitleSection(currentIndex, state),
+            _buildNextButton(state, currentIndex),
+          ],
+        );
+      },
     );
   }
 
@@ -573,39 +578,36 @@ class VertPlayScheduleState extends State<VertPlaySchedule> {
       width: MediaQuery.of(context).size.width / 2,
       child: GestureDetector(
         onTap: () => state.toggleSettings(),
-        child:
-            Consumer4<
-              LocalVersionProvider,
-              CipherProvider,
-              FlowItemProvider,
-              CloudScheduleProvider
-            >(
-              builder: (context, localVer, ciph, flow, cloudVer, child) {
-                String nextTitle = '';
-                final currentItem = state.currentItem;
-                if (currentItem != null &&
-                    state.currentItemIndex < state.itemCount - 1) {
-                  final nextItem = state.nextItem;
-                  nextTitle = _getItemTitle(
-                    nextItem,
-                    localVer,
-                    ciph,
-                    flow,
-                    cloudVer,
-                  );
-                }
-                return Text(
-                  nextTitle.isEmpty
-                      ? '-'
-                      : AppLocalizations.of(
-                          context,
-                        )!.nextPlaceholder(nextTitle),
-                  style: textTheme.bodyLarge,
-                  softWrap: true,
-                  textAlign: TextAlign.center,
-                );
-              },
-            ),
+        child: Selector<PlayScheduleStateProvider, (int, int, PlaylistItem?)>(
+          selector: (_, s) => (s.currentItemIndex, s.itemCount, s.nextItem),
+          builder: (context, value, child) {
+            final (selectedIndex, itemCount, nextItem) = value;
+
+            String nextTitle = '';
+            if (selectedIndex < itemCount - 1 && nextItem != null) {
+              final localVer = context.read<LocalVersionProvider>();
+              final ciph = context.read<CipherProvider>();
+              final flow = context.read<FlowItemProvider>();
+              final cloudVer = context.read<CloudScheduleProvider>();
+              nextTitle = _getItemTitle(
+                nextItem,
+                localVer,
+                ciph,
+                flow,
+                cloudVer,
+              );
+            }
+
+            return Text(
+              nextTitle.isEmpty
+                  ? '-'
+                  : AppLocalizations.of(context)!.nextPlaceholder(nextTitle),
+              style: textTheme.bodyLarge,
+              softWrap: true,
+              textAlign: TextAlign.center,
+            );
+          },
+        ),
       ),
     );
   }
@@ -668,87 +670,98 @@ class VertPlayScheduleState extends State<VertPlaySchedule> {
   }
 
   Widget _buildSectionGrid(int itemIndex, dynamic versionId) {
-    return Consumer4<
-      LocalVersionProvider,
-      CloudVersionProvider,
-      SectionProvider,
-      LayoutSettingsProvider
-    >(
-      builder: (context, localVer, cloudVer, sect, laySet, child) {
-        List<String> songStructure;
-        if (isCloud) {
-          final version = cloudVer.getVersion(versionId);
-          if (version == null) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          songStructure = version.songStructure;
-        } else {
-          final version = localVer.getVersion(versionId);
-          if (version == null) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          songStructure = version.songStructure;
-        }
+    return Selector<LayoutSettingsProvider, (bool, bool)>(
+      selector: (_, laySet) => (
+        laySet.layoutFilters[LayoutFilter.annotations]!,
+        laySet.layoutFilters[LayoutFilter.transitions]!,
+      ),
+      builder: (context, filters, child) {
+        final (showAnnotations, showTransitions) = filters;
 
-        final filteredStructure = songStructure
-            .where(
-              (sectionCode) =>
-                  ((laySet.layoutFilters[LayoutFilter.annotations]! ||
-                      !isAnnotation(sectionCode)) &&
-                  (laySet.layoutFilters[LayoutFilter.transitions]! ||
-                      !isTransition(sectionCode))),
-            )
-            .toList();
-
-        final scroll = context.read<AutoScrollProvider>();
-
-        for (var i = 0; i < filteredStructure.length; i++) {
-          scroll.registerVerticalSection(itemIndex, i);
-        }
-
-        return MasonryGridView.count(
-          crossAxisCount: 1,// TODO-updateToNewScroll: laySet.scrollDirection == Axis.vertical ? 1 : 2,
-          mainAxisSpacing: 16,
-          crossAxisSpacing: 16,
-          itemCount: filteredStructure.length,
-          physics: const NeverScrollableScrollPhysics(),
-          shrinkWrap: true,
-          itemBuilder: (context, index) {
-            final trimmedCode = filteredStructure[index].trim();
-            final sectionKey = scroll.registerVerticalSection(itemIndex, index);
-            final section = isCloud
-                ? () {
-                    final sectionMap = cloudVer
-                        .getVersion(versionId)!
-                        .sections[trimmedCode]!;
-                    return Section.fromFirestore(sectionMap);
-                  }()
-                : sect.getSection(versionId, trimmedCode);
-
-            if (section == null) {
-              return const SizedBox.shrink();
+        return Consumer3<
+          LocalVersionProvider,
+          CloudVersionProvider,
+          SectionProvider
+        >(
+          builder: (context, localVer, cloudVer, sect, child) {
+            List<String> songStructure;
+            if (isCloud) {
+              final version = cloudVer.getVersion(versionId);
+              if (version == null) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              songStructure = version.songStructure;
+            } else {
+              final version = localVer.getVersion(versionId);
+              if (version == null) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              songStructure = version.songStructure;
             }
 
-            scroll.setVerticalSectionLineCount(
-              itemIndex,
-              index,
-              section.contentText.split('\n').length,
-            );
+            final filteredStructure = songStructure
+                .where(
+                  (sectionCode) =>
+                      ((showAnnotations || !isAnnotation(sectionCode)) &&
+                      (showTransitions || !isTransition(sectionCode))),
+                )
+                .toList();
 
-            if (isAnnotation(trimmedCode)) {
-              return AnnotationCard(
-                key: sectionKey,
-                sectionText: section.contentText,
-                sectionType: section.contentType,
-              );
+            final scroll = context.read<AutoScrollProvider>();
+
+            for (var i = 0; i < filteredStructure.length; i++) {
+              scroll.registerVerticalSection(itemIndex, i);
             }
 
-            return SectionCard(
-              key: sectionKey,
-              sectionType: section.contentType,
-              sectionCode: trimmedCode,
-              sectionText: section.contentText,
-              sectionColor: section.contentColor,
+            return MasonryGridView.count(
+              crossAxisCount:
+                  1, // TODO-updateToNewScroll: laySet.scrollDirection == Axis.vertical ? 1 : 2,
+              mainAxisSpacing: 16,
+              crossAxisSpacing: 16,
+              itemCount: filteredStructure.length,
+              physics: const NeverScrollableScrollPhysics(),
+              shrinkWrap: true,
+              itemBuilder: (context, index) {
+                final trimmedCode = filteredStructure[index].trim();
+                final sectionKey = scroll.registerVerticalSection(
+                  itemIndex,
+                  index,
+                );
+                final section = isCloud
+                    ? () {
+                        final sectionMap = cloudVer
+                            .getVersion(versionId)!
+                            .sections[trimmedCode]!;
+                        return Section.fromFirestore(sectionMap);
+                      }()
+                    : sect.getSection(versionId, trimmedCode);
+
+                if (section == null) {
+                  return const SizedBox.shrink();
+                }
+
+                scroll.setVerticalSectionLineCount(
+                  itemIndex,
+                  index,
+                  section.contentText.split('\n').length,
+                );
+
+                if (isAnnotation(trimmedCode)) {
+                  return AnnotationCard(
+                    key: sectionKey,
+                    sectionText: section.contentText,
+                    sectionType: section.contentType,
+                  );
+                }
+
+                return SectionCard(
+                  key: sectionKey,
+                  sectionType: section.contentType,
+                  sectionCode: trimmedCode,
+                  sectionText: section.contentText,
+                  sectionColor: section.contentColor,
+                );
+              },
             );
           },
         );
