@@ -14,6 +14,7 @@ class SettingsService {
   static const String _keyFontFamily = 'layout_font_family';
   static const String _keyShowSectionHeaders = 'layout_show_section_headers';
   static const String _keyScrollDirection = 'layout_scroll_direction';
+  static const String _keyCardWidthMult = 'layout_card_width_mult';
 
   // Filter Settings Keys
   static const String _keyShowChords = 'layout_show_chords';
@@ -148,6 +149,14 @@ class SettingsService {
 
   static bool getShowSectionHeaders() {
     return _preferences.getBool(_keyShowSectionHeaders) ?? true;
+  }
+
+  static Future<void> setCardWidthMult(double value) async {
+    await _preferences.setDouble(_keyCardWidthMult, value);
+  }
+
+  static double getCardWidthMult() {
+    return _preferences.getDouble(_keyCardWidthMult) ?? 0.9;
   }
 
   /// Save show chords

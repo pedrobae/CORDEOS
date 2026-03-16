@@ -193,6 +193,13 @@
   "contentFilters": "Filtros de Conteúdo",
   "@contentFilters": {"description": "Title for content filters settings section"},
 
+  "cardWidth": "Largura da Seção",
+  "@cardWidth": {"description": "Label for card width setting"},
+  "small": "Pequeno",
+  "@small": {"description": "Label for small card width"},
+  "large": "Grande",
+  "@large": {"description": "Label for large card width"},
+
   "autoScrollSettings": "Configurações de Rolagem Automática",
   "@autoScrollSettings": {"description": "Title for auto-scroll settings section"},
   "autoScroll": "Rolagem Automática",

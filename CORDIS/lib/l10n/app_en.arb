@@ -184,6 +184,14 @@
   "contentFilters": "Content Filters",
   "@contentFilters": {"description": "Title for content filters settings section"},
 
+  "cardWidth": "Card Width",
+  "@cardWidth": {"description": "Label for card width setting"},
+  "small": "Small",
+  "@small": {"description": "Label for small card width"},
+  "large": "Large",
+  "@large": {"description": "Label for large card width"},
+
+
   "autoScrollSettings": "Auto-Scroll Settings",
   "@autoScrollSettings": {"description": "Title for auto-scroll settings section"},
   "autoScroll": "Auto-Scroll",

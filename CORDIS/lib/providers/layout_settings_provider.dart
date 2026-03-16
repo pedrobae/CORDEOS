@@ -13,6 +13,7 @@ class LayoutSettingsProvider extends ChangeNotifier {
 
   Axis get wrapDirection =>
       scrollDirection == Axis.vertical ? Axis.horizontal : Axis.vertical;
+  double cardWidthMult = 0.9;
 
   bool _showChords = true;
   bool _showLyrics = true;
@@ -39,6 +40,7 @@ class LayoutSettingsProvider extends ChangeNotifier {
     _showAnnotations = SettingsService.getShowNotes();
     _showTransitions = SettingsService.getShowTransitions();
     showSectionHeaders = SettingsService.getShowSectionHeaders();
+    cardWidthMult = SettingsService.getCardWidthMult();
     notifyListeners();
   }
 
@@ -60,6 +62,12 @@ class LayoutSettingsProvider extends ChangeNotifier {
         ? Axis.horizontal
         : Axis.vertical;
     SettingsService.setScrollDirection(scrollDirection);
+    notifyListeners();
+  }
+
+  void setCardWidthMult(double value) {
+    cardWidthMult = value;
+    SettingsService.setCardWidthMult(value);
     notifyListeners();
   }
 

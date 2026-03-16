@@ -284,6 +284,15 @@ class AppLocalizationsPt extends AppLocalizations {
   String get contentFilters => 'Filtros de Conteúdo';
 
   @override
+  String get cardWidth => 'Largura da Seção';
+
+  @override
+  String get small => 'Pequeno';
+
+  @override
+  String get large => 'Grande';
+
+  @override
   String get autoScrollSettings => 'Configurações de Rolagem Automática';
 
   @override

@@ -602,6 +602,24 @@ abstract class AppLocalizations {
   /// **'Filtros de Conteúdo'**
   String get contentFilters;
 
+  /// Label for card width setting
+  ///
+  /// In pt, this message translates to:
+  /// **'Largura da Seção'**
+  String get cardWidth;
+
+  /// Label for small card width
+  ///
+  /// In pt, this message translates to:
+  /// **'Pequeno'**
+  String get small;
+
+  /// Label for large card width
+  ///
+  /// In pt, this message translates to:
+  /// **'Grande'**
+  String get large;
+
   /// Title for auto-scroll settings section
   ///
   /// In pt, this message translates to:

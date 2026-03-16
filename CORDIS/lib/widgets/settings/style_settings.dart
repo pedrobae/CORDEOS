@@ -65,6 +65,54 @@ class StyleSettings extends StatelessWidget {
                   ],
                 ),
               ),
+
+              /// COMPACT VIEW
+              _buildOption(
+                context,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        AppLocalizations.of(context)!.compactView,
+                        style: textTheme.labelLarge,
+                      ),
+                    ),
+                    Switch(
+                      value: !settings.showSectionHeaders,
+                      onChanged: (_) => settings.toggleSectionHeaders(),
+                    ),
+                  ],
+                ),
+              ),
+              // CARD WIDTH SETTINGS
+              _buildOption(
+                context,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        AppLocalizations.of(context)!.cardWidth,
+                        style: textTheme.labelLarge,
+                      ),
+                    ),
+                    Slider(
+                      value: settings.cardWidthMult * 10,
+                      min: 1,
+                      max: 9,
+                      divisions: 9,
+                      label: [
+                        AppLocalizations.of(context)!.small,
+                        AppLocalizations.of(context)!.medium,
+                        AppLocalizations.of(context)!.large,
+                      ][(settings.cardWidthMult * 10 - 1) ~/ 3],
+                      onChanged: (v) {
+                        settings.setCardWidthMult(v * 0.1);
+                      },
+                    ),
+                  ],
+                ),
+              ),
+
               // FONT SETTINGS
               _buildOption(
                 context,
@@ -80,6 +128,7 @@ class StyleSettings extends StatelessWidget {
                             child: Text(
                               'OpenSans',
                               style: textTheme.labelLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
                                 fontFamily: 'OpenSans',
                               ),
                             ),
@@ -89,6 +138,7 @@ class StyleSettings extends StatelessWidget {
                             child: Text(
                               'Asimovian',
                               style: textTheme.labelLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
                                 fontFamily: 'Asimovian',
                               ),
                             ),
@@ -98,6 +148,7 @@ class StyleSettings extends StatelessWidget {
                             child: Text(
                               'Atkinson',
                               style: textTheme.labelLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
                                 fontFamily: 'Atkinson',
                               ),
                             ),
@@ -107,6 +158,7 @@ class StyleSettings extends StatelessWidget {
                             child: Text(
                               'Caveat',
                               style: textTheme.labelLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
                                 fontFamily: 'Caveat',
                               ),
                             ),
@@ -132,25 +184,6 @@ class StyleSettings extends StatelessWidget {
                         if (v != null) settings.setFontSize(v);
                       },
                       underline: Container(),
-                    ),
-                  ],
-                ),
-              ),
-
-              /// COMPACT VIEW
-              _buildOption(
-                context,
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        AppLocalizations.of(context)!.compactView,
-                        style: textTheme.labelLarge,
-                      ),
-                    ),
-                    Switch(
-                      value: !settings.showSectionHeaders,
-                      onChanged: (_) => settings.toggleSectionHeaders(),
                     ),
                   ],
                 ),

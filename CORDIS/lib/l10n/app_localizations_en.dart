@@ -281,6 +281,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get contentFilters => 'Content Filters';
 
   @override
+  String get cardWidth => 'Card Width';
+
+  @override
+  String get small => 'Small';
+
+  @override
+  String get large => 'Large';
+
+  @override
   String get autoScrollSettings => 'Auto-Scroll Settings';
 
   @override

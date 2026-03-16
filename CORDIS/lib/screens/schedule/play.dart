@@ -40,6 +40,7 @@ class VertPlaySchedule extends StatefulWidget {
 
 class VertPlayScheduleState extends State<VertPlaySchedule> {
   late final bool isCloud = widget.scheduleId is String;
+  late final bool isWide = MediaQuery.of(context).size.width > 600;
 
   late final PlayScheduleStateProvider _state;
   late final AutoScrollProvider _scroll;
@@ -292,11 +293,33 @@ class VertPlayScheduleState extends State<VertPlaySchedule> {
                   versionId: isCloud ? item.firebaseContentId : item.contentId,
                 ),
               ),
+              if (isWide) ...[
+                /// Show setting button on wide screens
+                _buildSettingsButton(
+                  Icons.format_paint,
+                  colorScheme,
+                  () => _openSettingsSheet(StyleSettings()),
+                ),
+                _buildSettingsButton(
+                  Icons.filter_alt,
+                  colorScheme,
+                  () => _openSettingsSheet(ContentFilters()),
+                ),
+                _buildSettingsButton(
+                  Icons.auto_stories_outlined,
+                  colorScheme,
+                  () => _openSettingsSheet(AutoScrollSettings()),
+                ),
+              ],
               GestureDetector(
                 onTap: () {
                   nav.pop();
                 },
-                child: Icon(Icons.close, color: colorScheme.primary),
+                child: SizedBox(
+                  width: 40,
+                  height: 40,
+                  child: Icon(Icons.close, color: colorScheme.primary),
+                ),
               ),
             ],
           ),
@@ -348,17 +371,17 @@ class VertPlayScheduleState extends State<VertPlaySchedule> {
           _buildSettingsButton(
             Icons.format_paint,
             colorScheme,
-            () => _openSettingsSheet(StyleSettings(), state),
+            () => _openSettingsSheet(StyleSettings(), state: state),
           ),
           _buildSettingsButton(
             Icons.filter_alt,
             colorScheme,
-            () => _openSettingsSheet(ContentFilters(), state),
+            () => _openSettingsSheet(ContentFilters(), state: state),
           ),
           _buildSettingsButton(
             Icons.auto_stories_outlined,
             colorScheme,
-            () => _openSettingsSheet(AutoScrollSettings(), state),
+            () => _openSettingsSheet(AutoScrollSettings(), state: state),
           ),
         ],
       ),
@@ -380,8 +403,8 @@ class VertPlayScheduleState extends State<VertPlaySchedule> {
     );
   }
 
-  void _openSettingsSheet(Widget sheet, PlayScheduleStateProvider state) {
-    state.setShowSettings(false);
+  void _openSettingsSheet(Widget sheet, {PlayScheduleStateProvider? state}) {
+    if (state != null && !isWide) state.setShowSettings(false);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -449,7 +472,9 @@ class VertPlayScheduleState extends State<VertPlaySchedule> {
     return SizedBox(
       width: MediaQuery.of(context).size.width / 2,
       child: GestureDetector(
-        onTap: () => state.toggleSettings(),
+        onTap: () {
+          if (!isWide) state.toggleSettings();
+        },
         child: Selector<PlayScheduleStateProvider, PlaylistItem?>(
           selector: (_, s) => s.nextItem,
           builder: (context, nextItem, child) {
