@@ -26,19 +26,23 @@ class ContentWrap extends StatefulWidget {
 }
 
 class _ContentWrapState extends State<ContentWrap> {
-  List<Widget> contentWidgets = [];
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    contentWidgets = _registerAndBuildContent();
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Selector<LayoutSettingsProvider, Axis>(
-      selector: (context, laySet) => laySet.wrapDirection,
-      builder: (context, wrapDirection, child) {
+    return Selector2<
+      PlayScheduleStateProvider,
+      LayoutSettingsProvider,
+      (bool, int, Axis, bool, bool)
+    >(
+      selector: (_, state, laySet) => (
+        state.isLoading,
+        state.itemCount,
+        laySet.wrapDirection,
+        laySet.layoutFilters[LayoutFilter.annotations] ?? true,
+        laySet.layoutFilters[LayoutFilter.transitions] ?? true,
+      ),
+      builder: (context, value, child) {
+        final (_, _, wrapDirection, _, _) = value;
+        final contentWidgets = _registerAndBuildContent(wrapDirection);
         return Wrap(
           direction: wrapDirection,
           runSpacing: 16,
@@ -49,11 +53,14 @@ class _ContentWrapState extends State<ContentWrap> {
     );
   }
 
-  List<Widget> _registerAndBuildContent() {
+  List<Widget> _registerAndBuildContent(Axis wrapDirection) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    final state = Provider.of<PlayScheduleStateProvider>(context);
+    final state = Provider.of<PlayScheduleStateProvider>(
+      context,
+      listen: false,
+    );
     final scroll = context.read<AutoScrollProvider>();
 
     final contentWidgets = <Widget>[];
@@ -74,18 +81,24 @@ class _ContentWrapState extends State<ContentWrap> {
       }
 
       // REGISTER ITEM FOR CURRENT ITEM RECOGNIZER AND NAVIGATION
-      final itemKey = scroll.registerVerticalItem(i);
+      final itemKey = scroll.registerItem(i);
 
       switch (item.type) {
         case PlaylistItemType.version:
           contentWidgets.addAll([
             SizedBox.shrink(key: itemKey),
-            _buildHeader(widget.isCloud ? item.firebaseContentId : item.contentId),
-            ..._buildSectionGrid(
+            _buildHeader(
+              widget.isCloud ? item.firebaseContentId : item.contentId,
+            ),
+            ..._buildSectionCards(
               i,
               widget.isCloud ? item.firebaseContentId : item.contentId,
             ),
-            Divider(color: colorScheme.primary),
+            Container(
+              height: wrapDirection == Axis.horizontal ? 1 : double.infinity,
+              width: wrapDirection == Axis.horizontal ? double.infinity : 1,
+              color: colorScheme.primary,
+            ),
           ]);
           break;
         case PlaylistItemType.flowItem:
@@ -101,7 +114,7 @@ class _ContentWrapState extends State<ContentWrap> {
               Center(child: CircularProgressIndicator()),
             ] else ...[
               Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 spacing: 4,
                 children: [
@@ -115,7 +128,6 @@ class _ContentWrapState extends State<ContentWrap> {
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 16),
                 padding: const EdgeInsets.all(8),
-                width: double.infinity,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(0),
                   border: Border.fromBorderSide(
@@ -133,7 +145,11 @@ class _ContentWrapState extends State<ContentWrap> {
                   ),
                 ),
               ),
-              Divider(color: colorScheme.primary),
+              Container(
+                height: wrapDirection == Axis.horizontal ? 1 : double.infinity,
+                width: wrapDirection == Axis.horizontal ? double.infinity : 1,
+                color: colorScheme.primary,
+              ),
             ],
           ]);
           break;
@@ -175,11 +191,13 @@ class _ContentWrapState extends State<ContentWrap> {
         }
 
         return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           spacing: 4,
           children: [
             Text(title, style: textTheme.titleMedium),
             Row(
+              mainAxisSize: MainAxisSize.min,
               spacing: 16.0,
               children: [
                 Text(
@@ -202,12 +220,12 @@ class _ContentWrapState extends State<ContentWrap> {
     );
   }
 
-  List<Widget> _buildSectionGrid(int itemIndex, dynamic versionId) {
-    final laySet = Provider.of<LayoutSettingsProvider>(context);
+  List<Widget> _buildSectionCards(int itemIndex, dynamic versionId) {
+    final laySet = Provider.of<LayoutSettingsProvider>(context, listen: false);
 
-    final localVer = Provider.of<LocalVersionProvider>(context);
-    final cloudVer = Provider.of<CloudVersionProvider>(context);
-    final sect = Provider.of<SectionProvider>(context);
+    final localVer = Provider.of<LocalVersionProvider>(context, listen: false);
+    final cloudVer = Provider.of<CloudVersionProvider>(context, listen: false);
+    final sect = Provider.of<SectionProvider>(context, listen: false);
 
     List<String> songStructure;
     if (widget.isCloud) {
@@ -239,7 +257,7 @@ class _ContentWrapState extends State<ContentWrap> {
     final sectionWidgets = <Widget>[];
 
     for (var i = 0; i < filteredStructure.length; i++) {
-      final key = scroll.registerVerticalSection(itemIndex, i);
+      final key = scroll.registerSection(itemIndex, i);
 
       final code = filteredStructure[i];
 
@@ -257,7 +275,7 @@ class _ContentWrapState extends State<ContentWrap> {
         continue;
       }
 
-      scroll.setVerticalSectionLineCount(
+      scroll.setSectionLineCount(
         itemIndex,
         i,
         section.contentText.split('\n').length,
@@ -271,11 +289,14 @@ class _ContentWrapState extends State<ContentWrap> {
             sectionType: section.contentType,
           ),
         );
+        continue;
       }
 
       sectionWidgets.add(
         SectionCard(
           key: key,
+          index: i,
+          itemIndex: itemIndex,
           sectionType: section.contentType,
           sectionCode: code,
           sectionText: section.contentText,

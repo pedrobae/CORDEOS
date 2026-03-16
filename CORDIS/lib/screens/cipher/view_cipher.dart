@@ -45,7 +45,7 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
   void initState() {
     super.initState();
     scrollController = ScrollController();
-    context.read<AutoScrollProvider>().currentSectionIndex.value = 0;
+    context.read<AutoScrollProvider>().currentItemIndex = 0;
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _loadData();
       _setOriginalKey();
@@ -192,20 +192,21 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
                 icon: const Icon(Icons.edit),
                 onPressed: _navigateToEditScreen(),
               ),
-              Spacer(),
+              SizedBox(width: 24),
             ],
             IconButton(
-              icon: const Icon(Icons.text_fields),
+              icon: const Icon(Icons.format_paint),
               onPressed: _showStyleSettings(),
             ),
             IconButton(
               icon: const Icon(Icons.filter_alt),
               onPressed: _showFilters(),
             ),
-            Spacer(),
+            SizedBox(width: 24),
 
             const Transposer(),
-            Spacer(),
+            SizedBox(width: 24),
+
             IconButton(
               icon: const Icon(Icons.close),
               onPressed: () =>
@@ -268,8 +269,9 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
         continue;
       }
 
-      final key = scroll.registerTabSection(index);
-      scroll.setTabSectionLineCount(
+      final key = scroll.registerSection(0, index);
+      scroll.setSectionLineCount(
+        0,
         index,
         section.contentText.split('\n').length,
       );
@@ -286,6 +288,8 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
         sectionCardList.add(
           SectionCard(
             key: key,
+            index: index,
+            itemIndex: -1,
             sectionType: section.contentType,
             sectionCode: trimmedCode,
             sectionText: section.contentText,

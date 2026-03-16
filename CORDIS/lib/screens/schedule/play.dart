@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:cordis/widgets/schedule/play/content_wrap.dart';
 import 'package:flutter/material.dart';
 
 import 'package:cordis/l10n/app_localizations.dart';
@@ -21,13 +22,7 @@ import 'package:cordis/providers/version/cloud_version_provider.dart';
 import 'package:cordis/providers/version/local_version_provider.dart';
 import 'package:cordis/providers/section_provider.dart';
 
-import 'package:cordis/utils/date_utils.dart';
-import 'package:cordis/utils/section_constants.dart';
-
 import 'package:flutter/rendering.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import 'package:cordis/widgets/ciphers/viewer/annotation_card.dart';
-import 'package:cordis/widgets/ciphers/viewer/section_card.dart';
 import 'package:cordis/widgets/ciphers/viewer/structure_list.dart';
 import 'package:cordis/widgets/schedule/play/auto_scroll_indicator.dart';
 import 'package:cordis/widgets/settings/auto_scroll_settings.dart';
@@ -59,7 +54,6 @@ class VertPlayScheduleState extends State<VertPlaySchedule> {
     _scrollController = ScrollController();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _scroll.setPlayMode(isVertPlay: true);
       _scroll.clearCache();
       _state.reset();
 
@@ -81,39 +75,38 @@ class VertPlayScheduleState extends State<VertPlaySchedule> {
     final isManualScroll =
         _scrollController.position.userScrollDirection != ScrollDirection.idle;
 
-    if (isManualScroll && _scroll.scrollModeEnabled) {
-      _scroll.stopAutoScroll();
+    if (isManualScroll) {
+      if (_scroll.scrollModeEnabled) _scroll.stopAutoScroll();
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || !_scrollController.hasClients) return;
+        _syncItemFromViewport();
+        _syncSectionFromViewport();
+      });
     }
-
-    _syncCurrentSectionFromViewport();
-
-    _syncCurrentItemFromViewport();
   }
 
-  void _syncCurrentItemFromViewport() {
-    final visibleItemIndex = _scroll.syncVerticalItemFromViewport(
+  void _syncItemFromViewport() {
+    final visibleItemIndex = _scroll.syncItemFromViewport(
       _scrollController.position.viewportDimension,
+      context.read<LayoutSettingsProvider>().scrollDirection,
     );
     if (visibleItemIndex != null) {
-      _state.setCurrentItemIndex(visibleItemIndex);
-      _scroll.setActiveItemIndex(visibleItemIndex);
+      _state.currentItemIndex = visibleItemIndex;
+      _scroll.currentItemIndex = visibleItemIndex;
     }
   }
 
-  void _syncCurrentSectionFromViewport() {
-    final visibleSection = _scroll.syncVerticalSectionFromViewport(
+  void _syncSectionFromViewport() {
+    _scroll.syncSectionFromViewport(
       _scrollController.position.viewportDimension,
+      context.read<LayoutSettingsProvider>().scrollDirection,
     );
-    if (visibleSection != null) {
-      _state.setCurrentItemIndex(visibleSection.itemIndex);
-      _scroll.setActiveItemIndex(visibleSection.itemIndex);
-    }
   }
 
   Future<void> _scrollToItem(int index) async {
     if (index < 0 || index >= _state.itemCount) return;
-
-    final itemKey = _scroll.registerVerticalItem(index);
+    final itemKey = _scroll.registerItem(index);
     final itemContext = itemKey.currentContext;
     if (itemContext == null || !_scrollController.hasClients) return;
 
@@ -124,31 +117,11 @@ class VertPlayScheduleState extends State<VertPlaySchedule> {
       alignment: 0,
     );
 
-    // Apply a fixed-pixel offset after ensureVisible so final placement does not
-    // depend on item height.
-    const double targetTopInset = 100;
-    if (!context.mounted) return;
-    final box = itemContext.findRenderObject() as RenderBox?;
-    if (box == null || !box.hasSize || !_scrollController.hasClients) return;
-
-    final currentOffset = _scrollController.offset;
-    final itemTop = box.localToGlobal(Offset.zero).dy;
-    final delta = itemTop - targetTopInset;
-
-    if (delta.abs() < 1) return;
-
-    final targetOffset = (currentOffset + delta).clamp(
-      0.0,
-      _scrollController.position.maxScrollExtent,
-    );
-
-    await _scrollController.animateTo(
-      targetOffset,
-      duration: const Duration(milliseconds: 1),
-      curve: Curves.linear,
-    );
-
     _scroll.stopAutoScroll();
+    _scroll.currentSectionIndex =
+        0; // Reset section index when manually changing item
+    _scroll.currentItemIndex = index;
+    _state.currentItemIndex = index;
   }
 
   /// Load only the current playlist structure without full content
@@ -172,7 +145,7 @@ class VertPlayScheduleState extends State<VertPlaySchedule> {
 
     final items = playlistProvider.getPlaylist(schedule.playlistId)!.items;
     _state.setItems(items);
-    _scroll.setActiveItemIndex(0);
+    _scroll.currentItemIndex = 0;
     for (final item in items) {
       switch (item.type) {
         case PlaylistItemType.version:
@@ -206,7 +179,7 @@ class VertPlayScheduleState extends State<VertPlaySchedule> {
 
     final items = schedule.items;
     _state.setItems(items);
-    _scroll.setActiveItemIndex(0);
+    _scroll.currentItemIndex = 0;
 
     for (var item in items) {
       switch (item.type) {
@@ -232,12 +205,34 @@ class VertPlayScheduleState extends State<VertPlaySchedule> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        _buildListView(),
         _buildStructBar(),
-        _buildBottomControls(), // AUTO SCROLL INDICATOR
+        Expanded(child: _buildListView()),
+        _buildBottomControls(),
+      ],
+    );
+  }
+
+  Widget _buildListView() {
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: Selector<LayoutSettingsProvider, Axis>(
+            selector: (context, laySet) => laySet.scrollDirection,
+            builder: (context, scrollDirection, child) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: SingleChildScrollView(
+                  controller: _scrollController,
+                  scrollDirection: scrollDirection,
+                  child: ContentWrap(isCloud: isCloud),
+                ),
+              );
+            },
+          ),
+        ),
         Positioned(
-          bottom: 66,
-          right: 16,
+          bottom: 8,
+          right: 8,
           child: Consumer<AutoScrollProvider>(
             builder: (context, scrollProvider, _) {
               return Visibility(
@@ -252,129 +247,6 @@ class VertPlayScheduleState extends State<VertPlaySchedule> {
     );
   }
 
-  Widget _buildListView() {
-    final scroll = context.read<AutoScrollProvider>();
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return Selector<PlayScheduleStateProvider, (int, bool)>(
-      selector: (_, state) => (state.itemCount, state.isLoading),
-      builder: (context, value, child) {
-        final (itemCount, isLoading) = value;
-
-        if (isLoading) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        if (itemCount == 0) {
-          return Center(
-            child: Text(AppLocalizations.of(context)!.emptyPlaylist),
-          );
-        }
-
-        final stateProvider = context.read<PlayScheduleStateProvider>();
-        final items = List.generate(itemCount, (index) {
-          final item = stateProvider.getItemAt(index);
-          if (item == null) return const SizedBox.shrink();
-          final itemKey = scroll.registerVerticalItem(index);
-
-          switch (item.type) {
-            case PlaylistItemType.version:
-              return Container(
-                key: itemKey,
-                child: Column(
-                  spacing: 8,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: _buildHeader(
-                        isCloud ? item.firebaseContentId : item.contentId,
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: _buildSectionGrid(
-                        index,
-                        isCloud ? item.firebaseContentId : item.contentId,
-                      ),
-                    ),
-                    Divider(color: colorScheme.primary),
-                  ],
-                ),
-              );
-            case PlaylistItemType.flowItem:
-              return Container(
-                key: itemKey,
-                child: Consumer2<FlowItemProvider, LayoutSettingsProvider>(
-                  builder: (context, flow, laySet, child) {
-                    final flowItem = flow.getFlowItem(item.contentId!);
-
-                    if (flowItem == null) {
-                      return Center(child: CircularProgressIndicator());
-                    }
-
-                    return Column(
-                      spacing: 8,
-                      children: [
-                        // HEADER
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            spacing: 4,
-                            children: [
-                              Text(
-                                flowItem.title,
-                                style: textTheme.titleMedium,
-                              ),
-                              Text(
-                                '${AppLocalizations.of(context)!.estimatedTime}: ${DateTimeUtils.formatDuration(flowItem.duration)}',
-                                style: textTheme.bodyMedium,
-                              ),
-                            ],
-                          ),
-                        ),
-                        Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 16),
-                          padding: const EdgeInsets.all(8),
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(0),
-                            border: Border.fromBorderSide(
-                              BorderSide(
-                                color: colorScheme.surfaceContainerLow,
-                                width: 1.2,
-                              ),
-                            ),
-                          ),
-                          child: Text(
-                            flowItem.contentText,
-                            style: textTheme.bodyMedium?.copyWith(
-                              height: 1.4,
-                              fontFamily: laySet.lyricTextStyle.fontFamily,
-                            ),
-                          ),
-                        ),
-                        Divider(color: colorScheme.primary),
-                      ],
-                    );
-                  },
-                ),
-              );
-          }
-        });
-
-        items.add(const SizedBox(height: 200));
-
-        return SingleChildScrollView(
-          controller: _scrollController,
-          padding: const EdgeInsets.only(top: 66, bottom: 120),
-          child: Column(children: items),
-        );
-      },
-    );
-  }
-
   Widget _buildStructBar() {
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -383,56 +255,50 @@ class VertPlayScheduleState extends State<VertPlaySchedule> {
     return Selector<PlayScheduleStateProvider, PlaylistItem?>(
       selector: (_, state) => state.currentItem,
       builder: (context, item, child) {
-        if (item == null) return SizedBox.shrink();
+        if (item == null) return const SizedBox.shrink();
         if (item.type == PlaylistItemType.flowItem) {
-          return Positioned(
-            top: 0,
-            right: 0,
+          return Align(
+            alignment: Alignment.centerRight,
             child: IconButton(
               onPressed: () {
                 nav.pop();
               },
-              icon: Icon(Icons.close),
+              icon: const Icon(Icons.close),
             ),
           );
         }
 
-        return Positioned(
-          top: 0,
-          child: Container(
-            width: MediaQuery.of(context).size.width,
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              border: Border(
-                top: BorderSide(
-                  color: colorScheme.surfaceContainerHigh,
-                  width: 1,
-                ),
-                bottom: BorderSide(
-                  color: colorScheme.surfaceContainerHigh,
-                  width: 1,
+        return Container(
+          width: MediaQuery.of(context).size.width,
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            border: Border(
+              top: BorderSide(
+                color: colorScheme.surfaceContainerHigh,
+                width: 1,
+              ),
+              bottom: BorderSide(
+                color: colorScheme.surfaceContainerHigh,
+                width: 1,
+              ),
+            ),
+            color: colorScheme.surface,
+          ),
+          child: Row(
+            spacing: 8,
+            children: [
+              Expanded(
+                child: StructureList(
+                  versionId: isCloud ? item.firebaseContentId : item.contentId,
                 ),
               ),
-              color: colorScheme.surface,
-            ),
-            child: Row(
-              spacing: 8,
-              children: [
-                Expanded(
-                  child: StructureList(
-                    versionId: isCloud
-                        ? item.firebaseContentId
-                        : item.contentId,
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () {
-                    nav.pop();
-                  },
-                  child: Icon(Icons.close, color: colorScheme.primary),
-                ),
-              ],
-            ),
+              GestureDetector(
+                onTap: () {
+                  nav.pop();
+                },
+                child: Icon(Icons.close, color: colorScheme.primary),
+              ),
+            ],
           ),
         );
       },
@@ -442,29 +308,26 @@ class VertPlayScheduleState extends State<VertPlaySchedule> {
   Widget _buildBottomControls() {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Positioned(
-      bottom: 0,
-      child: Container(
-        decoration: BoxDecoration(
-          color: colorScheme.surface,
-          borderRadius: BorderRadius.circular(0),
-          border: Border(
-            top: BorderSide(color: colorScheme.surfaceContainerHigh, width: 1),
-          ),
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(0),
+        border: Border(
+          top: BorderSide(color: colorScheme.surfaceContainerHigh, width: 1),
         ),
-        width: MediaQuery.of(context).size.width,
-        child: Selector<PlayScheduleStateProvider, bool>(
-          selector: (_, state) => state.showSettings,
-          builder: (context, showSettings, child) {
-            final state = context.read<PlayScheduleStateProvider>();
-            return Column(
-              children: [
-                if (showSettings) _buildSettingsControls(state),
-                _buildPlayControls(state),
-              ],
-            );
-          },
-        ),
+      ),
+      width: MediaQuery.of(context).size.width,
+      child: Selector<PlayScheduleStateProvider, bool>(
+        selector: (_, state) => state.showSettings,
+        builder: (context, showSettings, child) {
+          final state = context.read<PlayScheduleStateProvider>();
+          return Column(
+            children: [
+              if (showSettings) _buildSettingsControls(state),
+              _buildPlayControls(state),
+            ],
+          );
+        },
       ),
     );
   }
@@ -529,16 +392,22 @@ class VertPlayScheduleState extends State<VertPlaySchedule> {
   }
 
   Widget _buildPlayControls(PlayScheduleStateProvider state) {
-    return Selector<PlayScheduleStateProvider, int>(
-      selector: (_, value) => value.currentItemIndex,
-      builder: (context, currentIndex, child) {
+    return Selector2<
+      PlayScheduleStateProvider,
+      LayoutSettingsProvider,
+      (int, Axis)
+    >(
+      selector: (_, playState, layoutState) =>
+          (playState.currentItemIndex, layoutState.scrollDirection),
+      builder: (context, value, child) {
+        final (currentIndex, scrollDirection) = value;
         return Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           mainAxisSize: MainAxisSize.max,
           children: [
-            _buildPreviousButton(state, currentIndex),
+            _buildPreviousButton(state, currentIndex, scrollDirection),
             _buildNextTitleSection(currentIndex, state),
-            _buildNextButton(state, currentIndex),
+            _buildNextButton(state, currentIndex, scrollDirection),
           ],
         );
       },
@@ -548,6 +417,7 @@ class VertPlayScheduleState extends State<VertPlaySchedule> {
   Widget _buildPreviousButton(
     PlayScheduleStateProvider state,
     int currentIndex,
+    Axis scrollDirection,
   ) {
     final colorScheme = Theme.of(context).colorScheme;
     return GestureDetector(
@@ -560,7 +430,9 @@ class VertPlayScheduleState extends State<VertPlaySchedule> {
         width: MediaQuery.of(context).size.width / 4,
         height: 48,
         child: Icon(
-          Icons.keyboard_arrow_up,
+          scrollDirection == Axis.vertical
+              ? Icons.keyboard_arrow_up
+              : Icons.keyboard_arrow_left,
           color: colorScheme.primary,
           size: 48,
         ),
@@ -578,24 +450,12 @@ class VertPlayScheduleState extends State<VertPlaySchedule> {
       width: MediaQuery.of(context).size.width / 2,
       child: GestureDetector(
         onTap: () => state.toggleSettings(),
-        child: Selector<PlayScheduleStateProvider, (int, int, PlaylistItem?)>(
-          selector: (_, s) => (s.currentItemIndex, s.itemCount, s.nextItem),
-          builder: (context, value, child) {
-            final (selectedIndex, itemCount, nextItem) = value;
-
-            String nextTitle = '';
-            if (selectedIndex < itemCount - 1 && nextItem != null) {
-              final localVer = context.read<LocalVersionProvider>();
-              final ciph = context.read<CipherProvider>();
-              final flow = context.read<FlowItemProvider>();
-              final cloudVer = context.read<CloudScheduleProvider>();
-              nextTitle = _getItemTitle(
-                nextItem,
-                localVer,
-                ciph,
-                flow,
-                cloudVer,
-              );
+        child: Selector<PlayScheduleStateProvider, PlaylistItem?>(
+          selector: (_, s) => s.nextItem,
+          builder: (context, nextItem, child) {
+            String nextTitle = '-';
+            if (currentIndex < state.itemCount - 1 && nextItem != null) {
+              nextTitle = _getItemTitle(nextItem);
             }
 
             return Text(
@@ -612,7 +472,11 @@ class VertPlayScheduleState extends State<VertPlaySchedule> {
     );
   }
 
-  Widget _buildNextButton(PlayScheduleStateProvider state, int currentIndex) {
+  Widget _buildNextButton(
+    PlayScheduleStateProvider state,
+    int currentIndex,
+    Axis scrollDirection,
+  ) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return GestureDetector(
@@ -627,7 +491,9 @@ class VertPlayScheduleState extends State<VertPlaySchedule> {
         width: MediaQuery.of(context).size.width / 4,
         height: 48,
         child: Icon(
-          Icons.keyboard_arrow_down,
+          scrollDirection == Axis.vertical
+              ? Icons.keyboard_arrow_down
+              : Icons.keyboard_arrow_right,
           color: colorScheme.primary,
           size: 48,
         ),
@@ -636,196 +502,34 @@ class VertPlayScheduleState extends State<VertPlaySchedule> {
   }
 
   /// Helper to extract title from different item types
-  String _getItemTitle(
-    PlaylistItem? item,
-    LocalVersionProvider localVer,
-    CipherProvider ciph,
-    FlowItemProvider flow,
-    CloudScheduleProvider cloudVer,
-  ) {
-    if (item == null) return '';
+  String _getItemTitle(PlaylistItem item) {
     switch (item.type) {
       case PlaylistItemType.version:
         if (isCloud) {
+          final cloudVer = context.read<CloudScheduleProvider>();
           return ((cloudVer.schedules[widget.scheduleId] as ScheduleDto)
                   .playlist
                   .versions[item.firebaseContentId]
                   ?.title) ??
               '';
         } else {
+          final localVer = context.read<LocalVersionProvider>();
+          final ciph = context.read<CipherProvider>();
           final version = localVer.getVersion(item.contentId!);
           if (version == null) return '';
           return ciph.getCipher(version.cipherId)?.title ?? '';
         }
       case PlaylistItemType.flowItem:
         if (isCloud) {
+          final cloudVer = context.read<CloudScheduleProvider>();
           return ((cloudVer.schedules[widget.scheduleId] as ScheduleDto)
                   .playlist
                   .flowItems[item.firebaseContentId]?['title']) ??
               '';
         } else {
+          final flow = context.read<FlowItemProvider>();
           return flow.getFlowItem(item.contentId!)?.title ?? '';
         }
     }
-  }
-
-  Widget _buildSectionGrid(int itemIndex, dynamic versionId) {
-    return Selector<LayoutSettingsProvider, (bool, bool)>(
-      selector: (_, laySet) => (
-        laySet.layoutFilters[LayoutFilter.annotations]!,
-        laySet.layoutFilters[LayoutFilter.transitions]!,
-      ),
-      builder: (context, filters, child) {
-        final (showAnnotations, showTransitions) = filters;
-
-        return Consumer3<
-          LocalVersionProvider,
-          CloudVersionProvider,
-          SectionProvider
-        >(
-          builder: (context, localVer, cloudVer, sect, child) {
-            List<String> songStructure;
-            if (isCloud) {
-              final version = cloudVer.getVersion(versionId);
-              if (version == null) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              songStructure = version.songStructure;
-            } else {
-              final version = localVer.getVersion(versionId);
-              if (version == null) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              songStructure = version.songStructure;
-            }
-
-            final filteredStructure = songStructure
-                .where(
-                  (sectionCode) =>
-                      ((showAnnotations || !isAnnotation(sectionCode)) &&
-                      (showTransitions || !isTransition(sectionCode))),
-                )
-                .toList();
-
-            final scroll = context.read<AutoScrollProvider>();
-
-            for (var i = 0; i < filteredStructure.length; i++) {
-              scroll.registerVerticalSection(itemIndex, i);
-            }
-
-            return MasonryGridView.count(
-              crossAxisCount:
-                  1, // TODO-updateToNewScroll: laySet.scrollDirection == Axis.vertical ? 1 : 2,
-              mainAxisSpacing: 16,
-              crossAxisSpacing: 16,
-              itemCount: filteredStructure.length,
-              physics: const NeverScrollableScrollPhysics(),
-              shrinkWrap: true,
-              itemBuilder: (context, index) {
-                final trimmedCode = filteredStructure[index].trim();
-                final sectionKey = scroll.registerVerticalSection(
-                  itemIndex,
-                  index,
-                );
-                final section = isCloud
-                    ? () {
-                        final sectionMap = cloudVer
-                            .getVersion(versionId)!
-                            .sections[trimmedCode]!;
-                        return Section.fromFirestore(sectionMap);
-                      }()
-                    : sect.getSection(versionId, trimmedCode);
-
-                if (section == null) {
-                  return const SizedBox.shrink();
-                }
-
-                scroll.setVerticalSectionLineCount(
-                  itemIndex,
-                  index,
-                  section.contentText.split('\n').length,
-                );
-
-                if (isAnnotation(trimmedCode)) {
-                  return AnnotationCard(
-                    key: sectionKey,
-                    sectionText: section.contentText,
-                    sectionType: section.contentType,
-                  );
-                }
-
-                return SectionCard(
-                  key: sectionKey,
-                  sectionType: section.contentType,
-                  sectionCode: trimmedCode,
-                  sectionText: section.contentText,
-                  sectionColor: section.contentColor,
-                );
-              },
-            );
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildHeader(dynamic versionID) {
-    return Consumer3<
-      LocalVersionProvider,
-      CloudVersionProvider,
-      CipherProvider
-    >(
-      builder: (context, localVer, cloudVer, ciph, child) {
-        final textTheme = Theme.of(context).textTheme;
-
-        String title;
-        String key;
-        int bpm;
-        Duration duration;
-
-        if (isCloud) {
-          final version = cloudVer.getVersion(versionID);
-          if (version == null) return const LinearProgressIndicator();
-          title = version.title;
-          key = version.transposedKey ?? version.originalKey;
-          bpm = version.bpm;
-          duration = Duration(milliseconds: version.duration);
-        } else {
-          final version = localVer.getVersion(versionID);
-          if (version == null) return const LinearProgressIndicator();
-          final cipher = ciph.getCipher(version.cipherId);
-          if (cipher == null) return const LinearProgressIndicator();
-          title = cipher.title;
-          key = version.transposedKey ?? cipher.musicKey;
-          bpm = version.bpm;
-          duration = version.duration;
-        }
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          spacing: 4,
-          children: [
-            Text(title, style: textTheme.titleMedium),
-            Row(
-              spacing: 16.0,
-              children: [
-                Text(
-                  AppLocalizations.of(context)!.keyWithPlaceholder(key),
-                  style: textTheme.bodyMedium,
-                ),
-                Text(
-                  AppLocalizations.of(context)!.bpmWithPlaceholder(bpm),
-                  style: textTheme.bodyMedium,
-                ),
-                Text(
-                  '${AppLocalizations.of(context)!.duration}: ${DateTimeUtils.formatDuration(duration)}',
-                  style: textTheme.bodyMedium,
-                ),
-              ],
-            ),
-          ],
-        );
-      },
-    );
   }
 }

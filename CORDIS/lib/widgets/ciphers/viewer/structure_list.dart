@@ -55,7 +55,7 @@ class _StructureListState extends State<StructureList> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final scroll = Provider.of<AutoScrollProvider>(context);
+    final scroll = context.read<AutoScrollProvider>();
     final state = context.read<PlayScheduleStateProvider>();
 
     return Consumer2<SectionProvider, LayoutSettingsProvider>(
@@ -78,76 +78,52 @@ class _StructureListState extends State<StructureList> {
                       textAlign: TextAlign.center,
                     ),
                   )
-                : ValueListenableBuilder<int>(
-                    valueListenable: scroll.currentSectionIndex,
-                    builder: (context, scrollIndex, child) {
-                      // Auto-scroll structure list to show current section
-                      _scrollToIndex(scrollIndex);
-          
-                      return SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        controller: listScrollController,
-                        child: Row(
-                          spacing: StructureList.spacing,
-                          children: [
-                            const SizedBox(),
-                            ...filteredStructure.asMap().entries.map((entry) {
-                              final index = entry.key;
-                              final sectionCode = entry.value;
-                              final isCurrentSection = index == scrollIndex;
-                              final section = sect.getSection(
-                                widget.versionId,
-                                sectionCode,
-                              );
-                              // Loading state
-                              if (section == null) {
-                                return const Center(
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                );
-                              }
-                              final color = section.contentColor;
-          
-                              return RepaintBoundary(
-                                child: GestureDetector(
-                                  onTap: () => scroll.isVerticalMode
-                                      ? scroll.scrollToItemSection(
-                                          itemIndex: state.currentItemIndex,
-                                          sectionIndex: index,
-                                        )
-                                      : scroll.scrollToSectionTabs(index),
-                                  child: Container(
-                                    height: StructureList.buttonWidth,
-                                    width: StructureList.buttonWidth,
-                                    decoration: BoxDecoration(
-                                      color: color.withValues(alpha: 0.9),
-                                      borderRadius: BorderRadius.circular(6),
-                                      border: isCurrentSection
-                                          ? Border.all(
-                                              color: colorScheme.primary,
-                                              width: 2,
-                                            )
-                                          : null,
-                                    ),
-                                    child: Center(
-                                      child: Text(
-                                        sectionCode,
-                                        style: TextStyle(
-                                          color: colorScheme.surface,
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 14,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ),
-                                  ),
+                : Selector<AutoScrollProvider, int>(
+                    selector: (context, provider) => provider.currentSectionIndex,
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      controller: listScrollController,
+                      child: Row(
+                        spacing: StructureList.spacing,
+                        children: [
+                          const SizedBox(),
+                          ...filteredStructure.asMap().entries.map((entry) {
+                            final index = entry.key;
+                            final sectionCode = entry.value;
+                            final section = sect.getSection(
+                              widget.versionId,
+                              sectionCode,
+                            );
+                            if (section == null) {
+                              return const Center(
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
                                 ),
                               );
-                            }),
-                          ],
-                        ),
-                      );
+                            }
+
+                            return _StructureSectionButton(
+                              index: index,
+                              sectionCode: sectionCode,
+                              sectionColor: section.contentColor,
+                              highlightColor: colorScheme.primary,
+                              textColor: colorScheme.surface,
+                              onTap: () => scroll.scrollToItemSection(
+                                itemIndex: state.currentItemIndex,
+                                sectionIndex: index,
+                              ),
+                            );
+                          }),
+                        ],
+                      ),
+                    ),
+                    builder: (context, scrollIndex, child) {
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (!mounted) return;
+                        _scrollToIndex(scrollIndex);
+                      });
+
+                      return child!;
                     },
                   ),
           ),
@@ -176,5 +152,63 @@ class _StructureListState extends State<StructureList> {
                   !isTransition(sectionCode))),
         )
         .toList();
+  }
+}
+
+class _StructureSectionButton extends StatelessWidget {
+  final int index;
+  final String sectionCode;
+  final Color sectionColor;
+  final Color highlightColor;
+  final Color textColor;
+  final VoidCallback onTap;
+
+  const _StructureSectionButton({
+    required this.index,
+    required this.sectionCode,
+    required this.sectionColor,
+    required this.highlightColor,
+    required this.textColor,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return RepaintBoundary(
+      child: Selector<AutoScrollProvider, bool>(
+        selector: (context, scroll) =>
+            scroll.currentSectionIndex == index,
+        builder: (context, isCurrentSection, child) {
+          return GestureDetector(
+            onTap: onTap,
+            child: Container(
+              height: StructureList.buttonWidth,
+              width: StructureList.buttonWidth,
+              decoration: BoxDecoration(
+                color: sectionColor.withValues(alpha: 0.9),
+                borderRadius: BorderRadius.circular(6),
+                border: isCurrentSection
+                    ? Border.all(
+                        color: highlightColor,
+                        width: 2,
+                      )
+                    : null,
+              ),
+              child: Center(
+                child: Text(
+                  sectionCode,
+                  style: TextStyle(
+                    color: textColor,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
 }

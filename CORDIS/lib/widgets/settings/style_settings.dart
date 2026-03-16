@@ -59,7 +59,8 @@ class StyleSettings extends StatelessWidget {
                             ? const Icon(Icons.swap_vert)
                             : const Icon(Icons.swap_horiz),
                       ),
-                      inactiveThumbColor: Theme.of(context).iconTheme.color,
+                      inactiveThumbColor: colorScheme.primary,
+                      activeThumbColor: colorScheme.surfaceContainerLow,
                     ),
                   ],
                 ),

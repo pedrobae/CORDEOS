@@ -24,7 +24,7 @@ class PlayScheduleStateProvider extends ChangeNotifier {
     return _items[index];
   }
 
-  void setCurrentItemIndex(int index) {
+  set currentItemIndex(int index) {
     if (index < 0 || index >= _items.length) return;
     if (_currentItemIndex == index) return;
 
