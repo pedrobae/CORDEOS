@@ -159,9 +159,9 @@ class _StructureListState extends State<StructureList> {
 
     List<String> songStructure;
     if (widget.versionId is int) {
-      songStructure = localVer.getVersion(widget.versionId)!.songStructure;
+      songStructure = localVer.getVersion(widget.versionId)?.songStructure ?? [];
     } else {
-      songStructure = cloudVer.getVersion(widget.versionId)!.songStructure;
+      songStructure = cloudVer.getVersion(widget.versionId)?.songStructure ?? [];
     }
 
     return songStructure

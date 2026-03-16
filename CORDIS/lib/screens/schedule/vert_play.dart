@@ -176,10 +176,10 @@ class VertPlayScheduleState extends State<VertPlaySchedule> {
     for (final item in items) {
       switch (item.type) {
         case PlaylistItemType.version:
-          unawaited(_loadLocalVersion(item));
+          await _loadLocalVersion(item);
           break;
         case PlaylistItemType.flowItem:
-          unawaited(flow.loadFlowItem(item.contentId!));
+          await flow.loadFlowItem(item.contentId!);
           break;
       }
     }
