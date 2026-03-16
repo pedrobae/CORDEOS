@@ -299,34 +299,22 @@ class PositionService {
         : 0;
     for (var line in contentTokens.lines) {
       double linePrecedingOffset = 0;
-      bool hasSpaceBeforeLyrics = false;
-      bool hasSkippedAddingSpace = false;
-      bool foundLyric = false;
+      bool foundSeparator = false;
       for (var word in line.words) {
-        if (foundLyric) {
+        if (foundSeparator) {
           break;
         }
         for (var token in word.tokens) {
-          if (token.type == TokenType.lyric) {
-            foundLyric = true;
+          if (token.type == TokenType.separator) {
+            foundSeparator = true;
             break;
-          } else if (token.type == TokenType.space) {
-            // Accumulate space width before saving
-            // -1 due to preceding indicator
-            if (hasSkippedAddingSpace) {
-              linePrecedingOffset += tokenMeasurements[token]?.width ?? 0.0;
-            } else {
-              hasSkippedAddingSpace = true;
-            }
-            hasSpaceBeforeLyrics = true;
-            continue;
           } else {
-            // Accumulate all chord widths
+            // Accumulate all widths
             linePrecedingOffset += tokenMeasurements[token]?.width ?? 0.0;
           }
         }
       }
-      if (linePrecedingOffset > precedingOffset && hasSpaceBeforeLyrics) {
+      if (linePrecedingOffset > precedingOffset && foundSeparator) {
         precedingOffset = linePrecedingOffset;
       }
     }
