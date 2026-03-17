@@ -11,8 +11,10 @@ class AutoScrollSettings extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Consumer<AutoScrollProvider>(
-      builder: (context, autoScroll, child) {
+    return Selector<AutoScrollProvider, (bool, double)>(
+      selector: (_, p) => (p.scrollModeEnabled, p.scrollSpeed),
+      builder: (context, _, child) {
+        final autoScroll = context.read<AutoScrollProvider>();
         return Container(
           decoration: BoxDecoration(
             color: colorScheme.surface,

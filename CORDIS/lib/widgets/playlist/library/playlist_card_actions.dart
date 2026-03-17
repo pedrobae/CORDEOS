@@ -93,18 +93,12 @@ class PlaylistCardActionsSheet extends StatelessWidget {
                 isScrollControlled: true,
                 context: context,
                 builder: (context) {
-                  return BottomSheet(
-                    shape: LinearBorder(),
-                    onClosing: () {},
-                    builder: (context) {
-                      return DeleteConfirmationSheet(
-                        itemType: AppLocalizations.of(context)!.playlist,
-                        onConfirm: () async {
-                          Navigator.of(context).pop();
+                  return DeleteConfirmationSheet(
+                    itemType: AppLocalizations.of(context)!.playlist,
+                    onConfirm: () async {
+                      Navigator.of(context).pop();
 
-                          await _deletePlaylist(context, nav);
-                        },
-                      );
+                      await _deletePlaylist(context, nav);
                     },
                   );
                 },

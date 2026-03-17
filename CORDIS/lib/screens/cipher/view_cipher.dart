@@ -396,10 +396,7 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
         backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
         context: context,
         isScrollControlled: true,
-        builder: (context) => BottomSheet(
-          onClosing: () {},
-          builder: (context) => const StyleSettings(),
-        ),
+        builder: (context) => const StyleSettings(),
       );
     };
   }

@@ -59,8 +59,13 @@ class StyleSettings extends StatelessWidget {
                             ? const Icon(Icons.swap_vert)
                             : const Icon(Icons.swap_horiz),
                       ),
-                      inactiveThumbColor: colorScheme.primary,
-                      activeThumbColor: colorScheme.surfaceContainerLow,
+                      thumbColor: WidgetStatePropertyAll(colorScheme.primary),
+                      trackColor: WidgetStatePropertyAll(
+                        colorScheme.surfaceContainerHigh,
+                      ),
+                      trackOutlineColor: WidgetStatePropertyAll(
+                        colorScheme.surfaceTint,
+                      ),
                     ),
                   ],
                 ),
@@ -80,6 +85,13 @@ class StyleSettings extends StatelessWidget {
                     Switch(
                       value: !settings.showSectionHeaders,
                       onChanged: (_) => settings.toggleSectionHeaders(),
+                      thumbColor: WidgetStatePropertyAll(colorScheme.primary),
+                      trackColor: WidgetStatePropertyAll(
+                        colorScheme.surfaceContainerHigh,
+                      ),
+                      trackOutlineColor: WidgetStatePropertyAll(
+                        colorScheme.surfaceTint,
+                      ),
                     ),
                   ],
                 ),

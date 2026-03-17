@@ -283,17 +283,11 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard> {
       context: context,
       isScrollControlled: true,
       builder: (context) {
-        return BottomSheet(
-          shape: LinearBorder(),
-          onClosing: () {},
-          builder: (context) {
-            return VersionCardActionsSheet(
-              itemID: widget.itemId,
-              versionID: widget.versionId,
-              cipherID: version.cipherId,
-              playlistID: widget.playlistId,
-            );
-          },
+        return VersionCardActionsSheet(
+          itemID: widget.itemId,
+          versionID: widget.versionId,
+          cipherID: version.cipherId,
+          playlistID: widget.playlistId,
         );
       },
     );

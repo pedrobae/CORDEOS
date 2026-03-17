@@ -82,17 +82,12 @@ class RoleCard extends StatelessWidget {
                       context: context,
                       isScrollControlled: true,
                       builder: (context) {
-                        return BottomSheet(
-                          onClosing: () {},
-                          builder: (context) {
-                            return DeleteConfirmationSheet(
-                              itemType: AppLocalizations.of(context)!.role,
-                              onConfirm: () {
-                                scheduleProvider.deleteRole(
-                                  scheduleId,
-                                  role.id,
-                                );
-                              },
+                        return DeleteConfirmationSheet(
+                          itemType: AppLocalizations.of(context)!.role,
+                          onConfirm: () {
+                            scheduleProvider.deleteRole(
+                              scheduleId,
+                              role.id,
                             );
                           },
                         );

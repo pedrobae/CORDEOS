@@ -111,25 +111,20 @@ class VersionCardActionsSheet extends StatelessWidget {
                 context: context,
                 isScrollControlled: true,
                 builder: (context) {
-                  return BottomSheet(
-                    onClosing: () {},
-                    builder: (context) {
-                      return DeleteConfirmationSheet(
-                        itemType: AppLocalizations.of(context)!.version,
-                        isDangerous: true,
-                        onConfirm: () {
-                          play.cacheRemoveVersion(itemID, playlistID);
-                          // Check if version has a duplicate in this playlist
-                          // If not, delete it
-                          if (!play.versionIsInPlaylist(
-                            versionID,
-                            playlistID,
-                          )) {
-                            localVer.cacheDeletion(versionID);
-                          }
-                          Navigator.of(context).pop();
-                        },
-                      );
+                  return DeleteConfirmationSheet(
+                    itemType: AppLocalizations.of(context)!.version,
+                    isDangerous: true,
+                    onConfirm: () {
+                      play.cacheRemoveVersion(itemID, playlistID);
+                      // Check if version has a duplicate in this playlist
+                      // If not, delete it
+                      if (!play.versionIsInPlaylist(
+                        versionID,
+                        playlistID,
+                      )) {
+                        localVer.cacheDeletion(versionID);
+                      }
+                      Navigator.of(context).pop();
                     },
                   );
                 },

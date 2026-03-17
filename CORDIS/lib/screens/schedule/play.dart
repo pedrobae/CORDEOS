@@ -408,9 +408,7 @@ class VertPlayScheduleState extends State<VertPlaySchedule> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder: (context) {
-        return BottomSheet(onClosing: () {}, builder: (context) => sheet);
-      },
+      builder: (context) => sheet,
     );
   }
 

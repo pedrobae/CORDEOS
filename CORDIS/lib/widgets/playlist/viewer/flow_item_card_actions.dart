@@ -80,28 +80,22 @@ class FlowItemCardActionsSheet extends StatelessWidget {
                       showModalBottomSheet(
                         context: context,
                         isScrollControlled: true,
-                        builder: (dialogContext) {
-                          return BottomSheet(
-                            shape: LinearBorder(),
-                            onClosing: () {},
-                            builder: (context) {
-                              return DeleteConfirmationSheet(
-                                itemType: AppLocalizations.of(
-                                  context,
-                                )!.flowItem,
-                                isDangerous: true,
-                                onConfirm: () async {
-                                  await flow.deleteFlowItem(
-                                    flowItemId,
-                                  );
-                                  await play.loadPlaylist(
-                                    playlistId,
-                                  );
-                                  if (context.mounted) {
-                                    Navigator.of(context).pop();
-                                  }
-                                },
+                        builder: (context) {
+                          return DeleteConfirmationSheet(
+                            itemType: AppLocalizations.of(
+                              context,
+                            )!.flowItem,
+                            isDangerous: true,
+                            onConfirm: () async {
+                              await flow.deleteFlowItem(
+                                flowItemId,
                               );
+                              await play.loadPlaylist(
+                                playlistId,
+                              );
+                              if (context.mounted) {
+                                Navigator.of(context).pop();
+                              }
                             },
                           );
                         },

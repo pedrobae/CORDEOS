@@ -154,13 +154,7 @@ class PlaylistCard extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       builder: (context) {
-        return BottomSheet(
-          shape: LinearBorder(),
-          onClosing: () {},
-          builder: (context) {
-            return PlaylistCardActionsSheet(playlistId: playlistId);
-          },
-        );
+        return PlaylistCardActionsSheet(playlistId: playlistId);
       },
     );
   }

@@ -149,15 +149,9 @@ class _FlowItemCardState extends State<FlowItemCard> {
       context: context,
       isScrollControlled: true,
       builder: (context) {
-        return BottomSheet(
-          shape: LinearBorder(),
-          onClosing: () {},
-          builder: (context) {
-            return FlowItemCardActionsSheet(
-              flowItemId: widget.flowItemId,
-              playlistId: widget.playlistId,
-            );
-          },
+        return FlowItemCardActionsSheet(
+          flowItemId: widget.flowItemId,
+          playlistId: widget.playlistId,
         );
       },
     );
