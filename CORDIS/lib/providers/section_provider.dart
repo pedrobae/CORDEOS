@@ -24,6 +24,11 @@ class SectionProvider extends ChangeNotifier {
 
   String? get error => _error;
 
+  /// Number of versions that currently have their sections loaded in cache.
+  /// Changes whenever a version's sections finish loading — use in Selectors
+  /// that need to rebuild when any version's section data becomes available.
+  int get loadedVersionsCount => _sections.length;
+
   Map<String, Section> getSections(dynamic versionKey) {
     if (versionKey != null && _sections.containsKey(versionKey)) {
       return _sections[versionKey]!;

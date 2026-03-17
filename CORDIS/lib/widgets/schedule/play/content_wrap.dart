@@ -28,20 +28,26 @@ class ContentWrap extends StatefulWidget {
 class _ContentWrapState extends State<ContentWrap> {
   @override
   Widget build(BuildContext context) {
-    return Selector2<
+    return Selector5<
       PlayScheduleStateProvider,
       LayoutSettingsProvider,
-      (bool, int, Axis, bool, bool)
+      LocalVersionProvider,
+      CloudVersionProvider,
+      SectionProvider,
+      (bool, int, Axis, bool, bool, int, int, int)
     >(
-      selector: (_, state, laySet) => (
+      selector: (_, state, laySet, localVer, cloudVer, sect) => (
         state.isLoading,
         state.itemCount,
         laySet.wrapDirection,
         laySet.layoutFilters[LayoutFilter.annotations] ?? true,
         laySet.layoutFilters[LayoutFilter.transitions] ?? true,
+        localVer.versions.length,
+        cloudVer.versions.length,
+        sect.loadedVersionsCount,
       ),
       builder: (context, value, child) {
-        final (_, _, wrapDirection, _, _) = value;
+        final (_, _, wrapDirection, _, _, _, _, _) = value;
         final contentWidgets = _registerAndBuildContent(wrapDirection);
         return Wrap(
           direction: wrapDirection,

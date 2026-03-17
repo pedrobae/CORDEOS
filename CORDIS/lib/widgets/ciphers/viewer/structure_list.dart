@@ -133,6 +133,8 @@ class _StructureListState extends State<StructureList> {
     final localVer = context.read<LocalVersionProvider>();
     final cloudVer = context.read<CloudVersionProvider>();
 
+    if (widget.versionId == null) return [];
+
     List<String> songStructure;
     if (widget.versionId is int) {
       songStructure =

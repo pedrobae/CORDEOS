@@ -53,13 +53,13 @@ class PlayScheduleState extends State<PlaySchedule> {
     _scroll = context.read<AutoScrollProvider>();
 
     _scrollController = ScrollController();
+    _scrollController.addListener(_scrollListener);
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       _scroll.clearCache();
       _state.reset();
 
-      _loadData();
-      _scrollController.addListener(_scrollListener);
+      await _loadData();
     });
   }
 
