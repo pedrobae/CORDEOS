@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:cordis/l10n/app_localizations.dart';
 
 import 'package:provider/provider.dart';
-import 'package:cordis/providers/settings_provider.dart';
+import 'package:cordis/providers/settings/settings_provider.dart';
 import 'package:cordis/providers/user/my_auth_provider.dart';
 import 'package:cordis/providers/schedule/cloud_schedule_provider.dart';
 import 'package:cordis/providers/schedule/local_schedule_provider.dart';

@@ -1,5 +1,5 @@
 import 'package:cordis/l10n/app_localizations.dart';
-import 'package:cordis/providers/layout_settings_provider.dart';
+import 'package:cordis/providers/settings/layout_settings_provider.dart';
 import 'package:cordis/providers/navigation_provider.dart';
 import 'package:cordis/providers/section_provider.dart';
 import 'package:cordis/providers/transposition_provider.dart';
@@ -115,7 +115,7 @@ class _TokenContentCardState extends State<TokenContentCard> {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
-    final laySet = context.read<LayoutSettingsProvider>();
+    final laySet = context.read<LayoutSetProvider>();
 
     return Consumer2<SectionProvider, TranspositionProvider>(
       builder: (context, sect, trans, child) {

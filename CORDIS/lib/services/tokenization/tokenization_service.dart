@@ -1,4 +1,4 @@
-import 'package:cordis/providers/layout_settings_provider.dart';
+import 'package:cordis/providers/settings/layout_settings_provider.dart';
 import 'package:cordis/services/tokenization/build_service.dart';
 import 'package:cordis/services/tokenization/helper_classes.dart';
 import 'package:cordis/services/tokenization/position_service.dart';

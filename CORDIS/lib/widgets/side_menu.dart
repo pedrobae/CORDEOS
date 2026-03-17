@@ -102,6 +102,16 @@ class SideMenu extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 4.0),
                   child: ListTile(
                     title: Text(AppLocalizations.of(context)!.settings),
+                    onLongPress: () {
+                      /// SECRET SETTINGS
+                      Navigator.of(context).pop();
+                      nav.push(
+                        () => const SettingsScreen(showSecrets: true),
+                        showBottomNavBar: true,
+                        showAppBar: true,
+                        showDrawerIcon: true,
+                      );
+                    },
                     onTap: () {
                       Navigator.of(context).pop();
                       nav.push(
@@ -181,7 +191,7 @@ class SideMenu extends StatelessWidget {
               children: [
                 SvgPicture.asset(
                   'assets/logos/v2_simple_color_white.svg',
-                  height: 100,
+                  height: MediaQuery.of(context).size.height * 0.15,
                   fit: BoxFit.contain,
                 ),
                 Text(

@@ -4,7 +4,7 @@ import 'package:cordis/l10n/app_localizations.dart';
 
 import 'package:provider/provider.dart';
 import 'package:cordis/providers/auto_scroll_provider.dart';
-import 'package:cordis/providers/layout_settings_provider.dart';
+import 'package:cordis/providers/settings/layout_settings_provider.dart';
 import 'package:cordis/providers/version/cloud_version_provider.dart';
 import 'package:cordis/providers/version/local_version_provider.dart';
 import 'package:cordis/providers/section_provider.dart';
@@ -58,7 +58,7 @@ class _StructureListState extends State<StructureList> {
     final scroll = context.read<AutoScrollProvider>();
     final state = context.read<PlayScheduleStateProvider>();
 
-    return Consumer2<SectionProvider, LayoutSettingsProvider>(
+    return Consumer2<SectionProvider, LayoutSetProvider>(
       builder: (context, sect, laySet, child) {
         final filteredStructure = _getStructureForVersion(laySet);
 
@@ -129,7 +129,7 @@ class _StructureListState extends State<StructureList> {
     );
   }
 
-  List<String> _getStructureForVersion(LayoutSettingsProvider laySet) {
+  List<String> _getStructureForVersion(LayoutSetProvider laySet) {
     final localVer = context.read<LocalVersionProvider>();
     final cloudVer = context.read<CloudVersionProvider>();
 

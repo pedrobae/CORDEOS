@@ -1,5 +1,6 @@
 import 'package:cordis/providers/auto_scroll_provider.dart';
 import 'package:cordis/providers/bug_report_provider.dart';
+import 'package:cordis/providers/settings/secret_settings_provider.dart';
 import 'package:cordis/providers/transposition_provider.dart';
 import 'package:cordis/screens/splash_screen.dart';
 import 'package:flutter/material.dart';
@@ -15,13 +16,13 @@ import 'package:cordis/providers/user/my_auth_provider.dart';
 import 'package:cordis/providers/user/email_provider.dart';
 import 'package:cordis/providers/cipher/cipher_provider.dart';
 import 'package:cordis/providers/cipher/import_provider.dart';
-import 'package:cordis/providers/layout_settings_provider.dart';
+import 'package:cordis/providers/settings/layout_settings_provider.dart';
 import 'package:cordis/providers/navigation_provider.dart';
 import 'package:cordis/providers/cipher/parser_provider.dart';
 import 'package:cordis/providers/playlist/playlist_provider.dart';
 import 'package:cordis/providers/section_provider.dart';
 import 'package:cordis/providers/selection_provider.dart';
-import 'package:cordis/providers/settings_provider.dart';
+import 'package:cordis/providers/settings/settings_provider.dart';
 import 'package:cordis/providers/schedule/local_schedule_provider.dart';
 import 'package:cordis/providers/schedule/cloud_schedule_provider.dart';
 import 'package:cordis/providers/playlist/flow_item_provider.dart';
@@ -56,54 +57,44 @@ void main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
+  static final providers = [
+    //  APP-WIDE PROVIDERS
+    ChangeNotifierProvider(create: (_) => MyAuthProvider()),
+    ChangeNotifierProvider(create: (_) => SettingsProvider()..loadSettings()),
+    ChangeNotifierProvider(create: (_) => LayoutSetProvider()..loadSettings()),
+    ChangeNotifierProvider(create: (_) => SecretSetProvider()..loadSettings()),
+    ChangeNotifierProvider(create: (_) => AppInfoProvider()..initialize()),
+    ChangeNotifierProvider(create: (_) => BugReportProvider()),
+    ChangeNotifierProvider(create: (_) => NavigationProvider()),
+    // ADMIN DOMAIN PROVIDERS
+    ChangeNotifierProvider(create: (_) => AdminProvider()),
+    // LOCAL DOMAIN PROVIDERS
+    ChangeNotifierProvider(create: (_) => UserProvider()),
+    ChangeNotifierProvider(create: (_) => CipherProvider()),
+    ChangeNotifierProvider(create: (_) => LocalVersionProvider()),
+    ChangeNotifierProvider(create: (_) => SectionProvider()),
+    ChangeNotifierProvider(create: (_) => PlaylistProvider()),
+    ChangeNotifierProvider(create: (_) => FlowItemProvider()),
+    ChangeNotifierProvider(create: (_) => LocalScheduleProvider()),
+    // CLOUD DOMAIN PROVIDERS
+    ChangeNotifierProvider(create: (_) => CloudScheduleProvider()),
+    ChangeNotifierProvider(create: (_) => CloudVersionProvider()),
+    // IMPORT PROVIDERS
+    ChangeNotifierProvider(create: (_) => ImportProvider()),
+    ChangeNotifierProvider(create: (_) => ParserProvider()),
+    // PLAY SCHEDULE PROVIDERS
+    ChangeNotifierProvider(create: (_) => AutoScrollProvider()),
+    ChangeNotifierProvider(create: (_) => PlayScheduleStateProvider()),
+    // FUNCTIONALITY PROVIDERS
+    ChangeNotifierProvider(create: (_) => SelectionProvider()),
+    ChangeNotifierProvider(create: (_) => TranspositionProvider()),
+    ChangeNotifierProvider(create: (_) => EmailProvider()),
+  ];
+
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-      providers: [
-        //  APP-WIDE PROVIDERS
-        ChangeNotifierProvider(create: (_) => MyAuthProvider()),
-        ChangeNotifierProvider(
-          create: (_) => SettingsProvider()..loadSettings(),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => LayoutSettingsProvider()..loadSettings(),
-        ),
-        ChangeNotifierProvider(create: (_) => AppInfoProvider()..initialize()),
-        ChangeNotifierProvider(create: (_) => BugReportProvider()),
-        ChangeNotifierProvider(create: (_) => NavigationProvider()),
-
-        // ADMIN DOMAIN PROVIDERS
-        ChangeNotifierProvider(create: (_) => AdminProvider()),
-
-        // LOCAL DOMAIN PROVIDERS
-        ChangeNotifierProvider(create: (_) => UserProvider()),
-
-        ChangeNotifierProvider(create: (_) => CipherProvider()),
-        ChangeNotifierProvider(create: (_) => LocalVersionProvider()),
-        ChangeNotifierProvider(create: (_) => SectionProvider()),
-
-        ChangeNotifierProvider(create: (_) => PlaylistProvider()),
-        ChangeNotifierProvider(create: (_) => FlowItemProvider()),
-
-        ChangeNotifierProvider(create: (_) => LocalScheduleProvider()),
-
-        // CLOUD DOMAIN PROVIDERS
-        ChangeNotifierProvider(create: (_) => CloudScheduleProvider()),
-        ChangeNotifierProvider(create: (_) => CloudVersionProvider()),
-
-        // IMPORT PROVIDERS
-        ChangeNotifierProvider(create: (_) => ImportProvider()),
-        ChangeNotifierProvider(create: (_) => ParserProvider()),
-
-        // PLAY SCHEDULE PROVIDERS
-        ChangeNotifierProvider(create: (_) => AutoScrollProvider()),
-        ChangeNotifierProvider(create: (_) => PlayScheduleStateProvider()),
-
-        // FUNCTIONALITY PROVIDERS
-        ChangeNotifierProvider(create: (_) => SelectionProvider()),
-        ChangeNotifierProvider(create: (_) => TranspositionProvider()),
-        ChangeNotifierProvider(create: (_) => EmailProvider()),
-      ],
+      providers: providers,
       child: Consumer<SettingsProvider>(
         builder: (context, settingsProvider, child) {
           return MaterialApp(

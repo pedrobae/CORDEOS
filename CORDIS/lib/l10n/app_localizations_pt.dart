@@ -272,6 +272,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get about => 'Sobre';
 
   @override
+  String get advancedSettings => 'Advanced Settings';
+
+  @override
+  String get denseCipherCard => 'Dense Cipher Card';
+
+  @override
   String get styleSettings => 'Configurações de Estilo';
 
   @override

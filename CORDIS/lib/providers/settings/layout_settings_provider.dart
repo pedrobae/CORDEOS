@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import '../services/settings_service.dart';
+import 'package:cordis/services/settings_service.dart';
 
 enum ContentFilter { chords, lyrics }
 
 enum LayoutFilter { annotations, transitions }
 
-class LayoutSettingsProvider extends ChangeNotifier {
+class LayoutSetProvider extends ChangeNotifier {
   double fontSize = 16;
   String fontFamily = 'OpenSans';
   bool showSectionHeaders = true;

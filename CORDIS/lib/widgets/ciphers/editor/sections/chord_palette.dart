@@ -1,5 +1,5 @@
 import 'package:cordis/l10n/app_localizations.dart';
-import 'package:cordis/providers/layout_settings_provider.dart';
+import 'package:cordis/providers/settings/layout_settings_provider.dart';
 import 'package:cordis/providers/transposition_provider.dart';
 import 'package:cordis/services/tokenization/helper_classes.dart';
 import 'package:flutter/material.dart';
@@ -202,7 +202,7 @@ class _ChordPaletteState extends State<ChordPalette> {
   }
 
   Draggable<ContentToken> _buildDraggableChordToken(String chord) {
-    final laySet = context.read<LayoutSettingsProvider>();
+    final laySet = context.read<LayoutSetProvider>();
 
     final token = ContentToken(text: chord, type: TokenType.chord);
     final colorScheme = Theme.of(context).colorScheme;

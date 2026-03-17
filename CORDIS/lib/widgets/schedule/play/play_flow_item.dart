@@ -1,6 +1,6 @@
 import 'package:cordis/l10n/app_localizations.dart';
 import 'package:cordis/models/domain/playlist/flow_item.dart';
-import 'package:cordis/providers/layout_settings_provider.dart';
+import 'package:cordis/providers/settings/layout_settings_provider.dart';
 import 'package:cordis/utils/date_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -15,7 +15,7 @@ class PlayFlowItem extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return Consumer<LayoutSettingsProvider>(
+    return Consumer<LayoutSetProvider>(
       builder: (context, layoutSettings, child) {
         return Padding(
           padding: const EdgeInsets.only(left: 16.0, top: 24.0, right: 16.0),

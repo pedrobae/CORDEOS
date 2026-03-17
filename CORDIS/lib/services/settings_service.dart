@@ -12,9 +12,12 @@ class SettingsService {
   // Layout Settings Keys
   static const String _keyFontSize = 'layout_font_size';
   static const String _keyFontFamily = 'layout_font_family';
+
   static const String _keyShowSectionHeaders = 'layout_show_section_headers';
   static const String _keyScrollDirection = 'layout_scroll_direction';
   static const String _keyCardWidthMult = 'layout_card_width_mult';
+
+  static const String _keyDenseCipherCard = 'layout_dense_cipher_card';
 
   // Filter Settings Keys
   static const String _keyShowChords = 'layout_show_chords';
@@ -44,7 +47,7 @@ class SettingsService {
     return _prefs!;
   }
 
-  // === APP SETTINGS ===
+  // ====== APP SETTINGS ======
 
   /// Save theme mode
   static Future<void> setThemeMode(ThemeMode mode) async {
@@ -107,7 +110,7 @@ class SettingsService {
     return _preferences.getString(_keyCountry) ?? '';
   }
 
-  // === LAYOUT SETTINGS ===
+  // ====== LAYOUT SETTINGS ======
 
   /// Save font size
   static Future<void> setFontSize(double fontSize) async {
@@ -158,6 +161,16 @@ class SettingsService {
   static double getCardWidthMult() {
     return _preferences.getDouble(_keyCardWidthMult) ?? 0.9;
   }
+
+  static Future<void> setDenseCipherCard(bool value) async {
+    await _preferences.setBool(_keyDenseCipherCard, value);
+  }
+
+  static bool getDenseCipherCard() {
+    return _preferences.getBool(_keyDenseCipherCard) ?? true;
+  }
+
+  // ====== FILTER SETTINGS ======
 
   /// Save show chords
   static Future<void> setShowChords(bool show) async {

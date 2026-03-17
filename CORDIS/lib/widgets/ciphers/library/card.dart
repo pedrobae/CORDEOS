@@ -7,6 +7,7 @@ import 'package:cordis/providers/cipher/cipher_provider.dart';
 import 'package:cordis/providers/navigation_provider.dart';
 import 'package:cordis/providers/section_provider.dart';
 import 'package:cordis/providers/selection_provider.dart';
+import 'package:cordis/providers/settings/secret_settings_provider.dart';
 import 'package:cordis/providers/version/local_version_provider.dart';
 import 'package:cordis/screens/cipher/edit_cipher.dart';
 import 'package:cordis/screens/cipher/view_cipher.dart';
@@ -26,6 +27,16 @@ class CipherCard extends StatefulWidget {
 }
 
 class _CipherCardState extends State<CipherCard> {
+  late bool isDense;
+
+  @override
+  void initState() {
+    super.initState();
+    final secSet = context.read<SecretSetProvider>();
+
+    isDense = secSet.denseCipherCard;
+  }
+
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
@@ -109,58 +120,61 @@ class _CipherCardState extends State<CipherCard> {
                               ),
 
                               // STRUCTURE LIST
-                              ConstrainedBox(
-                                constraints: BoxConstraints(maxHeight: 25),
-                                child: ListView.builder(
-                                  scrollDirection: Axis.horizontal,
-                                  itemCount: version.songStructure.length,
-                                  itemBuilder: (_, index) {
-                                    final sectionCode =
-                                        version.songStructure[index];
-                                    final Section section =
-                                        version.sections![sectionCode]!;
+                              if (!isDense)
+                                ConstrainedBox(
+                                  constraints: BoxConstraints(maxHeight: 25),
+                                  child: ListView.builder(
+                                    scrollDirection: Axis.horizontal,
+                                    itemCount: version.songStructure.length,
+                                    itemBuilder: (_, index) {
+                                      final sectionCode =
+                                          version.songStructure[index];
+                                      final Section section =
+                                          version.sections![sectionCode]!;
 
-                                    // Painter for sections with large codes
-                                    final textPainter = TextPainter(
-                                      text: TextSpan(
-                                        text: sectionCode,
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      maxLines: 1,
-                                      textDirection: TextDirection.ltr,
-                                    )..layout();
-
-                                    return Container(
-                                      height: 25,
-                                      width: max(
-                                        25,
-                                        textPainter.size.width + 8,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(6),
-                                        color: section.contentColor,
-                                      ),
-                                      margin: const EdgeInsets.only(right: 3),
-                                      child: Center(
-                                        child: Text(
-                                          strutStyle: StrutStyle(
-                                            forceStrutHeight: true,
-                                          ),
-                                          sectionCode,
+                                      // Painter for sections with large codes
+                                      final textPainter = TextPainter(
+                                        text: TextSpan(
+                                          text: sectionCode,
                                           style: TextStyle(
                                             fontSize: 14,
-                                            fontWeight: FontWeight.w500,
-                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
                                           ),
                                         ),
-                                      ),
-                                    );
-                                  },
+                                        maxLines: 1,
+                                        textDirection: TextDirection.ltr,
+                                      )..layout();
+
+                                      return Container(
+                                        height: 25,
+                                        width: max(
+                                          25,
+                                          textPainter.size.width + 8,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
+                                          color: section.contentColor,
+                                        ),
+                                        margin: const EdgeInsets.only(right: 3),
+                                        child: Center(
+                                          child: Text(
+                                            strutStyle: StrutStyle(
+                                              forceStrutHeight: true,
+                                            ),
+                                            sectionCode,
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w500,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
                                 ),
-                              ),
                               // SPACER
                               SizedBox(height: 8),
                             ],

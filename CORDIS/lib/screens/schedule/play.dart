@@ -11,7 +11,7 @@ import 'package:cordis/models/dtos/schedule_dto.dart';
 import 'package:provider/provider.dart';
 import 'package:cordis/providers/auto_scroll_provider.dart';
 import 'package:cordis/providers/cipher/cipher_provider.dart';
-import 'package:cordis/providers/layout_settings_provider.dart';
+import 'package:cordis/providers/settings/layout_settings_provider.dart';
 import 'package:cordis/providers/playlist/flow_item_provider.dart';
 import 'package:cordis/providers/navigation_provider.dart';
 import 'package:cordis/providers/playlist/playlist_provider.dart';
@@ -91,7 +91,7 @@ class PlayScheduleState extends State<PlaySchedule> {
   void _syncItemFromViewport() {
     final visibleItemIndex = _scroll.syncItemFromViewport(
       _scrollController.position.viewportDimension,
-      context.read<LayoutSettingsProvider>().scrollDirection,
+      context.read<LayoutSetProvider>().scrollDirection,
     );
     if (visibleItemIndex != null) {
       _state.currentItemIndex = visibleItemIndex;
@@ -102,7 +102,7 @@ class PlayScheduleState extends State<PlaySchedule> {
   void _syncSectionFromViewport() {
     _scroll.syncSectionFromViewport(
       _scrollController.position.viewportDimension,
-      context.read<LayoutSettingsProvider>().scrollDirection,
+      context.read<LayoutSetProvider>().scrollDirection,
     );
   }
 
@@ -221,7 +221,7 @@ class PlayScheduleState extends State<PlaySchedule> {
     return Stack(
       children: [
         Positioned.fill(
-          child: Selector<LayoutSettingsProvider, Axis>(
+          child: Selector<LayoutSetProvider, Axis>(
             selector: (context, laySet) => laySet.scrollDirection,
             builder: (context, scrollDirection, child) {
               return Padding(
@@ -423,7 +423,7 @@ class PlayScheduleState extends State<PlaySchedule> {
       child:
           Selector2<
             PlayScheduleStateProvider,
-            LayoutSettingsProvider,
+            LayoutSetProvider,
             ({int currentIndex, Axis scrollDirection, int itemCount})
           >(
             selector: (_, playState, layoutState) => (

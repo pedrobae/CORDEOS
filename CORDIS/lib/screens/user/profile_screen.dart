@@ -1,7 +1,7 @@
 import 'package:cordis/l10n/app_localizations.dart';
 import 'package:cordis/providers/user/my_auth_provider.dart';
 import 'package:cordis/providers/navigation_provider.dart';
-import 'package:cordis/providers/settings_provider.dart';
+import 'package:cordis/providers/settings/settings_provider.dart';
 import 'package:cordis/providers/user/user_provider.dart';
 import 'package:cordis/providers/app_info_provider.dart';
 import 'package:cordis/screens/user/login_screen.dart';

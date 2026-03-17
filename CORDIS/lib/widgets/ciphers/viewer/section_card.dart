@@ -3,7 +3,7 @@ import 'package:cordis/widgets/ciphers/section_badge.dart';
 import 'package:cordis/widgets/ciphers/viewer/token_view.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:cordis/providers/layout_settings_provider.dart';
+import 'package:cordis/providers/settings/layout_settings_provider.dart';
 
 class SectionCard extends StatelessWidget {
   final int index;
@@ -30,7 +30,7 @@ class SectionCard extends StatelessWidget {
     final width = MediaQuery.of(context).size.width;
 
     return Selector2<
-      LayoutSettingsProvider,
+      LayoutSetProvider,
       AutoScrollProvider,
       ({bool isCurrent, bool showSectionHeaders, double cardWidthMult})
     >(

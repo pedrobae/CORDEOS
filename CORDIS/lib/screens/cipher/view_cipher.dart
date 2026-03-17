@@ -16,7 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
 import 'package:cordis/providers/cipher/cipher_provider.dart';
-import 'package:cordis/providers/layout_settings_provider.dart';
+import 'package:cordis/providers/settings/layout_settings_provider.dart';
 import 'package:cordis/providers/version/cloud_version_provider.dart';
 import 'package:cordis/providers/version/local_version_provider.dart';
 import 'package:cordis/screens/cipher/edit_cipher.dart';
@@ -69,7 +69,7 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
         if (!mounted || !_scrollController.hasClients) return;
         scroll.syncSectionFromViewport(
           _scrollController.position.viewportDimension,
-          context.read<LayoutSettingsProvider>().scrollDirection,
+          context.read<LayoutSetProvider>().scrollDirection,
         );
       });
     }
@@ -139,7 +139,7 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
       CipherProvider,
       LocalVersionProvider,
       CloudVersionProvider,
-      LayoutSettingsProvider
+      LayoutSetProvider
     >(
       builder: (context, ciph, localVer, cloudVer, laySet, child) {
         final versionData = _extractVersionData(ciph, localVer, cloudVer);
@@ -191,7 +191,7 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
 
   List<String> _filterStructure(
     List<String> structure,
-    LayoutSettingsProvider laySet,
+    LayoutSetProvider laySet,
   ) {
     final filteredStructure = <String>[];
     for (var sectionCode in structure) {
@@ -208,7 +208,7 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
     return filteredStructure;
   }
 
-  Widget _buildActionBar(LayoutSettingsProvider laySet) {
+  Widget _buildActionBar(LayoutSetProvider laySet) {
     final isWideScreen = MediaQuery.of(context).size.width > 600;
 
     return Column(
@@ -253,7 +253,7 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
   Widget _buildSectionsGrid(
     List<String> filteredStructure,
     _VersionData versionData,
-    LayoutSettingsProvider laySet,
+    LayoutSetProvider laySet,
   ) {
     return Consumer<SectionProvider>(
       builder: (context, sect, child) {

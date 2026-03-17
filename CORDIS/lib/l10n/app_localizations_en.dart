@@ -269,6 +269,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get about => 'About';
 
   @override
+  String get advancedSettings => 'Advanced Settings';
+
+  @override
+  String get denseCipherCard => 'Dense Cipher Card';
+
+  @override
   String get styleSettings => 'Style Settings';
 
   @override

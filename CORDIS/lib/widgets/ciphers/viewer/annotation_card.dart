@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:cordis/providers/layout_settings_provider.dart';
+import 'package:cordis/providers/settings/layout_settings_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -22,7 +22,7 @@ class AnnotationCard extends StatelessWidget {
       ? max(300.0, MediaQuery.of(context).size.width / 4)
         : MediaQuery.of(context).size.width;
 
-    return Consumer<LayoutSettingsProvider>(
+    return Consumer<LayoutSetProvider>(
       builder: (context, laySet, child) {
         if (sectionText.trim().isEmpty) {
           return SizedBox.shrink();

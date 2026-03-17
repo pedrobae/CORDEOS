@@ -2,6 +2,7 @@ import 'package:cordis/helpers/database.dart';
 import 'package:cordis/providers/navigation_provider.dart';
 import 'package:cordis/providers/schedule/cloud_schedule_provider.dart';
 import 'package:cordis/providers/schedule/local_schedule_provider.dart';
+import 'package:cordis/providers/settings/secret_settings_provider.dart';
 import 'package:cordis/providers/version/cloud_version_provider.dart';
 import 'package:cordis/screens/settings/report_bug_screen.dart';
 import 'package:cordis/services/cache_service.dart';
@@ -11,7 +12,7 @@ import 'package:cordis/l10n/app_localizations.dart';
 
 import 'package:cordis/providers/cipher/cipher_provider.dart';
 import 'package:cordis/providers/playlist/playlist_provider.dart';
-import 'package:cordis/providers/settings_provider.dart';
+import 'package:cordis/providers/settings/settings_provider.dart';
 import 'package:cordis/providers/user/my_auth_provider.dart';
 import 'package:cordis/providers/section_provider.dart';
 import 'package:cordis/providers/playlist/flow_item_provider.dart';
@@ -31,7 +32,8 @@ import 'package:provider/provider.dart';
 import 'package:sqflite/sqlite_api.dart';
 
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({super.key});
+  final bool showSecrets;
+  const SettingsScreen({super.key, this.showSecrets = false});
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -42,8 +44,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     final nav = context.read<NavigationProvider>();
 
-    return Consumer<SettingsProvider>(
-      builder: (context, set, child) => SingleChildScrollView(
+    return Consumer2<SettingsProvider, SecretSetProvider>(
+      builder: (context, set, secSet, child) => SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           spacing: 8,
@@ -76,7 +78,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             _buildLanguageButton(set),
             const SizedBox(height: 32),
-            
+
             SettingsSectionHeader(
               title: AppLocalizations.of(context)!.support,
               icon: Icons.support_agent,
@@ -84,6 +86,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
             SizedBox(),
             _buildDebugButton(nav),
             const SizedBox(height: 32),
+
+            if (widget.showSecrets) ...[
+              SettingsSectionHeader(
+              title: AppLocalizations.of(context)!.advancedSettings,
+              icon: Icons.settings,
+            ),
+            SizedBox(),
+            SettingsSwitchTile(
+              label: AppLocalizations.of(context)!.denseCipherCard,
+              icon: secSet.denseCipherCard ? Icons.grid_on : Icons.grid_off,
+              value: secSet.denseCipherCard,
+              onChanged: (value) {
+                secSet.toggleDenseCipherCard();
+              },
+            )
+            ],
 
             if (kDebugMode) ...[
               SettingsSectionHeader(
@@ -337,7 +355,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 16,
+          ),
           backgroundColor: colorScheme.surface,
           shape: ContinuousRectangleBorder(
             borderRadius: BorderRadius.circular(0),
@@ -496,7 +517,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: Row(
               children: [
                 Expanded(
-                  child: Text(AppLocalizations.of(context)!.tableData(tableName)),
+                  child: Text(
+                    AppLocalizations.of(context)!.tableData(tableName),
+                  ),
                 ),
                 IconButton(
                   tooltip: AppLocalizations.of(context)!.reloadInterface,
@@ -557,10 +580,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   DataCell(
                                     IconButton(
                                       tooltip: canDelete
-                                        ? AppLocalizations.of(context)!
-                                          .deleteRow
-                                        : AppLocalizations.of(context)!
-                                          .rowHasNoId,
+                                          ? AppLocalizations.of(
+                                              context,
+                                            )!.deleteRow
+                                          : AppLocalizations.of(
+                                              context,
+                                            )!.rowHasNoId,
                                       icon: Icon(
                                         Icons.delete_outline,
                                         color: canDelete
@@ -569,49 +594,55 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                       ),
                                       onPressed: canDelete
                                           ? () async {
-                                              final bool? confirmed =
-                                                  await showDialog<bool>(
-                                                    context: context,
-                                                    builder: (context) => AlertDialog(
-                                                      title: Text(
-                                                        AppLocalizations.of(
-                                                          context,
-                                                        )!.deleteRowQuestion,
-                                                      ),
-                                                      content: Text(
-                                                        AppLocalizations.of(
-                                                          context,
-                                                        )!.deleteRowQuestionBody(
-                                                          rowId.toString(),
-                                                          tableName,
-                                                        ),
-                                                      ),
-                                                      actions: [
-                                                        TextButton(
-                                                          onPressed: () =>
-                                                              Navigator.of(context).pop(false),
-                                                          child: Text(
-                                                            AppLocalizations.of(
-                                                              context,
-                                                            )!.cancel,
-                                                          ),
-                                                        ),
-                                                        FilledButton(
-                                                          onPressed: () =>
-                                                              Navigator.of(context).pop(true),
-                                                          style: FilledButton.styleFrom(
-                                                            backgroundColor:
-                                                                colorScheme.error,
-                                                          ),
-                                                          child: Text(
-                                                            AppLocalizations.of(
-                                                              context,
-                                                            )!.delete,
-                                                          ),
-                                                        ),
-                                                      ],
+                                              final bool?
+                                              confirmed = await showDialog<bool>(
+                                                context: context,
+                                                builder: (context) => AlertDialog(
+                                                  title: Text(
+                                                    AppLocalizations.of(
+                                                      context,
+                                                    )!.deleteRowQuestion,
+                                                  ),
+                                                  content: Text(
+                                                    AppLocalizations.of(
+                                                      context,
+                                                    )!.deleteRowQuestionBody(
+                                                      rowId.toString(),
+                                                      tableName,
                                                     ),
-                                                  );
+                                                  ),
+                                                  actions: [
+                                                    TextButton(
+                                                      onPressed: () =>
+                                                          Navigator.of(
+                                                            context,
+                                                          ).pop(false),
+                                                      child: Text(
+                                                        AppLocalizations.of(
+                                                          context,
+                                                        )!.cancel,
+                                                      ),
+                                                    ),
+                                                    FilledButton(
+                                                      onPressed: () =>
+                                                          Navigator.of(
+                                                            context,
+                                                          ).pop(true),
+                                                      style:
+                                                          FilledButton.styleFrom(
+                                                            backgroundColor:
+                                                                colorScheme
+                                                                    .error,
+                                                          ),
+                                                      child: Text(
+                                                        AppLocalizations.of(
+                                                          context,
+                                                        )!.delete,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              );
 
                                               if (confirmed != true) return;
 
@@ -624,19 +655,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                               await refreshRows(setState);
 
                                               if (!context.mounted) return;
-                                              ScaffoldMessenger.of(context)
-                                                  .showSnackBar(
-                                                    SnackBar(
-                                                      content: Text(
-                                                        AppLocalizations.of(
-                                                          context,
-                                                        )!.rowDeletedFromTable(
-                                                          rowId.toString(),
-                                                          tableName,
-                                                        ),
-                                                      ),
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                    AppLocalizations.of(
+                                                      context,
+                                                    )!.rowDeletedFromTable(
+                                                      rowId.toString(),
+                                                      tableName,
                                                     ),
-                                                  );
+                                                  ),
+                                                ),
+                                              );
                                             }
                                           : null,
                                     ),

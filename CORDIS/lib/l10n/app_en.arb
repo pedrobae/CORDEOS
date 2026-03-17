@@ -175,6 +175,11 @@
   "about": "About",
   "@about": {"description": "About navigation tab"},
 
+  "advancedSettings": "Advanced Settings",
+  "@advancedSettings": {"description": "Title for advanced settings section"},
+  "denseCipherCard": "Dense Cipher Card",
+  "@denseCipherCard": {"description": "Label for dense cipher card setting"},
+
   "styleSettings": "Style Settings",
   "@styleSettings": {"description": "Title for style settings section"},
   "scrollDirection": "Scroll Direction:",

@@ -1,4 +1,4 @@
-import 'package:cordis/providers/layout_settings_provider.dart';
+import 'package:cordis/providers/settings/layout_settings_provider.dart';
 import 'package:cordis/providers/transposition_provider.dart';
 import 'package:cordis/services/tokenization/tokenization_service.dart';
 import 'package:cordis/services/tokenization/helper_classes.dart';
@@ -16,7 +16,7 @@ class TokenView extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Consumer2<LayoutSettingsProvider, TranspositionProvider>(
+    return Consumer2<LayoutSetProvider, TranspositionProvider>(
       builder: (context, laySet, trans, child) {
         return LayoutBuilder(
           builder: (context, constraints) {

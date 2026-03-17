@@ -1,5 +1,5 @@
 import 'package:cordis/l10n/app_localizations.dart';
-import 'package:cordis/providers/layout_settings_provider.dart';
+import 'package:cordis/providers/settings/layout_settings_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -18,7 +18,7 @@ class _StyleSettingsState extends State<StyleSettings> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return Consumer<LayoutSettingsProvider>(
+    return Consumer<LayoutSetProvider>(
       builder: (context, settings, child) {
         _localCardWidthMult ??= settings.cardWidthMult;
         return Container(

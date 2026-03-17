@@ -3,7 +3,7 @@ import 'package:cordis/models/domain/cipher/section.dart';
 import 'package:cordis/models/domain/playlist/playlist_item.dart';
 import 'package:cordis/providers/auto_scroll_provider.dart';
 import 'package:cordis/providers/cipher/cipher_provider.dart';
-import 'package:cordis/providers/layout_settings_provider.dart';
+import 'package:cordis/providers/settings/layout_settings_provider.dart';
 import 'package:cordis/providers/playlist/flow_item_provider.dart';
 import 'package:cordis/providers/schedule/play_schedule_state_provider.dart';
 import 'package:cordis/providers/section_provider.dart';
@@ -30,7 +30,7 @@ class _ContentWrapState extends State<ContentWrap> {
   Widget build(BuildContext context) {
     return Selector5<
       PlayScheduleStateProvider,
-      LayoutSettingsProvider,
+      LayoutSetProvider,
       LocalVersionProvider,
       CloudVersionProvider,
       SectionProvider,
@@ -109,7 +109,7 @@ class _ContentWrapState extends State<ContentWrap> {
           break;
         case PlaylistItemType.flowItem:
           final flow = context.read<FlowItemProvider>();
-          final laySet = context.read<LayoutSettingsProvider>();
+          final laySet = context.read<LayoutSetProvider>();
 
           final flowItem = flow.getFlowItem(item.contentId!);
 
@@ -227,7 +227,7 @@ class _ContentWrapState extends State<ContentWrap> {
   }
 
   List<Widget> _buildSectionCards(int itemIndex, dynamic versionId) {
-    final laySet = Provider.of<LayoutSettingsProvider>(context, listen: false);
+    final laySet = Provider.of<LayoutSetProvider>(context, listen: false);
 
     final localVer = Provider.of<LocalVersionProvider>(context, listen: false);
     final cloudVer = Provider.of<CloudVersionProvider>(context, listen: false);
