@@ -16,15 +16,17 @@ class SettingsSectionHeader extends StatelessWidget {
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
+      spacing: 16,
       children: [
         Icon(icon, color: colorScheme.primary, size: 20),
-        const SizedBox(width: 16),
-        Text(
-          title,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            color: colorScheme.primary,
+        Expanded(
+          child: Text(
+            title,
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(color: colorScheme.primary),
+            softWrap: true,
           ),
-          softWrap: true,
         ),
       ],
     );

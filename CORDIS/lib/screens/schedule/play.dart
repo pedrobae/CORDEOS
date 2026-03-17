@@ -269,63 +269,139 @@ class PlayScheduleState extends State<PlaySchedule> {
           );
         }
 
-        return Container(
-          width: MediaQuery.of(context).size.width,
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            border: Border(
-              top: BorderSide(
-                color: colorScheme.surfaceContainerHigh,
-                width: 1,
+        return Column(
+          children: [
+            Container(
+              width: MediaQuery.of(context).size.width,
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                border: Border(
+                  top: BorderSide(
+                    color: colorScheme.surfaceContainerHigh,
+                    width: 1,
+                  ),
+                  bottom: BorderSide(
+                    color: colorScheme.surfaceContainerHigh,
+                    width: 1,
+                  ),
+                ),
+                color: colorScheme.surface,
               ),
-              bottom: BorderSide(
-                color: colorScheme.surfaceContainerHigh,
-                width: 1,
+              child: Row(
+                spacing: 8,
+                children: [
+                  Expanded(
+                    child: StructureList(
+                      versionId: isCloud
+                          ? item.firebaseContentId
+                          : item.contentId,
+                    ),
+                  ),
+                  if (isWide)
+                    ..._buildSettingsButtons()
+                  else ...[
+                    Selector<PlayScheduleStateProvider, bool>(
+                      selector: (_, state) => state.showSettings,
+                      builder: (context, showSettings, child) {
+                        return GestureDetector(
+                          onTap: () {
+                            _state.toggleSettings();
+                          },
+                          child: SizedBox(
+                            width: 40,
+                            height: 40,
+                            child: Icon(
+                              showSettings ? Icons.expand_less : Icons.tune,
+                              color: colorScheme.primary,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                  GestureDetector(
+                    onTap: () {
+                      nav.pop();
+                    },
+                    child: SizedBox(
+                      width: 40,
+                      height: 40,
+                      child: Icon(Icons.close, color: colorScheme.primary),
+                    ),
+                  ),
+                ],
               ),
             ),
-            color: colorScheme.surface,
-          ),
-          child: Row(
-            spacing: 8,
-            children: [
-              Expanded(
-                child: StructureList(
-                  versionId: isCloud ? item.firebaseContentId : item.contentId,
-                ),
-              ),
-              if (isWide) ...[
-                /// Show setting button on wide screens
-                _buildSettingsButton(
-                  Icons.format_paint,
-                  colorScheme,
-                  () => _openSettingsSheet(StyleSettings()),
-                ),
-                _buildSettingsButton(
-                  Icons.filter_alt,
-                  colorScheme,
-                  () => _openSettingsSheet(ContentFilters()),
-                ),
-                _buildSettingsButton(
-                  Icons.auto_stories_outlined,
-                  colorScheme,
-                  () => _openSettingsSheet(AutoScrollSettings()),
-                ),
-              ],
-              GestureDetector(
-                onTap: () {
-                  nav.pop();
-                },
-                child: SizedBox(
-                  width: 40,
-                  height: 40,
-                  child: Icon(Icons.close, color: colorScheme.primary),
-                ),
-              ),
-            ],
-          ),
+            Selector<PlayScheduleStateProvider, bool>(
+              selector: (_, state) => state.showSettings,
+              builder: (context, showSettings, child) {
+                if (!showSettings) return const SizedBox.shrink();
+                return Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(
+                        color: colorScheme.surfaceContainerHigh,
+                        width: 1,
+                      ),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: _buildSettingsButtons(),
+                  ),
+                );
+              },
+            ),
+          ],
         );
       },
     );
+  }
+
+  List<Widget> _buildSettingsButtons() {
+    final colorScheme = Theme.of(context).colorScheme;
+    return [
+      SizedBox(
+        width: 40,
+        height: 40,
+        child: GestureDetector(
+          onTap: () => showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            builder: (context) => StyleSettings(),
+          ),
+          child: Icon(Icons.format_paint, color: colorScheme.primary),
+        ),
+      ),
+      SizedBox(
+        width: 40,
+        height: 40,
+        child: GestureDetector(
+          onTap: () => showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            builder: (context) => ContentFilters(),
+          ),
+          child: Icon(Icons.filter_alt, color: colorScheme.primary),
+        ),
+      ),
+      SizedBox(
+        width: 40,
+        height: 40,
+        child: GestureDetector(
+          onTap: () => showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            builder: (context) => AutoScrollSettings(),
+          ),
+          child: Icon(Icons.auto_stories_outlined, color: colorScheme.primary),
+        ),
+      ),
+    ];
   }
 
   Widget _buildBottomControls() {
@@ -340,106 +416,37 @@ class PlayScheduleState extends State<PlaySchedule> {
         ),
       ),
       width: MediaQuery.of(context).size.width,
-      child: Selector<PlayScheduleStateProvider, bool>(
-        selector: (_, state) => state.showSettings,
-        builder: (context, showSettings, child) {
-          final state = context.read<PlayScheduleStateProvider>();
-          return Column(
-            children: [
-              if (showSettings) _buildSettingsControls(state),
-              _buildPlayControls(state),
-            ],
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildSettingsControls(PlayScheduleStateProvider state) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: colorScheme.surfaceContainerHigh, width: 1),
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildSettingsButton(
-            Icons.format_paint,
-            colorScheme,
-            () => _openSettingsSheet(StyleSettings(), state: state),
+      child:
+          Selector2<
+            PlayScheduleStateProvider,
+            LayoutSettingsProvider,
+            ({int currentIndex, Axis scrollDirection, int itemCount})
+          >(
+            selector: (_, playState, layoutState) => (
+              currentIndex: playState.currentItemIndex,
+              scrollDirection: layoutState.scrollDirection,
+              itemCount: playState.itemCount,
+            ),
+            builder: (context, s, child) {
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  _buildPreviousButton(s.currentIndex, s.scrollDirection),
+                  _buildNextTitleSection(s.currentIndex, s.itemCount),
+                  _buildNextButton(
+                    s.currentIndex,
+                    s.scrollDirection,
+                    s.itemCount,
+                  ),
+                ],
+              );
+            },
           ),
-          _buildSettingsButton(
-            Icons.filter_alt,
-            colorScheme,
-            () => _openSettingsSheet(ContentFilters(), state: state),
-          ),
-          _buildSettingsButton(
-            Icons.auto_stories_outlined,
-            colorScheme,
-            () => _openSettingsSheet(AutoScrollSettings(), state: state),
-          ),
-        ],
-      ),
     );
   }
 
-  Widget _buildSettingsButton(
-    IconData icon,
-    ColorScheme colorScheme,
-    VoidCallback onTap,
-  ) {
-    return SizedBox(
-      width: 40,
-      height: 40,
-      child: GestureDetector(
-        onTap: onTap,
-        child: Icon(icon, color: colorScheme.primary),
-      ),
-    );
-  }
-
-  void _openSettingsSheet(Widget sheet, {PlayScheduleStateProvider? state}) {
-    if (state != null && !isWide) state.setShowSettings(false);
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) => sheet,
-    );
-  }
-
-  Widget _buildPlayControls(PlayScheduleStateProvider state) {
-    return Selector2<
-      PlayScheduleStateProvider,
-      LayoutSettingsProvider,
-      (int, Axis)
-    >(
-      selector: (_, playState, layoutState) =>
-          (playState.currentItemIndex, layoutState.scrollDirection),
-      builder: (context, value, child) {
-        final (currentIndex, scrollDirection) = value;
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          mainAxisSize: MainAxisSize.max,
-          children: [
-            _buildPreviousButton(state, currentIndex, scrollDirection),
-            _buildNextTitleSection(currentIndex, state),
-            _buildNextButton(state, currentIndex, scrollDirection),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildPreviousButton(
-    PlayScheduleStateProvider state,
-    int currentIndex,
-    Axis scrollDirection,
-  ) {
+  Widget _buildPreviousButton(int currentIndex, Axis scrollDirection) {
     final colorScheme = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: () {
@@ -461,53 +468,17 @@ class PlayScheduleState extends State<PlaySchedule> {
     );
   }
 
-  Widget _buildNextTitleSection(
-    int currentIndex,
-    PlayScheduleStateProvider state,
-  ) {
-    final textTheme = Theme.of(context).textTheme;
-
-    return SizedBox(
-      width: MediaQuery.of(context).size.width / 2,
-      child: GestureDetector(
-        onTap: () {
-          if (!isWide) state.toggleSettings();
-        },
-        child: Selector<PlayScheduleStateProvider, PlaylistItem?>(
-          selector: (_, s) => s.nextItem,
-          builder: (context, nextItem, child) {
-            String nextTitle = '-';
-            if (currentIndex < state.itemCount - 1 && nextItem != null) {
-              nextTitle = _getItemTitle(nextItem);
-            }
-
-            return Text(
-              nextTitle.isEmpty
-                  ? '-'
-                  : AppLocalizations.of(context)!.nextPlaceholder(nextTitle),
-              style: textTheme.bodyLarge,
-              softWrap: true,
-              textAlign: TextAlign.center,
-            );
-          },
-        ),
-      ),
-    );
-  }
-
   Widget _buildNextButton(
-    PlayScheduleStateProvider state,
     int currentIndex,
     Axis scrollDirection,
+    int itemCount,
   ) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return GestureDetector(
       onTap: () {
-        final currentItem = state.currentItem;
-        if (currentItem != null &&
-            state.currentItemIndex < state.itemCount - 1) {
-          _scrollToItem(state.currentItemIndex + 1);
+        if (currentIndex < itemCount - 1) {
+          _scrollToItem(currentIndex + 1);
         }
       },
       child: SizedBox(
@@ -524,7 +495,32 @@ class PlayScheduleState extends State<PlaySchedule> {
     );
   }
 
-  /// Helper to extract title from different item types
+  Widget _buildNextTitleSection(int currentIndex, int itemCount) {
+    final textTheme = Theme.of(context).textTheme;
+
+    return SizedBox(
+      width: MediaQuery.of(context).size.width / 2,
+      child: Selector<PlayScheduleStateProvider, PlaylistItem?>(
+        selector: (_, s) => s.nextItem,
+        builder: (context, nextItem, child) {
+          String nextTitle = '-';
+          if (currentIndex < itemCount - 1 && nextItem != null) {
+            nextTitle = _getItemTitle(nextItem);
+          }
+
+          return Text(
+            nextTitle.isEmpty
+                ? '-'
+                : AppLocalizations.of(context)!.nextPlaceholder(nextTitle),
+            style: textTheme.bodyLarge,
+            softWrap: true,
+            textAlign: TextAlign.center,
+          );
+        },
+      ),
+    );
+  }
+
   String _getItemTitle(PlaylistItem item) {
     switch (item.type) {
       case PlaylistItemType.version:

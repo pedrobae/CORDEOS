@@ -9,8 +9,10 @@ class AutoScrollIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Consumer<AutoScrollProvider>(
-      builder: (context, scrollProvider, child) {
+    return Selector<AutoScrollProvider, bool>(
+      selector: (_, scroll) => scroll.isAutoScrolling,
+      builder: (context, isAutoScrolling, child) {
+        final scrollProvider = context.read<AutoScrollProvider>();
         return GestureDetector(
           onTap: () {
             scrollProvider.toggleAutoScroll();
@@ -25,13 +27,18 @@ class AutoScrollIndicator extends StatelessWidget {
             child: Stack(
               alignment: Alignment.center,
               children: [
-                CircularProgressIndicator(
-                  strokeWidth: 2,
-                  value: scrollProvider.timerProgress,
-                  color: colorScheme.primary,
+                ValueListenableBuilder<double>(
+                  valueListenable: scrollProvider.timerProgressListenable,
+                  builder: (context, timerProgress, _) {
+                    return CircularProgressIndicator(
+                      strokeWidth: 2,
+                      value: timerProgress,
+                      color: colorScheme.primary,
+                    );
+                  },
                 ),
                 Icon(
-                  scrollProvider.isAutoScrolling ? Icons.pause : Icons.play_arrow,
+                  isAutoScrolling ? Icons.pause : Icons.play_arrow,
                   size: 24,
                   color: colorScheme.primary,
                 ),
@@ -39,7 +46,7 @@ class AutoScrollIndicator extends StatelessWidget {
             ),
           ),
         );
-      }
+      },
     );
   }
 }

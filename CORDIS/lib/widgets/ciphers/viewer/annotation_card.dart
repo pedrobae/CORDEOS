@@ -56,7 +56,7 @@ class AnnotationCard extends StatelessWidget {
                   ),
 
                   // CONTENT
-                  Text(sectionText, style: TextStyle(fontSize: laySet.fontSize)),
+                  Text(sectionText, style: laySet.lyricTextStyle),
                 ],
               ),
             ),

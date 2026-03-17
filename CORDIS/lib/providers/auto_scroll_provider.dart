@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cordis/services/settings_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class AutoScrollProvider extends ChangeNotifier {
@@ -20,6 +21,9 @@ class AutoScrollProvider extends ChangeNotifier {
   Timer? autoScrollTimer;
   Timer? _progressTimer;
   DateTime? _timerStartTime;
+  final ValueNotifier<double> _timerProgress = ValueNotifier<double>(0.0);
+
+  ValueListenable<double> get timerProgressListenable => _timerProgress;
 
   final Map<int, GlobalKey> _itemKeys = {};
   final Map<int, Map<int, GlobalKey>> _sectionKeys = {};
@@ -99,6 +103,7 @@ class AutoScrollProvider extends ChangeNotifier {
     _progressTimer?.cancel();
     _progressTimer = null;
     _timerStartTime = null;
+    _timerProgress.value = 0.0;
     isAutoScrolling = false;
     notifyListeners();
   }
@@ -115,7 +120,7 @@ class AutoScrollProvider extends ChangeNotifier {
 
     _progressTimer?.cancel();
     _progressTimer = Timer.periodic(const Duration(milliseconds: 16), (_) {
-      notifyListeners();
+      _timerProgress.value = timerProgress;
     });
 
     _scheduleNextSectionScroll();
@@ -298,6 +303,7 @@ class AutoScrollProvider extends ChangeNotifier {
     }
     _progressTimer?.cancel();
     _timerStartTime = null;
+    _timerProgress.value = 0.0;
     autoScrollTimer?.cancel();
     autoScrollTimer = null;
     isAutoScrolling = false;
@@ -309,6 +315,7 @@ class AutoScrollProvider extends ChangeNotifier {
   void dispose() {
     autoScrollTimer?.cancel();
     _progressTimer?.cancel();
+    _timerProgress.dispose();
     super.dispose();
   }
 }
