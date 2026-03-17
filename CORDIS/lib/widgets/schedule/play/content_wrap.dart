@@ -233,6 +233,8 @@ class _ContentWrapState extends State<ContentWrap> {
     final cloudVer = Provider.of<CloudVersionProvider>(context, listen: false);
     final sect = Provider.of<SectionProvider>(context, listen: false);
 
+    if (versionId == null) return [const SizedBox.shrink()];
+
     List<String> songStructure;
     if (widget.isCloud) {
       final version = cloudVer.getVersion(versionId);

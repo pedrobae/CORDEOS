@@ -56,6 +56,5 @@ class PlayScheduleStateProvider extends ChangeNotifier {
     _showSettings = false;
     _isLoading = true;
     _items = [];
-    notifyListeners();
   }
 }

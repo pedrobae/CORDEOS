@@ -67,6 +67,8 @@ class PlayScheduleState extends State<PlaySchedule> {
   void dispose() {
     _scrollController.removeListener(_scrollListener);
     _scrollController.dispose();
+    _state.reset();
+    _scroll.clearCache();
     super.dispose();
   }
 
@@ -78,7 +80,6 @@ class PlayScheduleState extends State<PlaySchedule> {
 
     if (isManualScroll) {
       if (_scroll.scrollModeEnabled) _scroll.stopAutoScroll();
-
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted || !_scrollController.hasClients) return;
         _syncItemFromViewport();
@@ -175,8 +176,11 @@ class PlayScheduleState extends State<PlaySchedule> {
     final cloudVer = context.read<CloudVersionProvider>();
     final sect = context.read<SectionProvider>();
 
-    await cloudSch.loadSchedule(widget.scheduleId);
-    final schedule = cloudSch.getSchedule(widget.scheduleId)!;
+    final schedule = cloudSch.getSchedule(widget.scheduleId);
+
+    if (schedule == null) {
+      throw Exception("Schedule not found");
+    }
 
     final items = schedule.items;
     _state.setItems(items);
@@ -503,7 +507,7 @@ class PlayScheduleState extends State<PlaySchedule> {
       child: Selector<PlayScheduleStateProvider, PlaylistItem?>(
         selector: (_, s) => s.nextItem,
         builder: (context, nextItem, child) {
-          String nextTitle = '-';
+          String nextTitle = '';
           if (currentIndex < itemCount - 1 && nextItem != null) {
             nextTitle = _getItemTitle(nextItem);
           }
@@ -534,6 +538,7 @@ class PlayScheduleState extends State<PlaySchedule> {
         } else {
           final localVer = context.read<LocalVersionProvider>();
           final ciph = context.read<CipherProvider>();
+          if (item.contentId == null) return '';
           final version = localVer.getVersion(item.contentId!);
           if (version == null) return '';
           return ciph.getCipher(version.cipherID)?.title ?? '';
@@ -547,6 +552,7 @@ class PlayScheduleState extends State<PlaySchedule> {
               '';
         } else {
           final flow = context.read<FlowItemProvider>();
+          if (item.contentId == null) return '';
           return flow.getFlowItem(item.contentId!)?.title ?? '';
         }
     }

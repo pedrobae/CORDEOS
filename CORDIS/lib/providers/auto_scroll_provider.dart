@@ -307,7 +307,6 @@ class AutoScrollProvider extends ChangeNotifier {
     autoScrollTimer?.cancel();
     autoScrollTimer = null;
     isAutoScrolling = false;
-    notifyListeners();
   }
 
   // ===== CLEANUP =====
