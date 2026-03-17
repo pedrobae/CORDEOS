@@ -36,12 +36,14 @@ class _AutoScrollSettingsState extends State<AutoScrollSettings> {
             children: [
               // HEADER
               Row(
+                spacing: 8,
                 children: [
-                  Text(
-                    AppLocalizations.of(context)!.autoScrollSettings,
-                    style: textTheme.titleMedium,
+                  Expanded(
+                    child: Text(
+                      AppLocalizations.of(context)!.autoScrollSettings,
+                      style: textTheme.titleMedium,
+                    ),
                   ),
-                  Spacer(),
                   IconButton(
                     icon: const Icon(Icons.close),
                     onPressed: () => Navigator.of(context).pop(),

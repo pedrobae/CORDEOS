@@ -228,6 +228,7 @@ class PlayScheduleState extends State<PlaySchedule> {
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: SingleChildScrollView(
                   controller: _scrollController,
+                  clipBehavior: Clip.none,
                   scrollDirection: scrollDirection,
                   child: ContentWrap(isCloud: isCloud),
                 ),
