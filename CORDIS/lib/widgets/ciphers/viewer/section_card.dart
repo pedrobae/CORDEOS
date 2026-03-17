@@ -36,7 +36,7 @@ class SectionCard extends StatelessWidget {
     return Selector2<LayoutSettingsProvider, AutoScrollProvider, ({bool isCurrent, bool showSectionHeaders})>(
       selector: (context, laySet, scroll) => (
         showSectionHeaders: laySet.showSectionHeaders,
-        isCurrent: (scroll.currentSectionIndex == index && scroll.currentItemIndex == itemIndex),
+        isCurrent: (scroll.currentSectionIndex == index && (scroll.currentItemIndex == itemIndex))
       ),
       child: TokenView(chordPro: sectionText),
       builder: (context, selection, child) {
@@ -62,7 +62,6 @@ class SectionCard extends StatelessWidget {
                       BoxShadow(
                         color: colorScheme.primary,
                         blurRadius: 8,
-                        offset: Offset(0, 2),
                       ),
                     ]
                   : null,

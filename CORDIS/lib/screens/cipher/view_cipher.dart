@@ -13,6 +13,7 @@ import 'package:cordis/widgets/ciphers/viewer/structure_list.dart';
 import 'package:cordis/widgets/settings/content_filters.dart';
 import 'package:cordis/widgets/settings/style_settings.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
 import 'package:cordis/providers/cipher/cipher_provider.dart';
 import 'package:cordis/providers/layout_settings_provider.dart';
@@ -39,17 +40,39 @@ class ViewCipherScreen extends StatefulWidget {
 
 class _ViewCipherScreenState extends State<ViewCipherScreen>
     with SingleTickerProviderStateMixin {
-  late ScrollController scrollController;
+  late ScrollController _scrollController;
 
   @override
   void initState() {
     super.initState();
-    scrollController = ScrollController();
-    context.read<AutoScrollProvider>().currentItemIndex = 0;
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await _loadData();
+    _scrollController = ScrollController();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadData();
       _setOriginalKey();
+      _scrollController.addListener(_scrollListener);
     });
+  }
+
+  void _scrollListener() {
+    if (!_scrollController.hasClients) return;
+    final scroll = context.read<AutoScrollProvider>();
+
+    scroll.currentItemIndex = 0;
+
+    final isManualScroll =
+        _scrollController.position.userScrollDirection != ScrollDirection.idle;
+
+    if (isManualScroll) {
+      if (scroll.scrollModeEnabled) scroll.stopAutoScroll();
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || !_scrollController.hasClients) return;
+        scroll.syncSectionFromViewport(
+          _scrollController.position.viewportDimension,
+          context.read<LayoutSettingsProvider>().scrollDirection,
+        );
+      });
+    }
   }
 
   Future<void> _loadData() async {
@@ -100,6 +123,14 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
     }
     trans.setOriginalKey(originalKey);
     trans.setTransposedKey(transposedKey);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_scrollListener);
+    _scrollController.dispose();
+    
+    super.dispose();
   }
 
   @override
@@ -192,7 +223,7 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
                 icon: const Icon(Icons.edit),
                 onPressed: _navigateToEditScreen(),
               ),
-              SizedBox(width: 24),
+              if (isWideScreen) ...[SizedBox(width: 24)] else ...[Spacer()],
             ],
             IconButton(
               icon: const Icon(Icons.format_paint),
@@ -202,10 +233,10 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
               icon: const Icon(Icons.filter_alt),
               onPressed: _showFilters(),
             ),
-            SizedBox(width: 24),
+            if (isWideScreen) ...[SizedBox(width: 24)] else ...[Spacer()],
 
             const Transposer(),
-            SizedBox(width: 24),
+            if (isWideScreen) ...[SizedBox(width: 24)] else ...[Spacer()],
 
             IconButton(
               icon: const Icon(Icons.close),
@@ -240,6 +271,7 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: SingleChildScrollView(
+              controller: _scrollController,
               scrollDirection: laySet.scrollDirection,
               child: Wrap(
                 direction: _getOppositeAxis(laySet.scrollDirection),
@@ -289,7 +321,7 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
           SectionCard(
             key: key,
             index: index,
-            itemIndex: -1,
+            itemIndex: 0,
             sectionType: section.contentType,
             sectionCode: trimmedCode,
             sectionText: section.contentText,
