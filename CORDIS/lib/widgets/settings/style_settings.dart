@@ -3,16 +3,24 @@ import 'package:cordis/providers/layout_settings_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class StyleSettings extends StatelessWidget {
+class StyleSettings extends StatefulWidget {
   const StyleSettings({super.key});
 
   @override
+  State<StyleSettings> createState() => _StyleSettingsState();
+}
+
+class _StyleSettingsState extends State<StyleSettings> {
+  double? _localCardWidthMult;
+
+  @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
     return Consumer<LayoutSettingsProvider>(
       builder: (context, settings, child) {
+        _localCardWidthMult ??= settings.cardWidthMult;
         return Container(
           decoration: BoxDecoration(
             color: colorScheme.surface,
@@ -108,7 +116,7 @@ class StyleSettings extends StatelessWidget {
                       ),
                     ),
                     Slider(
-                      value: settings.cardWidthMult * 10,
+                      value: _localCardWidthMult! * 10,
                       min: 1,
                       max: 9,
                       divisions: 9,
@@ -116,8 +124,11 @@ class StyleSettings extends StatelessWidget {
                         AppLocalizations.of(context)!.small,
                         AppLocalizations.of(context)!.medium,
                         AppLocalizations.of(context)!.large,
-                      ][(settings.cardWidthMult * 10 - 1) ~/ 3],
+                      ][(_localCardWidthMult! * 10 - 1) ~/ 3],
                       onChanged: (v) {
+                        setState(() => _localCardWidthMult = v * 0.1);
+                      },
+                      onChangeEnd: (v) {
                         settings.setCardWidthMult(v * 0.1);
                       },
                     ),

@@ -3,8 +3,15 @@ import 'package:cordis/providers/auto_scroll_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class AutoScrollSettings extends StatelessWidget {
+class AutoScrollSettings extends StatefulWidget {
   const AutoScrollSettings({super.key});
+
+  @override
+  State<AutoScrollSettings> createState() => _AutoScrollSettingsState();
+}
+
+class _AutoScrollSettingsState extends State<AutoScrollSettings> {
+  double? _localScrollSpeed;
 
   @override
   Widget build(BuildContext context) {
@@ -15,6 +22,7 @@ class AutoScrollSettings extends StatelessWidget {
       selector: (_, p) => (p.scrollModeEnabled, p.scrollSpeed),
       builder: (context, _, child) {
         final autoScroll = context.read<AutoScrollProvider>();
+        _localScrollSpeed ??= autoScroll.scrollSpeed;
         return Container(
           decoration: BoxDecoration(
             color: colorScheme.surface,
@@ -64,16 +72,19 @@ class AutoScrollSettings extends StatelessWidget {
                 children: [
                   Text(AppLocalizations.of(context)!.autoScrollSpeed),
                   Slider(
-                    value: autoScroll.scrollSpeed,
+                    value: _localScrollSpeed!,
                     onChanged: (value) {
+                      setState(() => _localScrollSpeed = value);
+                    },
+                    onChangeEnd: (value) {
                       autoScroll.setScrollSpeed(value);
                     },
                     min: 0.5,
                     max: 1.5,
                     divisions: 8,
-                    label: autoScroll.scrollSpeed < 0.85
+                    label: _localScrollSpeed! < 0.85
                         ? AppLocalizations.of(context)!.slow
-                        : autoScroll.scrollSpeed < 1.15
+                        : _localScrollSpeed! < 1.15
                             ? AppLocalizations.of(context)!.normal
                             : AppLocalizations.of(context)!.fast,
                   ),
