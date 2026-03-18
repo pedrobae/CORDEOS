@@ -19,7 +19,7 @@ class SectionParser {
         content: sectionContent,
         numberOfLines: '\n'.allMatches(sectionContent).length + 1,
         duplicateOf: null,
-        suggestedLabel: 'Unlabeled Section',
+        suggestedLabel: SectionLabelType.unknown.canonicalLabel,
       );
 
       result.rawSections.add(section);
@@ -66,7 +66,7 @@ class SectionParser {
       result.rawSections.add(
         RawSection(
           index: result.rawSections.length,
-          suggestedLabel: label.officialLabel,
+          suggestedLabel: label.canonicalLabel,
           code: label.code,
           color: label.color,
           content: rawText.substring(sectionStart, sectionEnd).trim(),
@@ -249,7 +249,7 @@ class SectionParser {
     for (var section in sections) {
       String title = section.suggestedLabel.toLowerCase();
 
-      if (section.suggestedLabel == 'Unlabeled Section') {
+      if (section.suggestedLabel == SectionLabelType.unknown.canonicalLabel) {
         continue;
       }
 
@@ -307,7 +307,7 @@ class SectionParser {
       content: sectionContent,
       numberOfLines: linesData.length,
       duplicateOf: null,
-      suggestedLabel: label.officialLabel,
+      suggestedLabel: label.canonicalLabel,
       linesData: linesData,
       code: label.code,
       color: label.color,

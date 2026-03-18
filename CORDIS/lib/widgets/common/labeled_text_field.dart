@@ -35,48 +35,46 @@ class LabeledTextField extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        spacing: isDense ? 4 : 8,
-        children: [
-          Text(label, style: isDense ? textTheme.labelMedium: textTheme.labelLarge),
-          TextFormField(
-            validator: validator,
-            controller: controller,
-            decoration: InputDecoration(
-              fillColor: isEnabled
-                  ? colorScheme.surface
-                  : colorScheme.surfaceContainerHighest,
-              hintText: hint,
-              prefixIcon: prefixIcon,
-              suffixIcon: suffixIcon,
-              enabledBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: colorScheme.shadow),
-                borderRadius: BorderRadius.circular(0),
-              ),
-              disabledBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: colorScheme.surfaceContainer),
-                borderRadius: BorderRadius.circular(0),
-              ),
-              visualDensity: VisualDensity.compact,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      spacing: isDense ? 4 : 8,
+      children: [
+        Text(label, style: isDense ? textTheme.labelMedium: textTheme.labelLarge),
+        TextFormField(
+          validator: validator,
+          controller: controller,
+          decoration: InputDecoration(
+            fillColor: isEnabled
+                ? colorScheme.surface
+                : colorScheme.surfaceContainerHighest,
+            hintText: hint,
+            prefixIcon: prefixIcon,
+            suffixIcon: suffixIcon,
+            enabledBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: colorScheme.shadow),
+              borderRadius: BorderRadius.circular(0),
             ),
-            maxLines: lineCount,
-
-            keyboardType: keyboardType,
-            enabled: isEnabled,
-            obscureText: obscureText,
+            disabledBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: colorScheme.surfaceContainer),
+              borderRadius: BorderRadius.circular(0),
+            ),
+            visualDensity: VisualDensity.compact,
           ),
-          if (instruction != null)
-            Text(
-              instruction!,
-              style: textTheme.bodySmall?.copyWith(
-                color: colorScheme.surfaceContainerLow,
-              ),
+          maxLines: lineCount,
+    
+          keyboardType: keyboardType,
+          enabled: isEnabled,
+          obscureText: obscureText,
+        ),
+        if (instruction != null)
+          Text(
+            instruction!,
+            style: textTheme.bodySmall?.copyWith(
+              color: colorScheme.surfaceContainerLow,
             ),
-        ],
-      ),
+          ),
+      ],
     );
   }
 }

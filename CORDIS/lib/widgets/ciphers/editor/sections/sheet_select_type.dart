@@ -140,7 +140,7 @@ class SelectType extends StatelessWidget {
                             ),
                             Expanded(
                               child: Text(
-                                section.officialLabel,
+                                section.localizedLabel(context),
                                 style: textTheme.labelLarge,
                               ),
                             ),
@@ -168,7 +168,7 @@ class SelectType extends StatelessWidget {
         versionID,
         section.code,
         section.color,
-        section.officialLabel,
+        section.canonicalLabel,
       );
       return newCode;
     } else {
@@ -176,7 +176,7 @@ class SelectType extends StatelessWidget {
         versionID,
         sectionCode!,
         newContentCode: section.code,
-        newContentType: section.officialLabel,
+        newContentType: section.canonicalLabel,
         newColor: section.color,
       );
 

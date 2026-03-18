@@ -298,9 +298,9 @@ class _TokenContentCardState extends State<TokenContentCard> {
                   );
                 },
               ),
-              // duplicate
+              // create copy
               FilledTextButton(
-                text: AppLocalizations.of(context)!.duplicatePlaceholder(''),
+                text: AppLocalizations.of(context)!.createPlaceholder(AppLocalizations.of(context)!.copy),
                 trailingIcon: Icons.chevron_right,
                 isDiscrete: true,
                 onPressed: () {

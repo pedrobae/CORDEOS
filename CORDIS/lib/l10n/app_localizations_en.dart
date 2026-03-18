@@ -378,6 +378,39 @@ class AppLocalizationsEn extends AppLocalizations {
   String get section => 'Section';
 
   @override
+  String get sectionVerse => 'Verse';
+
+  @override
+  String get sectionChorus => 'Chorus';
+
+  @override
+  String get sectionBridge => 'Bridge';
+
+  @override
+  String get sectionIntro => 'Intro';
+
+  @override
+  String get sectionOutro => 'Outro';
+
+  @override
+  String get sectionSolo => 'Solo';
+
+  @override
+  String get sectionPreChorus => 'Pre-Chorus';
+
+  @override
+  String get sectionTag => 'Tag';
+
+  @override
+  String get sectionFinale => 'Finale';
+
+  @override
+  String get sectionAnnotations => 'Annotations';
+
+  @override
+  String get sectionUnlabeled => 'Unlabeled Section';
+
+  @override
   String get songStructure => 'Song Structure';
 
   @override
@@ -913,7 +946,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get quickAction => 'Quick Action';
 
   @override
-  String get copySuffix => '(Copy)';
+  String get copy => 'Copy';
 
   @override
   String get copyCode => 'Copy Code';

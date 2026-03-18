@@ -45,7 +45,7 @@ class _DuplicateScheduleSheetState extends State<DuplicateScheduleSheet> {
 
       if (widget.scheduleId is int) {
         final schedule = localScheduleProvider.getSchedule(widget.scheduleId)!;
-        nameController.text = '${schedule.name} ${AppLocalizations.of(context)!.copySuffix}';
+        nameController.text = '${schedule.name} (${AppLocalizations.of(context)!.copy})';
         dateController.text = DateTimeUtils.formatDate(schedule.date);
         startTimeController.text = DateTimeUtils.formatTime(
           DateTime(schedule.time.hour, schedule.time.minute),
@@ -53,7 +53,7 @@ class _DuplicateScheduleSheetState extends State<DuplicateScheduleSheet> {
         locationController.text = schedule.location;
       } else {
         final schedule = cloudScheduleProvider.getSchedule(widget.scheduleId)!;
-        nameController.text = '${schedule.name} ${AppLocalizations.of(context)!.copySuffix}';
+        nameController.text = '${schedule.name} (${AppLocalizations.of(context)!.copy})';
         dateController.text = DateTimeUtils.formatDate(
           schedule.datetime.toDate(),
         );

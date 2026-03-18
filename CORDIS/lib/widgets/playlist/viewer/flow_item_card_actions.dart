@@ -62,7 +62,7 @@ class FlowItemCardActionsSheet extends StatelessWidget {
                     onPressed: () {
                       flow.duplicateFlowItem(
                         flowItemId,
-                        AppLocalizations.of(context)!.copySuffix,
+                        '(${AppLocalizations.of(context)!.copy})',
                         play
                             .getPlaylist(playlistId)!
                             .items

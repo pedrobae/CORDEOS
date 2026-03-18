@@ -22,8 +22,6 @@ class ChordLineParser {
     List<RawSection> rawSections = result.rawSections;
 
     for (var rawSection in rawSections) {
-      if (rawSection.suggestedLabel == 'Metadata') continue;
-
       String? code = rawSection.code;
       if (code == null) {
         // Assign a default code if none is found
@@ -64,8 +62,6 @@ class ChordLineParser {
     int incrementalDefaultCode = 1;
 
     for (var rawSection in rawSections) {
-      if (rawSection.suggestedLabel == 'Metadata') continue;
-
       String? code = rawSection.code;
       if (code == null || code.isEmpty) {
         // Assign a default code if none is found

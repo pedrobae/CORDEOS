@@ -794,6 +794,72 @@ abstract class AppLocalizations {
   /// **'Seção'**
   String get section;
 
+  /// Canonical section label: Verse
+  ///
+  /// In pt, this message translates to:
+  /// **'Verso'**
+  String get sectionVerse;
+
+  /// Canonical section label: Chorus
+  ///
+  /// In pt, this message translates to:
+  /// **'Refrão'**
+  String get sectionChorus;
+
+  /// Canonical section label: Bridge
+  ///
+  /// In pt, this message translates to:
+  /// **'Ponte'**
+  String get sectionBridge;
+
+  /// Canonical section label: Intro
+  ///
+  /// In pt, this message translates to:
+  /// **'Introdução'**
+  String get sectionIntro;
+
+  /// Canonical section label: Outro
+  ///
+  /// In pt, this message translates to:
+  /// **'Saída'**
+  String get sectionOutro;
+
+  /// Canonical section label: Solo
+  ///
+  /// In pt, this message translates to:
+  /// **'Solo'**
+  String get sectionSolo;
+
+  /// Canonical section label: Pre-Chorus
+  ///
+  /// In pt, this message translates to:
+  /// **'Pré-Refrão'**
+  String get sectionPreChorus;
+
+  /// Canonical section label: Tag
+  ///
+  /// In pt, this message translates to:
+  /// **'Tag'**
+  String get sectionTag;
+
+  /// Canonical section label: Finale
+  ///
+  /// In pt, this message translates to:
+  /// **'Final'**
+  String get sectionFinale;
+
+  /// Canonical section label: Annotations
+  ///
+  /// In pt, this message translates to:
+  /// **'Anotações'**
+  String get sectionAnnotations;
+
+  /// Fallback section label when no type is identified
+  ///
+  /// In pt, this message translates to:
+  /// **'Seção sem rótulo'**
+  String get sectionUnlabeled;
+
   /// Song structure/map label
   ///
   /// In pt, this message translates to:
@@ -1730,11 +1796,11 @@ abstract class AppLocalizations {
   /// **'Ação Rápida'**
   String get quickAction;
 
-  /// Suffix indicating copy action
+  /// Label for copy action
   ///
   /// In pt, this message translates to:
-  /// **'(Cópia)'**
-  String get copySuffix;
+  /// **'Cópia'**
+  String get copy;
 
   /// Copy to clipboard button label
   ///
