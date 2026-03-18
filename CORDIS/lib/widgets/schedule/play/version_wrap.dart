@@ -1,10 +1,8 @@
 import 'package:cordis/l10n/app_localizations.dart';
 import 'package:cordis/models/domain/cipher/section.dart';
-import 'package:cordis/models/domain/playlist/playlist_item.dart';
 import 'package:cordis/providers/auto_scroll_provider.dart';
 import 'package:cordis/providers/cipher/cipher_provider.dart';
 import 'package:cordis/providers/settings/layout_settings_provider.dart';
-import 'package:cordis/providers/playlist/flow_item_provider.dart';
 import 'package:cordis/providers/schedule/play_schedule_state_provider.dart';
 import 'package:cordis/providers/section_provider.dart';
 import 'package:cordis/providers/version/cloud_version_provider.dart';
@@ -16,16 +14,16 @@ import 'package:cordis/widgets/ciphers/viewer/section_card.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class ContentWrap extends StatefulWidget {
-  final bool isCloud;
+class VersionWrap extends StatelessWidget {
+  final int itemIndex;
+  final dynamic versionID;
 
-  const ContentWrap({super.key, required this.isCloud});
+  const VersionWrap({
+    super.key,
+    required this.itemIndex,
+    required this.versionID,
+  });
 
-  @override
-  State<ContentWrap> createState() => _ContentWrapState();
-}
-
-class _ContentWrapState extends State<ContentWrap> {
   @override
   Widget build(BuildContext context) {
     return Selector5<
@@ -34,137 +32,34 @@ class _ContentWrapState extends State<ContentWrap> {
       LocalVersionProvider,
       CloudVersionProvider,
       SectionProvider,
-      (bool, int, Axis, bool, bool, int, int, int)
+      (Axis, Map<LayoutFilter, bool>, int, int, int)
     >(
-      selector: (_, state, laySet, localVer, cloudVer, sect) => (
-        state.isLoading,
-        state.itemCount,
+      selector: (context, state, laySet, localVer, cloudVer, sect) => (
         laySet.wrapDirection,
-        laySet.layoutFilters[LayoutFilter.annotations] ?? true,
-        laySet.layoutFilters[LayoutFilter.transitions] ?? true,
+        laySet.layoutFilters,
         localVer.versions.length,
         cloudVer.versions.length,
         sect.loadedVersionsCount,
       ),
       builder: (context, value, child) {
-        final (_, _, wrapDirection, _, _, _, _, _) = value;
-        final contentWidgets = _registerAndBuildContent(wrapDirection);
-        return Wrap(
-          direction: wrapDirection,
-          runSpacing: 16,
-          spacing: 16,
-          children: contentWidgets,
+        final (wrapDirection, _, _, _, _) = value;
+        return Padding(
+          padding: EdgeInsets.only(
+            left: wrapDirection == Axis.vertical ? 16.0 : 0.0,
+            top: wrapDirection == Axis.horizontal ? 16.0 : 0.0,
+          ),
+          child: Wrap(
+            direction: wrapDirection,
+            runSpacing: 16,
+            spacing: 16,
+            children: _buildSectionCards(context),
+          ),
         );
       },
     );
   }
 
-  List<Widget> _registerAndBuildContent(Axis wrapDirection) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    final state = Provider.of<PlayScheduleStateProvider>(
-      context,
-      listen: false,
-    );
-    final scroll = context.read<AutoScrollProvider>();
-
-    final contentWidgets = <Widget>[];
-
-    if (state.isLoading) {
-      return [const Center(child: CircularProgressIndicator())];
-    }
-    if (state.itemCount == 0) {
-      return [Center(child: Text(AppLocalizations.of(context)!.emptyPlaylist))];
-    }
-
-    for (int i = 0; i < state.itemCount; i++) {
-      final item = state.getItemAt(i);
-
-      if (item == null) {
-        contentWidgets.add(const SizedBox.shrink());
-        continue;
-      }
-
-      // REGISTER ITEM FOR CURRENT ITEM RECOGNIZER AND NAVIGATION
-      final itemKey = scroll.registerItem(i);
-
-      switch (item.type) {
-        case PlaylistItemType.version:
-          contentWidgets.addAll([
-            SizedBox.shrink(key: itemKey),
-            _buildHeader(
-              widget.isCloud ? item.firebaseContentId : item.contentId,
-            ),
-            ..._buildSectionCards(
-              i,
-              widget.isCloud ? item.firebaseContentId : item.contentId,
-            ),
-            Container(
-              height: wrapDirection == Axis.horizontal ? 1 : double.infinity,
-              width: wrapDirection == Axis.horizontal ? double.infinity : 1,
-              color: colorScheme.primary,
-            ),
-          ]);
-          break;
-        case PlaylistItemType.flowItem:
-          final flow = context.read<FlowItemProvider>();
-          final laySet = context.read<LayoutSetProvider>();
-
-          final flowItem = flow.getFlowItem(item.contentId!);
-
-          contentWidgets.addAll([
-            SizedBox.shrink(key: itemKey),
-
-            if (flowItem == null) ...[
-              Center(child: CircularProgressIndicator()),
-            ] else ...[
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                spacing: 4,
-                children: [
-                  Text(flowItem.title, style: textTheme.titleMedium),
-                  Text(
-                    '${AppLocalizations.of(context)!.estimatedTime}: ${DateTimeUtils.formatDuration(flowItem.duration)}',
-                    style: textTheme.bodyMedium,
-                  ),
-                ],
-              ),
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16),
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(0),
-                  border: Border.fromBorderSide(
-                    BorderSide(
-                      color: colorScheme.surfaceContainerLow,
-                      width: 1.2,
-                    ),
-                  ),
-                ),
-                child: Text(
-                  flowItem.contentText,
-                  style: textTheme.bodyMedium?.copyWith(
-                    height: 1.4,
-                    fontFamily: laySet.lyricTextStyle.fontFamily,
-                  ),
-                ),
-              ),
-              Container(
-                height: wrapDirection == Axis.horizontal ? 1 : double.infinity,
-                width: wrapDirection == Axis.horizontal ? double.infinity : 1,
-                color: colorScheme.primary,
-              ),
-            ],
-          ]);
-          break;
-      }
-    }
-    return contentWidgets;
-  }
-
-  Widget _buildHeader(dynamic versionID) {
+  Widget _buildHeader() {
     return Consumer3<
       LocalVersionProvider,
       CloudVersionProvider,
@@ -178,7 +73,7 @@ class _ContentWrapState extends State<ContentWrap> {
         int bpm;
         Duration duration;
 
-        if (widget.isCloud) {
+        if (versionID is String) {
           final version = cloudVer.getVersion(versionID);
           if (version == null) return const LinearProgressIndicator();
           title = version.title;
@@ -226,24 +121,24 @@ class _ContentWrapState extends State<ContentWrap> {
     );
   }
 
-  List<Widget> _buildSectionCards(int itemIndex, dynamic versionId) {
+  List<Widget> _buildSectionCards(BuildContext context) {
     final laySet = Provider.of<LayoutSetProvider>(context, listen: false);
 
     final localVer = Provider.of<LocalVersionProvider>(context, listen: false);
     final cloudVer = Provider.of<CloudVersionProvider>(context, listen: false);
     final sect = Provider.of<SectionProvider>(context, listen: false);
 
-    if (versionId == null) return [const SizedBox.shrink()];
+    if (versionID == null) return [const SizedBox.shrink()];
 
     List<String> songStructure;
-    if (widget.isCloud) {
-      final version = cloudVer.getVersion(versionId);
+    if (versionID is String) {
+      final version = cloudVer.getVersion(versionID);
       if (version == null) {
         return [const Center(child: CircularProgressIndicator())];
       }
       songStructure = version.songStructure;
     } else {
-      final version = localVer.getVersion(versionId);
+      final version = localVer.getVersion(versionID);
       if (version == null) {
         return [const Center(child: CircularProgressIndicator())];
       }
@@ -262,21 +157,21 @@ class _ContentWrapState extends State<ContentWrap> {
 
     final scroll = context.read<AutoScrollProvider>();
 
-    final sectionWidgets = <Widget>[];
+    final sectionWidgets = <Widget>[_buildHeader()];
 
     for (var i = 0; i < filteredStructure.length; i++) {
       final key = scroll.registerSection(itemIndex, i);
 
       final code = filteredStructure[i];
 
-      final section = widget.isCloud
+      final section = versionID is String
           ? () {
               final sectionMap = cloudVer
-                  .getVersion(versionId)!
+                  .getVersion(versionID)!
                   .sections[code]!;
               return Section.fromFirestore(sectionMap);
             }()
-          : sect.getSection(versionId, code);
+          : sect.getSection(versionID, code);
 
       if (section == null) {
         sectionWidgets.add(const SizedBox.shrink());

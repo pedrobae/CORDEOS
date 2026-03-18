@@ -1,12 +1,14 @@
 import 'dart:async';
-import 'package:cordis/widgets/schedule/play/content_wrap.dart';
+import 'package:cordis/models/domain/playlist/flow_item.dart';
+import 'package:cordis/widgets/schedule/play/bottom_controls.dart';
+import 'package:cordis/widgets/schedule/play/flow_flex.dart';
+import 'package:cordis/widgets/schedule/play/version_wrap.dart';
 import 'package:flutter/material.dart';
 
 import 'package:cordis/l10n/app_localizations.dart';
 
 import 'package:cordis/models/domain/cipher/section.dart';
 import 'package:cordis/models/domain/playlist/playlist_item.dart';
-import 'package:cordis/models/dtos/schedule_dto.dart';
 
 import 'package:provider/provider.dart';
 import 'package:cordis/providers/auto_scroll_provider.dart';
@@ -82,51 +84,26 @@ class PlayScheduleState extends State<PlaySchedule> {
       if (_scroll.scrollModeEnabled) _scroll.stopAutoScroll();
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted || !_scrollController.hasClients) return;
-        _syncItemFromViewport();
-        _syncSectionFromViewport();
+
+        // Sync current item
+        final visibleItemIndex = _scroll.syncItemFromViewport(
+          _scrollController.position.viewportDimension,
+          context.read<LayoutSetProvider>().scrollDirection,
+        );
+        if (visibleItemIndex != null) {
+          _state.currentItemIndex = visibleItemIndex;
+          _scroll.currentItemIndex = visibleItemIndex;
+        }
+
+        // Sync current section
+        _scroll.syncSectionFromViewport(
+          _scrollController.position.viewportDimension,
+          context.read<LayoutSetProvider>().scrollDirection,
+        );
       });
     }
   }
 
-  void _syncItemFromViewport() {
-    final visibleItemIndex = _scroll.syncItemFromViewport(
-      _scrollController.position.viewportDimension,
-      context.read<LayoutSetProvider>().scrollDirection,
-    );
-    if (visibleItemIndex != null) {
-      _state.currentItemIndex = visibleItemIndex;
-      _scroll.currentItemIndex = visibleItemIndex;
-    }
-  }
-
-  void _syncSectionFromViewport() {
-    _scroll.syncSectionFromViewport(
-      _scrollController.position.viewportDimension,
-      context.read<LayoutSetProvider>().scrollDirection,
-    );
-  }
-
-  Future<void> _scrollToItem(int index) async {
-    if (index < 0 || index >= _state.itemCount) return;
-    final itemKey = _scroll.registerItem(index);
-    final itemContext = itemKey.currentContext;
-    if (itemContext == null || !_scrollController.hasClients) return;
-
-    await Scrollable.ensureVisible(
-      itemContext,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-      alignment: 0,
-    );
-
-    _scroll.stopAutoScroll();
-    _scroll.currentSectionIndex =
-        0; // Reset section index when manually changing item
-    _scroll.currentItemIndex = index;
-    _state.currentItemIndex = index;
-  }
-
-  /// Load only the current playlist structure without full content
   Future<void> _loadData() async {
     if (widget.scheduleId == null) throw Exception("Schedule ID is required");
 
@@ -138,20 +115,29 @@ class PlayScheduleState extends State<PlaySchedule> {
   }
 
   Future<void> _loadLocal() async {
-    final scheduleProvider = context.read<LocalScheduleProvider>();
-    final playlistProvider = context.read<PlaylistProvider>();
+    if (!mounted) return;
+
+    final localSch = context.read<LocalScheduleProvider>();
+    final play = context.read<PlaylistProvider>();
+    final localVer = context.read<LocalVersionProvider>();
+    final ciph = context.read<CipherProvider>();
+    final sect = context.read<SectionProvider>();
     final flow = context.read<FlowItemProvider>();
 
-    final schedule = scheduleProvider.getSchedule(widget.scheduleId)!;
-    await playlistProvider.loadPlaylist(schedule.playlistId);
+    final schedule = localSch.getSchedule(widget.scheduleId)!;
+    await play.loadPlaylist(schedule.playlistId);
 
-    final items = playlistProvider.getPlaylist(schedule.playlistId)!.items;
+    final items = play.getPlaylist(schedule.playlistId)!.items;
     _state.setItems(items);
     _scroll.currentItemIndex = 0;
     for (final item in items) {
       switch (item.type) {
         case PlaylistItemType.version:
-          await _loadLocalVersion(item);
+          await localVer.loadVersion(item.contentId!);
+          final version = localVer.getVersion(item.contentId!);
+          if (version == null) continue;
+          await ciph.loadCipher(version.cipherID);
+          await sect.loadSectionsOfVersion(item.contentId!);
           break;
         case PlaylistItemType.flowItem:
           await flow.loadFlowItem(item.contentId!);
@@ -160,18 +146,9 @@ class PlayScheduleState extends State<PlaySchedule> {
     }
   }
 
-  Future<void> _loadLocalVersion(PlaylistItem item) async {
-    final localVer = context.read<LocalVersionProvider>();
-    final ciph = context.read<CipherProvider>();
-    final sect = context.read<SectionProvider>();
-
-    await localVer.loadVersion(item.contentId!);
-    final version = localVer.getVersion(item.contentId!)!;
-    await ciph.loadCipher(version.cipherID);
-    await sect.loadSectionsOfVersion(item.contentId!);
-  }
-
   Future<void> _loadCloud() async {
+    if (!mounted) return;
+
     final cloudSch = context.read<CloudScheduleProvider>();
     final cloudVer = context.read<CloudVersionProvider>();
     final sect = context.read<SectionProvider>();
@@ -208,11 +185,15 @@ class PlayScheduleState extends State<PlaySchedule> {
 
   @override
   Widget build(BuildContext context) {
+    final cloudSch = context.read<CloudScheduleProvider>();
+
     return Column(
       children: [
         _buildStructBar(),
         Expanded(child: _buildListView()),
-        _buildBottomControls(),
+        BottomControls(
+          schedule: isCloud ? cloudSch.getSchedule(widget.scheduleId) : null,
+        ),
       ],
     );
   }
@@ -221,20 +202,39 @@ class PlayScheduleState extends State<PlaySchedule> {
     return Stack(
       children: [
         Positioned.fill(
-          child: Selector<LayoutSetProvider, Axis>(
-            selector: (context, laySet) => laySet.scrollDirection,
-            builder: (context, scrollDirection, child) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: SingleChildScrollView(
-                  controller: _scrollController,
-                  clipBehavior: Clip.none,
-                  scrollDirection: scrollDirection,
-                  child: ContentWrap(isCloud: isCloud),
-                ),
-              );
-            },
-          ),
+          child:
+              Selector2<
+                LayoutSetProvider,
+                PlayScheduleStateProvider,
+                (int, bool, Axis)
+              >(
+                selector: (context, laySet, state) =>
+                    (state.itemCount, state.isLoading, laySet.scrollDirection),
+                builder: (context, s, child) {
+                  final (itemCount, isLoading, scrollDirection) = s;
+                  if (isLoading) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  if (itemCount == 0) {
+                    return Center(
+                      child: Text(
+                        AppLocalizations.of(context)!.emptyPlaylist,
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                    );
+                  }
+
+                  return SingleChildScrollView(
+                    controller: _scrollController,
+                    scrollDirection: scrollDirection,
+                    child: Flex(
+                      direction: scrollDirection,
+                      children: _buildItems(),
+                    ),
+                  );
+                },
+              ),
         ),
         Positioned(
           bottom: 8,
@@ -251,6 +251,51 @@ class PlayScheduleState extends State<PlaySchedule> {
         ),
       ],
     );
+  }
+
+  List<Widget> _buildItems() {
+    final items = <Widget>[];
+    for (int i = 0; i < _state.itemCount; i++) {
+      final item = _state.getItemAt(i);
+
+      if (item == null) continue;
+
+      final key = _scroll.registerItem(i);
+      switch (item.type) {
+        case PlaylistItemType.version:
+          items.add(
+            VersionWrap(
+              key: key,
+              itemIndex: i,
+              versionID: isCloud ? item.firebaseContentId : item.contentId,
+            ),
+          );
+          break;
+        case PlaylistItemType.flowItem:
+          FlowItem? flow;
+          if (isCloud) {
+            flow = FlowItem.fromFirestore(
+              context
+                  .read<CloudScheduleProvider>()
+                  .schedules[widget.scheduleId]!
+                  .playlist
+                  .flowItems[item.firebaseContentId]!,
+              playlistId: -1,
+            );
+          }
+
+          items.add(
+            FlowFlex(
+              key: key,
+              itemIndex: i,
+              flowID: item.contentId,
+              flowItem: flow,
+            ),
+          );
+          break;
+      }
+    }
+    return items;
   }
 
   Widget _buildStructBar() {
@@ -407,155 +452,5 @@ class PlayScheduleState extends State<PlaySchedule> {
         ),
       ),
     ];
-  }
-
-  Widget _buildBottomControls() {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(0),
-        border: Border(
-          top: BorderSide(color: colorScheme.surfaceContainerHigh, width: 1),
-        ),
-      ),
-      width: MediaQuery.of(context).size.width,
-      child:
-          Selector2<
-            PlayScheduleStateProvider,
-            LayoutSetProvider,
-            ({int currentIndex, Axis scrollDirection, int itemCount})
-          >(
-            selector: (_, playState, layoutState) => (
-              currentIndex: playState.currentItemIndex,
-              scrollDirection: layoutState.scrollDirection,
-              itemCount: playState.itemCount,
-            ),
-            builder: (context, s, child) {
-              return Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                mainAxisSize: MainAxisSize.max,
-                children: [
-                  _buildPreviousButton(s.currentIndex, s.scrollDirection),
-                  _buildNextTitleSection(s.currentIndex, s.itemCount),
-                  _buildNextButton(
-                    s.currentIndex,
-                    s.scrollDirection,
-                    s.itemCount,
-                  ),
-                ],
-              );
-            },
-          ),
-    );
-  }
-
-  Widget _buildPreviousButton(int currentIndex, Axis scrollDirection) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return GestureDetector(
-      onTap: () {
-        if (currentIndex > 0) {
-          _scrollToItem(currentIndex - 1);
-        }
-      },
-      child: SizedBox(
-        width: MediaQuery.of(context).size.width / 4,
-        height: 48,
-        child: Icon(
-          scrollDirection == Axis.vertical
-              ? Icons.keyboard_arrow_up
-              : Icons.keyboard_arrow_left,
-          color: colorScheme.primary,
-          size: 48,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNextButton(
-    int currentIndex,
-    Axis scrollDirection,
-    int itemCount,
-  ) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return GestureDetector(
-      onTap: () {
-        if (currentIndex < itemCount - 1) {
-          _scrollToItem(currentIndex + 1);
-        }
-      },
-      child: SizedBox(
-        width: MediaQuery.of(context).size.width / 4,
-        height: 48,
-        child: Icon(
-          scrollDirection == Axis.vertical
-              ? Icons.keyboard_arrow_down
-              : Icons.keyboard_arrow_right,
-          color: colorScheme.primary,
-          size: 48,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNextTitleSection(int currentIndex, int itemCount) {
-    final textTheme = Theme.of(context).textTheme;
-
-    return SizedBox(
-      width: MediaQuery.of(context).size.width / 2,
-      child: Selector<PlayScheduleStateProvider, PlaylistItem?>(
-        selector: (_, s) => s.nextItem,
-        builder: (context, nextItem, child) {
-          String nextTitle = '';
-          if (currentIndex < itemCount - 1 && nextItem != null) {
-            nextTitle = _getItemTitle(nextItem);
-          }
-
-          return Text(
-            nextTitle.isEmpty
-                ? '-'
-                : AppLocalizations.of(context)!.nextPlaceholder(nextTitle),
-            style: textTheme.bodyLarge,
-            softWrap: true,
-            textAlign: TextAlign.center,
-          );
-        },
-      ),
-    );
-  }
-
-  String _getItemTitle(PlaylistItem item) {
-    switch (item.type) {
-      case PlaylistItemType.version:
-        if (isCloud) {
-          final cloudVer = context.read<CloudScheduleProvider>();
-          return ((cloudVer.schedules[widget.scheduleId] as ScheduleDto)
-                  .playlist
-                  .versions[item.firebaseContentId]
-                  ?.title) ??
-              '';
-        } else {
-          final localVer = context.read<LocalVersionProvider>();
-          final ciph = context.read<CipherProvider>();
-          if (item.contentId == null) return '';
-          final version = localVer.getVersion(item.contentId!);
-          if (version == null) return '';
-          return ciph.getCipher(version.cipherID)?.title ?? '';
-        }
-      case PlaylistItemType.flowItem:
-        if (isCloud) {
-          final cloudVer = context.read<CloudScheduleProvider>();
-          return ((cloudVer.schedules[widget.scheduleId] as ScheduleDto)
-                  .playlist
-                  .flowItems[item.firebaseContentId]?['title']) ??
-              '';
-        } else {
-          final flow = context.read<FlowItemProvider>();
-          if (item.contentId == null) return '';
-          return flow.getFlowItem(item.contentId!)?.title ?? '';
-        }
-    }
   }
 }
