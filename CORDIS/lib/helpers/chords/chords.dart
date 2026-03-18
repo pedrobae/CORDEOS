@@ -30,18 +30,18 @@ class ChordHelper {
     'C', 'D', 'E', 'F', 'G', 'A', 'B', // Ordered to match semitone steps
   ];
 
-  List<String> getChordRoots(bool useFlats) => [
+  List<String> getChordRoots(bool useSharps) => [
     'C',
-    useFlats ? 'Db' : 'C#',
+    useSharps ? 'C#' : 'Db',
     'D',
-    useFlats ? 'Eb' : 'D#',
+    useSharps ? 'D#' : 'Eb',
     'E',
     'F',
-    useFlats ? 'Gb' : 'F#',
+    useSharps ? 'F#' : 'Gb',
     'G',
-    useFlats ? 'Ab' : 'G#',
+    useSharps ? 'G#' : 'Ab',
     'A',
-    useFlats ? 'Bb' : 'A#',
+    useSharps ? 'A#' : 'Bb',
     'B',
   ];
 
@@ -68,18 +68,13 @@ class ChordHelper {
   }
 
   List<String> getVariationsForChord(String chord, int index) {
-    bool useFlats;
-    if (chord.contains('b') || chord.contains('F')) {
-      useFlats = true;
-    } else {
-      useFlats = false;
-    }
+    bool sharpKey = chord.contains('#');
 
     switch (index) {
       case 0:
         return [
-          '$chord/${transpose(chord, 4, useFlats: useFlats)}',
-          '$chord/${transpose(chord, 7, useFlats: useFlats)}',
+          '$chord/${transpose(chord, 4, sharpKey: sharpKey)}',
+          '$chord/${transpose(chord, 7, sharpKey: sharpKey)}',
           '${chord}maj7',
           '${chord}9',
         ];
@@ -89,18 +84,18 @@ class ChordHelper {
         return ['${chord}7', minorToMajor(chord), '${minorToMajor(chord)}7'];
       case 3:
         return [
-          '$chord/${transpose(chord, 4, useFlats: useFlats)}',
-          '$chord/${transpose(chord, 7, useFlats: useFlats)}',
+          '$chord/${transpose(chord, 4, sharpKey: sharpKey)}',
+          '$chord/${transpose(chord, 7, sharpKey: sharpKey)}',
           '${chord}maj7',
-          '$chord/${transpose(chord, 2, useFlats: useFlats)}',
+          '$chord/${transpose(chord, 2, sharpKey: sharpKey)}',
           '${chord}9',
           '${chord}m',
         ];
       case 4:
         return [
           '${chord}7',
-          '$chord/${transpose(chord, 4, useFlats: useFlats)}',
-          '$chord/${transpose(chord, 7, useFlats: useFlats)}',
+          '$chord/${transpose(chord, 4, sharpKey: sharpKey)}',
+          '$chord/${transpose(chord, 7, sharpKey: sharpKey)}',
           '${chord}9',
           '${chord}m',
         ];
@@ -109,20 +104,22 @@ class ChordHelper {
           '${dimToMajor(chord)}ø',
           '${dimToMajor(chord)}m',
           dimToMajor(chord),
-          '${dimToMajor(chord)}m/${transpose(dimToMajor(chord), 3, useFlats: useFlats)}',
+          '${dimToMajor(chord)}m/${transpose(dimToMajor(chord), 3, sharpKey: sharpKey)}',
         ];
       default:
         return [];
     }
   }
 
-  String transpose(String chord, int value, {required bool useFlats}) {
-    final chromatic = getChordRoots(useFlats);
-    int rootIndex = chromatic.indexOf(chord);
-    if (rootIndex == -1) return chord;
-    int newIndex = (rootIndex + value) % chromatic.length;
-    if (newIndex < 0) newIndex += chromatic.length;
-    return chromatic[newIndex];
+  String transpose(String chord, int value, {required bool sharpKey}) {
+    final sharpChord = chord.contains('#');
+    final chordChrom = getChordRoots(sharpChord);
+    int chordIndex = chordChrom.indexOf(chord);
+    if (chordIndex == -1) throw ArgumentError('Chord not found in its own chromatic scale: $chord');
+    int newIndex = (chordIndex + value) % 12;
+
+    final keyChrom = getChordRoots(sharpKey);
+    return keyChrom[newIndex];
   }
 
   String minorToMajor(String chord) {

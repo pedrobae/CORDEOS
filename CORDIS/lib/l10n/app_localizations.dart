@@ -578,6 +578,12 @@ abstract class AppLocalizations {
   /// **'Sobre'**
   String get about;
 
+  /// Admin navigation tab
+  ///
+  /// In pt, this message translates to:
+  /// **'Admin'**
+  String get admin;
+
   /// Title for advanced settings section
   ///
   /// In pt, this message translates to:

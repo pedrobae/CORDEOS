@@ -5,9 +5,7 @@ class TranspositionProvider extends ChangeNotifier {
   String _originalKey = '';
   String? _transposedKey;
 
-  bool get useFlats =>
-      _transposedKey != null && _transposedKey!.contains('b') ||
-      _transposedKey == 'F';
+  bool get useSharp => _transposedKey != null && _transposedKey!.contains('#');
 
   int get _transposeValue {
     if (_transposedKey == null) return 0;
@@ -94,7 +92,7 @@ class TranspositionProvider extends ChangeNotifier {
     String transposedRoot = ChordHelper().transpose(
       root,
       _transposeValue,
-      useFlats: useFlats,
+      sharpKey: !useSharp,
     );
     String result = transposedRoot + chordSuffix;
 
@@ -102,7 +100,7 @@ class TranspositionProvider extends ChangeNotifier {
       String transposedBass = ChordHelper().transpose(
         bass,
         _transposeValue,
-        useFlats: useFlats,
+        sharpKey: !useSharp,
       );
       result += '/$transposedBass';
     }

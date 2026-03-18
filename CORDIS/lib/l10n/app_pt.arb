@@ -182,6 +182,8 @@
   "@settings": {"description": "Settings navigation tab"},
   "about": "Sobre",
   "@about": {"description": "About navigation tab"},
+  "admin": "Admin",
+  "@admin": {"description": "Admin navigation tab"},
 
   "advancedSettings": "Configurações Avançadas",
   "@advancedSettings": {"description": "Title for advanced settings section"},

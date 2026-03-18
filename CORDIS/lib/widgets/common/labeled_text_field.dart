@@ -12,6 +12,7 @@ class LabeledTextField extends StatelessWidget {
   final bool isDense;
   final Widget? prefixIcon;
   final Widget? suffixIcon;
+  final TextInputType keyboardType;
 
   const LabeledTextField({
     super.key,
@@ -26,6 +27,7 @@ class LabeledTextField extends StatelessWidget {
     this.isDense = false,
     this.prefixIcon,
     this.suffixIcon,
+    this.keyboardType = TextInputType.text,
   });
 
   @override
@@ -62,9 +64,7 @@ class LabeledTextField extends StatelessWidget {
             ),
             maxLines: lineCount,
 
-            keyboardType: lineCount > 1
-                ? TextInputType.multiline
-                : TextInputType.text,
+            keyboardType: keyboardType,
             enabled: isEnabled,
             obscureText: obscureText,
           ),

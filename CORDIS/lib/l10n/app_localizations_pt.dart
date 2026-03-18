@@ -272,6 +272,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get about => 'Sobre';
 
   @override
+  String get admin => 'Admin';
+
+  @override
   String get advancedSettings => 'Configurações Avançadas';
 
   @override

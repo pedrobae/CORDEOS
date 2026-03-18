@@ -269,6 +269,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get about => 'About';
 
   @override
+  String get admin => 'Admin';
+
+  @override
   String get advancedSettings => 'Advanced Settings';
 
   @override

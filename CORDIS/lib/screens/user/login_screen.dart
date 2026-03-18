@@ -97,6 +97,7 @@ class _LoginScreenState extends State<LoginScreen> {
       controller: _emailController,
       label: AppLocalizations.of(context)!.email,
       prefixIcon: Icon(Icons.email, color: colorScheme.shadow),
+      keyboardType: TextInputType.emailAddress,
     );
   }
 

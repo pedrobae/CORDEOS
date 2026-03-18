@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:cordis/l10n/app_localizations.dart';
+import 'package:cordis/screens/admin/admin_screen.dart';
 import 'package:cordis/screens/settings/report_bug_screen.dart';
 import 'package:cordis/screens/settings/settings_screen.dart';
 import 'package:cordis/screens/user/login_screen.dart';
@@ -124,6 +125,31 @@ class SideMenu extends StatelessWidget {
                     trailing: Icon(Icons.arrow_forward_ios_rounded, size: 16),
                   ),
                 ),
+                if (auth.isAdmin)
+                  Container(
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: colorScheme.surfaceContainerHighest,
+                          width: 1.2,
+                        ),
+                      ),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                    child: ListTile(
+                      title: Text(AppLocalizations.of(context)!.admin),
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        nav.push(
+                          () => const AdminScreen(),
+                          showBottomNavBar: true,
+                          showAppBar: true,
+                          showDrawerIcon: true,
+                        );
+                      },
+                      trailing: Icon(Icons.arrow_forward_ios_rounded, size: 16),
+                    ),
+                  ),
               ],
             ),
           ),
