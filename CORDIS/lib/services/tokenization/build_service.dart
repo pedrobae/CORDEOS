@@ -245,13 +245,13 @@ class TokenizationBuilder {
     final chordWidget = ChordToken(
       token: token,
       sectionColor: ctx.contentColor,
-      textStyle: ctx.lyricStyle,
+      chordStyle: ctx.chordStyle,
     );
 
     final dimChordWidget = ChordToken(
       token: token,
       sectionColor: ctx.contentColor.withValues(alpha: .5),
-      textStyle: ctx.lyricStyle,
+      chordStyle: ctx.chordStyle,
     );
 
     // GestureDetector to handle long press to drag transition
@@ -453,10 +453,6 @@ class TokenizationBuilder {
             child: Text(
               ctx.transposeChord(draggedChord.text),
               style: ctx.lyricStyle.copyWith(color: ctx.onSurfaceColor),
-              textHeightBehavior: TextHeightBehavior(
-                applyHeightToFirstAscent: false,
-                applyHeightToLastDescent: false,
-              ),
             ),
           ),
         );
@@ -468,10 +464,6 @@ class TokenizationBuilder {
           child: Text(
             token.text,
             style: ctx.lyricStyle,
-            textHeightBehavior: TextHeightBehavior(
-              applyHeightToFirstAscent: false,
-              applyHeightToLastDescent: false,
-            ),
           ),
         ),
       );

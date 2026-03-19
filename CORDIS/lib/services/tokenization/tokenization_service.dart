@@ -157,6 +157,12 @@ class TokenizationService {
     // Step 1: Tokenize content (shared)
     List<ContentToken> tokens = initialTokens ?? tokenize(content);
 
+    // Underline tokens are transient layout artifacts.
+    // Ensure they never persist across rebuilds when using cached initialTokens.
+    tokens = tokens
+        .where((token) => token.type != TokenType.underline)
+        .toList();
+
     // Step 2: Apply mode-specific processing
     if (posCtx.isEditMode) {
     } else {
@@ -182,10 +188,8 @@ class TokenizationService {
                 TokenizationConstants
                     .chordTokenHeightPadding; // Top + bottom visual padding
             tokenMeasurements[token]!.width +=
-                2 *
                 TokenizationConstants
-                    .chordTokenWidthPadding; // Left + right visual padding
-          }
+                    .chordTokenWidthPadding;          }
           break;
 
         case TokenType.space:

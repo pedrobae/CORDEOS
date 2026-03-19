@@ -1,5 +1,51 @@
 import 'package:flutter/material.dart';
 
+class TokenizationConstants {
+  /// PRECEDING TARGET
+  static const double precedingTargetWidth = 24.0;
+
+  /// CHORD TOKEN
+  static const double chordTokenHeightPadding = 4;
+  static const double chordTokenWidthPadding = 10.0;
+
+  /// DRAG TARGET FEEDBACK
+  static const int dragFeedbackTokensBefore = 5;
+  static const int dragFeedbackTokensAfter = 10;
+  static const double dragFeedbackCutoutWidth = 130.0;
+  static const double dragFeedbackCutoutPadding = 4.0;
+}
+
+/// Context object to hold common color, spacing, and layout parameters
+/// for widget positioning, reducing parameter clutter.
+class PositioningContext {
+  /// COLOR PARAMETERS
+  final Color underLineColor;
+
+  /// SPACING PARAMETERS
+  final double lineSpacing;
+  final double lineBreakSpacing;
+  final double chordLyricSpacing;
+  final double minChordSpacing;
+  final double letterSpacing;
+
+  /// MODE PARAMETERS
+  final bool isEditMode;
+
+  /// LAYOUT PARAMETERS
+  final double maxWidth;
+
+  const PositioningContext({
+    required this.underLineColor,
+    required this.maxWidth,
+    this.lineSpacing = 0,
+    this.lineBreakSpacing = 0,
+    this.chordLyricSpacing = 0,
+    this.minChordSpacing = 4,
+    this.letterSpacing = 0,
+    this.isEditMode = false,
+  });
+}
+
 /// Context object to hold common styling and behavior parameters
 /// for edit mode widget building, reducing parameter clutter.
 class TokenBuildContext {
@@ -35,58 +81,12 @@ class TokenBuildContext {
     required this.maxWidth,
     required this.cache,
     required this.transposeChord,
-     this.isEnabled,
-     this.toggleDrag,
-     this.onAddChord,
-     this.onAddPrecedingChord,
-     this.onRemoveChord,
+    this.isEnabled,
+    this.toggleDrag,
+    this.onAddChord,
+    this.onAddPrecedingChord,
+    this.onRemoveChord,
   });
-}
-
-/// Context object to hold common color, spacing, and layout parameters
-/// for widget positioning, reducing parameter clutter.
-class PositioningContext {
-  /// COLOR PARAMETERS
-  final Color underLineColor;
-
-  /// SPACING PARAMETERS
-  final double lineSpacing;
-  final double lineBreakSpacing;
-  final double chordLyricSpacing;
-  final double minChordSpacing;
-  final double letterSpacing;
-
-  /// MODE PARAMETERS
-  final bool isEditMode;
-
-  /// LAYOUT PARAMETERS
-  final double maxWidth;
-
-  const PositioningContext({
-    required this.underLineColor,
-    required this.maxWidth,
-    this.lineSpacing = 0,
-    this.lineBreakSpacing = 0,
-    this.chordLyricSpacing = 0,
-    this.minChordSpacing = 4,
-    this.letterSpacing = 1,
-    this.isEditMode = false,
-  });
-}
-
-class TokenizationConstants {
-  /// PRECEDING TARGET
-  static const double precedingTargetWidth = 24.0;
-
-  /// CHORD TOKEN
-  static const double chordTokenHeightPadding = 4;
-  static const double chordTokenWidthPadding = 10.0;
-
-  /// DRAG TARGET FEEDBACK
-  static const int dragFeedbackTokensBefore = 5;
-  static const int dragFeedbackTokensAfter = 10;
-  static const double dragFeedbackCutoutWidth = 130.0;
-  static const double dragFeedbackCutoutPadding = 4.0;
 }
 
 class ContentToken {
@@ -141,10 +141,7 @@ class TokenWidget {
   final Widget widget;
   final ContentToken token;
 
-  TokenWidget({
-    required this.widget,
-    required this.token,
-  });
+  TokenWidget({required this.widget, required this.token});
 
   TokenType get type => token.type;
 }
@@ -174,7 +171,9 @@ class TokenWord {
 
   void add(ContentToken token, int position) {
     if (position < 0 || position > tokens.length) {
-      throw RangeError('Position $position is out of bounds for tokens of length ${tokens.length}');
+      throw RangeError(
+        'Position $position is out of bounds for tokens of length ${tokens.length}',
+      );
     }
     tokens.insert(position, token);
   }
@@ -242,11 +241,6 @@ class TokenPositionMap {
     _positions[token] = Offset(x, y);
   }
 
-  /// Retrieves the position of a token, or null if not positioned
-  Offset? getPosition(ContentToken token) {
-    return _positions[token];
-  }
-
   /// Gets the x-coordinate of a token
   double? getX(ContentToken token) {
     return _positions[token]?.dx;
@@ -257,16 +251,7 @@ class TokenPositionMap {
     return _positions[token]?.dy;
   }
 
-  /// Check if a token has been positioned
-  bool hasPosition(ContentToken token) {
-    return _positions.containsKey(token);
+  void merge(TokenPositionMap other) {
+    _positions.addAll(other._positions);
   }
-
-  /// Clear all positions
-  void clear() {
-    _positions.clear();
-  }
-
-  /// Get all positioned tokens
-  Iterable<ContentToken> get positionedTokens => _positions.keys;
 }

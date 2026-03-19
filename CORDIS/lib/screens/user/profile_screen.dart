@@ -274,16 +274,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildAppVersionText() {
-    final info = context.read<AppInfoProvider>();
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return Text(
-      AppLocalizations.of(context)!.appVersion(info.appVersion),
-      textAlign: TextAlign.center,
-      style: textTheme.bodyMedium?.copyWith(
-        color: colorScheme.surfaceContainerLow,
-      ),
+    return Selector<AppInfoProvider, (bool, String)>(
+      selector: (_, info) => (info.isLoading, info.appVersion),
+      builder: (context, data, child) {
+        final (isLoading, appVersion) = data;
+        if (isLoading) {
+          return const SizedBox(
+            height: 20,
+            width: 20,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          );
+        }
+        return Text(
+          appVersion,
+          textAlign: TextAlign.center,
+          style: textTheme.bodyMedium?.copyWith(
+            color: colorScheme.surfaceContainerLow,
+          ),
+        );
+      },
     );
   }
 }

@@ -106,14 +106,14 @@ class LayoutSetProvider extends ChangeNotifier {
     fontSize: fontSize.toDouble(),
     color: color,
     fontWeight: FontWeight.bold,
-    height: 2,
+    height: 1,
     letterSpacing: 0,
   );
 
   TextStyle get lyricTextStyle => TextStyle(
     fontFamily: fontFamily,
     fontSize: fontSize.toDouble(),
-    height: 2,
+    height: 1,
     letterSpacing: 0,
   );
 }
