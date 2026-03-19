@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 class TokenizationConstants {
-  /// PRECEDING TARGET
-  static const double precedingTargetWidth = 24.0;
+  /// GENERIC TARGET
+  static const double targetWidth = 24.0;
 
   /// CHORD TOKEN
   static const double chordTokenHeightPadding = 4;
@@ -69,7 +69,6 @@ class TokenBuildContext {
   final bool? isEnabled;
   final VoidCallback? toggleDrag;
   final Function(ContentToken, ContentToken)? onAddChord;
-  final Function(ContentToken, ContentToken)? onAddPrecedingChord;
   final Function(ContentToken)? onRemoveChord;
 
   const TokenBuildContext({
@@ -84,7 +83,6 @@ class TokenBuildContext {
     this.isEnabled,
     this.toggleDrag,
     this.onAddChord,
-    this.onAddPrecedingChord,
     this.onRemoveChord,
   });
 }
@@ -102,8 +100,8 @@ enum TokenType {
   lyric,
   space,
   newline,
-  precedingChordTarget, // Token that exists when editing
-  separator, // Used to separate indicate preceding chords
+  preSeparator, // Used to separate preceding chords, as well as render a drag Target
+  postSeparator, // Used to separate following chords, as well as render a drag Target
   underline, // Underscore widget used to stretch a word when a chord cant fit
 }
 

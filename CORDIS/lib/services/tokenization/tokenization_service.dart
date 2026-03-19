@@ -2,7 +2,6 @@ import 'package:cordis/providers/settings/layout_settings_provider.dart';
 import 'package:cordis/services/tokenization/build_service.dart';
 import 'package:cordis/services/tokenization/helper_classes.dart';
 import 'package:cordis/services/tokenization/position_service.dart';
-import 'package:flutter/material.dart';
 
 /// Service responsible for tokenizing ChordPro content,
 /// organizing it into a hierarchical structure,
@@ -31,76 +30,42 @@ class TokenizationService {
 
     final List<ContentToken> tokens = [];
     final List<ContentToken> lineTokens = [];
-    bool foundLyricInLine = false;
     for (int index = 0; index < content.length; index++) {
       final char = content[index];
       if (char == '\n') {
         if (lineTokens.isEmpty) {
-          // Handle empty lines
-          tokens.add(ContentToken(type: TokenType.newline, text: char));
+          // Trim empty lines
           continue;
         }
 
+        _ensureSeparators(lineTokens);
+
         lineTokens.add(ContentToken(type: TokenType.newline, text: char));
 
-        // Add Line and Reset for the next line
-        foundLyricInLine = false;
         tokens.addAll(lineTokens);
         lineTokens.clear();
       } else if (char == ' ' || char == '\t') {
         lineTokens.add(ContentToken(type: TokenType.space, text: char));
       } else if (char == '[') {
-        index++; // Move past the '['
+        // GROUP CHORD TOKEN
+        index++;
         String chordText = '';
         while (index < content.length && content[index] != ']') {
           chordText += content[index];
           index++;
         }
         lineTokens.add(ContentToken(type: TokenType.chord, text: chordText));
+      } else if (char == '<') {
+        lineTokens.add(ContentToken(type: TokenType.preSeparator, text: char));
+      } else if (char == '>') {
+        lineTokens.add(ContentToken(type: TokenType.postSeparator, text: char));
       } else {
-        if (!foundLyricInLine) {
-          foundLyricInLine = true;
-          // Go backwards,
-          // If no space found before this lyric, add a preceding chord target token
-          // If there are spaces, add a separatorToken to indicate the boundary between lyric start and preceding chords / target
-          if (lineTokens.isEmpty) {
-            lineTokens.add(ContentToken(type: TokenType.precedingChordTarget));
-            lineTokens.add(ContentToken(type: TokenType.separator));
-          } else {
-            for (int j = lineTokens.length - 1; j >= 0; j--) {
-              if (lineTokens[j].type == TokenType.space) {
-                lineTokens.insert(
-                  j + 1,
-                  ContentToken(type: TokenType.separator),
-                );
-                break;
-              }
-              if (j == 0) {
-                lineTokens.insert(0, ContentToken(type: TokenType.separator));
-                lineTokens.insert(
-                  0,
-                  ContentToken(type: TokenType.precedingChordTarget),
-                );
-              }
-              if (lineTokens[j].type == TokenType.newline) {
-                lineTokens.insert(
-                  j + 1,
-                  ContentToken(type: TokenType.separator),
-                );
-                lineTokens.insert(
-                  j + 1,
-                  ContentToken(type: TokenType.precedingChordTarget),
-                );
-                break;
-              }
-            }
-          }
-        }
         lineTokens.add(ContentToken(type: TokenType.lyric, text: char));
       }
     }
 
     if (lineTokens.isNotEmpty) {
+      _ensureSeparators(lineTokens);
       tokens.addAll(lineTokens);
     }
 
@@ -109,6 +74,48 @@ class TokenizationService {
     }
 
     return tokens;
+  }
+
+  void _ensureSeparators(List<ContentToken> lineTokens) {
+    final hasPreSeparator = lineTokens.any(
+      (token) => token.type == TokenType.preSeparator,
+    );
+    final hasPostSeparator = lineTokens.any(
+      (token) => token.type == TokenType.postSeparator,
+    );
+
+    if (!hasPreSeparator) {
+      // If there are no pre-separators, find the first lyric token and insert a target before it.
+      // If there are no lyric tokens, position at the end of the line.
+      final firstLyricsIndex = lineTokens.indexWhere(
+        (token) => token.type == TokenType.lyric,
+      );
+      final insertIndex = firstLyricsIndex != -1
+          ? firstLyricsIndex
+          : lineTokens.length;
+      lineTokens.insert(
+        insertIndex,
+        ContentToken(type: TokenType.preSeparator, text: '<'),
+      );
+    }
+    if (!hasPostSeparator) {
+      // If there are no post-separators, find the first lyric token and insert a target after it.
+      // If there are no lyric tokens, position at the end of the line.
+      int lastLyricIndex = -1;
+      for (int i = lineTokens.length - 1; i >= 0; i--) {
+        if (lineTokens[i].type == TokenType.lyric) {
+          lastLyricIndex = i;
+          break;
+        }
+      }
+      final insertIndex = lastLyricIndex != -1
+          ? lastLyricIndex
+          : lineTokens.length - 1;
+      lineTokens.insert(
+        insertIndex + 1,
+        ContentToken(type: TokenType.postSeparator, text: '>'),
+      );
+    }
   }
 
   /// Reconstructs the content string from a list of ContentTokens.
@@ -124,8 +131,10 @@ class TokenizationService {
         case TokenType.space:
         case TokenType.newline:
           return token.text;
-        case TokenType.precedingChordTarget:
-        case TokenType.separator:
+        case TokenType.preSeparator:
+          return '<';
+        case TokenType.postSeparator:
+          return '>';
         case TokenType.underline:
           return ''; // Purely visual tokens - return empty string
       }
@@ -172,6 +181,22 @@ class TokenizationService {
     // Step 3: Organize tokens
     final organizedTokens = _organize(tokens);
 
+    // // Assert that all tokens and organization maintain the same order and count after processing
+    // assert(() {
+    //   final flatOrganizedTokens = organizedTokens.lines
+    //       .expand((line) => line.words)
+    //       .expand((word) => word.tokens)
+    //       .toList();
+    //   for (int i = 0; i < tokens.length; i++) {
+    //     if (tokens[i] != flatOrganizedTokens[i]) {
+    //       throw Exception(
+    //         'Token mismatch at index $i after organization. Token: ${tokens[i].text} (${tokens[i].type}), Organized: ${flatOrganizedTokens[i].text} (${flatOrganizedTokens[i].type})',
+    //       );
+    //     }
+    //   }
+    //   return true;
+    // }());
+
     // Step 4: Measure tokens
     final tokenMeasurements = <ContentToken, Measurements>{};
     for (var token in tokens) {
@@ -181,15 +206,8 @@ class TokenizationService {
             text: buildCtx.transposeChord(token.text),
             style: buildCtx.chordStyle,
             cache: buildCtx.cache,
+            isChordToken: posCtx.isEditMode
           );
-          if (posCtx.isEditMode && token.type == TokenType.chord) {
-            tokenMeasurements[token]!.size +=
-                2 *
-                TokenizationConstants
-                    .chordTokenHeightPadding; // Top + bottom visual padding
-            tokenMeasurements[token]!.width +=
-                TokenizationConstants
-                    .chordTokenWidthPadding;          }
           break;
 
         case TokenType.space:
@@ -200,15 +218,15 @@ class TokenizationService {
             cache: buildCtx.cache,
           );
           break;
-        case TokenType.precedingChordTarget:
-        case TokenType.separator:
+        case TokenType.preSeparator:
+        case TokenType.postSeparator:
           final msr = _builder.measureText(
-            text: 'Test',
+            text: '<>',
             style: buildCtx.lyricStyle,
             cache: buildCtx.cache,
           );
           tokenMeasurements[token] = Measurements(
-            width: TokenizationConstants.precedingTargetWidth,
+            width: TokenizationConstants.targetWidth,
             height: msr.height,
             baseline: msr.baseline,
             size: msr.size,
@@ -228,6 +246,20 @@ class TokenizationService {
       buildCtx: buildCtx,
       tokenMsr: tokenMeasurements,
     );
+
+    // Assert that all lines start at x=0
+    // assert(() {
+    //   for (var line in organizedTokens.lines) {
+    //     final firstToken = line.words.expand((word) => word.tokens).first;
+    //     final firstTokenX = tokenPositions.getX(firstToken)!;
+    //     if (firstTokenX != 0) {
+    //       throw Exception(
+    //         'Line does not start at x=0. First token: ${firstToken.text} (${firstToken.type}), x: $firstTokenX',
+    //       );
+    //     }
+    //   }
+    //   return true;
+    // }());
 
     // Step 6: Build widgets
     final OrganizedWidgets contentWidgets;
@@ -278,12 +310,10 @@ class TokenizationService {
         case TokenType.space:
         case TokenType.lyric:
           return contentFilters[ContentFilter.lyrics]!;
-        case TokenType.precedingChordTarget:
-          return false;
+        case TokenType.postSeparator:
+        case TokenType.preSeparator:
         case TokenType.underline:
-          debugPrint("UNDERLINE FOUND ON FILTERING");
           return false;
-        case TokenType.separator:
         case TokenType.newline:
           // Returns true if any content is shown
           return contentFilters[ContentFilter.chords]! ||
@@ -308,47 +338,43 @@ class TokenizationService {
     for (var token in tokens) {
       switch (token.type) {
         case TokenType.newline:
-          // End of line
-          if (currentWord.isNotEmpty) {
-            currentLine.add(TokenWord(List.from(currentWord)));
-            currentWord.clear();
-          }
-
-          // Add newline as separate word
-          currentLine.add(TokenWord([token]));
-
-          // Add line to content
+          currentWord.add(token);
+          currentLine.add(TokenWord(List.from(currentWord)));
           lines.add(TokenLine(List.from(currentLine)));
-          currentLine.clear();
-          break;
 
-        case TokenType.separator:
+          currentLine.clear();
+          currentWord.clear();
+          break;
         case TokenType.space:
-          // End of word
           if (currentWord.isNotEmpty) {
             currentLine.add(TokenWord(List.from(currentWord)));
             currentWord.clear();
           }
-
-          // Add space as separate word
           currentLine.add(TokenWord([token]));
           break;
-
         case TokenType.lyric:
         case TokenType.chord:
-        case TokenType.precedingChordTarget:
-        case TokenType.underline:
-          // Part of a word
           currentWord.add(token);
           break;
+        case TokenType.preSeparator:
+        case TokenType.postSeparator:
+          if (currentWord.isNotEmpty) {
+            currentLine.add(TokenWord(List.from(currentWord)));
+            currentWord.clear();
+          }
+          currentLine.add(TokenWord([token]));
+          break;
+        case TokenType.underline:
+          throw Exception(
+            'Underline tokens should not be present during organization',
+          );
       }
     }
-    // Add any remaining tokens
     if (currentWord.isNotEmpty) {
-      currentLine.add(TokenWord(currentWord));
+      currentLine.add(TokenWord(List.from(currentWord)));
     }
     if (currentLine.isNotEmpty) {
-      lines.add(TokenLine(currentLine));
+      lines.add(TokenLine(List.from(currentLine)));
     }
     return OrganizedTokens(lines);
   }

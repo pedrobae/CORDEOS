@@ -80,25 +80,6 @@ class _TokenContentCardState extends State<TokenContentCard> {
     _cacheChanges();
   }
 
-  void _addPrecedingChord(ContentToken draggable, ContentToken target) {
-    if (_activeTokens == null) return;
-
-    final emptySpaceToken = ContentToken(text: ' ', type: TokenType.space);
-
-    int index = 0;
-    for (var token in _activeTokens!) {
-      if (token == target) break;
-      index++;
-    }
-
-    if (index < _activeTokens!.length) {
-      _activeTokens!.insert(index, emptySpaceToken);
-      _activeTokens!.insert(index, draggable);
-    }
-
-    _cacheChanges();
-  }
-
   void _removeChord(ContentToken draggable) {
     if (_activeTokens == null) return;
 
@@ -201,48 +182,50 @@ class _TokenContentCardState extends State<TokenContentCard> {
 
               /// CONTENT
               Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: TokenizationConstants.chordTokenWidthPadding + 4,
-                ),
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final buildCtx = TokenBuildContext(
-                      chordStyle: laySet.chordTextStyle(colorScheme.surface),
-                      lyricStyle: laySet.lyricTextStyle,
-                      contentColor: section.contentColor,
-                      surfaceColor: colorScheme.surface,
-                      onSurfaceColor: colorScheme.onSurface,
-                      isEnabled: widget.isEnabled,
-                      cache: {},
-                      maxWidth: constraints.maxWidth,
-                      transposeChord: (String chord) =>
-                          trans.transposeChord(chord),
-                      toggleDrag: _toggleDrag,
-                      onAddChord: _addChord,
-                      onAddPrecedingChord: _addPrecedingChord,
-                      onRemoveChord: _removeChord,
-                    );
-
-                    final content = _tokenizer.createContent(
-                      content: section.contentText,
-                      initialTokens: tokens,
-                      posCtx: PositioningContext(
-                        underLineColor: colorScheme.onSurface,
+                padding: const EdgeInsets.all(4),
+                child: Padding(
+                  padding: const EdgeInsets.only(
+                    left: TokenizationConstants.chordTokenWidthPadding,
+                  ),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final buildCtx = TokenBuildContext(
+                        chordStyle: laySet.chordTextStyle(colorScheme.surface),
+                        lyricStyle: laySet.lyricTextStyle,
+                        contentColor: section.contentColor,
+                        surfaceColor: colorScheme.surface,
+                        onSurfaceColor: colorScheme.onSurface,
+                        isEnabled: widget.isEnabled,
+                        cache: {},
                         maxWidth: constraints.maxWidth,
-                        isEditMode: true,
-                      ),
-                      buildCtx: buildCtx,
-                    );
+                        transposeChord: (String chord) =>
+                            trans.transposeChord(chord),
+                        toggleDrag: _toggleDrag,
+                        onAddChord: _addChord,
+                        onRemoveChord: _removeChord,
+                      );
 
-                    return SizedBox(
-                      width: double.infinity,
-                      height: content.contentHeight,
-                      child: Stack(
-                        clipBehavior: Clip.none,
-                        children: [...content.tokens],
-                      ),
-                    );
-                  },
+                      final content = _tokenizer.createContent(
+                        content: section.contentText,
+                        initialTokens: tokens,
+                        posCtx: PositioningContext(
+                          underLineColor: colorScheme.onSurface,
+                          maxWidth: constraints.maxWidth,
+                          isEditMode: true,
+                        ),
+                        buildCtx: buildCtx,
+                      );
+
+                      return SizedBox(
+                        width: double.infinity,
+                        height: content.contentHeight,
+                        child: Stack(
+                          clipBehavior: Clip.none,
+                          children: [...content.tokens],
+                        ),
+                      );
+                    },
+                  ),
                 ),
               ),
             ],

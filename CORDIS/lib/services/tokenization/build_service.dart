@@ -17,6 +17,7 @@ class TokenizationBuilder {
     required String text,
     required TextStyle style,
     Map<String, Measurements>? cache,
+    bool isChordToken = false,
   }) {
     cache ??= {};
     final key =
@@ -29,8 +30,12 @@ class TokenizationBuilder {
         textDirection: TextDirection.ltr,
       )..layout();
       final measurements = Measurements(
-        width: textPainter.width,
-        height: textPainter.height,
+        width: textPainter.width + (isChordToken
+            ? 2 * TokenizationConstants.chordTokenWidthPadding
+            : 0.0), // Add horizontal padding for chord tokens to prevent overlap
+        height: textPainter.height + (isChordToken
+            ? 2 * TokenizationConstants.chordTokenHeightPadding
+            : 0.0), // Add vertical padding for chord tokens to prevent overlap
         baseline: textPainter.computeDistanceToActualBaseline(
           TextBaseline.alphabetic,
         ),
@@ -94,8 +99,8 @@ class TokenizationBuilder {
                 TokenWidget(widget: SizedBox.shrink(), token: token),
               );
               break;
-            case TokenType.precedingChordTarget:
-            case TokenType.separator:
+            case TokenType.preSeparator:
+            case TokenType.postSeparator:
               // Preceding chord targets and separators are only relevant in edit mode, so we skip
               break;
             case TokenType.underline:
@@ -146,7 +151,21 @@ class TokenizationBuilder {
         final wordWidgets = <TokenWidget>[];
         for (var token in word.tokens) {
           switch (token.type) {
-            case TokenType.precedingChordTarget:
+            case TokenType.preSeparator:
+              wordWidgets.add(
+                TokenWidget(
+                  widget: _buildPrecedingChordDragTarget(
+                    ctx: ctx,
+                    tokenLine: line,
+                    tokens: tokens,
+                    token: token,
+                    tokenPositions: tokenPositions,
+                  ),
+                  token: token,
+                ),
+              );
+              break;
+            case TokenType.postSeparator:
               wordWidgets.add(
                 TokenWidget(
                   widget: _buildPrecedingChordDragTarget(
@@ -222,8 +241,6 @@ class TokenizationBuilder {
                 ),
               );
               break;
-            case TokenType.separator:
-              break;
           }
         }
         if (wordWidgets.isNotEmpty) {
@@ -286,7 +303,7 @@ class TokenizationBuilder {
 
     final dragTargetChild = SizedBox(
       height: lyricMsr.height,
-      width: TokenizationConstants.precedingTargetWidth,
+      width: TokenizationConstants.targetWidth,
       child: Stack(
         children: [
           Positioned(
@@ -294,7 +311,7 @@ class TokenizationBuilder {
             child: Container(
               color: ctx.onSurfaceColor,
               height: 1,
-              width: TokenizationConstants.precedingTargetWidth,
+              width: TokenizationConstants.targetWidth,
             ),
           ),
         ],
@@ -305,7 +322,7 @@ class TokenizationBuilder {
       tokenBuildCtx: ctx,
       child: dragTargetChild,
       token: token,
-      onAccept: ctx.onAddPrecedingChord!,
+      onAccept: ctx.onAddChord!,
       tokenLine: tokenLine,
       tokenPositions: tokenPositions,
     );
@@ -461,10 +478,7 @@ class TokenizationBuilder {
         Positioned(
           left: xOffset,
           bottom: TokenizationConstants.dragFeedbackCutoutPadding,
-          child: Text(
-            token.text,
-            style: ctx.lyricStyle,
-          ),
+          child: Text(token.text, style: ctx.lyricStyle),
         ),
       );
       xOffset +=

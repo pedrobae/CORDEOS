@@ -57,11 +57,13 @@ class PositionService {
       tokenMsr: tokenMsr,
     );
 
-    final positionMap = TokenPositionMap();
     final cursor = _LayoutCursor(
       precedingOffset: precedingOffset,
       lineHeight: lineHeight,
     );
+
+    final positionMap = TokenPositionMap();
+
     for (var line in organizedTokens.lines) {
       for (var word in line.words) {
         // Initial pass — detects overflow.
@@ -109,10 +111,27 @@ class PositionService {
       if (msr == null) continue;
 
       switch (token.type) {
-        case TokenType.separator:
+        case TokenType.postSeparator:
+          final xOffset = max(cursor.chordX, cursor.lyricsX);
+          cursor.lyricsX = xOffset + ctx.posCtx.chordLyricSpacing;
+          cursor.chordX = xOffset + ctx.posCtx.chordLyricSpacing;
+          positions.setPosition(
+            token,
+            xOffset,
+            cursor.yOffset + ctx.posCtx.chordLyricSpacing + ctx.chordHeight,
+          );
+          charIndex++;
+          break;
+
+        case TokenType.preSeparator:
           cursor.lyricsX = ctx.precedingOffset;
           cursor.chordX = ctx.precedingOffset;
-          positions.setPosition(token, 0, cursor.yOffset);
+          cursor.foundPreSeparator = true;
+          positions.setPosition(
+            token,
+            ctx.precedingOffset - TokenizationConstants.targetWidth,
+            cursor.yOffset + ctx.posCtx.chordLyricSpacing + ctx.chordHeight,
+          );
           charIndex++;
           break;
 
@@ -208,26 +227,8 @@ class PositionService {
             );
           }
           break;
-
-        case TokenType.precedingChordTarget:
-          positions.setPosition(
-            token,
-            0,
-            cursor.yOffset + ctx.posCtx.chordLyricSpacing + ctx.chordHeight,
-          );
-          charIndex++;
-          cursor.lyricsX = ctx.precedingOffset;
-          if (ctx.checkOverflow && cursor.chordX > ctx.posCtx.maxWidth) {
-            return _WordLayoutResult(
-              wordPositions: positions,
-              tokensToAdd: tokensToAdd,
-              lineBroke: true,
-            );
-          }
-          break;
-
         // Underlines are injected on-demand above; newlines are handled at
-        // the line level — neither should appear during token iteration.
+        // the line level — neither should appear during word iteration.
         case TokenType.underline:
         case TokenType.newline:
           break;
@@ -298,34 +299,35 @@ class PositionService {
     Map<ContentToken, Measurements> tokenMeasurements,
     PositioningContext ctx,
   ) {
-    double precedingOffset = ctx.isEditMode
-        ? TokenizationConstants.precedingTargetWidth
-        : 0;
+    double precedingOffset = 0;
     for (var line in contentTokens.lines) {
-      double linePrecedingOffset = 0;
+      double lineChordX = 0;
+      double lineLyricX = 0;
       bool foundSeparator = false;
+
       for (var word in line.words) {
         if (foundSeparator) {
           break;
         }
         for (var token in word.tokens) {
-          if (token.type == TokenType.separator) {
+          if (token.type == TokenType.preSeparator) {
             foundSeparator = true;
+            lineChordX += TokenizationConstants.targetWidth;
             break;
-          } else {
+          } else if (token.type == TokenType.chord) {
             // Accumulate all widths
-            linePrecedingOffset += tokenMeasurements[token]?.width ?? 0.0;
+            lineChordX += tokenMeasurements[token]?.width ?? 0.0;
+          } else {
+            lineLyricX += tokenMeasurements[token]?.width ?? 0.0;
           }
         }
       }
-      if (linePrecedingOffset > precedingOffset && foundSeparator) {
-        precedingOffset = linePrecedingOffset;
+      final offsetCandidate = max(lineChordX, lineLyricX);
+      if (offsetCandidate > precedingOffset && foundSeparator) {
+        precedingOffset = offsetCandidate;
       }
     }
 
-    if (precedingOffset != 0) {
-      precedingOffset += ctx.minChordSpacing;
-    }
     return precedingOffset;
   }
 
@@ -398,6 +400,7 @@ class _LayoutCursor {
   double chordX = 0;
   double precedingOffset;
   double lineHeight;
+  bool foundPreSeparator = false;
 
   _LayoutCursor({required this.precedingOffset, required this.lineHeight});
 
@@ -410,8 +413,9 @@ class _LayoutCursor {
 
   void newLine(double newLineSpacing) {
     yOffset += lineHeight + newLineSpacing;
-    lyricsX = precedingOffset;
-    chordX = precedingOffset;
+    lyricsX = 0;
+    chordX = 0;
+    foundPreSeparator = false;
   }
 }
 
