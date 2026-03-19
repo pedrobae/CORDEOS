@@ -4,6 +4,7 @@ class LabeledTextField extends StatelessWidget {
   final String label;
   final String? hint;
   final TextEditingController controller;
+  final FocusNode? focusNode;
   final String? Function(String?)? validator;
   final String? instruction;
   final int lineCount;
@@ -13,12 +14,14 @@ class LabeledTextField extends StatelessWidget {
   final Widget? prefixIcon;
   final Widget? suffixIcon;
   final TextInputType keyboardType;
+  final void Function(String)? onSubmitted;
 
   const LabeledTextField({
     super.key,
     required this.label,
     this.hint,
     required this.controller,
+    this.focusNode,
     this.validator,
     this.instruction,
     this.lineCount = 1,
@@ -28,6 +31,7 @@ class LabeledTextField extends StatelessWidget {
     this.prefixIcon,
     this.suffixIcon,
     this.keyboardType = TextInputType.text,
+    this.onSubmitted,
   });
 
   @override
@@ -40,10 +44,14 @@ class LabeledTextField extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       spacing: isDense ? 4 : 8,
       children: [
-        Text(label, style: isDense ? textTheme.labelMedium: textTheme.labelLarge),
+        Text(
+          label,
+          style: isDense ? textTheme.labelMedium : textTheme.labelLarge,
+        ),
         TextFormField(
           validator: validator,
           controller: controller,
+          focusNode: focusNode,
           decoration: InputDecoration(
             fillColor: isEnabled
                 ? colorScheme.surface
@@ -62,10 +70,14 @@ class LabeledTextField extends StatelessWidget {
             visualDensity: VisualDensity.compact,
           ),
           maxLines: lineCount,
-    
           keyboardType: keyboardType,
           enabled: isEnabled,
           obscureText: obscureText,
+          onFieldSubmitted: (value) {
+            if (onSubmitted != null) {
+              onSubmitted!(value);
+            }
+          },
         ),
         if (instruction != null)
           Text(

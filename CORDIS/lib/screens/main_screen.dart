@@ -104,6 +104,7 @@ class MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
           },
           child: Scaffold(
             key: _scaffoldKey,
+            resizeToAvoidBottomInset: false,
             drawer: SideMenu(),
             body: Row(
               children: [
@@ -119,6 +120,7 @@ class MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
 
   Widget _buildInnerScaffold(NavigationProvider nav, bool isWideScreen) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: nav.showAppBar ? _buildAppBar(nav, isWideScreen) : null,
       bottomNavigationBar: !isWideScreen && nav.showBottomNavBar
           ? _buildBottomNavigationBar(nav)

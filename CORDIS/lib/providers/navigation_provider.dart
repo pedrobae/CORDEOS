@@ -351,29 +351,3 @@ class NavigationItem {
     required this.index,
   });
 }
-
-class AdminNavigationItem {
-  final String title;
-  final Icon icon;
-
-  AdminNavigationItem({required this.title, required this.icon});
-}
-
-extension NavigationProviderAdmin on NavigationProvider {
-  List<AdminNavigationItem> getAdminItems({
-    Color? iconColor,
-    double iconSize = 64,
-  }) {
-    return [
-      AdminNavigationItem(
-        title: 'Gerenciamento de Usuários',
-        icon: Icon(
-          Icons.manage_accounts_outlined,
-          color: iconColor,
-          size: iconSize,
-        ),
-      ),
-      // Add more admin items here as needed
-    ];
-  }
-}

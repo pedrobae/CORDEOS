@@ -28,12 +28,14 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _passwordFocusNode = FocusNode();
   bool _obscurePassword = true;
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _passwordFocusNode.dispose();
     super.dispose();
   }
 
@@ -56,8 +58,13 @@ class _LoginScreenState extends State<LoginScreen> {
               children: [
                 SizedBox(height: 40),
                 _buildHeader(),
-                _buildEmailField(),
-                _buildPasswordField(),
+                Form(
+                  child: Column(
+                    spacing: 16,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [_buildEmailField(), _buildPasswordField()],
+                  ),
+                ),
                 _buildForgotPassword(),
                 _buildStatusIndicators(auth),
                 _buildActionButtons(auth),
@@ -98,6 +105,9 @@ class _LoginScreenState extends State<LoginScreen> {
       label: AppLocalizations.of(context)!.email,
       prefixIcon: Icon(Icons.email, color: colorScheme.shadow),
       keyboardType: TextInputType.emailAddress,
+      onSubmitted: (_) {
+        FocusScope.of(context).requestFocus(_passwordFocusNode);
+      },
     );
   }
 
@@ -106,6 +116,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return LabeledTextField(
       label: AppLocalizations.of(context)!.password,
       controller: _passwordController,
+      focusNode: _passwordFocusNode,
       obscureText: _obscurePassword,
       prefixIcon: Icon(Icons.lock, color: colorScheme.shadow),
       suffixIcon: IconButton(
@@ -115,6 +126,9 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         onPressed: _toggleObscure,
       ),
+      onSubmitted: (_) {
+        _emailSignIn();
+      },
     );
   }
 

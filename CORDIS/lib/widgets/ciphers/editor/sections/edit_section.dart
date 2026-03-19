@@ -51,153 +51,175 @@ class _EditSectionScreenState extends State<EditSectionScreen> {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
-    final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final media = MediaQuery.of(context);
+        double keyboardInset = media.viewInsets.bottom;
+        final screenHeight = media.size.height;
+        final renderObject = context.findRenderObject();
 
-    return AnimatedPadding(
-      duration: const Duration(milliseconds: 220),
-      curve: Curves.easeOut,
-      padding: EdgeInsets.only(bottom: keyboardInset),
-      child: Container(
-        color: colorScheme.surface,
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          spacing: 16,
-          children: [
-          // HEADER
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              BackButton(
-                color: colorScheme.onSurface,
-                onPressed: () {
-                  if (widget.isNewSection) {
-                    // If it's a new section,
-                    // Delete the cached section that was created when selecting type
-                    _deleteSection();
-                  }
-                  context.read<NavigationProvider>().attemptPop(context);
-                },
-              ),
-              Text(
-                AppLocalizations.of(
-                  context,
-                )!.editPlaceholder(AppLocalizations.of(context)!.section),
-                style: textTheme.titleMedium,
-              ),
-              IconButton(
-                onPressed: () {
-                  _upsertSection();
-                  context.read<NavigationProvider>().pop();
-                },
-                icon: Icon(Icons.save, size: 24, color: colorScheme.onSurface),
-              ),
-            ],
-          ),
+        if (renderObject is RenderBox && renderObject.hasSize) {
+          final globalBottom = renderObject
+              .localToGlobal(Offset(0, renderObject.size.height))
+              .dy;
+          final bottomGap = (screenHeight - globalBottom);
+          keyboardInset = (keyboardInset - bottomGap).clamp(0.0, keyboardInset);
+        }
 
-          // CONTENT
-            Expanded(
-              child: SingleChildScrollView(
-                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-              child: Column(
-                spacing: 16,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // TYPE SELECTION
-                  SizedBox(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      spacing: 8,
+        return AnimatedPadding(
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOut,
+          padding: EdgeInsets.only(bottom: keyboardInset),
+          child: Container(
+            color: colorScheme.surface,
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              spacing: 16,
+              children: [
+                // HEADER
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    BackButton(
+                      color: colorScheme.onSurface,
+                      onPressed: () {
+                        if (widget.isNewSection) {
+                          // If it's a new section,
+                          // Delete the cached section that was created when selecting type
+                          _deleteSection();
+                        }
+                        context.read<NavigationProvider>().attemptPop(context);
+                      },
+                    ),
+                    Text(
+                      AppLocalizations.of(
+                        context,
+                      )!.editPlaceholder(AppLocalizations.of(context)!.section),
+                      style: textTheme.titleMedium,
+                    ),
+                    IconButton(
+                      onPressed: () {
+                        _upsertSection();
+                        context.read<NavigationProvider>().pop();
+                      },
+                      icon: Icon(
+                        Icons.save,
+                        size: 24,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                  ],
+                ),
+
+                // CONTENT
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      spacing: 16,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Container(
-                          height: 28,
-                          width: 28,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: contentColor,
-                          ),
-                        ),
-                        Expanded(
-                          child: Text(
-                            contentTypeController.text,
-                            style: textTheme.bodyLarge,
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            _upsertSection();
-                            context.read<NavigationProvider>().pushForeground(
-                              SelectType(
-                                versionID: widget.versionID,
-                                sectionCode: widget.sectionCode,
+                        // TYPE SELECTION
+                        SizedBox(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            spacing: 8,
+                            children: [
+                              Container(
+                                height: 28,
+                                width: 28,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: contentColor,
+                                ),
                               ),
-                            );
-                          },
-                          child: Text(
-                            AppLocalizations.of(context)!.changePlaceholder(
-                              AppLocalizations.of(context)!.type,
-                            ),
-                            style: textTheme.bodyMedium?.copyWith(
-                              color: colorScheme.primary,
-                            ),
+                              Expanded(
+                                child: Text(
+                                  contentTypeController.text,
+                                  style: textTheme.bodyLarge,
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: () {
+                                  _upsertSection();
+                                  context
+                                      .read<NavigationProvider>()
+                                      .pushForeground(
+                                        SelectType(
+                                          versionID: widget.versionID,
+                                          sectionCode: widget.sectionCode,
+                                        ),
+                                      );
+                                },
+                                child: Text(
+                                  AppLocalizations.of(
+                                    context,
+                                  )!.changePlaceholder(
+                                    AppLocalizations.of(context)!.type,
+                                  ),
+                                  style: textTheme.bodyMedium?.copyWith(
+                                    color: colorScheme.primary,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
+                        ),
+                        // SECTION CODE
+                        LabeledTextField(
+                          label: AppLocalizations.of(context)!.sectionCode,
+                          hint: AppLocalizations.of(context)!.sectionCodeHint,
+                          controller: contentCodeController,
+                          instruction: AppLocalizations.of(
+                            context,
+                          )!.sectionCodeInstruction,
+                        ),
+
+                        // SECTION TYPE
+                        LabeledTextField(
+                          label: AppLocalizations.of(context)!.sectionType,
+                          hint: AppLocalizations.of(context)!.sectionTypeHint,
+                          controller: contentTypeController,
+                        ),
+
+                        // SECTION TEXT
+                        LabeledTextField(
+                          label: AppLocalizations.of(context)!.sectionText,
+                          hint: AppLocalizations.of(context)!.sectionTextHint,
+                          controller: contentTextController,
+                          lineCount: 8,
                         ),
                       ],
                     ),
                   ),
-                  // SECTION CODE
-                  LabeledTextField(
-                    label: AppLocalizations.of(context)!.sectionCode,
-                    hint: AppLocalizations.of(context)!.sectionCodeHint,
-                    controller: contentCodeController,
-                    instruction: AppLocalizations.of(
-                      context,
-                    )!.sectionCodeInstruction,
-                  ),
+                ),
 
-                  // SECTION TYPE
-                  LabeledTextField(
-                    label: AppLocalizations.of(context)!.sectionType,
-                    hint: AppLocalizations.of(context)!.sectionTypeHint,
-                    controller: contentTypeController,
-                  ),
-
-                  // SECTION TEXT
-                  LabeledTextField(
-                    label: AppLocalizations.of(context)!.sectionText,
-                    hint: AppLocalizations.of(context)!.sectionTextHint,
-                    controller: contentTextController,
-                    lineCount: 8,
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // DELETE BUTTON
-            if (!widget.isNewSection)
-              FilledTextButton(
-                text: AppLocalizations.of(context)!.delete,
-                isDangerous: true,
-                onPressed: () {
-                  showModalBottomSheet(
-                    context: context,
-                    builder: (context) {
-                      return DeleteConfirmationSheet(
-                        itemType: AppLocalizations.of(context)!.section,
-                        onConfirm: () {
-                          _deleteSection();
-                          context.read<NavigationProvider>().pop();
+                // DELETE BUTTON
+                if (!widget.isNewSection)
+                  FilledTextButton(
+                    text: AppLocalizations.of(context)!.delete,
+                    isDangerous: true,
+                    onPressed: () {
+                      showModalBottomSheet(
+                        context: context,
+                        builder: (context) {
+                          return DeleteConfirmationSheet(
+                            itemType: AppLocalizations.of(context)!.section,
+                            onConfirm: () {
+                              _deleteSection();
+                              context.read<NavigationProvider>().pop();
+                            },
+                          );
                         },
                       );
                     },
-                  );
-                },
-              ),
-          ],
-        ),
-      ),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 

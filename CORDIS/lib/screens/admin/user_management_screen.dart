@@ -24,25 +24,21 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Gerenciar Usuários'),
-        backgroundColor: colorScheme.primaryContainer,
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildGrantAdminCard(colorScheme),
-              if (_statusMessage != null) ...[
-                const SizedBox(height: 16),
-                _buildStatusCard(colorScheme),
-              ],
-            ],
-          ),
-        ),
+    final textTheme = Theme.of(context).textTheme;
+
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text('User Management', style: textTheme.titleMedium),
+          _buildGrantAdminCard(colorScheme),
+          
+          if (_statusMessage != null) ...[
+            const SizedBox(height: 16),
+            _buildStatusCard(colorScheme),
+          ],
+        ],
       ),
     );
   }
