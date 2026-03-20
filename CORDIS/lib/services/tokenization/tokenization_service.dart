@@ -59,6 +59,8 @@ class TokenizationService {
         lineTokens.add(ContentToken(type: TokenType.preSeparator, text: char));
       } else if (char == '>') {
         lineTokens.add(ContentToken(type: TokenType.postSeparator, text: char));
+      } else if (char == '@') {
+        lineTokens.add(ContentToken(type: TokenType.chordTarget, text: char));
       } else {
         lineTokens.add(ContentToken(type: TokenType.lyric, text: char));
       }
@@ -66,6 +68,8 @@ class TokenizationService {
 
     if (lineTokens.isNotEmpty) {
       _ensureSeparators(lineTokens);
+      _prePostHandling(lineTokens);
+      _removeAdjacentSeparators(lineTokens);
       tokens.addAll(lineTokens);
     }
 
@@ -74,6 +78,44 @@ class TokenizationService {
     }
 
     return tokens;
+  }
+
+  void _removeAdjacentSeparators(List<ContentToken> lineTokens) {
+    for (int i = lineTokens.length - 2; i > 0; i--) {
+      if (lineTokens[i].type == TokenType.preSeparator &&
+          lineTokens[i + 1].type == TokenType.postSeparator) {
+        lineTokens.removeAt(i);
+        lineTokens.removeAt(i);
+        break;
+      }
+    }
+  }
+
+  /// Insert chord targets before preceding chords
+  /// Remove spaces on preceding sides of lyrics
+  void _prePostHandling(List<ContentToken> lineTokens) {
+    final iteratingLine = List<ContentToken>.from(lineTokens);
+    bool foundPreSeparator = false;
+    int offset = 0; // Track the offset caused by insertions
+    for (int i = 0; i < iteratingLine.length; i++) {
+      if (foundPreSeparator) {
+        break; // Stop processing after the pre-separator
+      }
+      final token = iteratingLine[i];
+      if (token.type == TokenType.preSeparator) {
+        foundPreSeparator = true;
+      } else if (token.type == TokenType.chord) {
+        lineTokens.insert(
+          i + offset,
+          ContentToken(type: TokenType.chordTarget, text: token.text),
+        );
+        offset++; // Increment the offset for each insertion
+      }
+      if (token.type == TokenType.space) {
+        lineTokens.removeAt(i + offset);
+        offset--; // Decrement the offset for each removal
+      }
+    }
   }
 
   void _ensureSeparators(List<ContentToken> lineTokens) {
@@ -136,6 +178,7 @@ class TokenizationService {
         case TokenType.postSeparator:
           return '>';
         case TokenType.underline:
+        case TokenType.chordTarget:
           return ''; // Purely visual tokens - return empty string
       }
     }).join();
@@ -226,7 +269,7 @@ class TokenizationService {
             cache: buildCtx.cache,
           );
           final chordMsr = _builder.measureText(
-            text: buildCtx.transposeChord(token.text),
+            text: 'C',
             style: buildCtx.chordStyle,
             cache: buildCtx.cache,
             isChordToken: posCtx.isEditMode,
@@ -236,6 +279,25 @@ class TokenizationService {
             height: msr.height + chordMsr.height + posCtx.chordLyricSpacing,
             baseline: msr.baseline,
             size: msr.size + chordMsr.size,
+          );
+          break;
+        case TokenType.chordTarget:
+          final msr = _builder.measureText(
+            text: '@',
+            style: buildCtx.lyricStyle,
+            cache: buildCtx.cache,
+          );
+          final chordMsr = _builder.measureText(
+            text: token.text,
+            style: buildCtx.chordStyle,
+            cache: buildCtx.cache,
+            isChordToken: posCtx.isEditMode,
+          );
+          tokenMeasurements[token] = Measurements(
+            width: chordMsr.width,
+            height: msr.height,
+            baseline: msr.baseline,
+            size: msr.size,
           );
           break;
         case TokenType.underline:
@@ -322,6 +384,7 @@ class TokenizationService {
         case TokenType.newline:
         case TokenType.postSeparator:
         case TokenType.preSeparator:
+        case TokenType.chordTarget:
           // Returns true if any content is shown
           return contentFilters[ContentFilter.chords]! ||
               contentFilters[ContentFilter.lyrics]!;
@@ -365,6 +428,7 @@ class TokenizationService {
           break;
         case TokenType.preSeparator:
         case TokenType.postSeparator:
+        case TokenType.chordTarget:
           if (currentWord.isNotEmpty) {
             currentLine.add(TokenWord(List.from(currentWord)));
             currentWord.clear();
@@ -373,7 +437,7 @@ class TokenizationService {
           break;
         case TokenType.underline:
           throw Exception(
-            'Underline tokens should not be present during organization',
+            'These tokens should not be present during organization',
           );
       }
     }

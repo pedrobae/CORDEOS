@@ -103,6 +103,7 @@ class TokenizationBuilder {
               break;
             case TokenType.preSeparator:
             case TokenType.postSeparator:
+            case TokenType.chordTarget:
               // Preceding chord targets and separators are only relevant in edit mode, so we skip
               break;
             case TokenType.underline:
@@ -156,7 +157,7 @@ class TokenizationBuilder {
             case TokenType.preSeparator:
               wordWidgets.add(
                 TokenWidget(
-                  widget: _buildChordarget(
+                  widget: _buildChordTarget(
                     ctx: ctx,
                     tokenMeasurements: tokenMeasurements,
 
@@ -169,10 +170,25 @@ class TokenizationBuilder {
                 ),
               );
               break;
+            case TokenType.chordTarget:
+              wordWidgets.add(
+                TokenWidget(
+                  widget: _buildChordTarget(
+                    ctx: ctx,
+                    tokenMeasurements: tokenMeasurements,
+                    tokenLine: line,
+                    tokens: tokens,
+                    token: token,
+                    tokenPositions: tokenPositions,
+                  ),
+                  token: token,
+                ),
+              );
+              break;
             case TokenType.postSeparator:
               wordWidgets.add(
                 TokenWidget(
-                  widget: _buildChordarget(
+                  widget: _buildChordTarget(
                     ctx: ctx,
                     tokenMeasurements: tokenMeasurements,
                     tokenLine: line,
@@ -287,7 +303,7 @@ class TokenizationBuilder {
         : chordWidget;
   }
 
-  Widget _buildChordarget({
+  Widget _buildChordTarget({
     required TokenBuildContext ctx,
     required Map<ContentToken, Measurements> tokenMeasurements,
     required TokenLine tokenLine,
@@ -300,16 +316,15 @@ class TokenizationBuilder {
         color: ctx.chordTargetColor,
         borderRadius: BorderRadius.circular(20),
       ),
-      width: TokenizationConstants.targetWidth,
+      width: tokenMeasurements[token]!.width,
       height: tokenMeasurements[token]!.height,
     );
 
     return _buildGenericDragTarget(
-      tokenBuildCtx: ctx,
+      buildCtx: ctx,
       tokenMeasurements: tokenMeasurements,
       child: dragTargetChild,
       token: token,
-      onAccept: ctx.onAddChord!,
       tokenLine: tokenLine,
       tokenPositions: tokenPositions,
       isChordTarget: true,
@@ -327,12 +342,11 @@ class TokenizationBuilder {
     final dragTargetChild = Text(token.text, style: ctx.lyricStyle);
 
     return _buildGenericDragTarget(
-      tokenBuildCtx: ctx,
+      buildCtx: ctx,
       tokenMeasurements: tokenMeasurements,
       child: dragTargetChild,
       tokenLine: tokenLine,
       token: token,
-      onAccept: ctx.onAddChord!,
       tokenPositions: tokenPositions,
     );
   }
@@ -351,12 +365,11 @@ class TokenizationBuilder {
     );
 
     return _buildGenericDragTarget(
-      tokenBuildCtx: ctx,
+      buildCtx: ctx,
       tokenMeasurements: tokenMeasurements,
       child: dragTargetChild,
       tokenLine: tokenLine,
       token: token,
-      onAccept: ctx.onAddChord!,
       tokenPositions: tokenPositions,
     );
   }
@@ -364,26 +377,25 @@ class TokenizationBuilder {
   /// Generic drag target builder to reduce code duplication.
   /// Wraps a child widget with DragTarget functionality if enabled.
   Widget _buildGenericDragTarget({
-    required TokenBuildContext tokenBuildCtx,
+    required TokenBuildContext buildCtx,
     required Map<ContentToken, Measurements> tokenMeasurements,
     required Widget child,
     required ContentToken token,
-    required Function(ContentToken draggable, ContentToken target) onAccept,
     required TokenLine tokenLine,
     required TokenPositionMap tokenPositions,
     bool isChordTarget = false,
   }) {
-    return tokenBuildCtx.isEnabled!
+    return buildCtx.isEnabled!
         ? DragTarget<ContentToken>(
             onAcceptWithDetails: (details) {
-              tokenBuildCtx.onRemoveChord!(details.data);
-              onAccept(details.data, token);
+              buildCtx.onRemoveChord!(details.data);
+              buildCtx.onAddChord!(details.data, token);
             },
             builder: (context, candidateData, rejectedData) {
               if (candidateData.isNotEmpty) {
                 return _buildDragTargetFeedback(
                   tokenMeasurements: tokenMeasurements,
-                  ctx: tokenBuildCtx,
+                  ctx: buildCtx,
                   dragTargetChild: child,
                   draggedChord: candidateData.first!,
                   draggedToToken: token,
@@ -493,12 +505,13 @@ class TokenizationBuilder {
       ),
     );
 
-    xOffset +=  measureText(
-            text: draggedToToken.text,
-            style: ctx.lyricStyle,
-            cache: ctx.cache,
-          ).width +
-          1;
+    xOffset +=
+        measureText(
+          text: draggedToToken.text,
+          style: ctx.lyricStyle,
+          cache: ctx.cache,
+        ).width +
+        1;
 
     // build widgets after the dragged to token
     for (int i = draggedToIndex; i < lyricTokens.length; i++) {

@@ -96,13 +96,14 @@ class ContentToken {
 }
 
 enum TokenType {
-  chord,
-  lyric,
-  space,
-  newline,
-  preSeparator, // Used to separate preceding chords, as well as render a drag Target
-  postSeparator, // Used to separate following chords, as well as render a drag Target
-  underline, // Underscore widget used to stretch a word when a chord cant fit
+  chord, // Used to render a chord widget - '[C]', 
+  lyric, // Used to render a lyric widget - 'Hello'
+  space,  // Used to render a space between words - ' '
+  newline, // Used to render a line break - '\n'
+  preSeparator, // Used to separate preceding chords - '<'
+  postSeparator, // Used to separate following chords - '>'
+  chordTarget, // Used to render a drag Target below chord - '@'
+  underline, // Underscore widget used to stretch a word when a chord cant fit - N/A
 }
 
 class Measurements {

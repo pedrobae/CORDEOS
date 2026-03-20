@@ -149,11 +149,13 @@ class PositionService {
 
         case TokenType.chord:
           if (cursor.lyricsX < cursor.chordX) {
+            // If the chord is ahead of the lyrics,
+            // push lyrics forward to the chord,
+            // and inject an underline if there are lyrics on both sides of the chord.
             final hasLyricAfter = _hasLyricAfterInWord(word, token);
             final hasLyricBefore = _hasLyricBeforeInWord(word, token);
-            final underlineWidth = cursor.chordX - cursor.lyricsX;
 
-            if (hasLyricAfter && hasLyricBefore && underlineWidth > 0) {
+            if (hasLyricAfter && hasLyricBefore) {
               final underlineToken = ContentToken(
                 text: '',
                 type: TokenType.underline,
@@ -166,7 +168,7 @@ class PositionService {
               );
 
               ctx.tokenMsr[underlineToken] = Measurements(
-                width: underlineWidth,
+                width: cursor.chordX - cursor.lyricsX,
                 height: ctx.lyricMsr.height,
                 baseline: ctx.lyricMsr.baseline,
                 size: ctx.lyricMsr.size,
@@ -178,7 +180,6 @@ class PositionService {
 
             cursor.lyricsX = cursor.chordX;
           }
-
           positions.setPosition(
             token,
             cursor.lyricsX -
@@ -240,6 +241,19 @@ class PositionService {
             );
           }
           break;
+
+        case TokenType.chordTarget:
+          positions.setPosition(
+            token,
+            cursor.chordX -
+                (ctx.posCtx.isEditMode
+                    ? TokenizationConstants.chordTokenWidthPadding
+                    : 0),
+            cursor.yOffset + ctx.posCtx.chordLyricSpacing + ctx.chordHeight,
+          );
+
+          charIndex++;
+          break;
         // Underlines are injected on-demand above; newlines are handled at
         // the line level — neither should appear during word iteration.
         case TokenType.underline:
@@ -279,7 +293,7 @@ class PositionService {
     for (var widgetLine in contentWidgets.lines) {
       for (var widgetWord in widgetLine.words) {
         for (var tokenWidget in widgetWord.widgets) {
-          // Skip newlines and underlines
+          // Skip newlines
           if (tokenWidget.type == TokenType.newline) {
             continue;
           }
