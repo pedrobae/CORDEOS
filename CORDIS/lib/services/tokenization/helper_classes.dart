@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class TokenizationConstants {
   /// GENERIC TARGET
-  static const double targetWidth = 24.0;
+  static const double targetWidth = 12.0;
 
   /// CHORD TOKEN
   static const double chordTokenHeightPadding = 4;
@@ -58,6 +58,7 @@ class TokenBuildContext {
   final Color contentColor;
   final Color surfaceColor;
   final Color onSurfaceColor;
+  final Color chordTargetColor;
 
   /// LAYOUT PARAMETERS
   final double maxWidth;
@@ -77,6 +78,7 @@ class TokenBuildContext {
     required this.contentColor,
     required this.surfaceColor,
     required this.onSurfaceColor,
+    required this.chordTargetColor,
     required this.maxWidth,
     required this.cache,
     required this.transposeChord,

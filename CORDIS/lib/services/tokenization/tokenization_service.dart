@@ -225,11 +225,17 @@ class TokenizationService {
             style: buildCtx.lyricStyle,
             cache: buildCtx.cache,
           );
+          final chordMsr = _builder.measureText(
+            text: buildCtx.transposeChord(token.text),
+            style: buildCtx.chordStyle,
+            cache: buildCtx.cache,
+            isChordToken: posCtx.isEditMode
+          );
           tokenMeasurements[token] = Measurements(
             width: TokenizationConstants.targetWidth,
-            height: msr.height,
+            height: msr.height + chordMsr.height + posCtx.chordLyricSpacing,
             baseline: msr.baseline,
-            size: msr.size,
+            size: msr.size + chordMsr.size
           );
           break;
         case TokenType.underline:

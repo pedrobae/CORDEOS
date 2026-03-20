@@ -195,6 +195,7 @@ class _TokenContentCardState extends State<TokenContentCard> {
                         contentColor: section.contentColor,
                         surfaceColor: colorScheme.surface,
                         onSurfaceColor: colorScheme.onSurface,
+                        chordTargetColor: colorScheme.surfaceTint,
                         isEnabled: widget.isEnabled,
                         cache: {},
                         maxWidth: constraints.maxWidth,

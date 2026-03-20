@@ -30,12 +30,16 @@ class TokenizationBuilder {
         textDirection: TextDirection.ltr,
       )..layout();
       final measurements = Measurements(
-        width: textPainter.width + (isChordToken
-            ? 2 * TokenizationConstants.chordTokenWidthPadding
-            : 0.0), // Add horizontal padding for chord tokens to prevent overlap
-        height: textPainter.height + (isChordToken
-            ? 2 * TokenizationConstants.chordTokenHeightPadding
-            : 0.0), // Add vertical padding for chord tokens to prevent overlap
+        width:
+            textPainter.width +
+            (isChordToken
+                ? 2 * TokenizationConstants.chordTokenWidthPadding
+                : 0.0), // Add horizontal padding for chord tokens to prevent overlap
+        height:
+            textPainter.height +
+            (isChordToken
+                ? 2 * TokenizationConstants.chordTokenHeightPadding
+                : 0.0), // Add vertical padding for chord tokens to prevent overlap
         baseline: textPainter.computeDistanceToActualBaseline(
           TextBaseline.alphabetic,
         ),
@@ -154,8 +158,10 @@ class TokenizationBuilder {
             case TokenType.preSeparator:
               wordWidgets.add(
                 TokenWidget(
-                  widget: _buildPrecedingChordDragTarget(
+                  widget: _buildChordDragTarget(
                     ctx: ctx,
+                    tokenMeasurements: tokenMeasurements,
+
                     tokenLine: line,
                     tokens: tokens,
                     token: token,
@@ -168,8 +174,9 @@ class TokenizationBuilder {
             case TokenType.postSeparator:
               wordWidgets.add(
                 TokenWidget(
-                  widget: _buildPrecedingChordDragTarget(
+                  widget: _buildChordDragTarget(
                     ctx: ctx,
+                    tokenMeasurements: tokenMeasurements,
                     tokenLine: line,
                     tokens: tokens,
                     token: token,
@@ -287,35 +294,21 @@ class TokenizationBuilder {
         : chordWidget;
   }
 
-  Widget _buildPrecedingChordDragTarget({
+  Widget _buildChordDragTarget({
     required TokenBuildContext ctx,
+    required Map<ContentToken, Measurements> tokenMeasurements,
     required TokenLine tokenLine,
     required List<ContentToken> tokens,
     required ContentToken token,
     required TokenPositionMap tokenPositions,
   }) {
-    // Calculate lyric measurements for positioning baseline
-    final lyricMsr = measureText(
-      text: 'teste',
-      style: ctx.lyricStyle,
-      cache: ctx.cache,
-    );
-
-    final dragTargetChild = SizedBox(
-      height: lyricMsr.height,
-      width: TokenizationConstants.targetWidth,
-      child: Stack(
-        children: [
-          Positioned(
-            top: lyricMsr.baseline,
-            child: Container(
-              color: ctx.onSurfaceColor,
-              height: 1,
-              width: TokenizationConstants.targetWidth,
-            ),
-          ),
-        ],
+    final dragTargetChild = Container(
+      decoration: BoxDecoration(
+        color: ctx.chordTargetColor,
+        borderRadius: BorderRadius.circular(20),
       ),
+      width: TokenizationConstants.targetWidth,
+      height: tokenMeasurements[token]!.height,
     );
 
     return _buildGenericDragTarget(
@@ -469,7 +462,7 @@ class TokenizationBuilder {
                 lyricMsr.size + TokenizationConstants.dragFeedbackCutoutPadding,
             child: Text(
               ctx.transposeChord(draggedChord.text),
-              style: ctx.lyricStyle.copyWith(color: ctx.onSurfaceColor),
+              style: ctx.lyricStyle
             ),
           ),
         );

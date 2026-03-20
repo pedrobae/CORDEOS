@@ -152,14 +152,20 @@ class _EditSectionScreenState extends State<EditSectionScreen> {
                                         ),
                                       );
                                 },
-                                child: Text(
-                                  AppLocalizations.of(
-                                    context,
-                                  )!.changePlaceholder(
-                                    AppLocalizations.of(context)!.type,
+                                child: Container(
+                                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: colorScheme.surfaceContainerHigh,
                                   ),
-                                  style: textTheme.bodyMedium?.copyWith(
-                                    color: colorScheme.primary,
+                                  child: Text(
+                                    AppLocalizations.of(
+                                      context,
+                                    )!.changePlaceholder(
+                                      AppLocalizations.of(context)!.type,
+                                    ),
+                                    style: textTheme.bodyMedium?.copyWith(
+                                      color: colorScheme.primary,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -189,6 +195,7 @@ class _EditSectionScreenState extends State<EditSectionScreen> {
                           hint: AppLocalizations.of(context)!.sectionTextHint,
                           controller: contentTextController,
                           lineCount: 8,
+                          keyboardType: TextInputType.multiline,
                         ),
                       ],
                     ),

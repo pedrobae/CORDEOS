@@ -112,25 +112,25 @@ class PositionService {
 
       switch (token.type) {
         case TokenType.postSeparator:
-          final xOffset = max(cursor.chordX, cursor.lyricsX);
+          final xOffset = max(cursor.chordX - TokenizationConstants.chordTokenWidthPadding , cursor.lyricsX);
           cursor.lyricsX = xOffset + ctx.posCtx.chordLyricSpacing;
           cursor.chordX = xOffset + ctx.posCtx.chordLyricSpacing;
           positions.setPosition(
             token,
-            xOffset,
-            cursor.yOffset + ctx.posCtx.chordLyricSpacing + ctx.chordHeight,
+            xOffset + ctx.posCtx.minChordSpacing,
+            cursor.yOffset,
           );
           charIndex++;
           break;
 
         case TokenType.preSeparator:
-          cursor.lyricsX = ctx.precedingOffset;
-          cursor.chordX = ctx.precedingOffset;
+          cursor.lyricsX = ctx.precedingOffset + ctx.posCtx.minChordSpacing;
+          cursor.chordX = ctx.precedingOffset + ctx.posCtx.minChordSpacing;
           cursor.foundPreSeparator = true;
           positions.setPosition(
             token,
             ctx.precedingOffset - TokenizationConstants.targetWidth,
-            cursor.yOffset + ctx.posCtx.chordLyricSpacing + ctx.chordHeight,
+            cursor.yOffset,
           );
           charIndex++;
           break;

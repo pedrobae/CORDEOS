@@ -33,6 +33,7 @@ class TokenView extends StatelessWidget {
                 contentColor: colorScheme.onSurface,
                 surfaceColor: colorScheme.surface,
                 onSurfaceColor: colorScheme.onSurface,
+                chordTargetColor: colorScheme.surfaceTint,
                 maxWidth: constraints.maxWidth,
                 transposeChord: (chord) => trans.transposeChord(chord),
                 cache: {},
