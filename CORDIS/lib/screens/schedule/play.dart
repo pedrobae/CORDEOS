@@ -91,7 +91,9 @@ class PlayScheduleState extends State<PlaySchedule> {
           _scrollController.position.viewportDimension,
           context.read<LayoutSetProvider>().scrollDirection,
         );
-        if (visibleItemIndex != null) {
+        if (visibleItemIndex != null &&
+            visibleItemIndex != _state.currentItemIndex) {
+          _scroll.currentSectionIndex = 0;
           _state.currentItemIndex = visibleItemIndex;
           _scroll.currentItemIndex = visibleItemIndex;
         }
@@ -129,6 +131,7 @@ class PlayScheduleState extends State<PlaySchedule> {
     await play.loadPlaylist(schedule.playlistId);
 
     final items = play.getPlaylist(schedule.playlistId)!.items;
+    _state.setItemCount(items.length);
     for (final item in items) {
       switch (item.type) {
         case PlaylistItemType.version:
@@ -137,14 +140,16 @@ class PlayScheduleState extends State<PlaySchedule> {
           if (version == null) continue;
           await ciph.loadCipher(version.cipherID);
           await sect.loadSectionsOfVersion(item.contentId!);
+
           break;
         case PlaylistItemType.flowItem:
           await flow.loadFlowItem(item.contentId!);
           break;
       }
+
+      _state.appendItem(item);
     }
 
-    _state.setItems(items);
     _scroll.currentItemIndex = 0;
   }
 
@@ -162,6 +167,9 @@ class PlayScheduleState extends State<PlaySchedule> {
     }
 
     final items = schedule.items;
+    debugPrint('Pre-SetItemCount ${DateTime.now()}');
+    _state.setItemCount(items.length);
+
     for (var item in items) {
       switch (item.type) {
         case PlaylistItemType.version:
@@ -179,16 +187,17 @@ class PlayScheduleState extends State<PlaySchedule> {
           // Flow items are loaded as part of the schedule
           break;
       }
+      // To prevent UI jank, we append items one by one with a short delay
+      await Future.delayed(const Duration(milliseconds: 100));
+      _state.appendItem(item);
     }
 
-    _state.setItems(items);
     _scroll.currentItemIndex = 0;
   }
 
   @override
   Widget build(BuildContext context) {
     final cloudSch = context.read<CloudScheduleProvider>();
-
 
     return Column(
       children: [
@@ -209,16 +218,12 @@ class PlayScheduleState extends State<PlaySchedule> {
               Selector2<
                 LayoutSetProvider,
                 PlayScheduleStateProvider,
-                (int, bool, Axis)
+                (Axis, int)
               >(
                 selector: (context, laySet, state) =>
-                    (state.itemCount, state.isLoading, laySet.scrollDirection),
+                    (laySet.scrollDirection, state.itemCount),
                 builder: (context, s, child) {
-                  final (itemCount, isLoading, scrollDirection) = s;
-                 
-                  if (isLoading) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
+                  final (scrollDirection, itemCount) = s;
 
                   if (itemCount == 0) {
                     return Center(
@@ -228,6 +233,7 @@ class PlayScheduleState extends State<PlaySchedule> {
                       ),
                     );
                   }
+                  debugPrint('Selected not NUll ItemCount ${DateTime.now()}');
 
                   return SingleChildScrollView(
                     controller: _scrollController,
@@ -237,7 +243,7 @@ class PlayScheduleState extends State<PlaySchedule> {
                         : const EdgeInsets.only(right: 16, top: 8, bottom: 8),
                     child: Flex(
                       direction: scrollDirection,
-                      children: _buildItems(),
+                      children: _buildItems(itemCount),
                     ),
                   );
                 },
@@ -260,48 +266,52 @@ class PlayScheduleState extends State<PlaySchedule> {
     );
   }
 
-  List<Widget> _buildItems() {
-
+  List<Widget> _buildItems(int itemCount) {
     final items = <Widget>[];
-    for (int i = 0; i < _state.itemCount; i++) {
-      final item = _state.getItemAt(i);
-
-      if (item == null) continue;
-
+    for (int i = 0; i < itemCount; i++) {
       final key = _scroll.registerItem(i);
-      switch (item.type) {
-        case PlaylistItemType.version:
-          items.add(
-            VersionWrap(
-              key: key,
-              itemIndex: i,
-              versionID: isCloud ? item.firebaseContentId : item.contentId,
-            ),
-          );
-          break;
-        case PlaylistItemType.flowItem:
-          FlowItem? flow;
-          if (isCloud) {
-            flow = FlowItem.fromFirestore(
-              context
-                  .read<CloudScheduleProvider>()
-                  .schedules[widget.scheduleId]!
-                  .playlist
-                  .flowItems[item.firebaseContentId]!,
-              playlistId: -1,
-            );
-          }
 
-          items.add(
-            FlowFlex(
-              key: key,
-              itemIndex: i,
-              flowID: item.contentId,
-              flowItem: flow,
-            ),
-          );
-          break;
-      }
+      items.add(
+        Container(
+          key: key,
+          child: Selector<PlayScheduleStateProvider, PlaylistItem?>(
+            selector: (context, play) => play.getItemAt(i),
+            builder: (context, item, child) {
+              if (item == null) {
+                return Center(child: CircularProgressIndicator());
+              }
+
+              switch (item.type) {
+                case PlaylistItemType.version:
+                  return VersionWrap(
+                    itemIndex: i,
+                    versionID: isCloud
+                        ? item.firebaseContentId
+                        : item.contentId,
+                  );
+                case PlaylistItemType.flowItem:
+                  FlowItem? flow;
+                  if (isCloud) {
+                    flow = FlowItem.fromFirestore(
+                      context
+                          .read<CloudScheduleProvider>()
+                          .schedules[widget.scheduleId]!
+                          .playlist
+                          .flowItems[item.firebaseContentId]!,
+                      playlistId: -1,
+                    );
+                  }
+
+                  return FlowFlex(
+                    itemIndex: i,
+                    flowID: item.contentId,
+                    flowItem: flow,
+                  );
+              }
+            },
+          ),
+        ),
+      );
     }
     return items;
   }
@@ -314,7 +324,6 @@ class PlayScheduleState extends State<PlaySchedule> {
     return Selector<PlayScheduleStateProvider, PlaylistItem?>(
       selector: (_, state) => state.currentItem,
       builder: (context, item, child) {
-
         if (item == null) return const SizedBox.shrink();
         if (item.type == PlaylistItemType.flowItem) {
           return Align(
@@ -362,7 +371,6 @@ class PlayScheduleState extends State<PlaySchedule> {
                     Selector<PlayScheduleStateProvider, bool>(
                       selector: (_, state) => state.showSettings,
                       builder: (context, showSettings, child) {
-
                         return GestureDetector(
                           onTap: () {
                             _state.toggleSettings();
@@ -395,7 +403,6 @@ class PlayScheduleState extends State<PlaySchedule> {
             Selector<PlayScheduleStateProvider, bool>(
               selector: (_, state) => state.showSettings,
               builder: (context, showSettings, child) {
-
                 if (!showSettings) return const SizedBox.shrink();
                 return Container(
                   padding: const EdgeInsets.symmetric(

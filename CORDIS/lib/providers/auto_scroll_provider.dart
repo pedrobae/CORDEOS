@@ -214,44 +214,85 @@ class AutoScrollProvider extends ChangeNotifier {
 
   /// Calculates the current section index based on the scroll offset
   int? syncItemFromViewport(double viewportHeight, Axis scrollAxis) {
-    for (int i = 0; i < _itemKeys.entries.length; i++) {
-      final entry = _itemKeys.entries.elementAt(i);
-      final itemContext = entry.value.currentContext;
-      if (itemContext == null) continue;
+    debugPrint('$viewportHeight');
+    bool hasItemsPre = true;
+    bool hasItemsPost = true;
+    int currentIndex = currentItemIndex;
+    int indexOffset = 1;
+    bool checkPreNext = true;
 
-      final box = itemContext.findRenderObject() as RenderBox?;
-      if (box == null) continue;
+    if (itemCoversScreen(currentItemIndex, viewportHeight, scrollAxis)) {
+      return currentItemIndex;
+    }
 
-      final itemStart = scrollAxis == Axis.vertical
-          ? box.localToGlobal(Offset.zero).dy
-          : box.localToGlobal(Offset.zero).dx;
+    int loopCount = 0;
+    while (hasItemsPost || hasItemsPre || loopCount > 100) {
+      loopCount++;
+      if (checkPreNext) {
+        currentIndex = currentIndex - indexOffset;
+        indexOffset++;
 
-      if (itemStart > -viewportHeight * 0.05 &&
-          itemStart < viewportHeight * 0.3) {
-        currentSectionIndex = 0; // Reset section index when item changes
-        return entry.key;
-      }
+        if (hasItemsPost) {
+          checkPreNext = false;
+        }
 
-      if (i < _itemKeys.entries.length - 1) {
-        final nextEntry = _itemKeys.entries.elementAt(i + 1);
-        final nextContext = nextEntry.value.currentContext;
-        if (nextContext == null) continue;
+        if (currentIndex < 0) {
+          hasItemsPre = false;
+          continue;
+        }
 
-        final nextBox = nextContext.findRenderObject() as RenderBox?;
-        if (nextBox == null) continue;
+        if (itemCoversScreen(currentIndex, viewportHeight, scrollAxis)) {
+          return currentIndex;
+        }
+      } else {
+        currentIndex = currentIndex + indexOffset;
 
-        final nextItemStart = scrollAxis == Axis.vertical
-            ? nextBox.localToGlobal(Offset.zero).dy
-            : nextBox.localToGlobal(Offset.zero).dx;
+        if (hasItemsPre) {
+          checkPreNext = true;
+        }
 
-        if (nextItemStart > viewportHeight * 0.5 &&
-            nextItemStart < viewportHeight * 0.95) {
-          currentSectionIndex = _sectionCount - 1;
-          return entry.key;
+        if (currentIndex >= _itemKeys.length) {
+          hasItemsPost = false;
+          continue;
+        }
+        if (itemCoversScreen(currentIndex, viewportHeight, scrollAxis)) {
+          return currentIndex;
         }
       }
     }
+
     return null;
+  }
+
+  /// Checks if the item at index i covers most of the viewport
+  /// Gets the relevant edges depending on scroll axis and checks
+  bool itemCoversScreen(int i, double viewportHeight, Axis scrollAxis) {
+    final itemKey = _itemKeys[i];
+    if (itemKey == null) return false;
+
+    final context = itemKey.currentContext;
+    if (context == null) return false;
+
+    final box = context.findRenderObject() as RenderBox?;
+    if (box == null) return false;
+
+    final itemFront = scrollAxis == Axis.vertical
+        ? box.localToGlobal(Offset.zero).dy
+        : box.localToGlobal(Offset.zero).dx;
+
+    final itemBack = scrollAxis == Axis.vertical
+        ? box.localToGlobal(Offset.zero).dy + box.size.height
+        : box.localToGlobal(Offset.zero).dx + box.size.width;
+
+    debugPrint(
+      '$i | front - $itemFront | back - $itemBack | viewHeight - $viewportHeight',
+    );
+
+    if (itemFront < viewportHeight * 0.20 && itemBack > viewportHeight * 0.80) {
+      return true;
+    }
+
+    return false;
   }
 
   void syncSectionFromViewport(double viewportHeight, Axis scrollAxis) {
@@ -259,7 +300,7 @@ class AutoScrollProvider extends ChangeNotifier {
         _sectionKeys[_currentItemIndex]?[currentSectionIndex]?.currentContext;
 
     final currentBox = currentContext?.findRenderObject() as RenderBox?;
-    if (currentBox == null) throw Exception('Current section box not found');
+    if (currentBox == null) return;
 
     final currentEdge = scrollAxis == Axis.vertical
         ? currentBox.localToGlobal(Offset.zero).dy

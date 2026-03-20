@@ -50,8 +50,8 @@ class VersionWrap extends StatelessWidget {
           ),
           child: Wrap(
             direction: wrapDirection,
-            runSpacing: 16,
-            spacing: 16,
+            runSpacing: 8,
+            spacing: 8,
             children: _buildSectionCards(context),
           ),
         );

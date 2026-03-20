@@ -42,6 +42,9 @@ class TokenizationService {
 
         lineTokens.add(ContentToken(type: TokenType.newline, text: char));
 
+        _prePostHandling(lineTokens);
+        _removeAdjacentSeparators(lineTokens);
+
         tokens.addAll(lineTokens);
         lineTokens.clear();
       } else if (char == ' ' || char == '\t') {
@@ -95,15 +98,11 @@ class TokenizationService {
   /// Remove spaces on preceding sides of lyrics
   void _prePostHandling(List<ContentToken> lineTokens) {
     final iteratingLine = List<ContentToken>.from(lineTokens);
-    bool foundPreSeparator = false;
     int offset = 0; // Track the offset caused by insertions
     for (int i = 0; i < iteratingLine.length; i++) {
-      if (foundPreSeparator) {
-        break; // Stop processing after the pre-separator
-      }
       final token = iteratingLine[i];
       if (token.type == TokenType.preSeparator) {
-        foundPreSeparator = true;
+        break;
       } else if (token.type == TokenType.chord) {
         lineTokens.insert(
           i + offset,

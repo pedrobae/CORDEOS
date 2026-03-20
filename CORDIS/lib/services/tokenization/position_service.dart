@@ -123,7 +123,7 @@ class PositionService {
                 2 * ctx.posCtx.minChordSpacing +
                 TokenizationConstants.chordTokenWidthPadding;
           } else {
-            cursor.chordX = xOffset + ctx.posCtx.minChordSpacing;
+            cursor.chordX = xOffset + 2 * ctx.posCtx.minChordSpacing;
           }
           positions.setPosition(
             token,
