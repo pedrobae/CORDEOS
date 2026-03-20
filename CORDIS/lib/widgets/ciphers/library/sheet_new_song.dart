@@ -34,7 +34,12 @@ class NewSongSheet extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(AppLocalizations.of(context)!.createPlaceholder(AppLocalizations.of(context)!.cipher), style: textTheme.titleMedium),
+              Text(
+                AppLocalizations.of(
+                  context,
+                )!.createPlaceholder(AppLocalizations.of(context)!.cipher),
+                style: textTheme.titleMedium,
+              ),
               IconButton(
                 icon: const Icon(Icons.close),
                 onPressed: () {
@@ -58,6 +63,7 @@ class NewSongSheet extends StatelessWidget {
                   versionID: -1,
                   versionType: VersionType.brandNew,
                 ),
+                showBottomNavBar: true
               );
             },
           ),

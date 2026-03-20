@@ -31,7 +31,7 @@ class SelectType extends StatelessWidget {
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(0),
       ),
-      padding: const EdgeInsets.only(left: 16, right: 16, top: 16),
+      padding: const EdgeInsets.only(left: 16, right: 16),
       child: Column(
         spacing: 16,
         crossAxisAlignment: CrossAxisAlignment.start,

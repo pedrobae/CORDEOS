@@ -99,6 +99,7 @@ class _ReportBugScreenState extends State<ReportBugScreen> {
                               label: AppLocalizations.of(context)!.expected,
                               isDense: true,
                               lineCount: 3,
+                              keyboardType: TextInputType.multiline,
                             ),
                           ),
                           Expanded(
@@ -107,6 +108,7 @@ class _ReportBugScreenState extends State<ReportBugScreen> {
                               label: AppLocalizations.of(context)!.actual,
                               isDense: true,
                               lineCount: 3,
+                              keyboardType: TextInputType.multiline,
                             ),
                           ),
                         ],
@@ -119,6 +121,7 @@ class _ReportBugScreenState extends State<ReportBugScreen> {
                     label: AppLocalizations.of(context)!.stepsToReproduce,
                     controller: _reproductionController,
                     lineCount: 3,
+                    keyboardType: TextInputType.multiline,
                   ),
 
                   // SEVERITY SELECTION
@@ -213,15 +216,14 @@ class _ReportBugScreenState extends State<ReportBugScreen> {
           nav.pop();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
-                AppLocalizations.of(context)!.bugReportSuccess,
-              ),
+              content: Text(AppLocalizations.of(context)!.bugReportSuccess),
             ),
           );
         } else {
           // Failure feedback
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(backgroundColor: colorScheme.errorContainer,
+            SnackBar(
+              backgroundColor: colorScheme.errorContainer,
               content: Text(
                 bug.error ?? '',
                 style: TextStyle(color: colorScheme.onError),

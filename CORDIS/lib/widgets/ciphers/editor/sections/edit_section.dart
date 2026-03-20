@@ -72,7 +72,7 @@ class _EditSectionScreenState extends State<EditSectionScreen> {
           padding: EdgeInsets.only(bottom: keyboardInset),
           child: Container(
             color: colorScheme.surface,
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               spacing: 16,

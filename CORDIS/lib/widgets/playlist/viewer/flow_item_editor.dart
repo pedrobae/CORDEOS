@@ -165,6 +165,7 @@ class _FlowItemEditorState extends State<FlowItemEditor> {
                       AppLocalizations.of(context)!.annotations,
                     ),
                     lineCount: 7,
+                    keyboardType: TextInputType.multiline,
                   ),
                 ],
               ),

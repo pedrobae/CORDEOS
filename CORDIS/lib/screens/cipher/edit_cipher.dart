@@ -150,11 +150,13 @@ class _EditCipherScreenState extends State<EditCipherScreen>
   }
 
   void _loadNewCipher() {
-    final cipherProvider = context.read<CipherProvider>();
-    final localVersionProvider = context.read<LocalVersionProvider>();
+    final ciph = context.read<CipherProvider>();
+    final localVer = context.read<LocalVersionProvider>();
+    final sect = context.read<SectionProvider>();
 
-    cipherProvider.setNewCipherInCache(Cipher.empty());
-    localVersionProvider.setNewVersionInCache(Version.empty());
+    ciph.setNewCipherInCache(Cipher.empty());
+    localVer.setNewVersionInCache(Version.empty());
+    sect.setNewSectionsInCache(-1, {});
   }
 
   Future<void> _loadPlaylistVersion() async {
