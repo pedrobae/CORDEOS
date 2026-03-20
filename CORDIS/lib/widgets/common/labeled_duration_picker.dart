@@ -39,7 +39,7 @@ class _DurationPickerFieldState extends State<DurationPickerField> {
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: 4,
       children: [
-        Text(widget.label, style: textTheme.labelLarge),
+        Text(widget.label, style: textTheme.labelMedium),
         GestureDetector(
           onTap: () async {
             _openDurationPicker(context);

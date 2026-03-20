@@ -129,10 +129,7 @@ class _EditCipherScreenState extends State<EditCipherScreen>
         existingStruct.add(newSect.contentCode);
       }
       // Cache new struct
-      localVer.cacheUpdates(
-        widget.versionID,
-        songStructure: existingStruct,
-      );
+      localVer.cacheUpdates(widget.versionID, songStructure: existingStruct);
     }
 
     parse.clearCache();
@@ -325,11 +322,10 @@ class _EditCipherScreenState extends State<EditCipherScreen>
   }
 
   Future<void> _save(BuildContext context) async {
-    final transposedKey = context.read<TranspositionProvider>().transposedKey;
     final selectionProvider = context.read<SelectionProvider>();
 
     // Cache transposed key
-    _cacheTransposedKey(transposedKey);
+    _cacheKey();
 
     if (selectionProvider.isSelectionMode) {
       await _saveVersionsToPlaylist(context);
@@ -341,11 +337,17 @@ class _EditCipherScreenState extends State<EditCipherScreen>
     if (context.mounted) _clearUnsavedChanges(context);
   }
 
-  void _cacheTransposedKey(String? key) {
-    context.read<LocalVersionProvider>().cacheUpdates(
-      widget.versionID,
-      transposedKey: key,
-    );
+  void _cacheKey() {
+    final tp = context.read<TranspositionProvider>();
+    final localVer = context.read<LocalVersionProvider>();
+    final ciph = context.read<CipherProvider>();
+
+    if (widget.versionType == VersionType.import ||
+        widget.versionType == VersionType.brandNew) {
+      ciph.cacheMusicKey(widget.versionID, tp.originalKey);
+    } else {
+      localVer.cacheUpdates(widget.versionID, transposedKey: tp.transposedKey);
+    }
   }
 
   Future<void> _saveVersionsToPlaylist(BuildContext context) async {

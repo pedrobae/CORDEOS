@@ -187,55 +187,49 @@ class _MetadataTabState extends State<MetadataTab> {
 
   @override
   Widget build(BuildContext context) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          spacing: 16.0,
-          children: [
-            for (var field in InfoField.values)
-              switch (field) {
-                InfoField.duration => DurationPickerField(
-                  controller: _getController(field),
-                  label: _getLabel(field),
-                ),
-                InfoField.tags => _buildTags(
-                  context: context,
-                  field: field,
-                ),
-                InfoField.bpm => LabeledTextField(
-                  label: _getLabel(field),
-                  hint: _getHint(field),
-                  controller: _getController(field),
-                  isEnabled: widget.isEnabled,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return null;
-                    }
-                    final bpm = int.tryParse(value);
-                    if (bpm == null || bpm <= 0) {
-                      return AppLocalizations.of(context)!.intValidationError;
-                    }
-                    return null;
-                  },
-                ),
-                InfoField.key => _buildKeySelector(
-                  context: context,
-                  field: field,
-                ),
-                InfoField.language => LabeledLanguagePicker(
-                  language: _getController(field).text,
-                  onLanguageChanged: (value) {
-                    _getController(field).text = value;
-                  },
-                ),
-                _ => LabeledTextField(
-                  label: _getLabel(field),
-                  hint: _getHint(field),
-                  controller: _getController(field),
-                  isEnabled: widget.isEnabled,
-                ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: 16.0,
+      children: [
+        for (var field in InfoField.values)
+          switch (field) {
+            InfoField.duration => DurationPickerField(
+              controller: _getController(field),
+              label: _getLabel(field),
+            ),
+            InfoField.tags => _buildTags(context: context, field: field),
+            InfoField.bpm => LabeledTextField(
+              label: _getLabel(field),
+              hint: _getHint(field),
+              controller: _getController(field),
+              isEnabled: widget.isEnabled,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return null;
+                }
+                final bpm = int.tryParse(value);
+                if (bpm == null || bpm <= 0) {
+                  return AppLocalizations.of(context)!.intValidationError;
+                }
+                return null;
               },
-          ],
-        );
+            ),
+            InfoField.key => _buildKeySelector(context: context, field: field),
+            InfoField.language => LabeledLanguagePicker(
+              language: _getController(field).text,
+              onLanguageChanged: (value) {
+                _getController(field).text = value;
+              },
+            ),
+            _ => LabeledTextField(
+              label: _getLabel(field),
+              hint: _getHint(field),
+              controller: _getController(field),
+              isEnabled: widget.isEnabled,
+            ),
+          },
+      ],
+    );
   }
 
   Widget _buildKeySelector({
@@ -249,13 +243,17 @@ class _MetadataTabState extends State<MetadataTab> {
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: 8,
       children: [
-        Text(_getLabel(field), style: theme.textTheme.labelLarge),
+        Text(_getLabel(field), style: theme.textTheme.labelMedium),
         GestureDetector(
           onTap: () {
             showModalBottomSheet(
               context: context,
               builder: (context) {
-                return SelectKeySheet();
+                return SelectKeySheet(
+                  selectingOriginalKey:
+                      (widget.versionType == VersionType.brandNew ||
+                      widget.versionType == VersionType.import),
+                );
               },
             );
           },
@@ -288,36 +286,47 @@ class _MetadataTabState extends State<MetadataTab> {
     );
   }
 
-  Widget _buildTags({
-    required BuildContext context,
-    required InfoField field,
-  }) {
+  Widget _buildTags({required BuildContext context, required InfoField field}) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
-
     return Consumer<CipherProvider>(
       builder: (context, ciph, child) {
-    final tags = ciph.getCipher(widget.cipherID)?.tags ?? [];
+        final tags = ciph.getCipher(widget.cipherID)?.tags ?? [];
 
         return Column(
+          spacing: 4,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(_getLabel(field), style: textTheme.labelLarge),
-            SizedBox(height: 8),
+            Text(_getLabel(field), style: textTheme.labelMedium),
             Wrap(
               spacing: 8,
-              runSpacing: 0,
+              runSpacing: 8,
               children: [
                 for (var tag in tags)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    margin: const EdgeInsets.only(bottom: 4),
+                    padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
                       color: colorScheme.surfaceContainerHigh,
                       borderRadius: BorderRadius.circular(4),
                     ),
-                    child: Text(tag, style: textTheme.labelMedium),
+                    child: Row(
+                      spacing: 4,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            ciph.cacheRemoveTag(widget.cipherID, tag);
+                          },
+                          child: Icon(
+                            Icons.close,
+                            size: 16,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        Text(tag, style: textTheme.labelMedium),
+                      ],
+                    ),
                   ),
               ],
             ),
@@ -341,7 +350,7 @@ class _MetadataTabState extends State<MetadataTab> {
             ),
           ],
         );
-      }
+      },
     );
   }
 }

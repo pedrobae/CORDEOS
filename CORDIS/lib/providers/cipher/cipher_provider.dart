@@ -74,6 +74,11 @@ class CipherProvider extends ChangeNotifier {
     int? cipherId;
 
     try {
+      if (_ciphers[-1]!.musicKey.isEmpty) {
+        _ciphers[-1] = _ciphers[-1]!.copyWith(
+          musicKey: await _recognizer.recognizeKeyLocal(-1),
+        );
+      }
       // Insert basic cipher info and tags
       cipherId = await _cipherRepository.insertPrunedCipher(_ciphers[-1]!);
 
@@ -225,22 +230,18 @@ class CipherProvider extends ChangeNotifier {
     int cipherId, {
     String? title,
     String? author,
-    String? musicKey,
     String? language,
-    List<String>? tags,
   }) {
     _ciphers[cipherId] = _ciphers[cipherId]!.copyWith(
       title: title,
       author: author,
-      musicKey: musicKey,
       language: language,
-      tags: tags,
     );
     _hasUnsavedChanges = true;
     notifyListeners();
   }
 
-  void addTagtoCache(int cipherId, String tag) {
+  void cacheAddTag(int cipherId, String tag) {
     final currentTags = _ciphers[cipherId]?.tags ?? [];
     if (!currentTags.contains(tag)) {
       final updatedTags = List<String>.from(currentTags)..add(tag);
@@ -248,6 +249,22 @@ class CipherProvider extends ChangeNotifier {
       _hasUnsavedChanges = true;
       notifyListeners();
     }
+  }
+
+  void cacheRemoveTag(int cipherId, String tag) {
+    final currentTags = _ciphers[cipherId]?.tags ?? [];
+    if (currentTags.contains(tag)) {
+      final updatedTags = List<String>.from(currentTags)..remove(tag);
+      _ciphers[cipherId] = _ciphers[cipherId]!.copyWith(tags: updatedTags);
+      _hasUnsavedChanges = true;
+      notifyListeners();
+    }
+  }
+
+  void cacheMusicKey(int cipherId, String musicKey) {
+    _ciphers[cipherId] = _ciphers[cipherId]!.copyWith(musicKey: musicKey);
+    _hasUnsavedChanges = true;
+    notifyListeners();
   }
 
   // ===== DELETE =====

@@ -105,7 +105,7 @@ class _AddTagSheetState extends State<AddTagSheet> {
                   case VersionType.brandNew:
                   case VersionType.import:
                   case VersionType.local:
-                    ciph.addTagtoCache(
+                    ciph.cacheAddTag(
                       widget.cipherID ?? -1,
                       tagController.text.trim(),
                     );

@@ -6,9 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class SelectKeySheet extends StatefulWidget {
+  final bool selectingOriginalKey;
   final bool needsSave;
 
-  const SelectKeySheet({super.key, this.needsSave = true});
+  const SelectKeySheet({super.key, this.needsSave = true, this.selectingOriginalKey = false});
 
   @override
   State<SelectKeySheet> createState() => _SelectKeySheetState();
@@ -21,7 +22,7 @@ class _SelectKeySheetState extends State<SelectKeySheet> {
   void initState() {
     super.initState();
     final tp = context.read<TranspositionProvider>();
-    selectedKey = tp.transposedKey;
+    selectedKey = widget.selectingOriginalKey ? tp.originalKey : tp.transposedKey;
   }
 
   @override
@@ -80,7 +81,11 @@ class _SelectKeySheetState extends State<SelectKeySheet> {
                               selectedKey = key;
                             }
                           } else {
-                            tp.setTransposedKey(key);
+                            if (widget.selectingOriginalKey) {
+                              tp.setOriginalKey(key);
+                            } else {
+                              tp.setTransposedKey(key);
+                            }
                             Navigator.of(context).pop();
                           }
                         });

@@ -46,7 +46,7 @@ class LabeledTextField extends StatelessWidget {
       children: [
         Text(
           label,
-          style: isDense ? textTheme.labelMedium : textTheme.labelLarge,
+          style: isDense ? textTheme.labelSmall : textTheme.labelMedium,
         ),
         TextFormField(
           validator: validator,
