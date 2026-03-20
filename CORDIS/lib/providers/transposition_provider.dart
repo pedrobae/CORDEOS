@@ -58,13 +58,28 @@ class TranspositionProvider extends ChangeNotifier {
   String transposeChord(String chord) {
     // Parse chord root first
     String? root;
-    String remainingSuffix = '';
+    String suffix = '';
+    String prefix = '';
+
+    String preSlash;
+    String postSlash = '';
+    if (chord.contains('/')) {
+      final parts = chord.split('/');
+      preSlash = parts[0];
+      for (int i = 1; i < parts.length; i++) {
+        postSlash = '$postSlash/${parts[i]}';
+      }
+    } else {
+      preSlash = chord;
+    }
 
     // Find the longest matching root (handles both C# and C correctly)
     for (final r in ChordHelper.allRoots) {
-      if (chord.startsWith(r)) {
+      if (preSlash.contains(r)) {
         root = r;
-        remainingSuffix = chord.substring(r.length);
+        final index = preSlash.indexOf(r);
+        suffix = '${preSlash.substring(index + r.length)}$postSlash';
+        prefix = preSlash.substring(0, index);
         break;
       }
     }
@@ -72,12 +87,12 @@ class TranspositionProvider extends ChangeNotifier {
 
     // Parse slash chord if present
     String? bass;
-    String chordSuffix = remainingSuffix;
+    String chordSuffix = suffix;
 
-    if (remainingSuffix.contains('/')) {
-      final slashIndex = remainingSuffix.indexOf('/');
-      chordSuffix = remainingSuffix.substring(0, slashIndex);
-      final bassPart = remainingSuffix.substring(slashIndex + 1);
+    if (suffix.contains('/')) {
+      final slashIndex = suffix.indexOf('/');
+      chordSuffix = suffix.substring(0, slashIndex);
+      final bassPart = suffix.substring(slashIndex + 1);
 
       // Find bass note (should match exactly or be at the start)
       for (final r in ChordHelper.allRoots) {
@@ -94,7 +109,7 @@ class TranspositionProvider extends ChangeNotifier {
       _transposeValue,
       sharpKey: !useSharp,
     );
-    String result = transposedRoot + chordSuffix;
+    String result = prefix + transposedRoot + chordSuffix;
 
     if (bass != null) {
       String transposedBass = ChordHelper().transpose(
