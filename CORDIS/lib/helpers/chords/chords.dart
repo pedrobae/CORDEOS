@@ -1,3 +1,46 @@
+class Chord {
+  final String root;
+  final String quality;
+  final String? bass;
+  final String? variation;
+
+  const Chord({
+    required this.root,
+    required this.quality,
+    this.bass,
+    this.variation,
+  });
+
+  /// Parses a chord string into a Chord object
+  /// Example: "C#m7/G#" -> Chord(root: "C#", quality: "m", variation: "7", bass: "G#")
+  /// Roots -> C, C#, Db, D, D#, Eb, E, F, F#, Gb, G, G#, Ab, A, A#, Bb, B
+  /// Quality -> m for minor, dim for diminished, ø for half-diminished
+  /// Variation -> 7, maj7, 9, 11, 13, etc.
+  factory Chord.fromString(String chordStr) {
+    final regex = RegExp(r'^([A-G][b#]?)(m|dim|ø)?(.*?)(?:/(.*))?$');
+    final match = regex.firstMatch(chordStr);
+    if (match == null) {
+      throw FormatException('Invalid chord format: $chordStr');
+    }
+
+    return Chord(
+      root: match.group(1)!,
+      quality: match.group(2) ?? '',
+      variation: match.group(3)?.isEmpty == true ? null : match.group(3),
+      bass: match.group(4),
+    );
+  }
+
+  @override
+  String toString() {
+    String result = root;
+    if (quality.isNotEmpty) result += quality;
+    if (variation != null) result += variation!;
+    if (bass != null) result += '/$bass';
+    return result;
+  }
+}
+
 class ChordHelper {
   const ChordHelper();
 
@@ -49,18 +92,17 @@ class ChordHelper {
   List<String> getChordsForKey(String key) {
     final Map<String, List<String>> keyChords = {
       'C': ['C', 'Dm', 'Em', 'F', 'G', 'Am', 'Bdim'],
-      'D': ['D', 'Em', 'F#m', 'G', 'A', 'Bm', 'C#dim'],
-      'E': ['E', 'F#m', 'G#m', 'A', 'B', 'C#m', 'D#dim'],
-      'F': ['F', 'Gm', 'Am', 'Bb', 'C', 'Dm', 'Edim'],
-      'G': ['G', 'Am', 'Bm', 'C', 'D', 'Em', 'F#dim'],
-      'A': ['A', 'Bm', 'C#m', 'D', 'E', 'F#m', 'G#dim'],
-      'B': ['B', 'C#m', 'D#m', 'E', 'F#', 'G#m', 'A#dim'],
-      // flat keys
-      'Bb': ['Bb', 'Cm', 'Dm', 'Eb', 'F', 'Gm', 'Adim'],
-      'Eb': ['Eb', 'Fm', 'Gm', 'Ab', 'Bb', 'Cm', 'Ddim'],
-      'Ab': ['Ab', 'Bbm', 'Cm', 'Db', 'Eb', 'Fm', 'Gdim'],
       'Db': ['Db', 'Ebm', 'Fm', 'Gb', 'Ab', 'Bbm', 'Cdim'],
-      'Gb': ['Gb', 'Abm', 'Bbm', 'Cb', 'Db', 'Ebm', 'Fdim'],
+      'D': ['D', 'Em', 'Fbm', 'G', 'A', 'Bm', 'Cbdim'],
+      'Eb': ['Eb', 'Fm', 'Gm', 'Ab', 'Bb', 'Cm', 'Ddim'],
+      'E': ['E', 'Fbm', 'Gbm', 'A', 'B', 'Cbm', 'Dbdim'],
+      'F': ['F', 'Gm', 'Am', 'Bb', 'C', 'Dm', 'Edim'],
+      'F#': ['G#', 'A#m', 'B#m', 'C#', 'D#', 'E#m', 'Fdim'],
+      'G': ['G', 'Am', 'Bm', 'C', 'D', 'Em', 'Fbdim'],
+      'Ab': ['Ab', 'Bbm', 'Cm', 'Db', 'Eb', 'Fm', 'Gdim'],
+      'A': ['A', 'Bm', 'Cbm', 'D', 'E', 'Fbm', 'Gbdim'],
+      'Bb': ['Bb', 'Cm', 'Dm', 'Eb', 'F', 'Gm', 'Adim'],
+      'B': ['B', 'Cbm', 'Dbm', 'E', 'Fb', 'Gbm', 'Abdim'],
     };
 
     // Return chords for key, or default C major if not found
@@ -115,7 +157,9 @@ class ChordHelper {
     final sharpChord = chord.contains('#');
     final chordChrom = getChordRoots(sharpChord);
     int chordIndex = chordChrom.indexOf(chord);
-    if (chordIndex == -1) throw ArgumentError('Chord not found in its own chromatic scale: $chord');
+    if (chordIndex == -1) {
+      throw ArgumentError('Chord not found in its own chromatic scale: $chord');
+    }
     int newIndex = (chordIndex + value) % 12;
 
     final keyChrom = getChordRoots(sharpKey);

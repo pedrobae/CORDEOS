@@ -341,11 +341,9 @@ class _EditCipherScreenState extends State<EditCipherScreen>
   void _cacheKey() {
     final tp = context.read<TranspositionProvider>();
     final localVer = context.read<LocalVersionProvider>();
-    final ciph = context.read<CipherProvider>();
 
     if (widget.versionType == VersionType.import ||
         widget.versionType == VersionType.brandNew) {
-      ciph.cacheMusicKey(widget.versionID, tp.originalKey);
     } else {
       localVer.cacheUpdates(widget.versionID, transposedKey: tp.transposedKey);
     }
@@ -415,7 +413,8 @@ class _EditCipherScreenState extends State<EditCipherScreen>
     final recognizer = KeyRecognizerService();
 
     if (ciph.getCipher(-1)!.musicKey.isEmpty) {
-      final key = await recognizer.recognizeKeyForNewCipher();
+      final sections = sect.getSections(-1);
+      final key = await recognizer.recognizeKeyForNewCipher(sections.values.toList());
       ciph.cacheMusicKey(-1, key);
     }
 

@@ -46,11 +46,13 @@ class _ImportTextScreenState extends State<ImportTextScreen> {
   Widget build(BuildContext context) {
     final nav = Provider.of<NavigationProvider>(context, listen: false);
 
+    final textTheme = Theme.of(context).textTheme;
+
     return Consumer2<ImportProvider, ParserProvider>(
       builder: (context, imp, par, child) {
         return Scaffold(
           appBar: AppBar(
-            title: Text(AppLocalizations.of(context)!.importFromText),
+            title: Text(AppLocalizations.of(context)!.importFromText, style: textTheme.titleMedium),
             leading: BackButton(onPressed: () => nav.attemptPop(context)),
           ),
           body: imp.error != null
@@ -141,14 +143,14 @@ class _ImportTextScreenState extends State<ImportTextScreen> {
       children: [
         Text(
           AppLocalizations.of(context)!.parsingStrategy,
-          style: textTheme.titleMedium,
+          style: textTheme.labelLarge,
         ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
               AppLocalizations.of(context)!.doubleNewLine,
-              style: textTheme.labelLarge,
+              style: textTheme.bodyMedium,
               textAlign: TextAlign.center,
             ),
             Switch(
@@ -165,7 +167,7 @@ class _ImportTextScreenState extends State<ImportTextScreen> {
             ),
             Text(
               AppLocalizations.of(context)!.sectionLabels,
-              style: textTheme.labelLarge,
+              style: textTheme.bodyMedium,
               textAlign: TextAlign.center,
             ),
           ],

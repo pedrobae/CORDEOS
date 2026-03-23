@@ -1,3 +1,4 @@
+import 'package:cordis/models/domain/cipher/section.dart';
 import 'package:cordis/models/dtos/version_dto.dart';
 import 'package:cordis/helpers/chords/chords.dart';
 
@@ -67,11 +68,9 @@ class KeyRecognizerService {
   }
 
   /// Recognizes the key of a new cipher that is cache only
-  Future<String> recognizeKeyForNewCipher() async {
-    final sections = await _sectionRepo.getSections(-1);
-
+  Future<String> recognizeKeyForNewCipher(List<Section> sections) async {
     List<String> chords = [];
-    for (var section in sections.values) {
+    for (var section in sections) {
       final text = section.contentText;
       final chord = StringBuffer();
       bool inChord = false;
@@ -98,32 +97,24 @@ class KeyRecognizerService {
   /// Calculates the key based on the chords of a cipher, and updates the cipher with the new key
   /// Returns the new key
   String _extractKey(List<String> chords) {
-    {
-      Map<String, int> chordCounts = {};
-      for (var chord in chords) {
-        String root = chord.split(RegExp(r'[mM7]'))[0];
-
-        chordCounts[root] = (chordCounts[root] ?? 0) + 1;
-      }
-
-      Map<String, double> keyScores = {};
-      for (var key in ChordHelper.keyList) {
-        int inPaletteCount = 0;
-        for (var chord in chordCounts.keys) {
-          if (_isInPalette(chord, key)) {
-            inPaletteCount += chordCounts[chord]!;
-          }
-        }
-        keyScores[key] = inPaletteCount / chords.length;
-      }
-
-      return keyScores.entries.reduce((a, b) => a.value > b.value ? a : b).key;
+    Map<String, int> chordCounts = {};
+    for (var chordStr in chords) {
+      final chord = Chord.fromString(chordStr);
+      final chordKey = '${chord.root}${chord.quality}';
+      chordCounts[chordKey] = (chordCounts[chordKey] ?? 0) + 1;
     }
-  }
 
-  /// Calculates the position of a chord in a key, based on the circle of fifths
-  /// Returns -1 if the chord is not in the key
-  bool _isInPalette(String chord, String key) {
-    return _chords.getChordsForKey(key).contains(chord);
+    Map<String, double> keyScores = {};
+    for (var key in ChordHelper.keyList) {
+      final chordsOfKey = _chords.getChordsForKey(key);
+      int inPaletteCount = 0;
+      for (var chord in chordCounts.keys) {
+        if (chordsOfKey.contains(chord)) {
+          inPaletteCount += chordCounts[chord]!;
+        }
+      }
+      keyScores[key] = inPaletteCount / chords.length;
+    }
+    return keyScores.entries.reduce((a, b) => a.value > b.value ? a : b).key;
   }
 }
