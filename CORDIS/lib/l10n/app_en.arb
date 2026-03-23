@@ -444,6 +444,8 @@
   "@enterShareCode": {"description": "Enter share code button label"},
   "shareCodeInstructions": "Enter the share code provided by your team leader to access the schedule.",
   "@shareCodeInstructions": {"description": "Instruction to share the code with others"},
+  "joinedScheduleSuccessfully": "Joined schedule successfully!",
+  "@joinedScheduleSuccessfully": {"description": "Success message when joining a schedule with a share code"},
 
   "joinSchedule": "Join Service",
   "@joinSchedule": {"description": "Share code screen title"},

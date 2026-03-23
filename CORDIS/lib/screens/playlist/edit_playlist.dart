@@ -118,7 +118,7 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
     NavigationProvider nav,
   ) async {
     if (widget.playlistId != null) {
-      await play.updateName(widget.playlistId!, playlistNameController.text);
+      play.cacheName(widget.playlistId!, playlistNameController.text);
     } else {
       final localId = Provider.of<MyAuthProvider>(
         context,

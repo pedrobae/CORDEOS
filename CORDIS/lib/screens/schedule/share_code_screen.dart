@@ -22,13 +22,13 @@ class ShareCodeScreen extends StatefulWidget {
 class ShareCodeScreenState extends State<ShareCodeScreen> {
   TextEditingController shareCodeController = TextEditingController();
   late MyAuthProvider _authProvider;
-  late CloudScheduleProvider _cloudScheduleProvider;
+  late CloudScheduleProvider _cloudSch;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _authProvider = context.read<MyAuthProvider>();
-    _cloudScheduleProvider = context.read<CloudScheduleProvider>();
+    _cloudSch = context.read<CloudScheduleProvider>();
   }
 
   @override
@@ -161,10 +161,29 @@ class ShareCodeScreenState extends State<ShareCodeScreen> {
       return;
     }
 
-    await _cloudScheduleProvider.joinScheduleWithCode(shareCode);
+    final success = await _cloudSch.joinScheduleWithCode(
+      shareCode,
+    );
 
     if (mounted) {
-      widget.onSuccess(context);
+      if (success) {
+        widget.onSuccess(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.joinedScheduleSuccessfully,
+            ),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _cloudSch.error!,
+            ),
+          ),
+        );
+      }
     }
   }
 }

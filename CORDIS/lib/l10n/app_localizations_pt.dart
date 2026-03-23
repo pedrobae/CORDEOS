@@ -684,6 +684,9 @@ class AppLocalizationsPt extends AppLocalizations {
       'Insira o código de compartilhamento fornecido pelo líder da sua equipe para acessar a agenda.';
 
   @override
+  String get joinedScheduleSuccessfully => 'Ingressou na agenda com sucesso!';
+
+  @override
   String get joinSchedule => 'Participar da Agenda';
 
   @override

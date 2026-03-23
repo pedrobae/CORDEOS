@@ -58,7 +58,11 @@ class PlaylistProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final playlist = Playlist(name: playlistName, id: -1, createdBy: userLocalId);
+      final playlist = Playlist(
+        name: playlistName,
+        id: -1,
+        createdBy: userLocalId,
+      );
       int id = await _playlistRepository.insertPlaylist(playlist);
 
       // Add the created playlist with new ID directly to cache
@@ -96,12 +100,6 @@ class PlaylistProvider extends ChangeNotifier {
     return playlistId;
   }
 
-  void setPlaylist(Playlist playlist) {
-    _playlists[playlist.id] = playlist;
-    _hasUnsavedChanges = true;
-    notifyListeners();
-  }
-
   // ===== READ =====
   // Load Playlists from local SQLite database
   Future<void> loadPlaylists() async {
@@ -128,6 +126,13 @@ class PlaylistProvider extends ChangeNotifier {
   Future<void> loadPlaylist(int id) async {
     if (_isLoading) return;
 
+    // If id is -1, it means we want to clear the current playlist
+    // (used when discarding changes on a new playlist that hasn't been saved yet)
+    if (id == -1) {
+      _playlists.remove(-1);
+      return;
+    }
+
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -147,13 +152,8 @@ class PlaylistProvider extends ChangeNotifier {
   }
 
   // ===== UPDATE =====
-  // Update a Playlist with new data (name/description)
-  Future<void> updateName(int id, String name) async {
-    await _playlistRepository.updatePlaylist(id, {'name': name});
-    await loadPlaylist(id); // Reload just this playlist
-  }
-
-  Future<void> addVersion(int playlistID, int versionId) async {
+  /// Update a playlist with data currently on the cache (name/description/items)
+  Future<void> saveFromCache(int playlistID) async {
     if (_isSaving) return;
 
     _isSaving = true;
@@ -161,88 +161,47 @@ class PlaylistProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _playlistRepository.addVersionToPlaylist(playlistID, versionId);
-      // Update cache
+      final playlist = _playlists[playlistID];
+      if (playlist != null) {
+        await _playlistRepository.upsertPlaylistMetadata(playlist);
+      }
+
+      for (var item in playlist!.items) {
+        switch (item.type) {
+          case PlaylistItemType.version:
+            if (item.id == null) {
+              await _playlistRepository.addVersionToPlaylist(
+                playlistID,
+                item.contentId!,
+              );
+            } else {
+              await _playlistRepository.updatePlaylistVersionPosition(
+                item.id!,
+                item.position,
+              );
+            }
+            break;
+          case PlaylistItemType.flowItem:
+            // Handled in FlowItemProvider, no need to update here
+            break;
+        }
+      }
+
       await loadPlaylist(playlistID);
     } catch (e) {
       _error = e.toString();
     } finally {
       _isSaving = false;
-      _hasUnsavedChanges = false;
-      notifyListeners();
-    }
-  }
-
-  Future<void> updatePlaylistFromCache(int playlistId) async {
-    if (_isSaving) return;
-
-    _isSaving = true;
-    _error = null;
-    notifyListeners();
-
-    try {
-      final playlist = _playlists[playlistId];
-      if (playlist != null) {
-        await _playlistRepository.updatePlaylist(
-          playlist.id,
-          playlist.toDatabaseJson(),
-        );
-
-        // UPSERT ITEM ORDER
-        int position = 0;
-        for (var item in playlist.items) {
-          if (!item.isFlowItem) {
-            final existingId = await _playlistRepository.getPlaylistVersionId(
-              playlistId,
-              item.contentId!,
-              position: item.position,
-            );
-
-            if (existingId == null) {
-              await _playlistRepository.addVersionToPlaylist(
-                playlistId,
-                item.contentId!,
-              );
-            } else {
-              await _playlistRepository.updatePlaylistVersionPosition(
-                existingId,
-                position,
-              );
-            }
-          }
-          position++;
-        }
-      }
-    } catch (e) {
-      _error = e.toString();
-    } finally {
-      _isSaving = false;
-      _hasUnsavedChanges = false;
-      notifyListeners();
-    }
-  }
-
-  // ===== DELETE =====
-  // Delete a playlist
-  Future<void> deletePlaylist(int playlistId) async {
-    if (_isSaving) return;
-
-    _isDeleting = true;
-    _error = null;
-    notifyListeners();
-
-    try {
-      await _playlistRepository.deletePlaylist(playlistId);
-      _playlists.remove(playlistId);
-    } catch (e) {
-      _error = e.toString();
-    } finally {
-      _isDeleting = false;
       notifyListeners();
     }
   }
 
   // ===== CACHE =====
+  /// Update a Playlist with new data (name/description)
+  void cacheName(int id, String name) {
+    _playlists[id] = _playlists[id]!.copyWith(name: name);
+  }
+
   /// Cache a version addition to a playlist (used for optimistic UI updates)
   void cacheAddVersion(int playlistId, int versionId) {
     final playlist = _playlists[playlistId];
@@ -303,6 +262,26 @@ class PlaylistProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // ===== DELETE =====
+  // Delete a playlist
+  Future<void> deletePlaylist(int playlistId) async {
+    if (_isSaving) return;
+
+    _isDeleting = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      await _playlistRepository.deletePlaylist(playlistId);
+      _playlists.remove(playlistId);
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _isDeleting = false;
+      notifyListeners();
+    }
+  }
+
   // ===== UTILITY =====
   /// Check if a version is still in the passed playlist (used to determine if it should be deleted entirely or not)
   bool versionIsInPlaylist(int versionId, int playlistId) {
@@ -315,14 +294,14 @@ class PlaylistProvider extends ChangeNotifier {
     return false;
   }
 
-  // ===== SEARCH =====
-  void setSearchTerm(String searchTerm) {
-    _searchTerm = searchTerm.toLowerCase();
+  void clearUnsavedChanges() {
+    _hasUnsavedChanges = false;
     notifyListeners();
   }
 
-  void clearSearch() {
-    _searchTerm = '';
+  // ===== SEARCH =====
+  void setSearchTerm(String searchTerm) {
+    _searchTerm = searchTerm.toLowerCase();
     notifyListeners();
   }
 }

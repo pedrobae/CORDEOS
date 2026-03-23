@@ -52,7 +52,10 @@ class _ImportTextScreenState extends State<ImportTextScreen> {
       builder: (context, imp, par, child) {
         return Scaffold(
           appBar: AppBar(
-            title: Text(AppLocalizations.of(context)!.importFromText, style: textTheme.titleMedium),
+            title: Text(
+              AppLocalizations.of(context)!.importFromText,
+              style: textTheme.titleMedium,
+            ),
             leading: BackButton(onPressed: () => nav.attemptPop(context)),
           ),
           body: imp.error != null
@@ -218,6 +221,10 @@ class _ImportTextScreenState extends State<ImportTextScreen> {
           return ciph.hasUnsavedChanges ||
               localVer.hasUnsavedChanges ||
               sect.hasUnsavedChanges;
+        },
+        onChangeDiscarded: () async {
+          await localVer.loadVersion(widget.versionID);
+          await ciph.loadCipher(widget.cipherID);
         },
         showBottomNavBar: true,
       );

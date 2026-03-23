@@ -15,9 +15,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class PlaylistCardActionsSheet extends StatelessWidget {
-  final int playlistId;
+  final int playlistID;
 
-  const PlaylistCardActionsSheet({super.key, required this.playlistId});
+  const PlaylistCardActionsSheet({super.key, required this.playlistID});
 
   @override
   Widget build(BuildContext context) {
@@ -63,8 +63,9 @@ class PlaylistCardActionsSheet extends StatelessWidget {
 
               Navigator.of(context).pop(); // Close the bottom sheet
               nav.push(
-                () => EditPlaylistScreen(playlistId: playlistId),
+                () => EditPlaylistScreen(playlistId: playlistID),
                 changeDetector: () => play.hasUnsavedChanges,
+                onChangeDiscarded: () => play.loadPlaylist(playlistID),
                 showBottomNavBar: true,
               );
             },
@@ -121,7 +122,7 @@ class PlaylistCardActionsSheet extends StatelessWidget {
     final ciph = context.read<CipherProvider>();
     final flow = context.read<FlowItemProvider>();
 
-    for (var item in play.getPlaylist(playlistId)!.items) {
+    for (var item in play.getPlaylist(playlistID)!.items) {
       if (item.type == PlaylistItemType.version) {
         final cipherID = await localVer.deleteVersion(item.contentId!);
 
@@ -132,7 +133,7 @@ class PlaylistCardActionsSheet extends StatelessWidget {
         await flow.deleteFlowItem(item.contentId!);
       }
     }
-    await play.deletePlaylist(playlistId);
+    await play.deletePlaylist(playlistID);
     nav.pop();
   }
 
@@ -146,7 +147,7 @@ class PlaylistCardActionsSheet extends StatelessWidget {
     )!;
 
     // Create pruned Playlist copy
-    final playlist = play.getPlaylist(playlistId);
+    final playlist = play.getPlaylist(playlistID);
 
     await play.createPlaylistFromDomain(
       Playlist(
@@ -176,7 +177,7 @@ class PlaylistCardActionsSheet extends StatelessWidget {
           );
           final newId = (await localVer.createVersion())!;
 
-          play.cacheAddVersion(playlistId, newId);
+          play.cacheAddVersion(playlistID, newId);
 
         case PlaylistItemType.flowItem:
           final flowItem = (await flow.fetchFlowItem(item.contentId!))!;

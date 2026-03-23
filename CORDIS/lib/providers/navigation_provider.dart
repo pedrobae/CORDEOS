@@ -18,6 +18,7 @@ class _ScreenMetadata {
   final bool handlesSystemBack;
   final VoidCallback onPopCallback;
   final bool Function() changeDetector;
+  final void Function() onChangeDiscarded;
 
   _ScreenMetadata({
     required this.screenBuilder,
@@ -28,6 +29,7 @@ class _ScreenMetadata {
     required this.handlesSystemBack,
     required this.onPopCallback,
     required this.changeDetector,
+    required this.onChangeDiscarded,
   });
 }
 
@@ -56,9 +58,7 @@ class NavigationProvider extends ChangeNotifier {
       children: [
         currentScreenWidget,
         if (_screenOnForeground != null)
-          Positioned.fill(
-            child: _screenOnForeground!,
-          ),
+          Positioned.fill(child: _screenOnForeground!),
       ],
     );
   }
@@ -70,8 +70,9 @@ class NavigationProvider extends ChangeNotifier {
       _screenStack.isNotEmpty ? _screenStack.last.showDrawerIcon : true;
   bool get showBottomNavBar =>
       _screenStack.isNotEmpty ? _screenStack.last.showBottomNavBar : true;
-  bool get showFAB => _screenStack.isNotEmpty ? _screenStack.last.showFAB : true;
-    bool get shouldDeferSystemBack =>
+  bool get showFAB =>
+      _screenStack.isNotEmpty ? _screenStack.last.showFAB : true;
+  bool get shouldDeferSystemBack =>
       _screenStack.isNotEmpty && _screenStack.last.handlesSystemBack;
   bool get isLoading => _isLoading;
   String? get error => _error;
@@ -81,9 +82,9 @@ class NavigationProvider extends ChangeNotifier {
     BuildContext context, {
     NavigationRoute? route,
   }) async {
-    final hasChanges = _screenStack.isNotEmpty && 
-                       _screenStack.last.changeDetector();
-    
+    final hasChanges =
+        _screenStack.isNotEmpty && _screenStack.last.changeDetector();
+
     if (hasChanges) {
       // If the top of the pop interceptor stack is true, show the unsaved changes warning
       showDialog(
@@ -94,6 +95,8 @@ class NavigationProvider extends ChangeNotifier {
             child: UnsavedChangesWarning(
               onDiscard: () {
                 Navigator.of(context).pop(); // Close the warning
+                _screenStack.last.onChangeDiscarded();
+
                 if (route != null) {
                   _navigateToRoute(route);
                 } else {
@@ -120,11 +123,13 @@ class NavigationProvider extends ChangeNotifier {
   // Navigation methods following your provider pattern
   void _navigateToRoute(NavigationRoute route) {
     debugPrint('NAVIGATION - Navigating to route: ${route.name}');
-
     _currentRoute = route;
     _screenOnForeground =
         null; // Clear any foreground screen when navigating to a new route
-    _screenStack.clear();
+
+    while (_screenStack.isNotEmpty) {
+      pop();
+    }
 
     _error = null; // Clear any previous errors
     notifyListeners();
@@ -139,6 +144,7 @@ class NavigationProvider extends ChangeNotifier {
     bool handlesSystemBack = false,
     VoidCallback? onPopCallback,
     bool Function()? changeDetector,
+    void Function()? onChangeDiscarded,
   }) {
     debugPrint('NAVIGATION - Pushing screen');
     _screenStack.add(
@@ -151,6 +157,7 @@ class NavigationProvider extends ChangeNotifier {
         handlesSystemBack: handlesSystemBack,
         onPopCallback: onPopCallback ?? () {},
         changeDetector: changeDetector ?? () => false,
+        onChangeDiscarded: onChangeDiscarded ?? () {},
       ),
     );
     notifyListeners();
@@ -158,34 +165,8 @@ class NavigationProvider extends ChangeNotifier {
 
   void pushForeground(Widget screen) {
     debugPrint('NAVIGATION - Pushing foreground screen: ${screen.runtimeType}');
-
     _screenOnForeground = screen;
     notifyListeners();
-  }
-
-  void pushReplacement(
-    Widget Function() screenBuilder, {
-    bool showAppBar = false,
-    bool showDrawerIcon = false,
-    bool showBottomNavBar = false,
-    bool showFAB = false,
-    bool handlesSystemBack = false,
-    VoidCallback? onPopCallback,
-    bool Function()? changeDetector,
-  }) {
-    if (_screenStack.isNotEmpty) {
-      pop();
-    }
-    push(
-      screenBuilder,
-      showAppBar: showAppBar,
-      showDrawerIcon: showDrawerIcon,
-      showBottomNavBar: showBottomNavBar,
-      showFAB: showFAB,
-      handlesSystemBack: handlesSystemBack,
-      onPopCallback: onPopCallback,
-      changeDetector: changeDetector,
-    );
   }
 
   void pop() {

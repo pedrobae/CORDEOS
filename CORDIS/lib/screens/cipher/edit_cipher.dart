@@ -4,8 +4,6 @@ import 'package:cordis/models/domain/cipher/version.dart';
 import 'package:cordis/providers/cipher/import_provider.dart';
 import 'package:cordis/providers/navigation_provider.dart';
 import 'package:cordis/providers/cipher/parser_provider.dart';
-import 'package:cordis/providers/playlist/playlist_provider.dart';
-import 'package:cordis/providers/selection_provider.dart';
 import 'package:cordis/providers/transposition_provider.dart';
 import 'package:cordis/providers/user/my_auth_provider.dart';
 import 'package:cordis/providers/version/cloud_version_provider.dart';
@@ -72,20 +70,27 @@ class _EditCipherScreenState extends State<EditCipherScreen>
     final localVer = context.read<LocalVersionProvider>();
     final sect = context.read<SectionProvider>();
 
-    final cipher = parse.parsedCipher;
-    if (cipher == null) return;
+    final versionDto = parse.parsedSong;
+    if (versionDto == null) return;
 
     if (widget.cipherID == -1) {
       // CREATING NEW FROM IMPORTED
-      ciph.setNewCipherInCache(cipher);
-      final version = cipher.versions.first;
-      localVer.setNewVersionInCache(version);
-      sect.setNewSectionsInCache(-1, version.sections!);
+      ciph.setNewCipherInCache(Cipher.fromVersionDto(versionDto));
+
+      localVer.setNewVersionInCache(versionDto.toDomain());
+      sect.setNewSectionsInCache(
+        -1,
+        versionDto.sections.map(
+          (key, value) => MapEntry(key, value.toDomain()),
+        ),
+      );
     } else {
       // MERGING IMPORTED SECTIONS WITH EXISTING CIPHER
-      final importedVersion = cipher.versions.first;
+      final importedVersion = versionDto;
       final importedStruct = importedVersion.songStructure;
-      final importedSections = importedVersion.sections!;
+      final importedSections = importedVersion.sections.map(
+        (key, value) => MapEntry(key, value.toDomain()),
+      );
 
       final existingVersion = localVer.getVersion(widget.versionID)!;
       final existingStruct = existingVersion.songStructure;
@@ -112,7 +117,7 @@ class _EditCipherScreenState extends State<EditCipherScreen>
         }
         final newSect = importedSections[code]!.copyWith(
           contentCode: newCode ?? code,
-          versionId: widget.versionID,
+          versionID: widget.versionID,
         );
         // Cache new section
         sect.cacheAddSection(
@@ -158,33 +163,11 @@ class _EditCipherScreenState extends State<EditCipherScreen>
   }
 
   Future<void> _loadPlaylistVersion() async {
-    final play = context.read<PlaylistProvider>();
     final ciph = context.read<CipherProvider>();
-    final localVer = context.read<LocalVersionProvider>();
     final sect = context.read<SectionProvider>();
-    final sel = context.read<SelectionProvider>();
 
-    final playlistName = AppLocalizations.of(
-      context,
-    )!.playlistVersionName(play.getPlaylist(sel.targetId!)!.name);
-
-    await _loadPlaylistVersionFromLocal(playlistName, ciph, localVer, sect);
-  }
-
-  Future<void> _loadPlaylistVersionFromLocal(
-    String playlistName,
-    CipherProvider cipherProvider,
-    LocalVersionProvider localVersionProvider,
-    SectionProvider sectionProvider,
-  ) async {
-    final originalVersion = localVersionProvider.getVersion(widget.versionID)!;
-    localVersionProvider.setNewVersionInCache(
-      originalVersion.copyWith(firebaseID: '', versionName: playlistName),
-    );
-
-    await cipherProvider.loadCipher(widget.cipherID);
-    await sectionProvider.loadSectionsOfVersion(widget.versionID);
-    sectionProvider.cacheCopyOfVersion(widget.versionID);
+    await ciph.loadCipher(widget.cipherID);
+    await sect.loadSectionsOfVersion(widget.versionID);
   }
 
   @override
@@ -323,16 +306,10 @@ class _EditCipherScreenState extends State<EditCipherScreen>
   }
 
   Future<void> _save(BuildContext context) async {
-    final selectionProvider = context.read<SelectionProvider>();
-
     // Cache transposed key
     _cacheKey();
 
-    if (selectionProvider.isSelectionMode) {
-      await _saveVersionsToPlaylist(context);
-    } else {
-      await _saveSingleVersion(context);
-    }
+    await _saveSingleVersion(context);
 
     // Clear unsaved changes flags
     if (context.mounted) _clearUnsavedChanges(context);
@@ -346,40 +323,6 @@ class _EditCipherScreenState extends State<EditCipherScreen>
         widget.versionType != VersionType.brandNew) {
       localVer.cacheUpdates(widget.versionID, transposedKey: tp.transposedKey);
     }
-  }
-
-  Future<void> _saveVersionsToPlaylist(BuildContext context) async {
-    final ciph = context.read<CipherProvider>();
-    final localVer = context.read<LocalVersionProvider>();
-    final sect = context.read<SectionProvider>();
-    final play = context.read<PlaylistProvider>();
-    final nav = context.read<NavigationProvider>();
-    final sel = context.read<SelectionProvider>();
-
-    for (dynamic verID in sel.selectedItemIds) {
-      int? versionId;
-      if (verID.runtimeType == int) {
-        // Version is local, create a copy for the playlist
-        versionId = (await localVer.createVersion())!;
-        play.addVersion(sel.targetId!, versionId);
-      } else if (verID.runtimeType == String) {
-        // Version is cloud, create a local copy and add to playlist
-        int? localCipherID = widget.cipherID;
-        if (widget.cipherID == -1) {
-          localCipherID = await ciph.createCipher();
-        } else {
-          await ciph.saveCipher(widget.cipherID);
-        }
-
-        versionId = (await localVer.createVersion(cipherID: localCipherID))!;
-      }
-
-      await sect.createSections(versionId!);
-      play.cacheAddVersion(sel.targetId!, versionId);
-    }
-
-    sel.clearSelection();
-    nav.pop();
   }
 
   Future<void> _saveSingleVersion(BuildContext context) async {
@@ -413,14 +356,12 @@ class _EditCipherScreenState extends State<EditCipherScreen>
 
     if (ciph.getCipher(-1)!.musicKey.isEmpty) {
       final sections = sect.getSections(-1);
-      final key = await recognizer.recognizeKeyForNewCipher(sections.values.toList());
+      final key = recognizer.recognizeKeyForNewCipher(sections.values.toList());
       ciph.cacheMusicKey(-1, key);
     }
 
     final cipherID = await ciph.createCipher();
-    final versionID = await localVer.createVersion(
-      cipherID: cipherID,
-    );
+    final versionID = await localVer.createVersion(cipherID: cipherID);
 
     if (versionID == null) {
       throw Exception('Failed to create version for imported song');
@@ -474,6 +415,7 @@ class _EditCipherScreenState extends State<EditCipherScreen>
   Future<void> _publish() async {
     final localVer = context.read<LocalVersionProvider>();
     final cloudVer = context.read<CloudVersionProvider>();
+    final sect = context.read<SectionProvider>();
     final ciph = context.read<CipherProvider>();
 
     final version = localVer.getVersion(widget.versionID);
@@ -482,6 +424,8 @@ class _EditCipherScreenState extends State<EditCipherScreen>
     final cipher = ciph.getCipher(widget.cipherID);
     if (cipher == null) return;
 
-    await cloudVer.saveVersion(version.toDto(cipher));
+    final sections = sect.getSections(widget.versionID);
+
+    await cloudVer.saveVersion(version.toDto(cipher, sections));
   }
 }

@@ -1,4 +1,4 @@
-import 'package:cordis/models/domain/cipher/cipher.dart';
+import 'package:cordis/models/dtos/version_dto.dart';
 import 'package:cordis/models/domain/parsing_cipher.dart';
 import 'package:cordis/services/parsing/parsing_service_base.dart';
 import 'package:flutter/material.dart';
@@ -10,8 +10,8 @@ class ParserProvider extends ChangeNotifier {
   ParsingCipher? get cipher => _cipher;
 
   // Chosen Cipher after parsing
-  Cipher? _parsedCipher;
-  Cipher? get parsedCipher => _parsedCipher;
+  VersionDto? _parsedSong;
+  VersionDto? get parsedSong => _parsedSong;
 
   bool _isParsing = false;
   bool get isParsing => _isParsing;
@@ -47,7 +47,7 @@ class ParserProvider extends ChangeNotifier {
       _parsingService.parse(_cipher!.result);
 
       // Build domain Cipher from parsed sections
-      _parsedCipher = _parsingService.buildCipherFromParsedImportVariant(
+      _parsedSong = _parsingService.buildVersionFromResult(
         _cipher!.result,
       );
 
@@ -63,7 +63,7 @@ class ParserProvider extends ChangeNotifier {
 
   void clearCache() {
     _cipher = null;
-    _parsedCipher = null;
+    _parsedSong = null;
     _isParsing = false;
     _error = '';
   }

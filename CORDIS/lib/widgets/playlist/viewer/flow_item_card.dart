@@ -1,3 +1,4 @@
+import 'package:cordis/models/domain/playlist/flow_item.dart';
 import 'package:flutter/material.dart';
 import 'package:cordis/l10n/app_localizations.dart';
 
@@ -13,14 +14,14 @@ import 'package:cordis/widgets/playlist/viewer/flow_item_editor.dart';
 import 'package:cordis/widgets/playlist/viewer/flow_item_card_actions.dart';
 
 class FlowItemCard extends StatefulWidget {
-  final int flowItemId;
-  final int playlistId;
+  final int flowItemID;
+  final int playlistID;
   final int index;
 
   const FlowItemCard({
     super.key,
-    required this.flowItemId,
-    required this.playlistId,
+    required this.flowItemID,
+    required this.playlistID,
     required this.index,
   });
 
@@ -36,7 +37,7 @@ class _FlowItemCardState extends State<FlowItemCard> {
     final flow = context.read<FlowItemProvider>();
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await flow.loadFlowItem(widget.flowItemId);
+      await flow.loadFlowItem(widget.flowItemID);
     });
   }
 
@@ -47,11 +48,13 @@ class _FlowItemCardState extends State<FlowItemCard> {
 
     final nav = context.read<NavigationProvider>();
 
-    return Consumer<FlowItemProvider>(
-      builder: (context, flow, child) {
-        final flowItem = flow.getFlowItem(widget.flowItemId);
-
-        if (flowItem == null || flow.isLoading) {
+    return Selector<FlowItemProvider, ({FlowItem? flowItem, bool isLoading})>(
+      selector: (context, flow) => (
+        flowItem: flow.getFlowItem(widget.flowItemID),
+        isLoading: flow.isLoading,
+      ),
+      builder: (context, sel, child) {
+        if (sel.flowItem == null || sel.isLoading) {
           return Center(
             child: CircularProgressIndicator(color: colorScheme.primary),
           );
@@ -96,12 +99,12 @@ class _FlowItemCardState extends State<FlowItemCard> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  flowItem.title,
+                                  sel.flowItem!.title,
                                   style: textTheme.titleMedium,
                                 ),
                                 Text(
                                   DateTimeUtils.formatDuration(
-                                    flowItem.duration,
+                                    sel.flowItem!.duration,
                                   ),
                                   style: textTheme.bodyMedium,
                                 ),
@@ -123,12 +126,15 @@ class _FlowItemCardState extends State<FlowItemCard> {
                         isDense: true,
                         isDiscrete: true,
                         onPressed: () {
+                          final flow = context.read<FlowItemProvider>();
                           nav.push(
                             () => FlowItemEditor(
-                              playID: widget.playlistId,
-                              flowID: widget.flowItemId,
+                              playlistID: widget.playlistID,
+                              flowID: widget.flowItemID,
                             ),
-                            changeDetector: () => flow.hasPendingChanges,
+                            changeDetector: () => flow.hasUnsavedChanges,
+                            onChangeDiscarded: () =>
+                                flow.loadFlowItem(widget.flowItemID),
                             showBottomNavBar: true,
                           );
                         },
@@ -150,8 +156,8 @@ class _FlowItemCardState extends State<FlowItemCard> {
       isScrollControlled: true,
       builder: (context) {
         return FlowItemCardActionsSheet(
-          flowItemId: widget.flowItemId,
-          playlistId: widget.playlistId,
+          flowItemId: widget.flowItemID,
+          playlistId: widget.playlistID,
         );
       },
     );

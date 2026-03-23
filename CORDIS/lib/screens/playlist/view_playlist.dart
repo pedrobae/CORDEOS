@@ -3,6 +3,7 @@ import 'package:cordis/l10n/app_localizations.dart';
 import 'package:cordis/models/domain/playlist/playlist.dart';
 import 'package:cordis/models/domain/playlist/playlist_item.dart';
 import 'package:cordis/models/domain/schedule.dart';
+import 'package:cordis/providers/selection_provider.dart';
 import 'package:cordis/providers/user/my_auth_provider.dart';
 import 'package:cordis/providers/navigation_provider.dart';
 
@@ -30,23 +31,12 @@ class ViewPlaylistScreen extends StatefulWidget {
 
 class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final play = context.read<PlaylistProvider>();
-
-      await play.loadPlaylist(widget.playlistId);
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
     final nav = Provider.of<NavigationProvider>(context, listen: false);
 
-    return Consumer<PlaylistProvider>(
-      builder: (context, play, child) {
-        final playlist = play.getPlaylist(widget.playlistId);
-
+    return Selector<PlaylistProvider, Playlist?>(
+      selector: (context, play) => play.getPlaylist(widget.playlistId),
+      builder: (context, playlist, child) {
         if (playlist == null) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
@@ -147,8 +137,8 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
         return FlowItemCard(
           key: ValueKey('flow_${item.id}_idx_$index'),
           index: index,
-          flowItemId: item.contentId ?? item.id!,
-          playlistId: widget.playlistId,
+          flowItemID: item.contentId ?? item.id!,
+          playlistID: widget.playlistId,
         );
     }
   }
@@ -158,16 +148,23 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
     final localVer = context.read<LocalVersionProvider>();
     final localSch = context.read<LocalScheduleProvider>();
     final auth = context.read<MyAuthProvider>();
+    final sel = context.read<SelectionProvider>();
 
-    play.updatePlaylistFromCache(widget.playlistId);
     localVer.persistCachedDeletions();
+
+    play.saveFromCache(playlist.id);
 
     final schedule = await localSch.getScheduleWithPlaylistId(
       widget.playlistId,
     );
+
     if (schedule != null && schedule.scheduleState == ScheduleState.published) {
       ScheduleSyncService().upsertToCloud(schedule, auth.id!);
     }
+
+    sel.clearNewlyAddedVersionIds();
+
+    play.clearUnsavedChanges();
 
     nav.pop();
   }
@@ -181,7 +178,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
           shape: LinearBorder(),
           onClosing: () {},
           builder: (context) {
-            return AddToPlaylistSheet(playlistId: widget.playlistId);
+            return AddToPlaylistSheet(playlistID: widget.playlistId);
           },
         );
       },

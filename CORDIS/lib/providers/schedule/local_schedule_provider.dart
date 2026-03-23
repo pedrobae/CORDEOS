@@ -80,11 +80,11 @@ class LocalScheduleProvider extends ChangeNotifier {
   }
 
   Future<Schedule?> getScheduleWithPlaylistId(int playlistId) async {
-      await loadSchedules();
+    await loadSchedules();
 
-      return _schedules.values.firstWhereOrNull(
-        (schedule) => schedule.playlistId == playlistId,
-      );
+    return _schedules.values.firstWhereOrNull(
+      (schedule) => schedule.playlistId == playlistId,
+    );
   }
 
   // ===== CREATE =====
@@ -220,6 +220,13 @@ class LocalScheduleProvider extends ChangeNotifier {
 
   Future<void> loadSchedule(int id) async {
     if (_isLoading) return;
+
+    // If id is -1, it means we want to clear the current schedule
+    // (used when discarding changes on a new schedule that hasn't been saved yet)
+    if (id == -1) {
+      _schedules.remove(-1);
+      return;
+    }
 
     _isLoading = true;
     _error = null;

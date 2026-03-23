@@ -14,7 +14,6 @@ class Version {
   final int bpm;
   final Duration duration;
   final DateTime createdAt;
-  final Map<String, Section>? sections;
 
   const Version({
     this.id,
@@ -26,7 +25,6 @@ class Version {
     required this.bpm,
     required this.duration,
     required this.createdAt,
-    this.sections,
   });
 
   factory Version.fromSqLite(Map<String, dynamic> row) {
@@ -50,7 +48,6 @@ class Version {
       createdAt: row['created_at'] != null
           ? DateTime.fromMillisecondsSinceEpoch(row['created_at'])
           : DateTime.now(),
-      sections: versionContentMap,
     );
   }
 
@@ -80,7 +77,6 @@ class Version {
       createdAt: row['created_at'] != null
           ? DateTime.fromMillisecondsSinceEpoch(row['created_at'])
           : DateTime.now(),
-      sections: null, // Will be populated separately by repository
     );
   }
 
@@ -101,17 +97,13 @@ class Version {
     return row;
   }
 
-  List<Section> getContentAsStruct() {
-    return (sections ?? {}).values.toList();
-  }
-
-  VersionDto toDto(Cipher cipher) {
+  VersionDto toDto(Cipher cipher, Map<String, Section> sections) {
     return VersionDto(
       firebaseId: firebaseID,
       versionName: versionName,
       transposedKey: transposedKey,
       songStructure: songStructure,
-      sections: sections!.map(
+      sections: sections.map(
         (sectionCode, section) => MapEntry(sectionCode, section.toFirestore()),
       ),
       title: cipher.title,
@@ -122,11 +114,6 @@ class Version {
       duration: duration.inSeconds,
       tags: cipher.tags,
     );
-  }
-
-  bool get hasAllSections {
-    final requiredSections = songStructure.toSet();
-    return requiredSections.every((section) => sections!.containsKey(section));
   }
 
   List<String> get uniqueSections => songStructure.toSet().toList();
@@ -158,13 +145,10 @@ class Version {
       bpm: bpm ?? this.bpm,
       versionName: versionName ?? this.versionName,
       createdAt: createdAt ?? this.createdAt,
-      sections: content ?? sections,
     );
   }
 
   Version mergeWith(Version other) {
-    final mergedSections = {...(other.sections ?? {}), ...(sections ?? {})};
-
     return Version(
       id: id ?? other.id,
       firebaseID: firebaseID ?? other.firebaseID,
@@ -179,7 +163,6 @@ class Version {
       createdAt: createdAt.isBefore(other.createdAt)
           ? createdAt
           : other.createdAt,
-      sections: mergedSections.isNotEmpty ? mergedSections : sections,
     );
   }
 
@@ -192,7 +175,6 @@ class Version {
       transposedKey: '',
       duration: Duration.zero,
       bpm: 0,
-      sections: {},
       createdAt: DateTime.now(),
     );
   }

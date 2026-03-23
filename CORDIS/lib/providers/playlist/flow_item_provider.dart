@@ -10,7 +10,7 @@ class FlowItemProvider extends ChangeNotifier {
 
   final Map<int, FlowItem> _flowItems = {};
 
-  bool _hasPendingChanges = false;
+  bool _hasUnsavedChanges = false;
   bool _isLoading = false;
   bool _isSaving = false;
   bool _isDeleting = false;
@@ -18,7 +18,7 @@ class FlowItemProvider extends ChangeNotifier {
 
   // Getters
   Map<int, FlowItem> get flowItems => _flowItems;
-  bool get hasPendingChanges => _hasPendingChanges;
+  bool get hasUnsavedChanges => _hasUnsavedChanges;
   bool get isLoading => _isLoading;
   bool get isSaving => _isSaving;
   bool get isDeleting => _isDeleting;
@@ -134,7 +134,7 @@ class FlowItemProvider extends ChangeNotifier {
   void cacheDuration(int id, Duration newDuration) {
     if (_flowItems.containsKey(id)) {
       _flowItems[id] = _flowItems[id]!.copyWith(duration: newDuration);
-      _hasPendingChanges = true;
+      _hasUnsavedChanges = true;
       notifyListeners();
     }
   }
@@ -143,7 +143,7 @@ class FlowItemProvider extends ChangeNotifier {
   void cacheTitle(int id, String newTitle) {
     if (_flowItems.containsKey(id)) {
       _flowItems[id] = _flowItems[id]!.copyWith(title: newTitle);
-      _hasPendingChanges = true;
+      _hasUnsavedChanges = true;
       notifyListeners();
     }
   }
@@ -152,7 +152,7 @@ class FlowItemProvider extends ChangeNotifier {
   void cacheContent(int id, String newContent) {
     if (_flowItems.containsKey(id)) {
       _flowItems[id] = _flowItems[id]!.copyWith(contentText: newContent);
-      _hasPendingChanges = true;
+      _hasUnsavedChanges = true;
       notifyListeners();
     }
   }
@@ -175,7 +175,7 @@ class FlowItemProvider extends ChangeNotifier {
         position: flowItem.position,
         duration: flowItem.duration.inSeconds,
       );
-      _hasPendingChanges = false;
+      _hasUnsavedChanges = false;
     } catch (e) {
       _error = e.toString();
     } finally {

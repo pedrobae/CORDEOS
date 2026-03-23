@@ -57,15 +57,15 @@ class SectionProvider extends ChangeNotifier {
   ) {
     final code = _assignNumbering(versionKey, '', contentCode);
     final newSection = Section(
-      versionId: versionKey is String ? -1 : versionKey,
+      versionID: versionKey is String ? -1 : versionKey,
       contentCode: code,
       contentColor: color,
       contentType: sectionType,
       contentText: '',
     );
 
-    _sections[newSection.versionId] ??= {};
-    _sections[newSection.versionId]![newSection.contentCode] = newSection;
+    _sections[newSection.versionID] ??= {};
+    _sections[newSection.versionID]![newSection.contentCode] = newSection;
     _hasUnsavedChanges = true;
     notifyListeners();
     return newSection.contentCode;
@@ -81,16 +81,16 @@ class SectionProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void cacheCopyOfVersion(dynamic versionId) {
+  void cacheCopyOfVersion(dynamic versionId, int copyId) {
     final sections = _sections[versionId];
     if (sections == null) return;
 
-    _sections[-1] ??= {};
+    _sections[copyId] ??= {};
 
     for (final code in sections.keys) {
       final originalSection = sections[code]!;
-      final newSection = originalSection.copyWith(versionId: -1);
-      _sections[-1]![newSection.contentCode] = newSection;
+      final newSection = originalSection.copyWith(versionID: copyId);
+      _sections[copyId]![code] = newSection;
     }
     _hasUnsavedChanges = true;
 
@@ -119,7 +119,7 @@ class SectionProvider extends ChangeNotifier {
     final sections = _sections[-1];
     for (final code in sections!.keys) {
       await _repo.insertSection(
-        sections[code]!.copyWith(versionId: newVersionId),
+        sections[code]!.copyWith(versionID: newVersionId),
       );
     }
     _sections.remove(-1);
@@ -207,6 +207,10 @@ class SectionProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> deleteSectionsOfVersion(int versionID) async {
+    await _repo.deleteSections(versionID);
+  }
+
   // ===== SAVE =====
   /// Persist the data of the given version key to the database
   Future<void> saveSections({dynamic versionID}) async {
@@ -225,7 +229,7 @@ class SectionProvider extends ChangeNotifier {
       }
 
       for (final entry in _sections[versionID]!.entries) {
-        await _repo.upsertSection(entry.value.copyWith(versionId: versionID));
+        await _repo.upsertSection(entry.value.copyWith(versionID: versionID));
       }
       for (final deletion in _cachedDeletions) {
         await _repo.deleteSection(deletion.key, deletion.value);

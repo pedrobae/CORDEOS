@@ -1,6 +1,7 @@
-import 'package:cordis/models/domain/cipher/section.dart';
 import 'package:cordis/models/domain/parsing_cipher.dart';
 import 'package:cordis/models/dtos/pdf_dto.dart';
+import 'package:cordis/models/dtos/version_dto.dart';
+import 'package:cordis/utils/color.dart';
 import 'package:flutter/material.dart';
 
 class ChordLineParser {
@@ -15,7 +16,7 @@ class ChordLineParser {
   /// Parses sections from the given [ImportVariant] and creates the parsed objects.
   void parseBySimpleText(ParsingResult result) {
     // Iterates through each section of the cipher creating Section objects
-    Map<String, Section> parsedSections = result.parsedSections;
+    Map<String, SectionDto> parsedSections = result.parsedSections;
     List<String> songStructure = result.songStructure;
     int incrementalDefaultCode = 0;
 
@@ -42,10 +43,9 @@ class ChordLineParser {
       rawSection.code = code;
 
       // Build the Section object
-      Section parsedSection = Section(
-        versionId: -1 /* ID will be set on database insertion */,
+      final parsedSection = SectionDto(
+        color: colorToHex(rawSection.color ?? Colors.grey),
         contentCode: code,
-        contentColor: rawSection.color ?? Colors.grey,
         contentType: rawSection.suggestedLabel,
         contentText: _buildContentFromSimpleText(rawSection.content),
       );
@@ -56,7 +56,7 @@ class ChordLineParser {
 
   void parseByPdfFormatting(ParsingResult result) {
     // Iterates through each section of the variant creating Section objects
-    Map<String, Section> parsedSections = result.parsedSections;
+    Map<String, SectionDto> parsedSections = result.parsedSections;
     List<RawSection> rawSections = result.rawSections;
     List<String> songStructure = result.songStructure;
     int incrementalDefaultCode = 1;
@@ -83,10 +83,9 @@ class ChordLineParser {
       rawSection.code = code;
 
       // Build the Section object
-      Section parsedSection = Section(
-        versionId: -1 /* ID will be set on database insertion */,
+      final parsedSection = SectionDto(
+        color: colorToHex(rawSection.color ?? Colors.grey),
         contentCode: code,
-        contentColor: rawSection.color ?? Colors.grey,
         contentType: rawSection.suggestedLabel,
         contentText: _buildContentFromLinesData(
           rawSection.linesData as List<LineData>,

@@ -322,6 +322,10 @@ class _ImportPdfScreenState extends State<ImportPdfScreen> {
       ),
       changeDetector: () =>
           localVer.hasUnsavedChanges || ciph.hasUnsavedChanges,
+      onChangeDiscarded: () {
+        localVer.loadVersion(widget.versionID);
+        ciph.loadCipher(widget.cipherID);
+      },
       showBottomNavBar: true,
     );
   }

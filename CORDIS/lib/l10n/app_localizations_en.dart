@@ -681,6 +681,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Enter the share code provided by your team leader to access the schedule.';
 
   @override
+  String get joinedScheduleSuccessfully => 'Joined schedule successfully!';
+
+  @override
   String get joinSchedule => 'Join Service';
 
   @override

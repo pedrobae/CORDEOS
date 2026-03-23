@@ -28,7 +28,7 @@ class PlaylistRepository {
       // 1. Insert the playlist (basic info only)
       final playlistId = await txn.insert(
         'playlist',
-        playlist.toDatabaseJson(),
+        playlist.toSqlite(),
       );
 
       // 2. Insert playlist items if any
@@ -108,20 +108,6 @@ class PlaylistRepository {
   }
 
   // ===== UPDATE =====
-  /// Update playlist, for name and duration changes
-  Future<void> updatePlaylist(
-    int playlistId,
-    Map<String, dynamic> changes,
-  ) async {
-    final db = await _databaseHelper.database;
-
-    await db.update(
-      'playlist',
-      changes,
-      where: 'id = ?',
-      whereArgs: [playlistId],
-    );
-  }
 
   /// Upserts playlist metadata
   /// Used for syncing playlists from cloud to local database
@@ -151,7 +137,7 @@ class PlaylistRepository {
       // Insert new playlist
       final playlistId = await db.insert(
         'playlist',
-        playlist.toDatabaseJson() as Map<String, Object?>,
+        playlist.toSqlite() as Map<String, Object?>,
       );
       return playlistId;
     }
@@ -247,33 +233,6 @@ class PlaylistRepository {
         whereArgs: [itemId],
       );
     });
-  }
-
-  // ===== COLLABORATOR MANAGEMENT =====
-  /// Adds a collaborator to a playlist
-  Future<void> addCollaborator(int playlistId, int userId, String role) async {
-    final db = await _databaseHelper.database;
-
-    await db.insert('user_playlist', {
-      'user_id': userId,
-      'playlist_id': playlistId,
-      'role': role,
-    });
-  }
-
-  /// Gets collaborators for a playlist
-  Future<List<String>> getCollaborators(int playlistId) async {
-    final db = await _databaseHelper.database;
-    // Get collaborator IDs for this playlist
-    final collaboratorResults = await db.rawQuery(
-      '''
-        SELECT user_id FROM user_playlist 
-        WHERE playlist_id = ?
-      ''',
-      [playlistId],
-    );
-
-    return collaboratorResults.map((row) => row['user_id'].toString()).toList();
   }
 
   // ===== UNIFIED PLAYLIST ITEMS =====
@@ -485,7 +444,7 @@ class PlaylistRepository {
         // Insert new playlist
         playlistId = await txn.insert(
           'playlist',
-          playlist.toDatabaseJson() as Map<String, Object?>,
+          playlist.toSqlite() as Map<String, Object?>,
         );
       }
 

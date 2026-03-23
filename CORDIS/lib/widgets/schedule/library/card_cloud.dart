@@ -1,4 +1,5 @@
 import 'package:cordis/l10n/app_localizations.dart';
+import 'package:cordis/models/dtos/schedule_dto.dart';
 import 'package:cordis/providers/auto_scroll_provider.dart';
 import 'package:cordis/screens/schedule/play.dart';
 import 'package:cordis/widgets/common/cloud_download_indicator.dart';
@@ -8,9 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:cordis/providers/user/my_auth_provider.dart';
 import 'package:cordis/providers/navigation_provider.dart';
-import 'package:cordis/providers/playlist/playlist_provider.dart';
 import 'package:cordis/providers/schedule/cloud_schedule_provider.dart';
-import 'package:cordis/providers/user/user_provider.dart';
 
 import 'package:cordis/utils/date_utils.dart';
 
@@ -35,192 +34,169 @@ class CloudScheduleCard extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Consumer5<
+    final auth = context.read<MyAuthProvider>();
+    final nav = context.read<NavigationProvider>();
+
+    return Selector<
       CloudScheduleProvider,
-      PlaylistProvider,
-      MyAuthProvider,
-      UserProvider,
-      NavigationProvider
+      ({ScheduleDto? schedule, bool isLoading, bool isSyncing})
     >(
-      builder:
-          (
-            context,
-            cloudScheduleProvider,
-            playlistProvider,
-            authProvider,
-            userProvider,
-            navigationProvider,
-            child,
-          ) {
-            // LOADING STATE
-            if (cloudScheduleProvider.isLoading ||
-                userProvider.isLoading ||
-                scheduleId == '-1') {
-              return Center(
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    CircularProgressIndicator(color: colorScheme.primary),
-                    Icon(Icons.cloud, size: 20, color: colorScheme.primary),
-                  ],
+      selector: (context, cloudSch) => (
+        schedule: cloudSch.getSchedule(scheduleId),
+        isLoading: cloudSch.isLoading,
+        isSyncing: cloudSch.syncingStatus(scheduleId),
+      ),
+      builder: (context, selection, child) {
+        // LOADING STATE
+        if (selection.isLoading || selection.schedule == null) {
+          return Center(
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                CircularProgressIndicator(color: colorScheme.primary),
+                Icon(Icons.cloud, size: 20, color: colorScheme.primary),
+              ],
+            ),
+          );
+        }
+
+        String userRole = AppLocalizations.of(context)!.generalMember;
+
+        for (var role in selection.schedule!.roles) {
+          if (role.users.any((user) => user.firebaseId == auth.id)) {
+            userRole = role.name;
+            break;
+          }
+        }
+
+        return Container(
+          margin: const EdgeInsets.symmetric(vertical: 4.0),
+          child: Stack(
+            children: [
+              // CLOUD WATERMARK
+              Positioned(
+                right: -20,
+                bottom: -50,
+                child: Icon(
+                  Icons.cloud,
+                  size: 250,
+                  color: colorScheme.surfaceTint,
                 ),
-              );
-            }
-
-            final schedule = cloudScheduleProvider.getSchedule(scheduleId)!;
-
-            final playlist = schedule.playlist;
-
-            String userRole = AppLocalizations.of(context)!.generalMember;
-
-            for (var role in schedule.roles) {
-              if (role.users.any(
-                (user) => user.firebaseId == authProvider.id,
-              )) {
-                userRole = role.name;
-                break;
-              }
-            }
-
-            return Container(
-              margin: const EdgeInsets.symmetric(vertical: 4.0),
-              child: Stack(
-                children: [
-                  // CLOUD WATERMARK
-                  Positioned(
-                    right: -20,
-                    bottom: -50,
-                    child: Icon(
-                      Icons.cloud,
-                      size: 250,
-                      color: colorScheme.surfaceTint,
-                    ),
+              ),
+              Container(
+                padding: const EdgeInsets.all(8.0),
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: colorScheme.surfaceContainerLowest,
+                    width: 1,
                   ),
-                  Container(
-                    padding: const EdgeInsets.all(8.0),
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: colorScheme.surfaceContainerLowest,
-                        width: 1,
-                      ),
-                      borderRadius: BorderRadius.circular(0),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                  borderRadius: BorderRadius.circular(0),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
                       children: [
-                        Row(
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                            // SCHEDULE NAME
+                            Row(
+                              spacing: 8,
                               children: [
-                                // SCHEDULE NAME
-                                Row(
-                                  spacing: 8,
-                                  children: [
-                                    Text(
-                                      schedule.name,
-                                      style: theme.textTheme.titleMedium,
-                                    ),
-                                    StatusChip(
-                                      schedule: schedule.toDomain(
-                                        playlistLocalId: -1,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-
-                                // WHEN & WHERE
-                                Wrap(
-                                  spacing: 16.0,
-                                  children: [
-                                    Text(
-                                      DateTimeUtils.formatDate(
-                                        schedule.datetime.toDate(),
-                                      ),
-                                      style: theme.textTheme.bodyMedium,
-                                    ),
-                                    Text(
-                                      DateTimeUtils.formatTime(
-                                        schedule.datetime.toDate(),
-                                      ),
-                                      style: theme.textTheme.bodyMedium,
-                                    ),
-                                    Text(
-                                      schedule.location,
-                                      style: theme.textTheme.bodyMedium,
-                                    ),
-                                  ],
-                                ),
-
-                                // PLAYLIST INFO
                                 Text(
-                                  '${AppLocalizations.of(context)!.playlist}: ${playlist.name}',
+                                  selection.schedule!.name,
+                                  style: theme.textTheme.titleMedium,
+                                ),
+                                StatusChip(
+                                  schedule: selection.schedule!.toDomain(
+                                    playlistLocalId: -1,
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            // WHEN & WHERE
+                            Wrap(
+                              spacing: 16.0,
+                              children: [
+                                Text(
+                                  DateTimeUtils.formatDate(
+                                    selection.schedule!.datetime.toDate(),
+                                  ),
                                   style: theme.textTheme.bodyMedium,
                                 ),
-
-                                // YOUR ROLE INFO
                                 Text(
-                                  '${AppLocalizations.of(context)!.role}: $userRole',
+                                  DateTimeUtils.formatTime(
+                                    selection.schedule!.datetime.toDate(),
+                                  ),
+                                  style: theme.textTheme.bodyMedium,
+                                ),
+                                Text(
+                                  selection.schedule!.location,
                                   style: theme.textTheme.bodyMedium,
                                 ),
                               ],
                             ),
-                            Spacer(),
-                            if (cloudScheduleProvider
-                                    .syncingStatus[scheduleId] ==
-                                true) ...[
-                              const CloudDownloadIndicator(),
-                            ],
-                            if (showActions) ...[
-                              IconButton(
-                                onPressed: () => _openScheduleActionsSheet(
-                                  context,
-                                  scheduleId,
-                                  cloudScheduleProvider,
-                                ),
-                                icon: Icon(Icons.more_vert),
-                              ),
-                            ],
+
+                            // PLAYLIST INFO
+                            Text(
+                              '${AppLocalizations.of(context)!.playlist}: ${selection.schedule!.playlist.name}',
+                              style: theme.textTheme.bodyMedium,
+                            ),
+
+                            // YOUR ROLE INFO
+                            Text(
+                              '${AppLocalizations.of(context)!.role}: $userRole',
+                              style: theme.textTheme.bodyMedium,
+                            ),
                           ],
                         ),
-                        // BOTTOM BUTTONS
-                        FilledTextButton(
-                          isDark: true,
-                          isDense: true,
-                          onPressed: () async {
-                            final scroll = context.read<AutoScrollProvider>();
-
-                            await SystemChrome.setEnabledSystemUIMode(
-                              SystemUiMode.immersiveSticky,
-                            );
-
-                            navigationProvider.push(
-                              () => PlaySchedule(scheduleId: scheduleId),
-                              onPopCallback: () async {
-                                await SystemChrome.setEnabledSystemUIMode(
-                                  SystemUiMode.edgeToEdge,
-                                );
-                                scroll.clearCache();
-                              },
-                            );
-                          },
-                          text: AppLocalizations.of(context)!.play,
-                        ),
+                        Spacer(),
+                        if (selection.isSyncing) const CloudDownloadIndicator(),
+                        if (showActions)
+                          IconButton(
+                            onPressed: () => _openScheduleActionsSheet(context),
+                            icon: Icon(Icons.more_vert),
+                          ),
                       ],
                     ),
-                  ),
-                ],
+                    // BOTTOM BUTTONS
+                    FilledTextButton(
+                      isDark: true,
+                      isDense: true,
+                      onPressed: () async {
+                        final scroll = context.read<AutoScrollProvider>();
+
+                        await SystemChrome.setEnabledSystemUIMode(
+                          SystemUiMode.immersiveSticky,
+                        );
+
+                        nav.push(
+                          () => PlaySchedule(scheduleId: scheduleId),
+                          onPopCallback: () async {
+                            await SystemChrome.setEnabledSystemUIMode(
+                              SystemUiMode.edgeToEdge,
+                            );
+                            scroll.clearCache();
+                          },
+                        );
+                      },
+                      text: AppLocalizations.of(context)!.play,
+                    ),
+                  ],
+                ),
               ),
-            );
-          },
+            ],
+          ),
+        );
+      },
     );
   }
 
-  void _openScheduleActionsSheet(
-    BuildContext context,
-    dynamic scheduleId,
-    CloudScheduleProvider cloudScheduleProvider,
-  ) {
+  void _openScheduleActionsSheet(BuildContext context) {
+    final cloudSch = context.read<CloudScheduleProvider>();
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -272,7 +248,7 @@ class CloudScheduleCard extends StatelessWidget {
                         itemType: AppLocalizations.of(context)!.schedule,
                         onConfirm: () {
                           Navigator.of(context).pop();
-                          cloudScheduleProvider.deleteSchedule(
+                          cloudSch.deleteSchedule(
                             context.read<MyAuthProvider>().id!,
                             scheduleId,
                           );

@@ -67,7 +67,7 @@ class _PlaylistScrollViewState extends State<PlaylistScrollView> {
                       itemBuilder: (context, index) {
                         return Container(
                           margin: const EdgeInsets.only(bottom: 8.0),
-                          child: PlaylistCard(playlistId: playlistIds[index]),
+                          child: PlaylistCard(playlistID: playlistIds[index]),
                         );
                       },
                     ),

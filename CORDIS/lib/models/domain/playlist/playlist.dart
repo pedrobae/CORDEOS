@@ -26,7 +26,7 @@ class Playlist {
   }
 
   // Database-specific serialization (excludes relational data)
-  Map<String, dynamic> toDatabaseJson() {
+  Map<String, dynamic> toSqlite() {
     return {'name': name, 'author_id': createdBy};
   }
 

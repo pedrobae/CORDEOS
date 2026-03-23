@@ -1,6 +1,5 @@
 import 'package:cordis/providers/user/my_auth_provider.dart';
 import 'package:cordis/providers/user/user_provider.dart';
-import 'package:cordis/providers/version/local_version_provider.dart';
 import 'package:cordis/screens/playlist/edit_playlist.dart';
 import 'package:cordis/screens/splash_screen.dart';
 import 'package:cordis/services/remote_config_service.dart';
@@ -161,7 +160,7 @@ class MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
                 indicatorShape: RoundedSuperellipseBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
-                
+
                 onDestinationSelected: (index) {
                   if (mounted) {
                     nav.attemptPop(
@@ -313,12 +312,7 @@ class MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
         );
         break;
       case NavigationRoute.playlists:
-        final localVer = context.read<LocalVersionProvider>();
-        nav.push(
-          () => EditPlaylistScreen(),
-          changeDetector: () => localVer.hasUnsavedChanges,
-          showBottomNavBar: true,
-        );
+        nav.push(() => EditPlaylistScreen(), showBottomNavBar: true);
         break;
       case NavigationRoute.home:
         showModalBottomSheet(

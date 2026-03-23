@@ -1,6 +1,5 @@
 import 'package:cordis/helpers/codes.dart';
 import 'package:cordis/models/domain/cipher/cipher.dart';
-import 'package:cordis/models/domain/cipher/section.dart';
 import 'package:cordis/models/domain/playlist/flow_item.dart';
 import 'package:cordis/models/domain/playlist/playlist_item.dart';
 import 'package:cordis/models/domain/schedule.dart';
@@ -240,23 +239,34 @@ class ScheduleSyncService {
       await _versionRepo.updateVersion(mergedVersion);
 
       // Sync sections (upsert)
-      for (final section in (mergedVersion.sections ?? {}).values) {
+      final existingSections = await _sectionRepo.getSections(
+        existingVersion.id!,
+      );
+
+      for (final existingSection in existingSections.values) {
+        final cloudSection = versionDto.sections[existingSection.contentCode];
+
+        if (cloudSection == null) {
+          // Section was removed in the cloud version, delete it locally
+          await _sectionRepo.deleteSection(existingSection.id!, existingSection.contentCode);
+        }
+
         await _sectionRepo.upsertSection(
-          section.copyWith(versionId: existingVersion.id!),
+          cloudSection!.toDomain(versionID: existingVersion.id!),
         );
       }
     } else {
       // Version doesn't exist locally, insert it and add it to the playlist
-      final versionId = await _versionRepo.insertVersion(
+      final versionID = await _versionRepo.insertVersion(
         versionDto.toDomain(cipherId: cipherId),
       );
 
       for (final section in versionDto.sections.values) {
         await _sectionRepo.insertSection(
-          Section.fromFirestore(section).copyWith(versionId: versionId),
+          section.toDomain(versionID: versionID),
         );
       }
-      await _playlistRepo.addVersionToPlaylist(playlistID, versionId);
+      await _playlistRepo.addVersionToPlaylist(playlistID, versionID);
     }
   }
 
@@ -288,7 +298,10 @@ class ScheduleSyncService {
           if (cipher == null) break;
 
           final firebaseID = version.firebaseID ?? generateFirebaseId();
-          versions[firebaseID] = version.toDto(cipher);
+
+          final sections = await _sectionRepo.getSections(version.id!);
+
+          versions[firebaseID] = version.toDto(cipher, sections);
           itemOrder.add('v:$firebaseID');
 
           break;

@@ -2,12 +2,9 @@ import 'package:cordis/repositories/local/version_repository.dart';
 import 'package:sqflite/sqflite.dart';
 
 import 'package:cordis/models/domain/cipher/cipher.dart';
-import 'package:cordis/models/domain/cipher/section.dart';
-import 'package:cordis/models/domain/cipher/version.dart';
 
 import 'package:cordis/helpers/database.dart';
 
-import 'package:cordis/utils/color.dart';
 
 class CipherRepository {
   final _databaseHelper = DatabaseHelper();
@@ -29,38 +26,6 @@ class CipherRepository {
           await _addTagInTransaction(txn, cipherId, tagTitle);
         }
       }
-      return cipherId;
-    });
-  }
-
-  /// Inserts a whole cipher with versions and sections
-  Future<int> insertWholeCipher(Cipher cipher) async {
-    final db = await _databaseHelper.database;
-
-    return await db.transaction((txn) async {
-      // Insert the cipher
-      final cipherId = await txn.insert('cipher', cipher.toSqLite());
-
-      // Insert tags if any
-      if (cipher.tags.isNotEmpty) {
-        for (final tagTitle in cipher.tags) {
-          await _addTagInTransaction(txn, cipherId, tagTitle);
-        }
-      }
-
-      // Insert versions and their sections
-      for (final version in cipher.versions) {
-        final versionId = await _insertVersionInTransaction(
-          txn,
-          cipherId,
-          version,
-        );
-
-        for (final section in version.sections!.values) {
-          await _insertSectionInTransaction(txn, versionId, section);
-        }
-      }
-
       return cipherId;
     });
   }
@@ -255,33 +220,5 @@ class CipherRepository {
       'tag_id': tagId,
       'cipher_id': cipherId,
     }, conflictAlgorithm: ConflictAlgorithm.ignore);
-  }
-
-  /// Insert version of cipher within a transaction
-  Future<int> _insertVersionInTransaction(
-    Transaction txn,
-    int cipherId,
-    Version version,
-  ) async {
-    final versionId = await txn.insert(
-      'version',
-      version.toSqLite()..['cipher_id'] = cipherId,
-    );
-    return versionId;
-  }
-
-  /// Insert section of version of cipher within a transaction
-  Future<void> _insertSectionInTransaction(
-    Transaction txn,
-    int versionId,
-    Section section,
-  ) async {
-    await txn.insert('section', {
-      'version_id': versionId,
-      'content_type': section.contentType,
-      'content_code': section.contentCode,
-      'content_text': section.contentText,
-      'content_color': colorToHex(section.contentColor),
-    });
   }
 }

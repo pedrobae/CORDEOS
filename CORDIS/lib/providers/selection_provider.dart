@@ -9,7 +9,11 @@ class SelectionProvider extends ChangeNotifier {
   final List<dynamic> _selectedItemIds =
       []; // int for local version / String for cloud version
 
+  // Versions that will be deleted on change discard
+  final List<int> _newlyAddedVersionIds = [];
+
   bool get isSelectionMode => _isSelectionMode;
+  List<int> get newlyAddedVersionIds => _newlyAddedVersionIds;
   List<dynamic> get selectedItemIds => _selectedItemIds;
   int? get targetId => _targetId;
 
@@ -53,5 +57,13 @@ class SelectionProvider extends ChangeNotifier {
   void clearSelection() {
     _selectedItemIds.clear();
     notifyListeners();
+  }
+
+  void addVersionIdToDelete(int versionId) {
+    _newlyAddedVersionIds.add(versionId);
+  }
+
+  void clearNewlyAddedVersionIds() {
+    _newlyAddedVersionIds.clear();
   }
 }

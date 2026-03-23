@@ -1,4 +1,5 @@
 import 'package:cordis/l10n/app_localizations.dart';
+import 'package:cordis/models/domain/playlist/playlist.dart';
 import 'package:cordis/models/domain/schedule.dart';
 import 'package:cordis/providers/user/my_auth_provider.dart';
 import 'package:cordis/providers/navigation_provider.dart';
@@ -30,175 +31,169 @@ class ScheduleCard extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Consumer5<
+    final auth = context.read<MyAuthProvider>();
+    final nav = context.read<NavigationProvider>();
+    final user = context.read<UserProvider>();
+
+    return Selector2<
       LocalScheduleProvider,
       PlaylistProvider,
-      MyAuthProvider,
-      UserProvider,
-      NavigationProvider
+      ({Schedule? schedule, Playlist? playlist})
     >(
-      builder:
-          (
-            context,
-            localScheduleProvider,
-            playlistProvider,
-            authProvider,
-            userProvider,
-            navigationProvider,
-            child,
-          ) {
-            // LOADING STATE
-            if (localScheduleProvider.isLoading ||
-                userProvider.isLoading ||
-                scheduleId == -1) {
-              return Center(
-                child: CircularProgressIndicator(color: colorScheme.primary),
-              );
-            }
+      selector: (context, localSch, play) {
+        final schedule = localSch.getSchedule(scheduleId);
+        return (
+          schedule: schedule,
+          playlist: play.getPlaylist(schedule?.playlistId ?? -1),
+        );
+      },
+      builder: (context, selection, child) {
+        // LOADING STATE
+        if (selection.schedule == null || selection.playlist == null) {
+          return Center(
+            child: CircularProgressIndicator(color: colorScheme.primary),
+          );
+        }
 
-            final schedule = localScheduleProvider.getSchedule(scheduleId);
-
-            final playlist = playlistProvider.getPlaylist(
-              schedule!.playlistId,
-            );
-
-            String? userRole = AppLocalizations.of(context)!.generalMember;
-            if (authProvider.id != null) {
-              if (authProvider.id == schedule.ownerFirebaseId) {
-                userRole = AppLocalizations.of(context)!.owner;
-              } else {
-                userRole = localScheduleProvider.getUserRoleInSchedule(
-                  scheduleId,
-                  userProvider.getLocalIdByFirebaseId(authProvider.id!),
-                );
+        String? userRole = AppLocalizations.of(context)!.generalMember;
+        if (auth.id != null) {
+          if (auth.id == selection.schedule!.ownerFirebaseId) {
+            userRole = AppLocalizations.of(context)!.owner;
+          } else {
+            final localID = user.getLocalIdByFirebaseId(auth.id!);
+            for (var role in selection.schedule!.roles) {
+              if (role.users.any((u) => u.id == localID)) {
+                userRole = role.name;
+                break;
               }
             }
+          }
+        }
 
-            return Container(
-              padding: const EdgeInsets.all(8.0),
-              margin: const EdgeInsets.symmetric(vertical: 4.0),
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: colorScheme.surfaceContainerLowest,
-                  width: 1,
-                ),
-                borderRadius: BorderRadius.circular(0),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                spacing: 8,
+        return Container(
+          padding: const EdgeInsets.all(8.0),
+          margin: const EdgeInsets.symmetric(vertical: 4.0),
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: colorScheme.surfaceContainerLowest,
+              width: 1,
+            ),
+            borderRadius: BorderRadius.circular(0),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            spacing: 8,
+            children: [
+              Row(
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // SCHEDULE NAME
+                        Row(
+                          spacing: 8,
                           children: [
-                            // SCHEDULE NAME
-                            Row(
-                              spacing: 8,
-                              children: [
-                                Text(
-                                  schedule.name,
-                                  style: theme.textTheme.titleMedium,
-                                ),
-                                StatusChip(schedule: schedule),
-                              ],
-                            ),
-
-                            // WHEN & WHERE
-                            Wrap(
-                              spacing: 16.0,
-                              children: [
-                                Text(
-                                  DateTimeUtils.formatDate(schedule.date),
-                                  style: theme.textTheme.bodyMedium,
-                                ),
-                                Text(DateTimeUtils.formatTime(schedule.date)),
-                                Text(
-                                  schedule.location,
-                                  style: theme.textTheme.bodyMedium!,
-                                ),
-                              ],
-                            ),
-
-                            // PLAYLIST INFO
-                            playlist != null
-                                ? Text(
-                                    '${AppLocalizations.of(context)!.playlist}: ${playlist.name}',
-                                    style: theme.textTheme.bodyMedium,
-                                  )
-                                : SizedBox.shrink(),
-
-                            // YOUR ROLE INFO
                             Text(
-                              '${AppLocalizations.of(context)!.role}: $userRole',
+                              selection.schedule!.name,
+                              style: theme.textTheme.titleMedium,
+                            ),
+                            StatusChip(schedule: selection.schedule!),
+                          ],
+                        ),
+
+                        // WHEN & WHERE
+                        Wrap(
+                          spacing: 16.0,
+                          children: [
+                            Text(
+                              DateTimeUtils.formatDate(
+                                selection.schedule!.date,
+                              ),
                               style: theme.textTheme.bodyMedium,
+                            ),
+                            Text(
+                              DateTimeUtils.formatTime(
+                                selection.schedule!.date,
+                              ),
+                            ),
+                            Text(
+                              selection.schedule!.location,
+                              style: theme.textTheme.bodyMedium!,
                             ),
                           ],
                         ),
-                      ),
-                      if (showActions) ...[
-                        IconButton(
-                          onPressed: () => _openScheduleActionsSheet(
-                            context,
-                            scheduleId,
-                            localScheduleProvider,
-                          ),
-                          icon: Icon(Icons.more_vert),
+
+                        // PLAYLIST INFO
+                        selection.playlist != null
+                            ? Text(
+                                '${AppLocalizations.of(context)!.playlist}: ${selection.playlist!.name}',
+                                style: theme.textTheme.bodyMedium,
+                              )
+                            : SizedBox.shrink(),
+
+                        // YOUR ROLE INFO
+                        Text(
+                          '${AppLocalizations.of(context)!.role}: $userRole',
+                          style: theme.textTheme.bodyMedium,
                         ),
                       ],
-                    ],
-                  ),
-                  // BOTTOM BUTTONS
-                  //view
-                  FilledTextButton(
-                    isDark: true,
-                    isDense: true,
-                    text: AppLocalizations.of(
-                      context,
-                    )!.viewPlaceholder(AppLocalizations.of(context)!.schedule),
-                    onPressed: () {
-                      navigationProvider.push(
-                        () => ViewScheduleScreen(scheduleId: scheduleId),
-                        showBottomNavBar: true,
-                      );
-                    },
-                  ),
-                  //share
-                  if (schedule.ownerFirebaseId == authProvider.id && schedule.scheduleState == ScheduleState.published)
-                    FilledTextButton(
-                      text: AppLocalizations.of(context)!.share,
-                      isDense: true,
-                      onPressed: () {
-                        showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          builder: (BuildContext context) {
-                            return Padding(
-                              padding: EdgeInsets.only(
-                                bottom: MediaQuery.of(
-                                  context,
-                                ).viewInsets.bottom,
-                              ),
-                              child: ShareScheduleSheet(scheduleId: scheduleId),
-                            );
-                          },
-                        );
-                      },
                     ),
+                  ),
+                  if (showActions) ...[
+                    IconButton(
+                      onPressed: () => _openScheduleActionsSheet(context),
+                      icon: Icon(Icons.more_vert),
+                    ),
+                  ],
                 ],
               ),
-            );
-          },
+              // BOTTOM BUTTONS
+              //view
+              FilledTextButton(
+                isDark: true,
+                isDense: true,
+                text: AppLocalizations.of(
+                  context,
+                )!.viewPlaceholder(AppLocalizations.of(context)!.schedule),
+                onPressed: () {
+                  nav.push(
+                    () => ViewScheduleScreen(scheduleId: scheduleId),
+                    showBottomNavBar: true,
+                  );
+                },
+              ),
+              //share
+              if (selection.schedule!.ownerFirebaseId == auth.id &&
+                  selection.schedule!.scheduleState == ScheduleState.published)
+                FilledTextButton(
+                  text: AppLocalizations.of(context)!.share,
+                  isDense: true,
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      builder: (BuildContext context) {
+                        return Padding(
+                          padding: EdgeInsets.only(
+                            bottom: MediaQuery.of(context).viewInsets.bottom,
+                          ),
+                          child: ShareScheduleSheet(scheduleId: scheduleId),
+                        );
+                      },
+                    );
+                  },
+                ),
+            ],
+          ),
+        );
+      },
     );
   }
 
-  void _openScheduleActionsSheet(
-    BuildContext context,
-    int scheduleId,
-    LocalScheduleProvider localScheduleProvider,
-  ) {
+  void _openScheduleActionsSheet(BuildContext context) {
+    final localSch = context.read<LocalScheduleProvider>();
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -256,7 +251,7 @@ class ScheduleCard extends StatelessWidget {
                         itemType: AppLocalizations.of(context)!.schedule,
                         onConfirm: () async {
                           Navigator.of(context).pop();
-                          await localScheduleProvider.deleteSchedule(
+                          await localSch.deleteSchedule(
                             scheduleId,
                           );
                         },

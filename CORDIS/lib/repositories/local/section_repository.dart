@@ -12,7 +12,7 @@ class SectionRepository {
     final db = await _databaseHelper.database;
     return await db.insert(
       'section',
-      section.toSqlite()..['version_id'] = section.versionId,
+      section.toSqlite()..['version_id'] = section.versionID,
     );
   }
 
@@ -22,7 +22,7 @@ class SectionRepository {
     final existing = await db.query(
       'section',
       where: 'version_id = ? AND content_code = ?',
-      whereArgs: [section.versionId, section.contentCode],
+      whereArgs: [section.versionID, section.contentCode],
     );
 
     if (existing.isNotEmpty) {
@@ -31,14 +31,14 @@ class SectionRepository {
         'section',
         section.toSqlite(),
         where: 'version_id = ? AND content_code = ?',
-        whereArgs: [section.versionId, section.contentCode],
+        whereArgs: [section.versionID, section.contentCode],
       );
       return existing.first['id'] as int;
     } else {
       // Section doesn't exist, insert it
       return await db.insert(
         'section',
-        section.toSqlite()..['version_id'] = section.versionId,
+        section.toSqlite()..['version_id'] = section.versionID,
       );
     }
   }
@@ -69,7 +69,7 @@ class SectionRepository {
       'section',
       section.toSqlite(),
       where: 'version_id = ? AND content_code = ?',
-      whereArgs: [section.versionId, section.contentCode],
+      whereArgs: [section.versionID, section.contentCode],
     );
   }
 
@@ -77,6 +77,19 @@ class SectionRepository {
   /// Deletes section by its versionID and sectionCode
   Future<void> deleteSection(int versionID, String sectionCode) async {
     final db = await _databaseHelper.database;
-    await db.delete('section', where: 'version_id = ?, content_code', whereArgs: [versionID, sectionCode]);
+    await db.delete(
+      'section',
+      where: 'version_id = ? AND content_code = ?',
+      whereArgs: [versionID, sectionCode],
+    );
+  }
+
+  Future<void> deleteSections(int versionID) async {
+    final db = await _databaseHelper.database;
+    await db.delete(
+      'section',
+      where: 'version_id = ?',
+      whereArgs: [versionID],
+    );
   }
 }

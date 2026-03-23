@@ -44,7 +44,7 @@ class KeyRecognizerService {
   Future<String> recognizeKeyCloud(VersionDto version) async {
     List<String> chords = [];
     for (var section in version.sections.values) {
-      final text = section['contentText'] as String;
+      final text = section.contentText;
       final chord = StringBuffer();
       bool inChord = false;
       for (var i = 0; i < text.length; i++) {

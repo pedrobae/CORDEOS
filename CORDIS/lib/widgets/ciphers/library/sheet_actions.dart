@@ -37,6 +37,21 @@ class CipherCardActionsSheet extends StatelessWidget {
     final cloudVer = context.read<CloudVersionProvider>();
     final sect = context.read<SectionProvider>();
 
+    final versionID = localVer.getIdOfOldestVersionOfCipher(cipherId);
+
+    if (versionID == null) {
+      // This should never happen, but just in case
+      return Container(
+        padding: const EdgeInsets.all(16.0),
+        color: colorScheme.surface,
+        child: Text(
+          AppLocalizations.of(context)!.error,
+          style: textTheme.bodyMedium,
+          textAlign: TextAlign.center,
+        ),
+      );
+    }
+
     return Container(
       padding: const EdgeInsets.all(16.0),
       color: colorScheme.surface,
@@ -72,15 +87,19 @@ class CipherCardActionsSheet extends StatelessWidget {
               Navigator.of(context).pop(); // Close the bottom sheet
               nav.push(
                 () => EditCipherScreen(
+                  versionID: versionID,
                   versionType: versionType,
                   cipherID: cipherId,
                   isEnabled: versionType == VersionType.local,
-                  versionID: localVer.getIdOfOldestVersionOfCipher(cipherId)!,
                 ),
                 changeDetector: () =>
                     (localVer.hasUnsavedChanges ||
                     ciph.hasUnsavedChanges ||
                     sect.hasUnsavedChanges),
+                onChangeDiscarded: () {
+                  localVer.loadVersion(versionID);
+                  ciph.loadCipher(cipherId);
+                },
                 showBottomNavBar: true,
               );
             },
@@ -130,9 +149,6 @@ class CipherCardActionsSheet extends StatelessWidget {
                         itemType: AppLocalizations.of(context)!.cipher,
                         onConfirm: () async {
                           Navigator.of(context).pop();
-
-                          final versionID = localVer
-                              .getIdOfOldestVersionOfCipher(cipherId)!;
                           final version = localVer.getVersion(versionID)!;
                           if (version.firebaseID != null &&
                               version.firebaseID!.isNotEmpty) {

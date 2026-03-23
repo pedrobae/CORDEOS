@@ -1,17 +1,20 @@
+import 'package:cordis/models/dtos/version_dto.dart';
+import 'package:flutter/material.dart';
 import 'package:cordis/models/domain/cipher/version.dart';
+
 import 'package:cordis/l10n/app_localizations.dart';
+
+import 'package:provider/provider.dart';
 import 'package:cordis/providers/navigation_provider.dart';
 import 'package:cordis/providers/version/cloud_version_provider.dart';
-import 'package:cordis/providers/version/local_version_provider.dart';
-import 'package:cordis/screens/cipher/edit_cipher.dart';
+
 import 'package:cordis/screens/cipher/view_cipher.dart';
+
 import 'package:cordis/utils/date_utils.dart';
+
 import 'package:cordis/widgets/ciphers/library/sheet_download.dart';
 import 'package:cordis/widgets/common/cloud_download_indicator.dart';
 import 'package:cordis/widgets/common/filled_text_button.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:cordis/providers/selection_provider.dart';
 
 class CloudCipherCard extends StatelessWidget {
   final String versionId;
@@ -25,10 +28,16 @@ class CloudCipherCard extends StatelessWidget {
 
     final nav = context.read<NavigationProvider>();
 
-    return Consumer2<CloudVersionProvider, SelectionProvider>(
-      builder: (context, cloudVer, sel, child) {
-        final version = cloudVer.getVersion(versionId)!;
-
+    return Selector<
+      CloudVersionProvider,
+      ({VersionDto version, bool isDownloading})
+    >(
+      selector: (context, cloudVer) => (
+        version: cloudVer.getVersion(versionId)!,
+        isDownloading: cloudVer.isDownloading(versionId),
+      ),
+      builder: (context, sel, child) {
+        final version = sel.version;
         return Container(
           decoration: BoxDecoration(
             border: Border.all(color: colorScheme.surfaceContainerLowest),
@@ -92,7 +101,7 @@ class CloudCipherCard extends StatelessWidget {
                   ),
 
                   // DOWNLOAD VERSION
-                  if (cloudVer.isDownloading(versionId) == true)
+                  if (sel.isDownloading == true)
                     const CloudDownloadIndicator()
                   else
                     IconButton(
@@ -111,38 +120,17 @@ class CloudCipherCard extends StatelessWidget {
 
               // VIEW BUTTON
               FilledTextButton(
-                text: (sel.isSelectionMode)
-                    ? AppLocalizations.of(context)!.addToPlaylist
-                    : AppLocalizations.of(context)!.viewPlaceholder(''),
+                text: AppLocalizations.of(context)!.viewPlaceholder(''),
                 isDense: true,
                 onPressed: () {
-                  final localVer = context.read<LocalVersionProvider>();
-
-                  if (sel.isSelectionMode) {
-                    sel.select(versionId);
-
-                    nav.push(
-                      () => EditCipherScreen(
-                        versionType: VersionType.playlist,
-                        isEnabled: false,
-                        versionID: -1,
-                        cipherID: -1,
-                      ),
-                      changeDetector: () {
-                        return localVer.hasUnsavedChanges;
-                      },
-                      showBottomNavBar: true,
-                    );
-                  } else {
-                    nav.push(
-                      () => ViewCipherScreen(
-                        cipherID: null,
-                        versionID: versionId,
-                        versionType: VersionType.cloud,
-                      ),
-                      showBottomNavBar: true,
-                    );
-                  }
+                  nav.push(
+                    () => ViewCipherScreen(
+                      cipherID: null,
+                      versionID: versionId,
+                      versionType: VersionType.cloud,
+                    ),
+                    showBottomNavBar: true,
+                  );
                 },
               ),
             ],

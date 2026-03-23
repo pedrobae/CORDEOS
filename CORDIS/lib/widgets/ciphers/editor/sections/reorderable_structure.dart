@@ -14,11 +14,12 @@ class ReorderableStructure extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     final sect = context.read<SectionProvider>();
+    final localVer = context.read<LocalVersionProvider>();
 
-    return Consumer<LocalVersionProvider>(
-      builder: (context, localVer, child) {
-        final songStructure = localVer.getVersion(versionID)!.songStructure;
-
+    return Selector<LocalVersionProvider, List<String>>(
+      selector: (context, localVer) =>
+          localVer.getVersion(versionID)?.songStructure ?? [],
+      builder: (context, songStructure, child) {
         return Container(
           padding: EdgeInsets.all(8),
           height: 64,
@@ -45,9 +46,9 @@ class ReorderableStructure extends StatelessWidget {
                   itemBuilder: (context, index) {
                     final sectionCode = songStructure[index];
 
-                    final color = sect
-                        .getSection(versionID, sectionCode)!
-                        .contentColor;
+                    final color =
+                        sect.getSection(versionID, sectionCode)?.contentColor ??
+                        Colors.grey;
 
                     final sectionCount = songStructure
                         .where((code) => code == sectionCode)
@@ -85,9 +86,11 @@ class ReorderableStructure extends StatelessWidget {
                             right: 1, // Right margin is 4
                             child: GestureDetector(
                               onTap: () {
-                                  localVer.removeSection(versionID, index); if (sectionCount == 1) {
-                                    sect.cacheDeletion(versionID, sectionCode);
-                                  }},
+                                localVer.removeSection(versionID, index);
+                                if (sectionCount == 1) {
+                                  sect.cacheDeletion(versionID, sectionCode);
+                                }
+                              },
                               child: Container(
                                 width: 22,
                                 height: 22,

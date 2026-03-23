@@ -1,4 +1,7 @@
+import 'package:cordis/providers/section_provider.dart';
+import 'package:cordis/providers/selection_provider.dart';
 import 'package:cordis/providers/user/my_auth_provider.dart';
+import 'package:cordis/providers/version/local_version_provider.dart';
 import 'package:cordis/services/sync_service.dart';
 import 'package:flutter/material.dart';
 
@@ -73,6 +76,8 @@ class _ViewScheduleScreenState extends State<ViewScheduleScreen> {
                   nav.push(
                     () => EditDetails(scheduleID: widget.scheduleId),
                     changeDetector: () => localSch.hasUnsavedChanges,
+                    onChangeDiscarded: () =>
+                        localSch.loadSchedule(widget.scheduleId),
                     showBottomNavBar: true,
                   );
                 },
@@ -245,9 +250,24 @@ class _ViewScheduleScreenState extends State<ViewScheduleScreen> {
                 child: FilledTextButton(
                   text: AppLocalizations.of(context)!.editPlaceholder(''),
                   onPressed: () {
+                    final sel = context.read<SelectionProvider>();
+                    final localVer = context.read<LocalVersionProvider>();
+                    final sect = context.read<SectionProvider>();
+
                     nav.push(
                       () => ViewPlaylistScreen(playlistId: playlist.id),
                       changeDetector: () => play.hasUnsavedChanges,
+                      onChangeDiscarded: () async {
+                        debugPrint('PLAYLIST VIEW - discarding Changes');
+                        play.loadPlaylist(playlist.id);
+                        for (var id in sel.newlyAddedVersionIds) {
+                          debugPrint('\t - deleting version with id $id');
+                          await localVer.deleteVersion(id);
+                          await sect.deleteSectionsOfVersion(id);
+                        }
+                        sel.clearNewlyAddedVersionIds();
+                        play.clearUnsavedChanges();
+                      },
                       showBottomNavBar: true,
                     );
                   },
@@ -318,8 +338,9 @@ class _ViewScheduleScreenState extends State<ViewScheduleScreen> {
               onPressed: () {
                 nav.push(
                   () => EditRoles(scheduleId: widget.scheduleId),
-
                   changeDetector: () => localSch.hasUnsavedChanges,
+                  onChangeDiscarded: () =>
+                      localSch.loadSchedule(widget.scheduleId),
                   showBottomNavBar: true,
                 );
               },

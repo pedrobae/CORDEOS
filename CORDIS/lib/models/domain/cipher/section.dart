@@ -1,9 +1,10 @@
-import 'package:cordis/utils/color.dart' as c;
+import 'package:cordis/models/dtos/version_dto.dart';
+import 'package:cordis/utils/color.dart';
 import 'package:flutter/cupertino.dart';
 
 class Section {
   final int? id;
-  int versionId;
+  int versionID;
   String contentType;
   String contentCode;
   String contentText;
@@ -11,7 +12,7 @@ class Section {
 
   Section({
     this.id,
-    required this.versionId,
+    required this.versionID,
     required this.contentType,
     required this.contentCode,
     required this.contentText,
@@ -21,11 +22,11 @@ class Section {
   factory Section.fromSqLite(Map<String, dynamic> json) {
     return Section(
       id: json['id'],
-      versionId: json['version_id'],
+      versionID: json['version_id'],
       contentType: json['content_type'],
       contentCode: json['content_code'],
       contentText: json['content_text'],
-      contentColor: c.colorFromHex(json['content_color']),
+      contentColor: colorFromHex(json['content_color']),
     );
   }
 
@@ -36,32 +37,21 @@ class Section {
       'content_type': contentType,
       'content_code': contentCode,
       'content_text': contentText,
-      'content_color': c.colorToHex(contentColor),
+      'content_color': colorToHex(contentColor),
     };
   }
-
-  factory Section.fromFirestore(Map<String, String> map) {
-    return Section(
-      versionId: 0, // Will be set later
-      contentType: map['contentType'] ?? '',
-      contentCode: map['contentCode'] ?? '',
-      contentText: map['contentText'] ?? '',
-      contentColor: c.colorFromHex(map['contentColor'] ?? '#FFFFFFFF'),
+  SectionDto toFirestore() {
+    return SectionDto(
+      contentCode: contentCode,
+      contentType: contentType,
+      contentText: contentText,
+      color: colorToHex(contentColor),
     );
-  }
-
-  Map<String, String> toFirestore() {
-    return {
-      'contentType': contentType,
-      'contentCode': contentCode,
-      'contentText': contentText,
-      'contentColor': c.colorToHex(contentColor),
-    };
   }
 
   Section copyWith({
     int? id,
-    int? versionId,
+    int? versionID,
     String? contentType,
     String? contentCode,
     String? contentText,
@@ -69,7 +59,7 @@ class Section {
   }) {
     return Section(
       id: id ?? this.id,
-      versionId: versionId ?? this.versionId,
+      versionID: versionID ?? this.versionID,
       contentType: contentType ?? this.contentType,
       contentCode: contentCode ?? this.contentCode,
       contentText: contentText ?? this.contentText,

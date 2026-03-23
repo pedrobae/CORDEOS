@@ -178,7 +178,7 @@ class PlayScheduleState extends State<PlaySchedule> {
 
           final sections = <String, Section>{};
           for (var entry in version.sections.entries) {
-            sections[entry.key] = Section.fromFirestore(entry.value);
+            sections[entry.key] = entry.value.toDomain();
           }
 
           sect.setNewSectionsInCache(item.firebaseContentId!, sections);
@@ -360,7 +360,7 @@ class PlayScheduleState extends State<PlaySchedule> {
                 children: [
                   Expanded(
                     child: StructureList(
-                      versionId: isCloud
+                      versionID: isCloud
                           ? item.firebaseContentId
                           : item.contentId,
                     ),

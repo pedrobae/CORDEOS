@@ -1,6 +1,6 @@
 import 'package:cordis/l10n/app_localizations.dart';
-import 'package:cordis/models/domain/cipher/section.dart';
 import 'package:cordis/models/dtos/pdf_dto.dart';
+import 'package:cordis/models/dtos/version_dto.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 
@@ -76,7 +76,7 @@ class ParsingResult {
   final List<LineData> lines = [];
   final Map<String, dynamic> metadata = {};
   final List<RawSection> rawSections = [];
-  final Map<String, Section> parsedSections = {};
+  final Map<String, SectionDto> parsedSections = {};
   final List<String> songStructure = [];
   List<PdfFontStyle>? dominantChordStyle;
 

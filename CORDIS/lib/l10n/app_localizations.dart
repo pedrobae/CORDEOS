@@ -1304,6 +1304,12 @@ abstract class AppLocalizations {
   /// **'Insira o código de compartilhamento fornecido pelo líder da sua equipe para acessar a agenda.'**
   String get shareCodeInstructions;
 
+  /// Success message when joining a schedule with a share code
+  ///
+  /// In pt, this message translates to:
+  /// **'Ingressou na agenda com sucesso!'**
+  String get joinedScheduleSuccessfully;
+
   /// Share code screen title
   ///
   /// In pt, this message translates to:

@@ -1,5 +1,4 @@
 import 'package:cordis/l10n/app_localizations.dart';
-import 'package:cordis/models/domain/cipher/section.dart';
 import 'package:cordis/providers/auto_scroll_provider.dart';
 import 'package:cordis/providers/cipher/cipher_provider.dart';
 import 'package:cordis/providers/settings/layout_settings_provider.dart';
@@ -66,7 +65,6 @@ class VersionWrap extends StatelessWidget {
       CipherProvider
     >(
       builder: (context, localVer, cloudVer, ciph, child) {
-
         final textTheme = Theme.of(context).textTheme;
 
         String title;
@@ -165,17 +163,17 @@ class VersionWrap extends StatelessWidget {
 
       final code = filteredStructure[i];
 
-        final section =
+      final section =
           sect.getSection(versionID, code) ??
           (versionID is String
-            ? () {
-              final sectionMap = cloudVer
-                .getVersion(versionID)
-                ?.sections[code];
-              if (sectionMap == null) return null;
-              return Section.fromFirestore(sectionMap);
-            }()
-            : null);
+              ? () {
+                  final sectionDto = cloudVer
+                      .getVersion(versionID)
+                      ?.sections[code];
+                  if (sectionDto == null) return null;
+                  return sectionDto.toDomain();
+                }()
+              : null);
 
       if (section == null) {
         sectionWidgets.add(const SizedBox.shrink());

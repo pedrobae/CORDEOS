@@ -136,6 +136,11 @@ class CipherProvider extends ChangeNotifier {
   Future<void> loadCipher(int cipherId) async {
     if (_isLoading) return;
 
+    if (cipherId == -1) {
+      _ciphers.remove(-1);
+      return;
+    }
+
     _isLoading = true;
     _error = null;
     notifyListeners();

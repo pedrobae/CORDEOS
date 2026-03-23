@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:cordis/models/domain/cipher/cipher.dart';
 import 'package:flutter/material.dart';
 import 'package:cordis/l10n/app_localizations.dart';
 
@@ -50,7 +51,14 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard> {
       Version? version = localVer.getVersion(widget.versionId);
       if (version == null) {
         await localVer.loadVersion(widget.versionId);
-        version = localVer.getVersion(widget.versionId)!;
+        version = localVer.getVersion(widget.versionId);
+
+        if (version == null) {
+          debugPrint(
+            'PLAYLIST VIEW - VersionCard - version ${widget.versionId} could not be loaded.',
+          );
+          return;
+        }
       }
 
       final cipher = ciph.getCipher(version.cipherID);
@@ -69,22 +77,29 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard> {
 
     final nav = context.read<NavigationProvider>();
 
-    return Consumer2<LocalVersionProvider, CipherProvider>(
-      builder: (context, localVer, ciph, child) {
+    return Selector2<
+      LocalVersionProvider,
+      CipherProvider,
+      ({Version? version, Cipher? cipher})
+    >(
+      selector: (context, localVer, ciph) {
         final version = localVer.getVersion(widget.versionId);
-
+        final cipher = version != null
+            ? ciph.getCipher(version.cipherID)
+            : null;
+        return (version: version, cipher: cipher);
+      },
+      builder: (context, sel, child) {
         // If version is not loaded yet, show loading indicator
-        if (version == null) {
+        if (sel.version == null) {
           return Center(child: CircularProgressIndicator());
         }
 
-        final cipher = ciph.getCipher(version.cipherID);
-
-        if (cipher == null) {
+        if (sel.cipher == null) {
           return Center(child: CircularProgressIndicator());
         }
 
-        final List<String> songStructure = version.songStructure;
+        final List<String> songStructure = sel.version!.songStructure;
 
         return Container(
           decoration: BoxDecoration(
@@ -127,7 +142,7 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  cipher.title,
+                                  sel.cipher!.title,
                                   style: theme.textTheme.titleMedium,
                                   softWrap: true,
                                 ),
@@ -142,8 +157,8 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard> {
                                           style: theme.textTheme.bodyMedium,
                                         ),
                                         Text(
-                                          version.transposedKey ??
-                                              cipher.musicKey,
+                                          sel.version!.transposedKey ??
+                                              sel.cipher!.musicKey,
                                           style: theme.textTheme.bodyMedium,
                                         ),
                                       ],
@@ -156,14 +171,14 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard> {
                                           style: theme.textTheme.bodyMedium,
                                         ),
                                         Text(
-                                          version.bpm.toString(),
+                                          sel.version!.bpm.toString(),
                                           style: theme.textTheme.bodyMedium,
                                         ),
                                       ],
                                     ),
                                     Text(
                                       DateTimeUtils.formatDuration(
-                                        version.duration,
+                                        sel.version!.duration,
                                       ),
                                       style: theme.textTheme.bodyMedium,
                                     ),
@@ -171,9 +186,8 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard> {
                                 ),
                                 // REORDERABLE SECTION CHIPS
                                 _buildReorderableSectionChips(
-                                  version,
+                                  sel.version!,
                                   songStructure,
-                                  localVer,
                                 ),
                               ],
                             ),
@@ -182,7 +196,7 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard> {
                             iconSize: 30,
                             icon: Icon(Icons.more_vert_rounded),
                             onPressed: () {
-                              _openVersionActions(context, version);
+                              _openVersionActions(context, sel.version!);
                             },
                           ),
                         ],
@@ -198,7 +212,7 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard> {
                             () => ViewCipherScreen(
                               versionType: VersionType.playlist,
                               versionID: widget.versionId,
-                              cipherID: version.cipherID,
+                              cipherID: sel.version!.cipherID,
                             ),
                             showBottomNavBar: true,
                           );
@@ -218,8 +232,9 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard> {
   Widget _buildReorderableSectionChips(
     Version version,
     List<String> songStructure,
-    LocalVersionProvider localVer,
   ) {
+    final localVer = context.read<LocalVersionProvider>();
+
     return ConstrainedBox(
       constraints: BoxConstraints(maxHeight: 25),
       child: ReorderableListView.builder(
@@ -235,8 +250,11 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard> {
           localVer.reorderSongStructure(widget.versionId, oldIndex, newIndex);
         },
         itemBuilder: (_, index) {
+          final sect = context.read<SectionProvider>();
           final sectionCode = songStructure[index];
-          final color = version.sections![sectionCode]!.contentColor;
+
+          final section = sect.getSection(widget.versionId, sectionCode);
+          final color = section?.contentColor ?? Colors.grey;
           final codeWidth = (TextPainter(
             text: TextSpan(
               text: sectionCode,

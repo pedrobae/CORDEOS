@@ -79,8 +79,8 @@ class VersionCardActionsSheet extends StatelessWidget {
                   cipherID: cipherID,
                   isEnabled: false,
                 ),
-                changeDetector: () =>
-                    play.hasUnsavedChanges || localVer.hasUnsavedChanges,
+                changeDetector: () => localVer.hasUnsavedChanges,
+                onChangeDiscarded: () => localVer.loadVersion(versionID),
                 showBottomNavBar: true,
               );
               Navigator.of(context).pop();
@@ -118,10 +118,7 @@ class VersionCardActionsSheet extends StatelessWidget {
                       play.cacheRemoveVersion(itemID, playlistID);
                       // Check if version has a duplicate in this playlist
                       // If not, delete it
-                      if (!play.versionIsInPlaylist(
-                        versionID,
-                        playlistID,
-                      )) {
+                      if (!play.versionIsInPlaylist(versionID, playlistID)) {
                         localVer.cacheDeletion(versionID);
                       }
                       Navigator.of(context).pop();

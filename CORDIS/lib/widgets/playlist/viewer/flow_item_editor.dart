@@ -14,9 +14,9 @@ import 'package:cordis/widgets/common/labeled_text_field.dart';
 
 class FlowItemEditor extends StatefulWidget {
   final int? flowID;
-  final int playID;
+  final int playlistID;
 
-  const FlowItemEditor({super.key, this.flowID, required this.playID});
+  const FlowItemEditor({super.key, this.flowID, required this.playlistID});
 
   @override
   State<FlowItemEditor> createState() => _FlowItemEditorState();
@@ -120,7 +120,7 @@ class _FlowItemEditorState extends State<FlowItemEditor> {
                       ? flow.create(
                           FlowItem(
                             firebaseId: '',
-                            playlistId: widget.playID,
+                            playlistId: widget.playlistID,
                             title: _titleController.text,
                             contentText: _contentController.text,
                             duration: DateTimeUtils.parseDuration(

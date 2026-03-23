@@ -66,6 +66,7 @@ class QuickActionSheet extends StatelessWidget {
               nav.push(
                 () => EditPlaylistScreen(),
                 changeDetector: () => playlistProvider.hasUnsavedChanges,
+                onChangeDiscarded: () => playlistProvider.loadPlaylist(-1),
                 showBottomNavBar: true,
               );
             },
@@ -101,6 +102,7 @@ class QuickActionSheet extends StatelessWidget {
                 () => CreateScheduleScreen(creationStep: 1),
                 showBottomNavBar: true,
                 changeDetector: () => localScheduleProvider.hasUnsavedChanges,
+                onChangeDiscarded: () => localScheduleProvider.loadSchedule(-1),
                 onPopCallback: () {
                   sel.disableSelectionMode();
                 },

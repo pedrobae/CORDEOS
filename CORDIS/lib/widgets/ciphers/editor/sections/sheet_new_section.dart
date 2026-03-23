@@ -11,7 +11,11 @@ class NewSectionSheet extends StatelessWidget {
   final int versionID;
   final int cipherID;
 
-  const NewSectionSheet({super.key, required this.versionID, required this.cipherID});
+  const NewSectionSheet({
+    super.key,
+    required this.versionID,
+    required this.cipherID,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +38,12 @@ class NewSectionSheet extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(AppLocalizations.of(context)!.createPlaceholder(AppLocalizations.of(context)!.section), style: textTheme.titleMedium),
+              Text(
+                AppLocalizations.of(
+                  context,
+                )!.createPlaceholder(AppLocalizations.of(context)!.section),
+                style: textTheme.titleMedium,
+              ),
               IconButton(
                 icon: const Icon(Icons.close),
                 onPressed: () {
@@ -56,10 +65,11 @@ class NewSectionSheet extends StatelessWidget {
               Navigator.of(context).pop();
               nav.pushForeground(
                 SelectType(
-                    sectionCode: null,
-                    versionID: versionID,
-                    isNewSection: true,
-                  ),);
+                  sectionCode: null,
+                  versionID: versionID,
+                  isNewSection: true,
+                ),
+              );
             },
           ),
 
@@ -72,7 +82,10 @@ class NewSectionSheet extends StatelessWidget {
             isDiscrete: true,
             onPressed: () {
               Navigator.of(context).pop();
-              nav.push(() => ImportTextScreen(versionID: versionID, cipherID: cipherID,));
+              nav.push(
+                () =>
+                    ImportTextScreen(versionID: versionID, cipherID: cipherID),
+              );
             },
           ),
           // pdf
@@ -83,7 +96,9 @@ class NewSectionSheet extends StatelessWidget {
             isDiscrete: true,
             onPressed: () {
               Navigator.of(context).pop();
-              nav.push(() => ImportPdfScreen(versionID: versionID, cipherID: cipherID,));
+              nav.push(
+                () => ImportPdfScreen(versionID: versionID, cipherID: cipherID),
+              );
             },
           ),
 

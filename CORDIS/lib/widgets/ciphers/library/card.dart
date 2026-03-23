@@ -1,21 +1,26 @@
 import 'dart:math';
 
+import 'package:flutter/material.dart';
 import 'package:cordis/l10n/app_localizations.dart';
-import 'package:cordis/models/domain/cipher/section.dart';
+
 import 'package:cordis/models/domain/cipher/version.dart';
+
+import 'package:provider/provider.dart';
 import 'package:cordis/providers/cipher/cipher_provider.dart';
 import 'package:cordis/providers/navigation_provider.dart';
+import 'package:cordis/providers/playlist/playlist_provider.dart';
 import 'package:cordis/providers/section_provider.dart';
 import 'package:cordis/providers/selection_provider.dart';
 import 'package:cordis/providers/settings/secret_settings_provider.dart';
 import 'package:cordis/providers/version/local_version_provider.dart';
+
 import 'package:cordis/screens/cipher/edit_cipher.dart';
 import 'package:cordis/screens/cipher/view_cipher.dart';
+
 import 'package:cordis/utils/date_utils.dart';
+
 import 'package:cordis/widgets/ciphers/library/sheet_actions.dart';
 import 'package:cordis/widgets/common/filled_text_button.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class CipherCard extends StatefulWidget {
   final int cipherId;
@@ -127,10 +132,19 @@ class _CipherCardState extends State<CipherCard> {
                                     scrollDirection: Axis.horizontal,
                                     itemCount: version.songStructure.length,
                                     itemBuilder: (_, index) {
+                                      final sect = context
+                                          .read<SectionProvider>();
+
                                       final sectionCode =
                                           version.songStructure[index];
-                                      final Section section =
-                                          version.sections![sectionCode]!;
+
+                                      final section = sect.getSection(
+                                        versionId,
+                                        sectionCode,
+                                      );
+
+                                      final color =
+                                          section?.contentColor ?? Colors.grey;
 
                                       // Painter for sections with large codes
                                       final textPainter = TextPainter(
@@ -155,7 +169,7 @@ class _CipherCardState extends State<CipherCard> {
                                           borderRadius: BorderRadius.circular(
                                             6,
                                           ),
-                                          color: section.contentColor,
+                                          color: color,
                                         ),
                                         margin: const EdgeInsets.only(right: 3),
                                         child: Center(
@@ -196,26 +210,14 @@ class _CipherCardState extends State<CipherCard> {
                           ? AppLocalizations.of(context)!.addToPlaylist
                           : AppLocalizations.of(context)!.viewPlaceholder(''),
                       isDense: true,
-                      onPressed: () {
+                      onPressed: () async {
                         if (sel.isSelectionMode) {
-                          sel.select(versionId);
-                          nav.push(
-                            () => EditCipherScreen(
-                              cipherID: widget.cipherId,
-                              versionID: versionId,
-                              versionType: VersionType.playlist,
-                              isEnabled: false,
-                            ),
-                            showBottomNavBar: true,
-                            changeDetector: () =>
-                                (localVer.hasUnsavedChanges ||
-                                sect.hasUnsavedChanges ||
-                                ciph.hasUnsavedChanges),
-                            onPopCallback: () {
-                              sel.deselect(versionId);
-                              sel.enableSelectionMode();
-                            },
+                          await _createAndAddVersionToPlaylist(
+                            context,
+                            version,
                           );
+
+                          nav.pop();
                         } else {
                           nav.push(
                             () => ViewCipherScreen(
@@ -237,10 +239,15 @@ class _CipherCardState extends State<CipherCard> {
                               versionID: versionId,
                               versionType: VersionType.local,
                             ),
-                            changeDetector: () =>
-                                (localVer.hasUnsavedChanges ||
-                                sect.hasUnsavedChanges ||
-                                ciph.hasUnsavedChanges),
+                            changeDetector: () {
+                              return localVer.hasUnsavedChanges ||
+                                  sect.hasUnsavedChanges ||
+                                  ciph.hasUnsavedChanges;
+                            },
+                            onChangeDiscarded: () {
+                              localVer.loadVersion(versionId);
+                              ciph.loadCipher(widget.cipherId);
+                            },
                             showBottomNavBar: true,
                           );
                         }
@@ -254,6 +261,43 @@ class _CipherCardState extends State<CipherCard> {
         );
       },
     );
+  }
+
+  Future<void> _createAndAddVersionToPlaylist(
+    BuildContext context,
+    Version version,
+  ) async {
+    final play = context.read<PlaylistProvider>();
+    final localVer = context.read<LocalVersionProvider>();
+    final sect = context.read<SectionProvider>();
+    final sel = context.read<SelectionProvider>();
+
+    final playlistName = AppLocalizations.of(
+      context,
+    )!.playlistVersionName(play.getPlaylist(sel.targetId!)!.name);
+
+    final newVersion = version.copyWith(
+      versionName: playlistName,
+      firebaseID: '',
+    );
+
+    localVer.setNewVersionInCache(newVersion);
+    final newVersionID = await localVer.createVersion(
+      cipherID: version.cipherID,
+    );
+
+    if (newVersionID == null) {
+      debugPrint('Could not create a copy of version');
+      return;
+    }
+
+    await sect.loadSectionsOfVersion(version.id!);
+    sect.cacheCopyOfVersion(version.id!, newVersionID);
+    sect.saveSections(versionID: newVersionID);
+
+    sel.addVersionIdToDelete(newVersionID);
+
+    play.cacheAddVersion(sel.targetId!, newVersionID);
   }
 
   void _openCipherActionsSheet(

@@ -31,7 +31,7 @@ class CloudScheduleProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get isSaving => _isSaving;
 
-  Map<String, bool> get syncingStatus => _isSyncing;
+  bool syncingStatus(String scheduleId) => _isSyncing[scheduleId] ?? false;
 
   List<String> get filteredScheduleIds {
     if (_searchTerm.isEmpty) {
@@ -204,20 +204,24 @@ class CloudScheduleProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> joinScheduleWithCode(String shareCode) async {
-    if (_isLoading) return;
-    try {
-      _isLoading = true;
-      _error = null;
-      notifyListeners();
+  Future<bool> joinScheduleWithCode(String shareCode) async {
+    bool success = false;
 
-      await _repo.joinWithCode(shareCode);
+    if (_isLoading) return success;
+
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      success = await _repo.joinWithCode(shareCode);
     } catch (e) {
       _error = e.toString();
     } finally {
       _isLoading = false;
       notifyListeners();
     }
+    return success;
   }
 
   // ===== SEARCH & FILTER =====

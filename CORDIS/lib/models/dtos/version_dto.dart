@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cordis/models/domain/cipher/section.dart';
 import 'package:cordis/models/domain/cipher/version.dart';
+import 'package:cordis/utils/color.dart';
+import 'package:flutter/material.dart';
 
 /// DTO para metadados de version (camada de separação entre a nuvem e o armazenamento local).
 class VersionDto {
@@ -16,7 +18,7 @@ class VersionDto {
   final String? transposedKey;
   final List<String> songStructure;
   final Timestamp? updatedAt;
-  final Map<String, Map<String, String>> sections;
+  final Map<String, SectionDto> sections;
 
   VersionDto({
     this.firebaseId,
@@ -51,8 +53,10 @@ class VersionDto {
           .toList(),
       updatedAt: map['updatedAt'] as Timestamp?,
       sections: (map['sections'] as Map<String, dynamic>).map(
-        (sectionsCode, section) =>
-            MapEntry(sectionsCode, Map<String, String>.from(section)),
+        (sectionsCode, section) => MapEntry(
+          sectionsCode,
+          SectionDto.fromFirestore(Map<String, dynamic>.from(section)),
+        ),
       ),
     );
   }
@@ -70,7 +74,7 @@ class VersionDto {
       'tags': tags,
       'songStructure': songStructure,
       'updatedAt': updatedAt ?? Timestamp.now(),
-      'sections': sections,
+      'sections': sections.map((key, value) => MapEntry(key, value.toFirestore())),
     };
   }
 
@@ -93,8 +97,10 @@ class VersionDto {
           ? (Timestamp.fromMillisecondsSinceEpoch(map['updatedAt'] as int))
           : Timestamp.now(),
       sections: (map['sections'] as Map<String, dynamic>).map(
-        (sectionsCode, section) =>
-            MapEntry(sectionsCode, Map<String, String>.from(section)),
+        (sectionsCode, section) => MapEntry(
+          sectionsCode,
+          SectionDto.fromFirestore(Map<String, dynamic>.from(section)),
+        ),
       ),
     );
   }
@@ -114,7 +120,7 @@ class VersionDto {
       'tags': tags,
       'songStructure': songStructure,
       'updatedAt': updatedAt?.millisecondsSinceEpoch,
-      'sections': sections,
+      'sections': sections.map((key, value) => MapEntry(key, value.toCache())),
     };
   }
 
@@ -127,10 +133,6 @@ class VersionDto {
       duration: Duration(seconds: duration),
       bpm: bpm,
       createdAt: updatedAt?.toDate() ?? DateTime.now(),
-      sections: sections.map(
-        (sectionsCode, section) =>
-            MapEntry(sectionsCode, Section.fromFirestore(section)),
-      ),
       cipherID: cipherId ?? -1,
     );
   }
@@ -148,7 +150,7 @@ class VersionDto {
     String? transposedKey,
     List<String>? songStructure,
     Timestamp? updatedAt,
-    Map<String, Map<String, String>>? sections,
+    Map<String, SectionDto>? sections,
   }) {
     return VersionDto(
       firebaseId: firebaseId ?? this.firebaseId,
@@ -164,6 +166,50 @@ class VersionDto {
       songStructure: songStructure ?? this.songStructure,
       updatedAt: updatedAt ?? this.updatedAt,
       sections: sections ?? this.sections,
+    );
+  }
+}
+
+class SectionDto {
+  final String contentCode;
+  final String contentType;
+  final String contentText;
+  final String? color;
+
+  SectionDto({
+    required this.contentCode,
+    required this.contentType,
+    required this.contentText,
+    this.color,
+  });
+
+  factory SectionDto.fromFirestore(Map<String, dynamic> map) {
+    return SectionDto(
+      contentCode: map['contentCode'] as String,
+      contentType: map['contentType'] as String,
+      contentText: map['contentText'] as String,
+      color: map['contentColor'] as String?,
+    );
+  }
+
+  Map<String, dynamic> toFirestore() {
+    return {
+      'contentCode': contentCode,
+      'contentType': contentType,
+      'contentText': contentText,
+      'contentColor': color,
+    };
+  }
+
+  Map<String, dynamic> toCache() => toFirestore();
+
+  Section toDomain({int? versionID}) {
+    return Section(
+      versionID: versionID ?? -1,
+      contentType: contentType,
+      contentCode: contentCode,
+      contentText: contentText,
+      contentColor: color != null ? colorFromHex(color!) : Colors.grey,
     );
   }
 }

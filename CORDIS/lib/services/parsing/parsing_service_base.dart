@@ -1,7 +1,6 @@
-import 'package:cordis/models/domain/cipher/cipher.dart';
-import 'package:cordis/models/domain/cipher/version.dart';
 import 'package:cordis/models/domain/parsing_cipher.dart';
 import 'package:cordis/models/dtos/pdf_dto.dart';
+import 'package:cordis/models/dtos/version_dto.dart';
 import 'package:cordis/services/parsing/chord_line_parser.dart';
 import 'package:cordis/services/parsing/section_parser.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
@@ -146,26 +145,21 @@ class ParsingServiceBase {
     }
   }
 
-  Cipher buildCipherFromParsedImportVariant(ParsingResult result) {
-    return Cipher(
-      id: -1, // Temporary ID, will be set in upsert
-      versions: [
-        Version(
-          sections: result.parsedSections,
-          songStructure: result.songStructure,
-          bpm: result.metadata['bpm'] ?? 0,
-          versionName: 'Imported',
-          cipherID: -1,
-          createdAt: DateTime.now(),
-          duration: Duration(seconds: result.metadata['duration'] ?? 0),
-        ),
-      ],
-      createdAt: DateTime.now(),
+  VersionDto buildVersionFromResult(ParsingResult result) {
+    return VersionDto(
+      sections: result.parsedSections,
+      songStructure: result.songStructure,
+      bpm: result.metadata['bpm'] ?? 0,
+      versionName: 'Imported',
+      duration: result.metadata['duration'] ?? 0,
       title: result.metadata['title'] ?? 'Unknown Title',
       author: result.metadata['artist'] ?? 'Unknown Artist',
-      musicKey: result.metadata['key'] ?? '',
       language: result.metadata['language'] ?? '',
-      isLocal: true,
+      originalKey: '',
+      tags: result.metadata['tags'] != null
+          ? List<String>.from(result.metadata['tags'])
+          : [],
+
     );
   }
 }

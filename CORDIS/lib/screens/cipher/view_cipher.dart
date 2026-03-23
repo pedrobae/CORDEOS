@@ -89,9 +89,14 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
       case VersionType.cloud:
         if (widget.versionID != null) {
           final version = cloudVer.getVersion(widget.versionID);
+
+          if (version == null) return;
+
           sect.setNewSectionsInCache(
             widget.versionID,
-            version!.toDomain().sections!,
+            version.sections.map(
+              (key, value) => MapEntry(key, value.toDomain()),
+            ),
           );
         }
         break;
@@ -173,7 +178,7 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
           Row(
             children: [
               if (isWideScreen)
-                Expanded(child: StructureList(versionId: widget.versionID)),
+                Expanded(child: StructureList(versionID: widget.versionID)),
 
               if (widget.versionType == VersionType.local) ...[
                 IconButton(
@@ -202,7 +207,7 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
               ),
             ],
           ),
-          if (!isWideScreen) StructureList(versionId: widget.versionID),
+          if (!isWideScreen) StructureList(versionID: widget.versionID),
         ],
       ),
     );
@@ -245,11 +250,14 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
           versionType: widget.versionType,
         ),
         changeDetector: () {
-          return widget.versionID is String
-              ? false
-              : (localVer.hasUnsavedChanges ||
-                    ciph.hasUnsavedChanges ||
-                    sect.hasUnsavedChanges);
+          return localVer.hasUnsavedChanges ||
+              ciph.hasUnsavedChanges ||
+              sect.hasUnsavedChanges;
+        },
+        onChangeDiscarded: () {
+          localVer.loadVersion(widget.versionID);
+          ciph.loadCipher(widget.cipherID ?? -1);
+          sect.loadSectionsOfVersion(widget.versionID);
         },
         showBottomNavBar: true,
       );

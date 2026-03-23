@@ -1,12 +1,9 @@
 import 'package:cordis/models/domain/cipher/version.dart';
-import 'package:cordis/repositories/local/section_repository.dart';
 import 'package:cordis/repositories/local/version_repository.dart';
 import 'package:flutter/foundation.dart';
 
 class LocalVersionProvider extends ChangeNotifier {
   final LocalVersionRepository _repo = LocalVersionRepository();
-  final _sectionRepo = SectionRepository();
-
   final Map<int, Version> _versions = {}; // Cached versions localID -> Version
   final List<int> _cachedDeletions = [];
 
@@ -228,20 +225,10 @@ class LocalVersionProvider extends ChangeNotifier {
         // Update existing version
         versionId = existingVersion.id!;
         await _repo.updateVersion(version.copyWith(id: existingVersion.id));
-        for (final section in version.sections!.values) {
-          await _sectionRepo.updateSection(
-            section.copyWith(versionId: existingVersion.id),
-          );
-        }
         debugPrint('Updated existing version with id: ${existingVersion.id}');
       } else {
         // Insert new version
         versionId = await _repo.insertVersion(version);
-        for (final section in version.sections!.values) {
-          await _sectionRepo.insertSection(
-            section.copyWith(versionId: versionId),
-          );
-        }
         debugPrint('Inserted new version with id: $versionId');
       }
     } catch (e) {
@@ -328,6 +315,7 @@ class LocalVersionProvider extends ChangeNotifier {
 
     try {
       cipherID = await _repo.deleteVersion(versionId);
+      debugPrint('Deleted version with id: $versionId');
     } catch (e) {
       _error = e.toString();
       debugPrint('Error deleting cipher version: $e');

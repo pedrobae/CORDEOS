@@ -450,6 +450,8 @@
   "@enterShareCode": {"description": "Enter share code button label"},
   "shareCodeInstructions": "Insira o código de compartilhamento fornecido pelo líder da sua equipe para acessar a agenda.",
   "@shareCodeInstructions": {"description": "Instruction to share the code with others"},
+  "joinedScheduleSuccessfully": "Ingressou na agenda com sucesso!",
+  "@joinedScheduleSuccessfully": {"description": "Success message when joining a schedule with a share code"},
 
   "joinSchedule": "Participar da Agenda",
   "@joinSchedule": {"description": "Share code screen title"},
