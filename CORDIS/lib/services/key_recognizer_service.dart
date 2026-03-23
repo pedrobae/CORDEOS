@@ -68,7 +68,7 @@ class KeyRecognizerService {
   }
 
   /// Recognizes the key of a new cipher that is cache only
-  Future<String> recognizeKeyForNewCipher(List<Section> sections) async {
+  String recognizeKeyForNewCipher(List<Section> sections) {
     List<String> chords = [];
     for (var section in sections) {
       final text = section.contentText;
@@ -98,15 +98,23 @@ class KeyRecognizerService {
   /// Returns the new key
   String _extractKey(List<String> chords) {
     Map<String, int> chordCounts = {};
+    Map<String, Chord> chordCache = {};
     for (var chordStr in chords) {
-      final chord = Chord.fromString(chordStr);
+      if (!chordCache.containsKey(chordStr)) {
+        try {
+          chordCache[chordStr] = Chord.fromString(chordStr);
+        } catch (e) {
+          continue; // Skip unrecognized chords
+        }
+      }
+      final chord = chordCache[chordStr]!;
       final chordKey = '${chord.root}${chord.quality}';
       chordCounts[chordKey] = (chordCounts[chordKey] ?? 0) + 1;
     }
 
     Map<String, double> keyScores = {};
     for (var key in ChordHelper.keyList) {
-      final chordsOfKey = _chords.getChordsForKey(key);
+      final chordsOfKey = _chords.getDiatonicChords(key);
       int inPaletteCount = 0;
       for (var chord in chordCounts.keys) {
         if (chordsOfKey.contains(chord)) {

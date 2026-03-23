@@ -342,9 +342,8 @@ class _EditCipherScreenState extends State<EditCipherScreen>
     final tp = context.read<TranspositionProvider>();
     final localVer = context.read<LocalVersionProvider>();
 
-    if (widget.versionType == VersionType.import ||
-        widget.versionType == VersionType.brandNew) {
-    } else {
+    if (widget.versionType != VersionType.import &&
+        widget.versionType != VersionType.brandNew) {
       localVer.cacheUpdates(widget.versionID, transposedKey: tp.transposedKey);
     }
   }

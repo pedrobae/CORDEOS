@@ -89,24 +89,24 @@ class ChordHelper {
   ];
 
   /// Generate chords for the current key
-  List<String> getChordsForKey(String key) {
-    final Map<String, List<String>> keyChords = {
+  List<String> getDiatonicChords(String key) {
+    final Map<String, List<String>> diatonics = {
       'C': ['C', 'Dm', 'Em', 'F', 'G', 'Am', 'Bdim'],
       'Db': ['Db', 'Ebm', 'Fm', 'Gb', 'Ab', 'Bbm', 'Cdim'],
-      'D': ['D', 'Em', 'Fbm', 'G', 'A', 'Bm', 'Cbdim'],
+      'D': ['D', 'Em', 'F#m', 'G', 'A', 'Bm', 'C#dim'],
       'Eb': ['Eb', 'Fm', 'Gm', 'Ab', 'Bb', 'Cm', 'Ddim'],
-      'E': ['E', 'Fbm', 'Gbm', 'A', 'B', 'Cbm', 'Dbdim'],
+      'E': ['E', 'F#m', 'G#m', 'A', 'B', 'C#m', 'D#dim'],
       'F': ['F', 'Gm', 'Am', 'Bb', 'C', 'Dm', 'Edim'],
-      'F#': ['G#', 'A#m', 'B#m', 'C#', 'D#', 'E#m', 'Fdim'],
-      'G': ['G', 'Am', 'Bm', 'C', 'D', 'Em', 'Fbdim'],
+      'F#': ['F#', 'G#m', 'A#m', 'B', 'C#', 'D#m', 'E#dim'],
+      'G': ['G', 'Am', 'Bm', 'C', 'D', 'Em', 'F#dim'],
       'Ab': ['Ab', 'Bbm', 'Cm', 'Db', 'Eb', 'Fm', 'Gdim'],
-      'A': ['A', 'Bm', 'Cbm', 'D', 'E', 'Fbm', 'Gbdim'],
+      'A': ['A', 'Bm', 'C#m', 'D', 'E', 'F#m', 'G#dim'],
       'Bb': ['Bb', 'Cm', 'Dm', 'Eb', 'F', 'Gm', 'Adim'],
-      'B': ['B', 'Cbm', 'Dbm', 'E', 'Fb', 'Gbm', 'Abdim'],
+      'B': ['B', 'C#m', 'D#m', 'E', 'F#', 'G#m', 'A#dim'],
     };
 
     // Return chords for key, or default C major if not found
-    return keyChords[key] ?? keyChords['C']!;
+    return diatonics[key] ?? diatonics['C']!;
   }
 
   List<String> getVariationsForChord(String chord, int index) {

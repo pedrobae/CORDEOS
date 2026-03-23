@@ -58,7 +58,7 @@ class _ChordPaletteState extends State<ChordPalette> {
         final textTheme = Theme.of(context).textTheme;
         final colorScheme = Theme.of(context).colorScheme;
 
-        final chords = ChordHelper().getChordsForKey(
+        final chords = ChordHelper().getDiatonicChords(
           tp.transposedKey ?? tp.originalKey,
         );
 
