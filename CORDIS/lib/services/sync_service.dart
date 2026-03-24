@@ -31,7 +31,10 @@ class ScheduleSyncService {
   /// Sync owner's schedule to SQLite, so it can be accessed offline and edited
   /// Priority is given to the local version, so cloud diffs are discarded,
   /// But if the schedule doesn't exist locally, or there are empty fields, it will be created/updated with the cloud version
-  Future<int> scheduleToLocal(ScheduleDto scheduleDto, {bool isPublic = true}) async {
+  Future<int> scheduleToLocal(
+    ScheduleDto scheduleDto, {
+    bool isPublic = true,
+  }) async {
     debugPrint("SYNC SERVICE - starting schedule to local");
     debugPrint("\t getting owner local id");
     final ownerUser = await _userRepo.getUserByFirebaseId(
@@ -63,11 +66,18 @@ class ScheduleSyncService {
       await syncRole(role, scheduleID, existingRole);
     }
 
+    debugPrint("SYNC SERVICE - finished schedule to local with id $scheduleID");
     return scheduleID;
   }
 
-  Future<int> syncSchedule(ScheduleDto scheduleDto, int playlistID, bool isPublic) async {
-    final schedule = scheduleDto.toDomain(playlistLocalId: playlistID).copyWith(isPublic: isPublic);
+  Future<int> syncSchedule(
+    ScheduleDto scheduleDto,
+    int playlistID,
+    bool isPublic,
+  ) async {
+    final schedule = scheduleDto
+        .toDomain(playlistLocalId: playlistID)
+        .copyWith(isPublic: isPublic);
 
     final existing = await _localRepo.getScheduleByFirebaseIdOrShareCode(
       scheduleDto.firebaseId!,
@@ -256,7 +266,10 @@ class ScheduleSyncService {
 
         if (cloudSection == null) {
           // Section was removed in the cloud version, delete it locally
-          await _sectionRepo.deleteSection(existingSection.id!, existingSection.contentCode);
+          await _sectionRepo.deleteSection(
+            existingSection.id!,
+            existingSection.contentCode,
+          );
         }
 
         await _sectionRepo.upsertSection(

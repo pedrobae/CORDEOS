@@ -99,13 +99,13 @@ class CloudScheduleRepository {
 
   /// Update an existing schedule in Firestore on the changes map
   Future<String> upsertSchedule(String ownerId, ScheduleDto schedule) async {
-    return await _withErrorHandling('update_schedule', () async {
+    return await _withErrorHandling('upsert_schedule', () async {
       await _guardHelper.requireAuth();
       await _guardHelper.requireOwnership(ownerId);
 
       String? id = schedule.firebaseId;
 
-      if (id == null) {
+      if (id == null || id.isEmpty) {
         id = await _firestoreService.createDocument(
           collectionPath: 'schedules',
           data: schedule.toFirestore(),
@@ -120,7 +120,7 @@ class CloudScheduleRepository {
       }
 
       await FirebaseAnalytics.instance.logEvent(
-        name: 'updated_schedule',
+        name: 'upserted_schedule',
         parameters: {'scheduleId': id},
       );
       return id;

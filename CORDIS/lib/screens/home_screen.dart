@@ -56,18 +56,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
-      child:
-          Consumer3<
-            MyAuthProvider,
-            LocalScheduleProvider,
-            CloudScheduleProvider
-          >(
-            builder: (context, auth, localSch, cloudSch, child) {
-              return SingleChildScrollView(
-                child: _buildContent(auth, localSch, cloudSch),
-              );
-            },
-          ),
+      child: SingleChildScrollView(child: _buildContent()),
     );
   }
 
@@ -89,13 +78,8 @@ class _HomeScreenState extends State<HomeScreen> {
     return nextLocal ?? nextCloud;
   }
 
-  Widget _buildContent(
-    MyAuthProvider auth,
-    LocalScheduleProvider localSch,
-    CloudScheduleProvider cloudSch,
-  ) {
+  Widget _buildContent() {
     final textTheme = Theme.of(context).textTheme;
-    final colorScheme = Theme.of(context).colorScheme;
     final locale = Localizations.localeOf(context);
 
     return Column(
@@ -106,58 +90,71 @@ class _HomeScreenState extends State<HomeScreen> {
           DateFormat('EEEE, MMM d', locale.languageCode).format(DateTime.now()),
           style: textTheme.bodyLarge,
         ),
-        _buildWelcomeMessage(textTheme, auth),
-        _buildNextSchedule(localSch, cloudSch, textTheme, colorScheme),
+        _buildWelcomeMessage(),
+        _buildNextSchedule(),
       ],
     );
   }
 
-  Widget _buildWelcomeMessage(TextTheme textTheme, MyAuthProvider auth) {
-    return Text(
-      auth.userName == null
-          ? AppLocalizations.of(context)!.welcome
-          : AppLocalizations.of(context)!.helloUser(auth.userName!),
-      style: textTheme.headlineSmall,
+  Widget _buildWelcomeMessage() {
+    final textTheme = Theme.of(context).textTheme;
+
+    return Selector<MyAuthProvider, String?>(
+      selector: (_, auth) => auth.userName,
+      builder: (context, userName, child) {
+        return Text(
+          userName == null
+              ? AppLocalizations.of(context)!.welcome
+              : AppLocalizations.of(context)!.helloUser(userName),
+          style: textTheme.headlineSmall,
+        );
+      },
     );
   }
 
-  Widget _buildNextSchedule(
-    LocalScheduleProvider localSch,
-    CloudScheduleProvider cloudSch,
-    TextTheme textTheme,
-    ColorScheme colorScheme,
-  ) {
-    final nextSchedule = _getNextSchedule(localSch, cloudSch);
-    if (nextSchedule == null) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        spacing: 16,
-        children: [
-          SizedBox(height: 32),
-          Text(
-            AppLocalizations.of(context)!.welcome,
-            style: textTheme.headlineSmall,
-          ),
-          Text(
-            AppLocalizations.of(context)!.getStartedMessage,
-            style: textTheme.bodyLarge,
-          ),
-        ],
-      );
-    }
+  Widget _buildNextSchedule() {
+    final textTheme = Theme.of(context).textTheme;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      spacing: 16,
-      children: [
-        Text(
-          AppLocalizations.of(context)!.nextUp,
-          style: textTheme.titleMedium,
-        ),
-        (nextSchedule is Schedule)
-            ? ScheduleCard(scheduleId: nextSchedule.id)
-            : CloudScheduleCard(scheduleId: nextSchedule.firebaseId),
-      ],
+    return Selector2<
+      LocalScheduleProvider,
+      CloudScheduleProvider,
+      ({dynamic nextSchedule})
+    >(
+      selector: (context, localSch, cloudSch) =>
+          (nextSchedule: _getNextSchedule(localSch, cloudSch)),
+      builder: (context, s, child) {
+        if (s.nextSchedule == null) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            spacing: 16,
+            children: [
+              SizedBox(height: 32),
+              Text(
+                AppLocalizations.of(context)!.welcome,
+                style: textTheme.headlineSmall,
+              ),
+              Text(
+                AppLocalizations.of(context)!.getStartedMessage,
+                style: textTheme.bodyLarge,
+              ),
+            ],
+          );
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 16,
+          children: [
+            Text(
+              AppLocalizations.of(context)!.nextUp,
+              style: textTheme.titleMedium,
+            ),
+            (s.nextSchedule is Schedule)
+                ? ScheduleCard(scheduleId: s.nextSchedule.id)
+                : CloudScheduleCard(scheduleId: s.nextSchedule.firebaseId),
+          ],
+        );
+      },
     );
   }
 }

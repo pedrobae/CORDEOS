@@ -18,13 +18,8 @@ import 'package:provider/provider.dart';
 
 class ScheduleCard extends StatelessWidget {
   final int scheduleId;
-  final bool showActions;
 
-  const ScheduleCard({
-    super.key,
-    required this.scheduleId,
-    this.showActions = true,
-  });
+  const ScheduleCard({super.key, required this.scheduleId});
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +44,7 @@ class ScheduleCard extends StatelessWidget {
       },
       builder: (context, selection, child) {
         // LOADING STATE
-        if (selection.schedule == null || selection.playlist == null) {
+        if (selection.schedule == null) {
           return Center(
             child: CircularProgressIndicator(color: colorScheme.primary),
           );
@@ -140,12 +135,10 @@ class ScheduleCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  if (showActions) ...[
-                    IconButton(
-                      onPressed: () => _openScheduleActionsSheet(context),
-                      icon: Icon(Icons.more_vert),
-                    ),
-                  ],
+                  IconButton(
+                    onPressed: () => _openScheduleActionsSheet(context),
+                    icon: Icon(Icons.more_vert),
+                  ),
                 ],
               ),
               // BOTTOM BUTTONS
@@ -251,9 +244,7 @@ class ScheduleCard extends StatelessWidget {
                         itemType: AppLocalizations.of(context)!.schedule,
                         onConfirm: () async {
                           Navigator.of(context).pop();
-                          await localSch.deleteSchedule(
-                            scheduleId,
-                          );
+                          await localSch.deleteSchedule(scheduleId);
                         },
                       );
                     },
