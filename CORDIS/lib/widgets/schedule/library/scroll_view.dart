@@ -2,7 +2,6 @@ import 'package:cordis/l10n/app_localizations.dart';
 import 'package:cordis/providers/user/my_auth_provider.dart';
 import 'package:cordis/providers/schedule/cloud_schedule_provider.dart';
 import 'package:cordis/providers/schedule/local_schedule_provider.dart';
-import 'package:cordis/providers/version/cloud_version_provider.dart';
 import 'package:cordis/widgets/schedule/library/card_cloud.dart';
 import 'package:cordis/widgets/schedule/library/card.dart';
 import 'package:flutter/material.dart';
@@ -19,7 +18,7 @@ class _ScheduleScrollViewState extends State<ScheduleScrollView> {
   final _scrollController = ScrollController();
   final _pastHeaderKey = GlobalKey();
 
-  bool passedFutureSchedules = false;
+  bool pastFutureSch = false;
 
   @override
   void initState() {
@@ -35,11 +34,11 @@ class _ScheduleScrollViewState extends State<ScheduleScrollView> {
     final position = box.localToGlobal(Offset.zero);
     if (_scrollController.offset >= position.dy + kToolbarHeight) {
       setState(() {
-        passedFutureSchedules = true;
+        pastFutureSch = true;
       });
     } else {
       setState(() {
-        passedFutureSchedules = false;
+        pastFutureSch = false;
       });
     }
   }
@@ -48,37 +47,43 @@ class _ScheduleScrollViewState extends State<ScheduleScrollView> {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
 
-    return Consumer3<
+    return Selector2<
       LocalScheduleProvider,
       CloudScheduleProvider,
-      MyAuthProvider
+      ({
+        List<dynamic> futureScheduleIDs,
+        List<dynamic> pastScheduleIDs,
+        String? error,
+      })
     >(
-      builder: (context, localSch, cloudSch, auth, child) {
-        if ((localSch.error != null && localSch.error!.isNotEmpty) ||
-            (cloudSch.error != null && cloudSch.error!.isNotEmpty)) {
-          return _buildErrorState(
-            localSch,
-            cloudSch,
-            Theme.of(context).colorScheme,
-          );
-        }
-
+      selector: (context, localSch, cloudSch) {
         final localFuture = localSch.futureScheduleIDs;
         final localPast = localSch.pastScheduleIDs;
         final cloudFuture = cloudSch.futureScheduleIDs;
         final cloudPast = cloudSch.pastScheduleIDs;
 
-        final futureSchIds = [...localFuture, ...cloudFuture];
-
-        final pastSchIds = [...localPast, ...cloudPast];
+        return (
+          futureScheduleIDs: [...localFuture, ...cloudFuture],
+          pastScheduleIDs: [...localPast, ...cloudPast],
+          error: (localSch.error != null && localSch.error!.isNotEmpty)
+              ? localSch.error
+              : (cloudSch.error != null && cloudSch.error!.isNotEmpty)
+              ? cloudSch.error
+              : null,
+        );
+      },
+      builder: (context, s, child) {
+        if (s.error != null && s.error!.isNotEmpty) {
+          return _buildErrorState(s.error!);
+        }
 
         // If there are no past schedules, remove the listener
-        if (pastSchIds.isEmpty) {
+        if (s.pastScheduleIDs.isEmpty) {
           _scrollController.removeListener(_listenForEndOfFutureSchedules);
         }
 
         // Handle empty state
-        if (futureSchIds.isEmpty && pastSchIds.isEmpty) {
+        if (s.futureScheduleIDs.isEmpty && s.pastScheduleIDs.isEmpty) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -92,29 +97,20 @@ class _ScheduleScrollViewState extends State<ScheduleScrollView> {
           );
         }
 
-        return _buildScheduleList(
-          pastSchIds,
-          futureSchIds,
-          localSch,
-          cloudSch,
-          auth,
-          textTheme,
-        );
+        return _buildScheduleList(s.pastScheduleIDs, s.futureScheduleIDs);
       },
     );
   }
 
-  Widget _buildErrorState(
-    LocalScheduleProvider localSch,
-    CloudScheduleProvider cloudSch,
-    ColorScheme colorScheme,
-  ) {
-    final theme = Theme.of(context);
+  Widget _buildErrorState(String error) {
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Expanded(
       child: Center(
         child: Text(
-          localSch.error ?? cloudSch.error ?? '',
-          style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.error),
+          error,
+          style: textTheme.bodyMedium?.copyWith(color: colorScheme.error),
         ),
       ),
     );
@@ -123,16 +119,18 @@ class _ScheduleScrollViewState extends State<ScheduleScrollView> {
   Widget _buildScheduleList(
     List<dynamic> pastScheduleIDs,
     List<dynamic> futureScheduleIDs,
-    LocalScheduleProvider localScheduleProvider,
-    CloudScheduleProvider cloudScheduleProvider,
-    MyAuthProvider authProvider,
-    TextTheme textTheme,
   ) {
+    final textTheme = Theme.of(context).textTheme;
+    
+    final localSch = context.read<LocalScheduleProvider>();
+    final cloudSch = context.read<CloudScheduleProvider>();
+    final auth = context.read<MyAuthProvider>();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // SCHEDULES HEADER
-        passedFutureSchedules
+        pastFutureSch
             ? (pastScheduleIDs.isNotEmpty
                   ? Text(
                       AppLocalizations.of(context)!.pastSchedules,
@@ -150,23 +148,8 @@ class _ScheduleScrollViewState extends State<ScheduleScrollView> {
         Expanded(
           child: RefreshIndicator(
             onRefresh: () async {
-              await localScheduleProvider.loadSchedules();
-
-              await cloudScheduleProvider.loadSchedules(
-                authProvider.id!,
-                forceFetch: true,
-              );
-
-              for (var schedule in cloudScheduleProvider.schedules.values) {
-                for (var version in schedule.playlist.versions.entries) {
-                  if (mounted) {
-                    context.read<CloudVersionProvider>().setVersion(
-                      version.key.split(':').last,
-                      version.value,
-                    );
-                  }
-                }
-              }
+              await localSch.loadSchedules();
+              await cloudSch.loadSchedules(auth.id!, forceFetch: true);
             },
             child: SingleChildScrollView(
               controller: _scrollController,

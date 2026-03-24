@@ -2,8 +2,7 @@ import 'package:cordis/l10n/app_localizations.dart';
 import 'package:cordis/providers/user/my_auth_provider.dart';
 import 'package:cordis/providers/schedule/cloud_schedule_provider.dart';
 import 'package:cordis/providers/schedule/local_schedule_provider.dart';
-import 'package:cordis/providers/version/cloud_version_provider.dart';
-import 'package:cordis/widgets/schedule/library/scrollview.dart';
+import 'package:cordis/widgets/schedule/library/scroll_view.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -23,24 +22,11 @@ class _ScheduleLibraryScreenState extends State<ScheduleLibraryScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final localSch = context.read<LocalScheduleProvider>();
       final cloudSch = context.read<CloudScheduleProvider>();
-      final cloudVer = context.read<CloudVersionProvider>();
+      final auth = context.read<MyAuthProvider>();
 
       if (mounted) {
-        await cloudSch.loadSchedules(
-          context.read<MyAuthProvider>().id!,
-        );
         await localSch.loadSchedules();
-
-        if (mounted) {
-          for (var schedule in cloudSch.schedules.values) {
-            for (var versionEntry in schedule.playlist.versions.entries) {
-              cloudVer.setVersion(
-                versionEntry.key,
-                versionEntry.value,
-              );
-            }
-          }
-        }
+        await cloudSch.loadSchedules(auth.id!);
       }
     });
   }

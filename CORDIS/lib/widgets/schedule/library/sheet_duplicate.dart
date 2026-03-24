@@ -233,6 +233,7 @@ class _DuplicateScheduleSheetState extends State<DuplicateScheduleSheet> {
           roomVenue: roomVenueController.text,
           shareCode: generateShareCode(),
         ),
+        isPublic: false
       );
       localSch.loadSchedule(scheduleID);
       cloudSch.stopSyncing(widget.scheduleId);

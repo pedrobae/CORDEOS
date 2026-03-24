@@ -170,6 +170,8 @@ class LocalScheduleProvider extends ChangeNotifier {
         ),
         location: location,
         roomVenue: roomVenue,
+        firebaseId: '',
+        isPublic: false,
       );
 
       final newLocalId = await _repo.insertSchedule(newSchedule);
