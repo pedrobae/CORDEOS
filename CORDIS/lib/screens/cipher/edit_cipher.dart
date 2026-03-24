@@ -179,12 +179,6 @@ class _EditCipherScreenState extends State<EditCipherScreen>
   @override
   Widget build(BuildContext context) {
     final nav = Provider.of<NavigationProvider>(context, listen: false);
-    final localVer = context.watch<LocalVersionProvider>();
-    final ciph = context.watch<CipherProvider>();
-    final sect = context.watch<SectionProvider>();
-    debugPrint(
-      "localVer hasUnsavedChanges: ${localVer.hasUnsavedChanges}, ciph hasUnsavedChanges: ${ciph.hasUnsavedChanges}, sect hasUnsavedChanges: ${sect.hasUnsavedChanges}",
-    );
 
     return Scaffold(
       appBar: _buildAppBar(nav),

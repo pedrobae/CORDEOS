@@ -7,18 +7,23 @@ import 'package:provider/provider.dart';
 
 class ReorderableStructure extends StatelessWidget {
   final int versionID;
-  const ReorderableStructure({super.key, required this.versionID});
+  final bool showDelete;
+  const ReorderableStructure({
+    super.key,
+    required this.versionID,
+    this.showDelete = true,
+  });
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    final sect = context.read<SectionProvider>();
     final localVer = context.read<LocalVersionProvider>();
 
     return Selector<LocalVersionProvider, List<String>>(
-      selector: (context, localVer) =>
-          localVer.getVersion(versionID)?.songStructure ?? [],
+      selector: (context, localVer) {
+        return localVer.getVersion(versionID)!.songStructure;
+      },
       builder: (context, songStructure, child) {
         return Container(
           padding: EdgeInsets.all(8),
@@ -44,75 +49,85 @@ class ReorderableStructure extends StatelessWidget {
                   onReorder: (oldIndex, newIndex) => localVer
                       .reorderSongStructure(versionID, oldIndex, newIndex),
                   itemBuilder: (context, index) {
-                    final sectionCode = songStructure[index];
-
-                    final color =
-                        sect.getSection(versionID, sectionCode)?.contentColor ??
-                        Colors.grey;
-
-                    final sectionCount = songStructure
-                        .where((code) => code == sectionCode)
-                        .length;
-
-                    return CustomReorderableDelayed(
-                      delay: Duration(milliseconds: 100),
-                      key: ValueKey('$sectionCode-$index'),
-                      index: index,
-
-                      child: Stack(
-                        children: [
-                          Container(
-                            margin: EdgeInsets.only(right: 4),
-                            height: 44,
-                            width: 42,
-                            decoration: BoxDecoration(
-                              color: color.withValues(alpha: .90),
-                              borderRadius: BorderRadius.circular(7),
-                            ),
-                            child: Center(
-                              child: Text(
-                                sectionCode,
-                                style: TextStyle(
-                                  color: colorScheme.surface,
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 16,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          ),
-                          Positioned(
-                            top: -3,
-                            right: 1, // Right margin is 4
-                            child: GestureDetector(
-                              onTap: () {
-                                localVer.removeSection(versionID, index);
-                                if (sectionCount == 1) {
-                                  sect.cacheDeletion(versionID, sectionCode);
-                                }
-                              },
-                              child: Container(
-                                width: 22,
-                                height: 22,
-                                decoration: BoxDecoration(
-                                  color: Colors.transparent,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(
-                                  Icons.close,
-                                  color: colorScheme.surface,
-                                  size: 12,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
+                    return _buildItem(context, index, songStructure);
                   },
                 ),
         );
       },
+    );
+  }
+
+  Widget _buildItem(
+    BuildContext context,
+    int index,
+    List<String> songStructure,
+  ) {
+    final sect = context.read<SectionProvider>();
+    final localVer = context.read<LocalVersionProvider>();
+
+    final colorScheme = Theme.of(context).colorScheme;
+
+    final sectionCode = songStructure[index];
+    final color =
+        sect.getSection(versionID, sectionCode)?.contentColor ?? Colors.grey;
+
+    final codeCount = songStructure.where((code) => code == sectionCode).length;
+
+    return CustomReorderableDelayed(
+      delay: Duration(milliseconds: 100),
+      key: ValueKey('$sectionCode-$index'),
+      index: index,
+
+      child: Stack(
+        children: [
+          Container(
+            margin: EdgeInsets.only(right: 4),
+            height: 44,
+            width: 42,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: .90),
+              borderRadius: BorderRadius.circular(7),
+            ),
+            child: Center(
+              child: Text(
+                sectionCode,
+                style: TextStyle(
+                  color: colorScheme.surface,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 16,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+          if (showDelete)
+            Positioned(
+              top: -3,
+              right: 1, // Right margin is 4
+              child: GestureDetector(
+                onTap: () {
+                  localVer.removeSection(versionID, index);
+                  if (codeCount == 1) {
+                    sect.cacheDeletion(versionID, sectionCode);
+                  }
+                },
+                child: Container(
+                  width: 22,
+                  height: 22,
+                  decoration: BoxDecoration(
+                    color: Colors.transparent,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.close,
+                    color: colorScheme.surface,
+                    size: 12,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

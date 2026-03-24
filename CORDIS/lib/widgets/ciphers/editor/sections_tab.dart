@@ -1,4 +1,5 @@
 import 'package:cordis/l10n/app_localizations.dart';
+import 'package:cordis/models/domain/cipher/cipher.dart';
 import 'package:cordis/models/domain/cipher/version.dart';
 import 'package:cordis/providers/cipher/cipher_provider.dart';
 import 'package:cordis/widgets/ciphers/editor/sections/chord_palette.dart';
@@ -35,15 +36,24 @@ class _SectionsTabState extends State<SectionsTab> {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Consumer3<SectionProvider, LocalVersionProvider, CipherProvider>(
-      builder: (context, sect, localVer, ciph, child) {
-        final version = (localVer.getVersion(
-          widget.versionID,
-        ))!;
+    return Selector3<
+      SectionProvider,
+      LocalVersionProvider,
+      CipherProvider,
+      ({Version? version, Cipher? cipher})
+    >(
+      selector: (context, sect, localVer, ciph) {
+        final version = localVer.getVersion(widget.versionID);
+        final cipher = version != null
+            ? ciph.getCipher(version.cipherID)
+            : null;
+        return (version: version, cipher: cipher);
+      },
+      builder: (context, s, child) {
+        final version = s.version;
+        final uniqueSections = version?.songStructure.toSet().toList() ?? [];
 
-        final uniqueSections = version.songStructure.toSet().toList();
-
-        if (sect.isLoading || localVer.isLoading) {
+        if (s.version == null || s.cipher == null) {
           return Center(
             child: CircularProgressIndicator(color: colorScheme.primary),
           );
@@ -89,7 +99,10 @@ class _SectionsTabState extends State<SectionsTab> {
                         ),
 
                         // DRAGGABLE CHIPS
-                        ReorderableStructure(versionID: widget.versionID),
+                        ReorderableStructure(
+                          versionID: widget.versionID,
+                          showDelete: false,
+                        ),
                       ],
                     ),
                     // CONTENT SECTION
@@ -164,7 +177,7 @@ class _SectionsTabState extends State<SectionsTab> {
 
                     // Open add sheet
                     GestureDetector(
-                      onTap: _openAddSheet(version.cipherID),
+                      onTap: _openAddSheet(version!.cipherID),
                       child: Container(
                         margin: const EdgeInsets.all(8),
                         padding: const EdgeInsets.all(12),
@@ -200,7 +213,10 @@ class _SectionsTabState extends State<SectionsTab> {
       showModalBottomSheet(
         context: context,
         builder: (context) {
-          return NewSectionSheet(versionID: widget.versionID, cipherID: cipherID);
+          return NewSectionSheet(
+            versionID: widget.versionID,
+            cipherID: cipherID,
+          );
         },
       );
     };
@@ -210,8 +226,10 @@ class _SectionsTabState extends State<SectionsTab> {
     return () {
       showModalBottomSheet(
         context: context,
-        barrierColor: Theme.of(context).colorScheme.onSurface.withAlpha(85),
         isScrollControlled: true,
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.75,
+        ),
         builder: (context) {
           return RepeatSectionSheet(versionID: widget.versionID);
         },
