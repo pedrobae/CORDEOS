@@ -319,6 +319,21 @@ class _TokenContentCardState extends State<TokenContentCard> {
                   }
                 },
               ),
+              // duplicate (just to map)
+              FilledTextButton(
+                text: AppLocalizations.of(
+                  context,
+                )!.duplicatePlaceholder(AppLocalizations.of(context)!.section),
+                trailingIcon: Icons.chevron_right,
+                isDiscrete: true,
+                onPressed: () {
+                  Navigator.pop(context); // Close the bottom sheet
+                  context.read<LocalVersionProvider>().addSectionToStruct(
+                    widget.versionID,
+                    widget.sectionCode,
+                  );
+                },
+              ),
               // delete
               FilledTextButton(
                 text: AppLocalizations.of(context)!.delete,

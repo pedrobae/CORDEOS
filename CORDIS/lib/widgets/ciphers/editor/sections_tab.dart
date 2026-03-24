@@ -3,7 +3,7 @@ import 'package:cordis/models/domain/cipher/version.dart';
 import 'package:cordis/providers/cipher/cipher_provider.dart';
 import 'package:cordis/widgets/ciphers/editor/sections/chord_palette.dart';
 import 'package:cordis/widgets/ciphers/editor/sections/sheet_new_section.dart';
-import 'package:cordis/widgets/ciphers/editor/sections/sheet_repeat_section.dart';
+import 'package:cordis/widgets/ciphers/editor/sections/sheet_manage.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cordis/providers/section_provider.dart';
