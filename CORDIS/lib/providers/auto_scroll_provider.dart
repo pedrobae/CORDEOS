@@ -214,7 +214,6 @@ class AutoScrollProvider extends ChangeNotifier {
 
   /// Calculates the current section index based on the scroll offset
   int? syncItemFromViewport(double viewportHeight, Axis scrollAxis) {
-    debugPrint('$viewportHeight');
     bool hasItemsPre = true;
     bool hasItemsPost = true;
     int currentIndex = currentItemIndex;
@@ -283,10 +282,6 @@ class AutoScrollProvider extends ChangeNotifier {
     final itemBack = scrollAxis == Axis.vertical
         ? box.localToGlobal(Offset.zero).dy + box.size.height
         : box.localToGlobal(Offset.zero).dx + box.size.width;
-
-    debugPrint(
-      '$i | front - $itemFront | back - $itemBack | viewHeight - $viewportHeight',
-    );
 
     if (itemFront < viewportHeight * 0.20 && itemBack > viewportHeight * 0.80) {
       return true;

@@ -174,7 +174,6 @@ class PlayScheduleState extends State<PlaySchedule> {
     }
 
     final items = schedule.items;
-    debugPrint('Pre-SetItemCount ${DateTime.now()}');
     _state.setItemCount(items.length);
 
     for (var item in items) {
@@ -240,7 +239,6 @@ class PlayScheduleState extends State<PlaySchedule> {
                       ),
                     );
                   }
-                  debugPrint('Selected not NUll ItemCount ${DateTime.now()}');
 
                   return SingleChildScrollView(
                     controller: _scrollController,
