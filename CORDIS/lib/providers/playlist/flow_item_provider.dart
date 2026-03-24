@@ -92,6 +92,18 @@ class FlowItemProvider extends ChangeNotifier {
     }
   }
 
+  void initializeNewFlow(int playlistID, int position) {
+    final newFlowItem = FlowItem(
+      firebaseId: '',
+      playlistId: playlistID,
+      title: '',
+      contentText: '',
+      position: position,
+      duration: Duration.zero,
+    );
+    _flowItems[-1] = newFlowItem; // Temporary Cache for item creation
+  }
+
   /// Duplicate a Flow Item by ID
   Future<void> duplicateFlowItem(
     int id,
@@ -168,13 +180,21 @@ class FlowItemProvider extends ChangeNotifier {
 
     try {
       final flowItem = _flowItems[id]!;
-      await _flowItemRepo.updateFlowItem(
-        id,
-        title: flowItem.title,
-        content: flowItem.contentText,
-        position: flowItem.position,
-        duration: flowItem.duration.inSeconds,
-      );
+
+      if (id == -1) {
+        // New Flow Item creation
+        final newId = await _flowItemRepo.createFlowItem(flowItem);
+        await loadFlowItem(newId);
+        _flowItems.remove(-1); // Clear temporary cache
+      } else {
+        await _flowItemRepo.updateFlowItem(
+          id,
+          title: flowItem.title,
+          content: flowItem.contentText,
+          position: flowItem.position,
+          duration: flowItem.duration.inSeconds,
+        );
+      }
       _hasUnsavedChanges = false;
     } catch (e) {
       _error = e.toString();

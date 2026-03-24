@@ -88,7 +88,7 @@ class AddToPlaylistSheet extends StatelessWidget {
 
               Navigator.of(context).pop();
               nav.push(
-                () => FlowItemEditor(playlistID: playlistID),
+                () => FlowItemEditor(flowID: -1, playlistID: playlistID ),
                 changeDetector: () => flow.hasUnsavedChanges,
                 onChangeDiscarded: () => flow.loadFlowItem(-1),
                 showBottomNavBar: true,
