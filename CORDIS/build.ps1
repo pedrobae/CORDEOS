@@ -23,6 +23,17 @@ if ($versionMatch) {
     
     # Build APK
     flutter build apk --debug
+
+    # Rename APK to CORDIS_vX.Y.Z+A.apk (using newVersion)
+    $apkSource = "build/app/outputs/flutter-apk/app-debug.apk"
+    $apkDest = "build/app/outputs/flutter-apk/CORDIS_v$($newVersion).apk"
+    if (Test-Path $apkSource) {
+        Move-Item -Force $apkSource $apkDest
+        Write-Host "Renamed APK to: $apkDest" -ForegroundColor Green
+    } else {
+        Write-Host "APK not found at $apkSource" -ForegroundColor Red
+        exit 1
+    }
     
     if ($LASTEXITCODE -eq 0) {
         Write-Host "Build completed successfully!" -ForegroundColor Green

@@ -21,13 +21,8 @@ import 'package:flutter/material.dart';
 
 class CloudScheduleCard extends StatelessWidget {
   final String scheduleId;
-  final bool showActions;
 
-  const CloudScheduleCard({
-    super.key,
-    required this.scheduleId,
-    this.showActions = true,
-  });
+  const CloudScheduleCard({super.key, required this.scheduleId});
 
   @override
   Widget build(BuildContext context) {
@@ -96,6 +91,7 @@ class CloudScheduleCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Row(
+                      mainAxisSize: MainAxisSize.max,
                       children: [
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -152,15 +148,14 @@ class CloudScheduleCard extends StatelessWidget {
                             ),
                           ],
                         ),
-                        Spacer(),
                         if (selection.isSyncing) const CloudDownloadIndicator(),
-                        if (showActions)
-                          IconButton(
-                            onPressed: () => _openScheduleActionsSheet(context),
-                            icon: Icon(Icons.more_vert),
-                          ),
+                        IconButton(
+                          onPressed: () => _openScheduleActionsSheet(context),
+                          icon: Icon(Icons.more_vert),
+                        ),
                       ],
                     ),
+                    
                     // BOTTOM BUTTONS
                     FilledTextButton(
                       isDark: true,
