@@ -88,20 +88,23 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
 
   Widget _buildEmptyState() {
     final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Text(
-          AppLocalizations.of(context)!.emptyPlaylist,
-          style: theme.textTheme.titleMedium,
-          textAlign: TextAlign.center,
-        ),
-        Text(
-          AppLocalizations.of(context)!.emptyPlaylistInstructions,
-          style: theme.textTheme.bodyLarge,
-          textAlign: TextAlign.center,
-        ),
-      ],
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            AppLocalizations.of(context)!.emptyPlaylist,
+            style: theme.textTheme.titleMedium,
+            textAlign: TextAlign.center,
+          ),
+          Text(
+            AppLocalizations.of(context)!.emptyPlaylistInstructions,
+            style: theme.textTheme.bodyLarge,
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
     );
   }
 
