@@ -6,7 +6,6 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:cordis/firebase_options.dart';
 import 'package:cordis/config/firebase_debug_config.dart';
-
 /// Central service for Firebase initialization and global access.
 class FirebaseService {
   static final FirebaseService _instance = FirebaseService._internal();
