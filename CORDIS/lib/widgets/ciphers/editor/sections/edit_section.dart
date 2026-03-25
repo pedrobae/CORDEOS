@@ -14,12 +14,14 @@ class EditSectionScreen extends StatefulWidget {
   final int versionID;
   final String sectionCode;
   final bool isNewSection;
+  final bool canChangeType;
 
   const EditSectionScreen({
     super.key,
     required this.sectionCode,
     required this.versionID,
     this.isNewSection = false,
+    this.canChangeType = true,
   });
 
   @override
@@ -120,58 +122,62 @@ class _EditSectionScreenState extends State<EditSectionScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         // TYPE SELECTION
-                        SizedBox(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            spacing: 8,
-                            children: [
-                              Container(
-                                height: 28,
-                                width: 28,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: contentColor,
-                                ),
-                              ),
-                              Expanded(
-                                child: Text(
-                                  contentTypeController.text,
-                                  style: textTheme.bodyLarge,
-                                ),
-                              ),
-                              GestureDetector(
-                                onTap: () {
-                                  _upsertSection();
-                                  context
-                                      .read<NavigationProvider>()
-                                      .pushForeground(
-                                        SelectType(
-                                          versionID: widget.versionID,
-                                          sectionCode: widget.sectionCode,
-                                        ),
-                                      );
-                                },
-                                child: Container(
-                                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        if (widget.canChangeType)
+                          SizedBox(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              spacing: 8,
+                              children: [
+                                Container(
+                                  height: 28,
+                                  width: 28,
                                   decoration: BoxDecoration(
-                                    color: colorScheme.surfaceContainerHigh,
+                                    shape: BoxShape.circle,
+                                    color: contentColor,
                                   ),
+                                ),
+                                Expanded(
                                   child: Text(
-                                    AppLocalizations.of(
-                                      context,
-                                    )!.changePlaceholder(
-                                      AppLocalizations.of(context)!.type,
+                                    contentTypeController.text,
+                                    style: textTheme.bodyLarge,
+                                  ),
+                                ),
+                                GestureDetector(
+                                  onTap: () {
+                                    _upsertSection();
+                                    context
+                                        .read<NavigationProvider>()
+                                        .pushForeground(
+                                          SelectType(
+                                            versionID: widget.versionID,
+                                            sectionCode: widget.sectionCode,
+                                          ),
+                                        );
+                                  },
+                                  child: Container(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
                                     ),
-                                    style: textTheme.bodyMedium?.copyWith(
-                                      color: colorScheme.primary,
+                                    decoration: BoxDecoration(
+                                      color: colorScheme.surfaceContainerHigh,
+                                    ),
+                                    child: Text(
+                                      AppLocalizations.of(
+                                        context,
+                                      )!.changePlaceholder(
+                                        AppLocalizations.of(context)!.type,
+                                      ),
+                                      style: textTheme.bodyMedium?.copyWith(
+                                        color: colorScheme.primary,
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
                         // SECTION CODE
                         LabeledTextField(
                           label: AppLocalizations.of(context)!.sectionCode,

@@ -408,7 +408,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get sectionFinale => 'Final';
 
   @override
-  String get sectionAnnotations => 'Anotações';
+  String get sectionAnnotations => 'Anotação';
 
   @override
   String get sectionUnlabeled => 'Seção sem rótulo';

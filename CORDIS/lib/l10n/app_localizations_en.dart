@@ -405,7 +405,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sectionFinale => 'Finale';
 
   @override
-  String get sectionAnnotations => 'Annotations';
+  String get sectionAnnotations => 'Annotation';
 
   @override
   String get sectionUnlabeled => 'Unlabeled Section';

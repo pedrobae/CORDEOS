@@ -177,16 +177,14 @@ class CloudScheduleRepository {
       return await action();
     } catch (e) {
       if (e is FirebaseFunctionsException) {
-        debugPrint('Error during $actionDescription: ${e.message}');
         await FirebaseAnalytics.instance.logEvent(
           name: 'error_during_$actionDescription',
           parameters: {'error': e.message!},
         );
       }
       if (e is FirebaseException) {
-        debugPrint('Firebase error during $actionDescription: ${e.message}');
         await FirebaseAnalytics.instance.logEvent(
-          name: 'firebase_error_during_$actionDescription',
+          name: 'error_during_$actionDescription',
           parameters: {'error': e.message!},
         );
       }

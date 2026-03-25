@@ -1,6 +1,9 @@
 import "package:cordis/l10n/app_localizations.dart";
+import "package:cordis/providers/navigation_provider.dart";
 import "package:cordis/providers/section_provider.dart";
 import "package:cordis/providers/version/local_version_provider.dart";
+import "package:cordis/utils/section_constants.dart";
+import "package:cordis/widgets/ciphers/editor/sections/edit_section.dart";
 import "package:cordis/widgets/ciphers/editor/sections/reorderable_structure.dart";
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
@@ -14,7 +17,7 @@ class RepeatSectionSheet extends StatefulWidget {
 }
 
 class _RepeatSectionSheetState extends State<RepeatSectionSheet> {
-    void Function()? _scrollToEnd;
+  void Function()? _scrollToEnd;
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +56,7 @@ class _RepeatSectionSheetState extends State<RepeatSectionSheet> {
                       SizedBox(height: 8),
                       Text(
                         AppLocalizations.of(context)!.managePlaceholder(
-                          AppLocalizations.of(context)!.section,
+                          AppLocalizations.of(context)!.songStructure,
                         ),
                         style: textTheme.titleMedium,
                       ),
@@ -70,12 +73,16 @@ class _RepeatSectionSheetState extends State<RepeatSectionSheet> {
                   ),
                 ],
               ),
-              ReorderableStructure(versionID: widget.versionID, onInit: (scrollToEnd) {
-                _scrollToEnd = scrollToEnd;
-              },),
+              ReorderableStructure(
+                versionID: widget.versionID,
+                onInit: (scrollToEnd) {
+                  _scrollToEnd = scrollToEnd;
+                },
+              ),
               Expanded(
                 child: ListView(
                   children: [
+                    _buildAnnotationSection(),
                     for (var sectionCode in songStructure.toSet())
                       Builder(
                         builder: (context) {
@@ -91,7 +98,9 @@ class _RepeatSectionSheetState extends State<RepeatSectionSheet> {
                                 sectionCode,
                               );
                               if (_scrollToEnd != null) {
-                                WidgetsBinding.instance.addPostFrameCallback((_) {
+                                WidgetsBinding.instance.addPostFrameCallback((
+                                  _,
+                                ) {
                                   _scrollToEnd!();
                                 });
                               }
@@ -141,6 +150,65 @@ class _RepeatSectionSheetState extends State<RepeatSectionSheet> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildAnnotationSection() {
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    final sect = context.read<SectionProvider>();
+    final nav = context.read<NavigationProvider>();
+
+    final sectionLabel = commonSectionLabels['annotations']!;
+
+    return GestureDetector(
+      onTap: () {
+        final newCode = sect.cacheAddSection(
+          widget.versionID,
+          sectionLabel.code,
+          sectionLabel.color,
+          sectionLabel.localizedLabel(context),
+        );
+
+        nav.pushForeground(
+          EditSectionScreen(
+            sectionCode: newCode,
+            versionID: widget.versionID,
+            isNewSection: true,
+            canChangeType: false,
+          ),
+        );
+
+                      Navigator.of(context).pop();
+
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(color: colorScheme.surfaceContainerHigh, width: 1),
+        ),
+        padding: EdgeInsets.all(16),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          spacing: 8,
+          children: [
+            Container(
+              height: 32,
+              width: 32,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: sectionLabel.color,
+              ),
+            ),
+            Expanded(
+              child: Text(sectionLabel.localizedLabel(context), style: textTheme.bodyLarge),
+            ),
+            Icon(Icons.chevron_right, color: colorScheme.shadow),
+          ],
+        ),
+      ),
     );
   }
 }

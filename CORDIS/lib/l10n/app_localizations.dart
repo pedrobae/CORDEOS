@@ -848,10 +848,10 @@ abstract class AppLocalizations {
   /// **'Final'**
   String get sectionFinale;
 
-  /// Canonical section label: Annotations
+  /// Canonical section label: Annotation
   ///
   /// In pt, this message translates to:
-  /// **'Anotações'**
+  /// **'Anotação'**
   String get sectionAnnotations;
 
   /// Fallback section label when no type is identified
