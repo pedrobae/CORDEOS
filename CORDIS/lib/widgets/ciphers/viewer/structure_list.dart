@@ -62,10 +62,15 @@ class _StructureListState extends State<StructureList> {
       LayoutSetProvider,
       LocalVersionProvider,
       CloudVersionProvider,
-      List<String>
+      ({List<String> filteredStructure, bool tapEnabled})
     >(
       selector: (context, laySet, localVer, cloudVer) {
-        if (widget.versionID == null) return [];
+        final tapEnabled =
+            laySet.layoutFilters[LayoutFilter.repeatSections] == true;
+
+        if (widget.versionID == null) {
+          return (filteredStructure: [], tapEnabled: tapEnabled);
+        }
 
         final songStructure = widget.versionID is String
             ? cloudVer.getVersion(widget.versionID)!.songStructure
@@ -84,14 +89,14 @@ class _StructureListState extends State<StructureList> {
           filteredStructure.add(code);
         }
 
-        return filteredStructure;
+        return (filteredStructure: filteredStructure, tapEnabled: tapEnabled);
       },
-      builder: (context, filteredStructure, child) {
+      builder: (context, s, child) {
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8.0),
           child: SizedBox(
             width: double.infinity,
-            child: filteredStructure.isEmpty
+            child: s.filteredStructure.isEmpty
                 ? Center(
                     child: Text(
                       AppLocalizations.of(context)!.emptyStructure,
@@ -109,7 +114,7 @@ class _StructureListState extends State<StructureList> {
                         spacing: StructureList.spacing,
                         children: [
                           const SizedBox(),
-                          ...filteredStructure.asMap().entries.map((entry) {
+                          ...s.filteredStructure.asMap().entries.map((entry) {
                             final index = entry.key;
                             final sectionCode = entry.value;
 
@@ -117,10 +122,16 @@ class _StructureListState extends State<StructureList> {
                               index: index,
                               versionID: widget.versionID,
                               sectionCode: sectionCode,
-                              onTap: () => scroll.scrollToItemSection(
-                                itemIndex: state.currentItemIndex,
-                                sectionIndex: index,
-                              ),
+                              onTap: () {
+                                if (s.tapEnabled) {
+                                  scroll.scrollToItemSection(
+                                    itemIndex: state.currentItemIndex,
+                                    sectionIndex: index,
+                                  );
+                                } else {
+                                  scroll.currentSectionIndex = index;
+                                }
+                              },
                             );
                           }),
                         ],
