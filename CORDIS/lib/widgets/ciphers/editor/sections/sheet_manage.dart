@@ -180,8 +180,7 @@ class _ManageSheetState extends State<ManageSheet> {
           ),
         );
 
-                      Navigator.of(context).pop();
-
+        Navigator.of(context).pop();
       },
       child: Container(
         decoration: BoxDecoration(
@@ -203,7 +202,10 @@ class _ManageSheetState extends State<ManageSheet> {
               ),
             ),
             Expanded(
-              child: Text(sectionLabel.localizedLabel(context), style: textTheme.bodyLarge),
+              child: Text(
+                sectionLabel.localizedLabel(context),
+                style: textTheme.bodyLarge,
+              ),
             ),
             Icon(Icons.chevron_right, color: colorScheme.shadow),
           ],

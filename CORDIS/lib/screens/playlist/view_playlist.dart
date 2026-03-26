@@ -3,6 +3,8 @@ import 'package:cordis/l10n/app_localizations.dart';
 import 'package:cordis/models/domain/playlist/playlist.dart';
 import 'package:cordis/models/domain/playlist/playlist_item.dart';
 import 'package:cordis/models/domain/schedule.dart';
+import 'package:cordis/providers/schedule/play_schedule_state_provider.dart';
+import 'package:cordis/providers/section_provider.dart';
 import 'package:cordis/providers/selection_provider.dart';
 import 'package:cordis/providers/user/my_auth_provider.dart';
 import 'package:cordis/providers/navigation_provider.dart';
@@ -10,6 +12,7 @@ import 'package:cordis/providers/navigation_provider.dart';
 import 'package:cordis/providers/playlist/playlist_provider.dart';
 import 'package:cordis/providers/schedule/local_schedule_provider.dart';
 import 'package:cordis/providers/version/local_version_provider.dart';
+import 'package:cordis/screens/schedule/play_playlist.dart';
 import 'package:cordis/services/sync_service.dart';
 
 import 'package:cordis/widgets/playlist/viewer/add_to_playlist_sheet.dart';
@@ -32,20 +35,68 @@ class ViewPlaylistScreen extends StatefulWidget {
 class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
   @override
   Widget build(BuildContext context) {
-    final nav = Provider.of<NavigationProvider>(context, listen: false);
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    final nav = context.read<NavigationProvider>();
 
     return Selector<PlaylistProvider, Playlist?>(
       selector: (context, play) => play.getPlaylist(widget.playlistId),
       builder: (context, playlist, child) {
         if (playlist == null) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
+          return Center(child: CircularProgressIndicator());
         }
 
         return Scaffold(
-          appBar: _buildAppBar(playlist, nav),
-          floatingActionButton: _buildFloatingActionButton(),
+          appBar: AppBar(
+            leading: BackButton(
+              color: colorScheme.onSurface,
+              onPressed: () => nav.attemptPop(context),
+            ),
+            title: Text(playlist.name, style: textTheme.titleMedium),
+            actions: [
+              // Play
+              IconButton(
+                icon: Icon(Icons.play_arrow, color: colorScheme.onSurface),
+                onPressed: () {
+                  final localVer = context.read<LocalVersionProvider>();
+                  final sect = context.read<SectionProvider>();
+                  final state = context.read<PlayScheduleStateProvider>();
+
+                  state.setItemCount(playlist.items.length);
+                  for (var item in playlist.items) {
+                    state.appendItem(item);
+                  }
+
+                  nav.push(
+                    () => PlayPlaylist(canEdit: true),
+                    changeDetector: () {
+                      return localVer.hasUnsavedChanges ||
+                          sect.hasUnsavedChanges;
+                    },
+                    onChangeDiscarded: () {
+                      for (var item in playlist.items) {
+                        if (item.type == PlaylistItemType.version) {
+                          localVer.loadVersion(item.contentId!);
+                        }
+                      }
+                    },
+                  );
+                },
+              ),
+              // Save
+              IconButton(
+                icon: Icon(Icons.save, color: colorScheme.onSurface),
+                onPressed: () => _handleSave(playlist, nav),
+              ),
+            ],
+          ),
+          floatingActionButton: FloatingActionButton(
+            onPressed: () => _openPlaylistEditSheet(),
+            backgroundColor: colorScheme.onSurface,
+            shape: const CircleBorder(),
+            child: Icon(Icons.add, color: colorScheme.onPrimary),
+          ),
           body: Padding(
             padding: const EdgeInsets.all(16),
             child: playlist.items.isEmpty
@@ -54,35 +105,6 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
           ),
         );
       },
-    );
-  }
-
-  AppBar _buildAppBar(Playlist playlist, NavigationProvider nav) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return AppBar(
-      leading: BackButton(
-        color: colorScheme.onSurface,
-        onPressed: () => nav.attemptPop(context),
-      ),
-      title: Text(playlist.name, style: theme.textTheme.titleMedium),
-      actions: [
-        IconButton(
-          icon: Icon(Icons.save, color: colorScheme.onSurface),
-          onPressed: () => _handleSave(playlist, nav),
-        ),
-      ],
-    );
-  }
-
-  FloatingActionButton _buildFloatingActionButton() {
-    final colorScheme = Theme.of(context).colorScheme;
-    return FloatingActionButton(
-      onPressed: () => _openPlaylistEditSheet(),
-      backgroundColor: colorScheme.onSurface,
-      shape: const CircleBorder(),
-      child: Icon(Icons.add, color: colorScheme.onPrimary),
     );
   }
 

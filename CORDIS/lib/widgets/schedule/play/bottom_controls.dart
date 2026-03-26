@@ -1,6 +1,6 @@
 import 'package:cordis/l10n/app_localizations.dart';
 import 'package:cordis/models/domain/playlist/playlist_item.dart';
-import 'package:cordis/models/dtos/schedule_dto.dart';
+import 'package:cordis/models/dtos/playlist_dto.dart';
 import 'package:cordis/providers/auto_scroll_provider.dart';
 import 'package:cordis/providers/cipher/cipher_provider.dart';
 import 'package:cordis/providers/playlist/flow_item_provider.dart';
@@ -11,9 +11,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class BottomControls extends StatefulWidget {
-  final ScheduleDto? schedule;
+  final PlaylistDto? playlistDto;
 
-  const BottomControls({super.key, this.schedule});
+  const BottomControls({super.key, this.playlistDto});
 
   @override
   State<BottomControls> createState() => _BottomControlsState();
@@ -171,7 +171,7 @@ class _BottomControlsState extends State<BottomControls> {
   String _getItemTitle(PlaylistItem item) {
     switch (item.type) {
       case PlaylistItemType.version:
-        if (widget.schedule == null) {
+        if (widget.playlistDto == null) {
           final localVer = context.read<LocalVersionProvider>();
           final ciph = context.read<CipherProvider>();
           if (item.contentId == null) return '';
@@ -180,19 +180,18 @@ class _BottomControlsState extends State<BottomControls> {
           return ciph.getCipher(version.cipherID)?.title ?? '';
         } else {
           return (widget
-                  .schedule!
-                  .playlist
+                  .playlistDto!
                   .versions[item.firebaseContentId]
                   ?.title) ??
               '';
         }
       case PlaylistItemType.flowItem:
-        if (widget.schedule == null) {
+        if (widget.playlistDto == null) {
           final flow = context.read<FlowItemProvider>();
           if (item.contentId == null) return '';
           return flow.getFlowItem(item.contentId!)?.title ?? '';
         } else {
-          return (widget.schedule!.playlist.flowItems[item
+          return (widget.playlistDto!.flowItems[item
                   .firebaseContentId]?['title']) ??
               '';
         }

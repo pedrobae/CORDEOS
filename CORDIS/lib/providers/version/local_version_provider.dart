@@ -341,7 +341,7 @@ class LocalVersionProvider extends ChangeNotifier {
 
   // ===== SAVE =====
   /// Persist the cache of an ID to the database
-  Future<void> saveVersion(int versionID) async {
+  Future<void> saveVersion({required int versionID}) async {
     if (_isSaving) return;
 
     _isSaving = true;

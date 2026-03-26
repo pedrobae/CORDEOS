@@ -16,6 +16,7 @@ class PlayScheduleStateProvider extends ChangeNotifier {
   PlaylistItem? get nextItem => (_currentItemIndex < _items.length - 1)
       ? _items[_currentItemIndex + 1]
       : null;
+  List<PlaylistItem> get items => _items;
   int get itemCount => _itemCount;
 
   PlaylistItem? getItemAt(int index) {

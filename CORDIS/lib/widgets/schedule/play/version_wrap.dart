@@ -29,134 +29,120 @@ class VersionWrap extends StatelessWidget {
       LocalVersionProvider,
       CloudVersionProvider,
       SectionProvider,
-      (Axis, Map<LayoutFilter, bool>, int, int)
+      ({
+        Axis wrapDirection,
+        Map<LayoutFilter, bool> layoutFilters,
+        List<String> songStructure,
+      })
     >(
       selector: (context, laySet, localVer, cloudVer, sect) => (
-        laySet.wrapDirection,
-        laySet.layoutFilters,
-        versionID is String
-            ? (cloudVer.getVersion(versionID)?.songStructure.length ?? -1)
-            : (localVer.getVersion(versionID)?.songStructure.length ?? -1),
-        sect.getSections(versionID).length,
+        wrapDirection: laySet.wrapDirection,
+        layoutFilters: laySet.layoutFilters,
+        songStructure: versionID is String
+            ? (cloudVer.getVersion(versionID)?.songStructure ?? [])
+            : (localVer.getVersion(versionID)?.songStructure ?? []),
       ),
-      builder: (context, value, child) {
-        final (wrapDirection, _, _, _) = value;
-
+      builder: (context, s, child) {
         return Padding(
           padding: EdgeInsets.only(
-            left: wrapDirection == Axis.vertical ? 16.0 : 0.0,
-            top: wrapDirection == Axis.horizontal ? 16.0 : 0.0,
+            left: s.wrapDirection == Axis.vertical ? 16.0 : 0.0,
+            top: s.wrapDirection == Axis.horizontal ? 16.0 : 0.0,
           ),
           child: Wrap(
-            direction: wrapDirection,
+            direction: s.wrapDirection,
             runSpacing: 8,
             spacing: 8,
-            children: _buildSectionCards(context),
+            children: _buildSectionCards(
+              context,
+              s.songStructure,
+              s.layoutFilters,
+            ),
           ),
         );
       },
     );
   }
 
-  Widget _buildHeader() {
-    return Consumer3<
-      LocalVersionProvider,
-      CloudVersionProvider,
-      CipherProvider
-    >(
-      builder: (context, localVer, cloudVer, ciph, child) {
-        final textTheme = Theme.of(context).textTheme;
+  Widget _buildHeader(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
 
-        String title;
-        String key;
-        int bpm;
-        Duration duration;
+    final localVer = context.read<LocalVersionProvider>();
+    final cloudVer = context.read<CloudVersionProvider>();
+    final ciph = context.read<CipherProvider>();
 
-        if (versionID is String) {
-          final version = cloudVer.getVersion(versionID);
-          if (version == null) return const LinearProgressIndicator();
-          title = version.title;
-          key = version.transposedKey ?? version.originalKey;
-          bpm = version.bpm;
-          duration = Duration(milliseconds: version.duration);
-        } else {
-          final version = localVer.getVersion(versionID);
-          if (version == null) return const LinearProgressIndicator();
-          final cipher = ciph.getCipher(version.cipherID);
-          if (cipher == null) return const LinearProgressIndicator();
-          title = cipher.title;
-          key = version.transposedKey ?? cipher.musicKey;
-          bpm = version.bpm;
-          duration = version.duration;
-        }
+    String title;
+    String key;
+    int bpm;
+    Duration duration;
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    if (versionID is String) {
+      final version = cloudVer.getVersion(versionID);
+      if (version == null) return const LinearProgressIndicator();
+      title = version.title;
+      key = version.transposedKey ?? version.originalKey;
+      bpm = version.bpm;
+      duration = Duration(milliseconds: version.duration);
+    } else {
+      final version = localVer.getVersion(versionID);
+      if (version == null) return const LinearProgressIndicator();
+      final cipher = ciph.getCipher(version.cipherID);
+      if (cipher == null) return const LinearProgressIndicator();
+      title = cipher.title;
+      key = version.transposedKey ?? cipher.musicKey;
+      bpm = version.bpm;
+      duration = version.duration;
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      spacing: 4,
+      children: [
+        Text(title, style: textTheme.titleMedium),
+        Row(
           mainAxisSize: MainAxisSize.min,
-          spacing: 4,
+          spacing: 16.0,
           children: [
-            Text(title, style: textTheme.titleMedium),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              spacing: 16.0,
-              children: [
-                Text(
-                  AppLocalizations.of(context)!.keyWithPlaceholder(key),
-                  style: textTheme.bodyMedium,
-                ),
-                Text(
-                  AppLocalizations.of(context)!.bpmWithPlaceholder(bpm),
-                  style: textTheme.bodyMedium,
-                ),
-                Text(
-                  '${AppLocalizations.of(context)!.duration}: ${DateTimeUtils.formatDuration(duration)}',
-                  style: textTheme.bodyMedium,
-                ),
-              ],
+            Text(
+              AppLocalizations.of(context)!.keyWithPlaceholder(key),
+              style: textTheme.bodyMedium,
+            ),
+            Text(
+              AppLocalizations.of(context)!.bpmWithPlaceholder(bpm),
+              style: textTheme.bodyMedium,
+            ),
+            Text(
+              '${AppLocalizations.of(context)!.duration}: ${DateTimeUtils.formatDuration(duration)}',
+              style: textTheme.bodyMedium,
             ),
           ],
-        );
-      },
+        ),
+      ],
     );
   }
 
-  List<Widget> _buildSectionCards(BuildContext context) {
-    final laySet = Provider.of<LayoutSetProvider>(context, listen: false);
-
-    final localVer = Provider.of<LocalVersionProvider>(context, listen: false);
-    final cloudVer = Provider.of<CloudVersionProvider>(context, listen: false);
-    final sect = Provider.of<SectionProvider>(context, listen: false);
-
+  List<Widget> _buildSectionCards(
+    BuildContext context,
+    List<String> songStructure,
+    Map<LayoutFilter, bool> layoutFilters,
+  ) {
     if (versionID == null) return [const SizedBox.shrink()];
 
-    List<String> songStructure;
-    if (versionID is String) {
-      final version = cloudVer.getVersion(versionID);
-      if (version == null) {
-        return [const Center(child: CircularProgressIndicator())];
-      }
-      songStructure = version.songStructure;
-    } else {
-      final version = localVer.getVersion(versionID);
-      if (version == null) {
-        return [const Center(child: CircularProgressIndicator())];
-      }
-      songStructure = version.songStructure;
-    }
+    final scroll = context.read<AutoScrollProvider>();
+    final sect = context.read<SectionProvider>();
+    final cloudVer = context.read<CloudVersionProvider>();
 
     final filteredStructure = songStructure
         .where(
           (sectionCode) =>
-              ((laySet.layoutFilters[LayoutFilter.annotations]! ||
+              ((layoutFilters[LayoutFilter.annotations]! ||
                   !isAnnotation(sectionCode)) &&
-              (laySet.layoutFilters[LayoutFilter.transitions]! ||
+              (layoutFilters[LayoutFilter.transitions]! ||
                   !isTransition(sectionCode))),
         )
         .toList();
 
-    final scroll = context.read<AutoScrollProvider>();
-
-    final sectionWidgets = <Widget>[_buildHeader()];
+    final sectionWidgets = <Widget>[_buildHeader(context)];
 
     for (var i = 0; i < filteredStructure.length; i++) {
       final key = scroll.registerSection(itemIndex, i);

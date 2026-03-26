@@ -58,11 +58,35 @@ class _StructureListState extends State<StructureList> {
     final scroll = context.read<AutoScrollProvider>();
     final state = context.read<PlayScheduleStateProvider>();
 
-    return Selector<LayoutSetProvider, Map<LayoutFilter, bool>>(
-      selector: (context, laySet) => laySet.layoutFilters,
-      builder: (context, layoutFilters, child) {
-        final filteredStructure = _getStructureForVersion(layoutFilters);
+    return Selector3<
+      LayoutSetProvider,
+      LocalVersionProvider,
+      CloudVersionProvider,
+      List<String>
+    >(
+      selector: (context, laySet, localVer, cloudVer) {
+        if (widget.versionID == null) return [];
 
+        List<String> songStructure;
+        if (widget.versionID is int) {
+          songStructure =
+              localVer.getVersion(widget.versionID)?.songStructure ?? [];
+        } else {
+          songStructure =
+              cloudVer.getVersion(widget.versionID)?.songStructure ?? [];
+        }
+
+        return songStructure
+            .where(
+              (sectionCode) =>
+                  ((laySet.layoutFilters[LayoutFilter.annotations]! ||
+                      !isAnnotation(sectionCode)) &&
+                  (laySet.layoutFilters[LayoutFilter.transitions]! ||
+                      !isTransition(sectionCode))),
+            )
+            .toList();
+      },
+      builder: (context, filteredStructure, child) {
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8.0),
           child: SizedBox(
@@ -115,32 +139,6 @@ class _StructureListState extends State<StructureList> {
         );
       },
     );
-  }
-
-  List<String> _getStructureForVersion(Map<LayoutFilter, bool> layoutFilters) {
-    final localVer = context.read<LocalVersionProvider>();
-    final cloudVer = context.read<CloudVersionProvider>();
-
-    if (widget.versionID == null) return [];
-
-    List<String> songStructure;
-    if (widget.versionID is int) {
-      songStructure =
-          localVer.getVersion(widget.versionID)?.songStructure ?? [];
-    } else {
-      songStructure =
-          cloudVer.getVersion(widget.versionID)?.songStructure ?? [];
-    }
-
-    return songStructure
-        .where(
-          (sectionCode) =>
-              ((layoutFilters[LayoutFilter.annotations]! ||
-                  !isAnnotation(sectionCode)) &&
-              (layoutFilters[LayoutFilter.transitions]! ||
-                  !isTransition(sectionCode))),
-        )
-        .toList();
   }
 }
 

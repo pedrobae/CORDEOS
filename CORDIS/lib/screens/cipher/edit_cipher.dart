@@ -394,7 +394,7 @@ class _EditCipherScreenState extends State<EditCipherScreen>
     final sectionProvider = context.read<SectionProvider>();
 
     await cipherProvider.saveCipher(widget.cipherID);
-    await localVersionProvider.saveVersion(widget.versionID);
+    await localVersionProvider.saveVersion(versionID: widget.versionID);
     await sectionProvider.saveSections(versionID: widget.versionID);
   }
 
@@ -402,7 +402,7 @@ class _EditCipherScreenState extends State<EditCipherScreen>
     final localVersionProvider = context.read<LocalVersionProvider>();
     final sectionProvider = context.read<SectionProvider>();
 
-    await localVersionProvider.saveVersion(widget.versionID);
+    await localVersionProvider.saveVersion(versionID: widget.versionID);
     await sectionProvider.saveSections(versionID: widget.versionID);
   }
 
