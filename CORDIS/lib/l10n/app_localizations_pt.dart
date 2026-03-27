@@ -9,7 +9,7 @@ class AppLocalizationsPt extends AppLocalizations {
   AppLocalizationsPt([String locale = 'pt']) : super(locale);
 
   @override
-  String get appName => 'CORDIS';
+  String get appName => 'CORDEOS';
 
   @override
   String appVersion(Object version) {

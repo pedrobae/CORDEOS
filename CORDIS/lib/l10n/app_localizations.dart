@@ -101,7 +101,7 @@ abstract class AppLocalizations {
   /// Application name
   ///
   /// In pt, this message translates to:
-  /// **'CORDIS'**
+  /// **'CORDEOS'**
   String get appName;
 
   /// App version label
