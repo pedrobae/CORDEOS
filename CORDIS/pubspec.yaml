@@ -2,7 +2,7 @@ name: cordis
 description: "Chord Map Application."
 publish_to: 'none'
 
-version: 1.4.3+32
+version: 1.4.4+32
 
 environment:
   sdk: ^3.8.1
