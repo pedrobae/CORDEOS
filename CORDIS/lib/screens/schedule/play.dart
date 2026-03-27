@@ -15,7 +15,7 @@ import 'package:cordis/providers/version/cloud_version_provider.dart';
 import 'package:cordis/providers/version/local_version_provider.dart';
 import 'package:cordis/providers/section_provider.dart';
 
-import 'package:cordis/screens/schedule/play_playlist.dart';
+import 'package:cordis/widgets/playlist/play_playlist.dart';
 
 class PlaySchedule extends StatefulWidget {
   final dynamic scheduleId;

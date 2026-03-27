@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cordis/l10n/app_localizations.dart';
 import 'package:cordis/models/domain/playlist/flow_item.dart';
 import 'package:cordis/models/domain/playlist/playlist_item.dart';
@@ -36,6 +38,8 @@ class _PlayPlaylistState extends State<PlayPlaylist> {
   bool get isWide => MediaQuery.of(context).size.width > 600;
   bool _isLoading = true;
 
+  late Timer? _listenerThrottle;
+
   late final ScrollController _scrollController;
   late final PlayScheduleStateProvider _play;
   late final AutoScrollProvider _scroll;
@@ -61,6 +65,7 @@ class _PlayPlaylistState extends State<PlayPlaylist> {
 
   @override
   void dispose() {
+    _listenerThrottle?.cancel();
     _scrollController.removeListener(_scrollListener);
     _scrollController.dispose();
     _play.reset();
@@ -76,7 +81,9 @@ class _PlayPlaylistState extends State<PlayPlaylist> {
 
     if (isManualScroll) {
       if (_scroll.scrollModeEnabled) _scroll.stopAutoScroll();
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+
+      _listenerThrottle?.cancel();
+      _listenerThrottle = Timer(const Duration(milliseconds: 200), () {
         if (!mounted || !_scrollController.hasClients) return;
 
         // Sync current item
