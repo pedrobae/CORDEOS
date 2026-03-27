@@ -16,63 +16,38 @@ class _PlaylistScrollViewState extends State<PlaylistScrollView> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Consumer<PlaylistProvider>(
-      builder:
-          (context, playlistProvider, child) {
-            // Handle loading state
-            if (playlistProvider.isLoading) {
-              return const Center(child: CircularProgressIndicator());
-            }
+    final play = context.read<PlaylistProvider>();
 
-            // Handle error state
-            if (playlistProvider.error != null) {
-              return Center(
-                child: Column(
-                  children: [
-                    Text(playlistProvider.error!),
-                    ElevatedButton(
-                      onPressed: () {
-                        playlistProvider.loadPlaylists();
-                      },
-                      child: Text(AppLocalizations.of(context)!.tryAgain),
-                    ),
-                  ],
+    final List<int> playlistIds = play.filteredPlaylists;
+
+    // Display playlist list
+    return RefreshIndicator(
+      onRefresh: () async {
+        play.loadPlaylists();
+      },
+      child: play.filteredPlaylists.isEmpty
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SizedBox(height: 64),
+                Text(
+                  AppLocalizations.of(context)!.emptyPlaylistLibrary,
+                  style: theme.textTheme.bodyLarge,
+                  textAlign: TextAlign.center,
                 ),
-              );
-            }
-
-            final List<int> playlistIds = playlistProvider.filteredPlaylists;
-
-            // Display playlist list
-            return RefreshIndicator(
-              onRefresh: () async {
-                playlistProvider.loadPlaylists();
+              ],
+            )
+          : ListView.builder(
+              physics: const AlwaysScrollableScrollPhysics(),
+              cacheExtent: 500,
+              itemCount: play.filteredPlaylists.length,
+              itemBuilder: (context, index) {
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 8.0),
+                  child: PlaylistCard(playlistID: playlistIds[index]),
+                );
               },
-              child: playlistProvider.filteredPlaylists.isEmpty
-                  ? Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        SizedBox(height: 64),
-                        Text(
-                          AppLocalizations.of(context)!.emptyPlaylistLibrary,
-                          style: theme.textTheme.bodyLarge,
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    )
-                  : ListView.builder(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      cacheExtent: 500,
-                      itemCount: playlistProvider.filteredPlaylists.length,
-                      itemBuilder: (context, index) {
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 8.0),
-                          child: PlaylistCard(playlistID: playlistIds[index]),
-                        );
-                      },
-                    ),
-            );
-          },
+            ),
     );
   }
 }

@@ -184,7 +184,7 @@ class CipherRepository {
 
   // ============= PRIVATE HELPERS =============
   Future<Cipher> _buildFullCipher(Map<String, dynamic> row) async {
-    final version = await _versionRepo.getVersions(row['id']);
+    final version = await _versionRepo.getUnloadedVersions(row['id'], []);
     final tags = await getCipherTags(row['id']);
 
     return Cipher.fromSqLite(row).copyWith(versions: version, tags: tags);

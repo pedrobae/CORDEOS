@@ -19,11 +19,15 @@ class LocalVersionRepository {
 
   // ===== READ =====
   /// Gets all versions of a cipher
-  Future<List<Version>> getVersions(int cipherId) async {
+  Future<List<Version>> getUnloadedVersions(
+    int cipherId,
+    List<int> loadedIds,
+  ) async {
     final db = await _databaseHelper.database;
     final results = await db.query(
       'version',
-      where: 'cipher_id = ?',
+      where:
+          'cipher_id = ?${loadedIds.isNotEmpty ? ' AND id NOT IN (${loadedIds.join(',')})' : ''}',
       whereArgs: [cipherId],
       orderBy: 'id',
     );

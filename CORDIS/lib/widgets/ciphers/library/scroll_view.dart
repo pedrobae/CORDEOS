@@ -33,7 +33,6 @@ class _CipherScrollViewState extends State<CipherScrollView> {
     final cloudVersionProvider = context.read<CloudVersionProvider>();
     final localVersionProvider = context.read<LocalVersionProvider>();
 
-    localVersionProvider.clearCache();
     await cipherProvider.loadCiphers(forceReload: forceReload);
     await cloudVersionProvider.loadVersions(
       forceReload: forceReload,
@@ -41,7 +40,10 @@ class _CipherScrollViewState extends State<CipherScrollView> {
     );
 
     for (var cipher in cipherProvider.ciphers.values) {
-      await localVersionProvider.loadVersionsOfCipher(cipher.id);
+      await localVersionProvider.ensureCipherVersionsAreLoaded(
+        cipher.id,
+        forceReload: forceReload,
+      );
     }
   }
 
@@ -51,7 +53,11 @@ class _CipherScrollViewState extends State<CipherScrollView> {
       CipherProvider,
       CloudVersionProvider,
       LocalVersionProvider,
-      (List<dynamic>, int, List<int?>)
+      ({
+        List<dynamic> filteredIDs,
+        int localIDsCount,
+        List<int?> localVersionIds,
+      })
     >(
       selector: (context, ciph, cloudVer, localVer) {
         final filteredCipherIds = ciph.filteredCipherIds;
@@ -62,20 +68,17 @@ class _CipherScrollViewState extends State<CipherScrollView> {
             .toList();
 
         return (
-          [...filteredCipherIds, ...filteredCloudVersionIds],
-          filteredCipherIds.length,
-          localVersionIds,
+          filteredIDs: [...filteredCipherIds, ...filteredCloudVersionIds],
+          localIDsCount: filteredCipherIds.length,
+          localVersionIds: localVersionIds,
         );
       },
-      builder: (context, data, child) {
-        final filteredIDs = data.$1;
-        final localIDsCount = data.$2;
-
+      builder: (context, s, child) {
         return RefreshIndicator(
           onRefresh: () async {
             _loadData(context, forceReload: true);
           },
-          child: (filteredIDs.isEmpty)
+          child: (s.filteredIDs.isEmpty)
               ? Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -90,22 +93,22 @@ class _CipherScrollViewState extends State<CipherScrollView> {
               : ListView.builder(
                   cacheExtent: 500,
                   physics: const AlwaysScrollableScrollPhysics(),
-                  itemCount: filteredIDs.length,
+                  itemCount: s.filteredIDs.length,
                   itemBuilder: (context, index) {
-                    if (index >= localIDsCount) {
+                    if (index >= s.localIDsCount) {
                       return Padding(
                         padding: const EdgeInsets.only(
                           bottom: 8.0,
                         ), // Spacing between cards
-                        child: CloudCipherCard(versionId: filteredIDs[index]),
+                        child: CloudCipherCard(versionId: s.filteredIDs[index]),
                       );
                     }
 
-                    if (index >= data.$3.length) {
+                    if (index >= s.localVersionIds.length) {
                       return const Center(child: CircularProgressIndicator());
                     }
 
-                    final versionID = data.$3[index];
+                    final versionID = s.localVersionIds[index];
                     if (versionID == null) {
                       return const Center(child: CircularProgressIndicator());
                     }

@@ -138,16 +138,24 @@ class LocalVersionProvider extends ChangeNotifier {
 
   // ===== READ =====
   /// Load all versions of a cipher into cache, used for version selector and cipher expansion
-  Future<void> loadVersionsOfCipher(int cipherId) async {
+  Future<void> ensureCipherVersionsAreLoaded(
+    int cipherId, {
+    bool forceReload = false,
+  }) async {
     try {
       _error = null;
       notifyListeners();
 
-      final versionList = await _repo.getVersions(cipherId);
+      final versionList = await _repo.getUnloadedVersions(
+        cipherId,
+        forceReload ? [] : _versions.keys.toList(),
+      );
       for (final version in versionList) {
         _versions[version.id!] = version;
       }
-      debugPrint('Loaded cipher $cipherId: VERSIONS - ${versionList.map((v) => v.id).toList()}');
+      debugPrint(
+        'Loaded cipher $cipherId: VERSIONS - ${versionList.map((v) => v.id).toList()}',
+      );
     } catch (e) {
       _error = e.toString();
       debugPrint('Error loading versions of cipher: $e');
