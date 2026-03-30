@@ -18,36 +18,39 @@ class _PlaylistScrollViewState extends State<PlaylistScrollView> {
 
     final play = context.read<PlaylistProvider>();
 
-    final List<int> playlistIds = play.filteredPlaylists;
-
     // Display playlist list
-    return RefreshIndicator(
-      onRefresh: () async {
-        play.loadPlaylists();
-      },
-      child: play.filteredPlaylists.isEmpty
-          ? Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                SizedBox(height: 64),
-                Text(
-                  AppLocalizations.of(context)!.emptyPlaylistLibrary,
-                  style: theme.textTheme.bodyLarge,
-                  textAlign: TextAlign.center,
+    return Selector<PlaylistProvider, List<int>>(
+      selector: (_, provider) => provider.filteredPlaylists,
+      builder: (context, playlistIds, child) {
+        return RefreshIndicator(
+          onRefresh: () async {
+            play.loadPlaylists();
+          },
+          child: playlistIds.isEmpty
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    SizedBox(height: 64),
+                    Text(
+                      AppLocalizations.of(context)!.emptyPlaylistLibrary,
+                      style: theme.textTheme.bodyLarge,
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                )
+              : ListView.builder(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  cacheExtent: 500,
+                  itemCount: playlistIds.length,
+                  itemBuilder: (context, index) {
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 8.0),
+                      child: PlaylistCard(playlistID: playlistIds[index]),
+                    );
+                  },
                 ),
-              ],
-            )
-          : ListView.builder(
-              physics: const AlwaysScrollableScrollPhysics(),
-              cacheExtent: 500,
-              itemCount: play.filteredPlaylists.length,
-              itemBuilder: (context, index) {
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 8.0),
-                  child: PlaylistCard(playlistID: playlistIds[index]),
-                );
-              },
-            ),
+        );
+      },
     );
   }
 }
