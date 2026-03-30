@@ -79,6 +79,7 @@ class TokenizationBuilder {
                 ),
               );
               break;
+            case TokenType.space:
             case TokenType.lyric:
               wordWidgets.add(
                 TokenWidget(
@@ -89,14 +90,6 @@ class TokenizationBuilder {
                       child: Text(token.text, style: ctx.lyricStyle),
                     ),
                   ),
-                  token: token,
-                ),
-              );
-              break;
-            case TokenType.space:
-              wordWidgets.add(
-                TokenWidget(
-                  widget: Text(' ', style: ctx.lyricStyle),
                   token: token,
                 ),
               );
@@ -347,7 +340,10 @@ class TokenizationBuilder {
   }) {
     final dragTargetChild = SizedBox(
       height: ctx.lineHeight,
-      child: Align(alignment: Alignment.bottomCenter,child: Text(token.text, style: ctx.lyricStyle,)),
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        child: Text(token.text, style: ctx.lyricStyle),
+      ),
     );
 
     return _buildGenericDragTarget(
@@ -370,7 +366,7 @@ class TokenizationBuilder {
   }) {
     final dragTargetChild = SizedBox(
       width: tokenMeasurements[token]!.width,
-      height: tokenMeasurements[token]!.height,
+      height: ctx.lineHeight
     );
 
     return _buildGenericDragTarget(

@@ -49,6 +49,7 @@ class PositionService {
 
     final lineHeight = chordMsr.size + lyricMsr.size + posCtx.chordLyricSpacing;
     buildCtx.lineHeight = lineHeight;
+    buildCtx.chordHeight = chordMsr.size;
 
     final ctx = _LayoutCtx(
       chordHeight: chordMsr.size,
@@ -113,10 +114,7 @@ class PositionService {
 
       switch (token.type) {
         case TokenType.postSeparator:
-          final xOffset = max(
-            cursor.chordX - TokenizationConstants.chordTokenWidthPadding,
-            cursor.lyricsX,
-          );
+          final xOffset = max(cursor.chordX, cursor.lyricsX);
           if (ctx.posCtx.isEditMode) {
             cursor.chordX =
                 xOffset +
@@ -223,11 +221,7 @@ class PositionService {
           break;
 
         case TokenType.space:
-          positions.setPosition(
-            token,
-            cursor.lyricsX,
-            cursor.yOffset + ctx.posCtx.chordLyricSpacing + ctx.chordHeight,
-          );
+          positions.setPosition(token, cursor.lyricsX, cursor.yOffset);
           cursor.lyricsX += msr.width + ctx.posCtx.letterSpacing;
           charIndex++;
           if (ctx.checkOverflow && cursor.lyricsX > ctx.posCtx.maxWidth) {
@@ -274,6 +268,8 @@ class PositionService {
     TokenPositionMap positionMap,
     TokenBuildContext buildCtx,
   ) {
+    double maxY = 0;
+    bool hasLyrics = false;
     final tokenWidgets = <Positioned>[];
     for (var widgetLine in contentWidgets.lines) {
       for (var widgetWord in widgetLine.words) {
@@ -282,10 +278,17 @@ class PositionService {
           if (tokenWidget.type == TokenType.newline) {
             continue;
           }
+          if (tokenWidget.type == TokenType.lyric) {
+            hasLyrics = true;
+          }
 
           // Get position from map
           final x = positionMap.getX(tokenWidget.token) ?? 0.0;
           final y = positionMap.getY(tokenWidget.token) ?? 0.0;
+
+          if (y > maxY) {
+            maxY = y;
+          }
 
           tokenWidgets.add(
             Positioned(left: x, top: y, child: tokenWidget.widget),
@@ -294,7 +297,7 @@ class PositionService {
       }
     }
 
-    final maxY = positionMap.maxY + buildCtx.lineHeight!;
+    maxY += hasLyrics ? buildCtx.lineHeight! : buildCtx.chordHeight!;
 
     return ContentTokenized(tokenWidgets, maxY);
   }

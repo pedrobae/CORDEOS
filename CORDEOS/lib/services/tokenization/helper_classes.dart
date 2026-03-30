@@ -60,7 +60,8 @@ class TokenBuildContext {
 
   /// LAYOUT PARAMETERS
   final double maxWidth;
-  double? lineHeight; // calculated during layout, used for drag feedback positioning
+  double? lineHeight; // calculated during layout, used for drag feedback positioning and content height calculation
+  double? chordHeight; // calculated during layout, used for content height calculation
 
   /// TRANSPOSER
   final String Function(String chord) transposeChord;
@@ -254,9 +255,5 @@ class TokenPositionMap {
 
   void merge(TokenPositionMap other) {
     _positions.addAll(other._positions);
-  }
-
-  double get maxY {
-    return _positions.values.map((offset) => offset.dy).reduce((a, b) => a > b ? a : b);
   }
 }
