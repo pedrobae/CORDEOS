@@ -86,17 +86,13 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard> {
             : null;
         return (version: version, cipher: cipher);
       },
-      builder: (context, sel, child) {
+      builder: (context, s, child) {
         // If version is not loaded yet, show loading indicator
-        if (sel.version == null) {
+        if (s.version == null || s.cipher == null) {
           return Center(child: CircularProgressIndicator());
         }
 
-        if (sel.cipher == null) {
-          return Center(child: CircularProgressIndicator());
-        }
-
-        final List<String> songStructure = sel.version!.songStructure;
+        final List<String> songStructure = s.version!.songStructure;
 
         return Container(
           decoration: BoxDecoration(
@@ -126,7 +122,7 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard> {
                       () => ViewCipherScreen(
                         versionType: VersionType.playlist,
                         versionID: widget.versionId,
-                        cipherID: sel.version!.cipherID,
+                        cipherID: s.version!.cipherID,
                       ),
                       showBottomNavBar: true,
                     );
@@ -146,7 +142,7 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          sel.cipher!.title,
+                          s.cipher!.title,
                           style: theme.textTheme.titleMedium,
                           softWrap: true,
                         ),
@@ -161,8 +157,8 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard> {
                                   style: theme.textTheme.bodyMedium,
                                 ),
                                 Text(
-                                  sel.version!.transposedKey ??
-                                      sel.cipher!.musicKey,
+                                  s.version!.transposedKey ??
+                                      s.cipher!.musicKey,
                                   style: theme.textTheme.bodyMedium,
                                 ),
                               ],
@@ -175,14 +171,14 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard> {
                                   style: theme.textTheme.bodyMedium,
                                 ),
                                 Text(
-                                  sel.version!.bpm.toString(),
+                                  s.version!.bpm.toString(),
                                   style: theme.textTheme.bodyMedium,
                                 ),
                               ],
                             ),
                             Text(
                               DateTimeUtils.formatDuration(
-                                sel.version!.duration,
+                                s.version!.duration,
                               ),
                               style: theme.textTheme.bodyMedium,
                             ),
@@ -190,7 +186,7 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard> {
                         ),
                         // REORDERABLE SECTION CHIPS
                         _buildReorderableSectionChips(
-                          sel.version!,
+                          s.version!,
                           songStructure,
                         ),
                       ],
@@ -200,7 +196,7 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard> {
               ),
               GestureDetector(
                 onTap: () {
-                  _openVersionActions(context, sel.version!);
+                  _openVersionActions(context, s.version!);
                 },
                 child: Container(
                   // Container to paint and enable hitbox for the icon

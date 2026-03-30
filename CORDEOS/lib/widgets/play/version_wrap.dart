@@ -68,6 +68,8 @@ class VersionWrap extends StatelessWidget {
           ),
           child: Wrap(
             direction: s.wrapDirection,
+            crossAxisAlignment: WrapCrossAlignment.start,
+            alignment: WrapAlignment.start,
             runSpacing: 8,
             spacing: 8,
             children: _buildSectionCards(context, s.filteredStructure),
@@ -107,31 +109,33 @@ class VersionWrap extends StatelessWidget {
       duration = version.duration;
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      spacing: 4,
-      children: [
-        Text(title, style: textTheme.titleMedium),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          spacing: 16.0,
-          children: [
-            Text(
-              AppLocalizations.of(context)!.keyWithPlaceholder(key),
-              style: textTheme.bodyMedium,
-            ),
-            Text(
-              AppLocalizations.of(context)!.bpmWithPlaceholder(bpm),
-              style: textTheme.bodyMedium,
-            ),
-            Text(
-              '${AppLocalizations.of(context)!.duration}: ${DateTimeUtils.formatDuration(duration)}',
-              style: textTheme.bodyMedium,
-            ),
-          ],
-        ),
-      ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(title, style: textTheme.titleMedium),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            spacing: 16.0,
+            children: [
+              Text(
+                AppLocalizations.of(context)!.keyWithPlaceholder(key),
+                style: textTheme.bodyMedium,
+              ),
+              Text(
+                AppLocalizations.of(context)!.bpmWithPlaceholder(bpm),
+                style: textTheme.bodyMedium,
+              ),
+              Text(
+                '${AppLocalizations.of(context)!.duration}: ${DateTimeUtils.formatDuration(duration)}',
+                style: textTheme.bodyMedium,
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 

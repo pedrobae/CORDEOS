@@ -12,10 +12,10 @@ import 'package:cordeos/providers/settings/layout_settings_provider.dart';
 import 'package:cordeos/providers/version/local_version_provider.dart';
 import 'package:cordeos/widgets/ciphers/editor/sections/sheet_manage.dart';
 import 'package:cordeos/widgets/ciphers/viewer/structure_list.dart';
-import 'package:cordeos/widgets/schedule/play/auto_scroll_indicator.dart';
-import 'package:cordeos/widgets/schedule/play/bottom_controls.dart';
-import 'package:cordeos/widgets/schedule/play/flow_flex.dart';
-import 'package:cordeos/widgets/schedule/play/version_wrap.dart';
+import 'package:cordeos/widgets/play/auto_scroll_indicator.dart';
+import 'package:cordeos/widgets/play/bottom_controls.dart';
+import 'package:cordeos/widgets/play/flow_flex.dart';
+import 'package:cordeos/widgets/play/version_wrap.dart';
 import 'package:cordeos/widgets/settings/sheet_auto_scroll.dart';
 import 'package:cordeos/widgets/settings/sheet_filters.dart';
 import 'package:cordeos/widgets/settings/sheet_style.dart';
@@ -48,6 +48,7 @@ class _PlayPlaylistState extends State<PlayPlaylist> {
   void initState() {
     _scrollController = ScrollController();
     _scrollController.addListener(_scrollListener);
+    _listenerThrottle = null;
 
     _play = context.read<PlayScheduleStateProvider>();
     _scroll = context.read<AutoScrollProvider>();
@@ -150,6 +151,7 @@ class _PlayPlaylistState extends State<PlayPlaylist> {
                         : const EdgeInsets.only(right: 16, top: 8, bottom: 8),
                     child: Flex(
                       direction: scrollDirection,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: _buildItems(itemCount),
                     ),
                   );

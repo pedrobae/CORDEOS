@@ -6,7 +6,7 @@ import 'package:cordeos/providers/section_provider.dart';
 import 'package:cordeos/providers/transposition_provider.dart';
 import 'package:cordeos/widgets/ciphers/transposer.dart';
 import 'package:cordeos/widgets/ciphers/viewer/structure_list.dart';
-import 'package:cordeos/widgets/schedule/play/version_wrap.dart';
+import 'package:cordeos/widgets/play/version_wrap.dart';
 import 'package:cordeos/widgets/settings/sheet_filters.dart';
 import 'package:cordeos/widgets/settings/sheet_style.dart';
 import 'package:flutter/material.dart';

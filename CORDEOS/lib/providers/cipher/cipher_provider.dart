@@ -16,7 +16,6 @@ class CipherProvider extends ChangeNotifier {
 
   String _searchTerm = '';
 
-  bool _isLoading = false;
   bool _isSaving = false;
   bool _hasUnsavedChanges = false;
   bool _hasLoadedCiphers = false;
@@ -42,7 +41,6 @@ class CipherProvider extends ChangeNotifier {
     }
   }
 
-  bool get isLoading => _isLoading;
   bool get isSaving => _isSaving;
 
   String? get error => _error;
@@ -99,14 +97,12 @@ class CipherProvider extends ChangeNotifier {
   // ===== READ =====
   /// Load ciphers from local SQLite
   Future<void> loadCiphers({bool forceReload = false}) async {
-    if (_isLoading) return;
     if (_hasLoadedCiphers && !forceReload) {
       debugPrint('CIPHER - Ciphers already loaded, skipping reload');
       return;
     }
 
     _ciphers.clear();
-    _isLoading = true;
     _error = null;
     notifyListeners();
 
@@ -127,21 +123,17 @@ class CipherProvider extends ChangeNotifier {
       _error = e.toString();
       debugPrint('CIPHER - Error loading ciphers: $e');
     } finally {
-      _isLoading = false;
       notifyListeners();
     }
   }
 
   /// Load single cipher by ID into cache (_current_cipher)
   Future<void> loadCipher(int cipherId) async {
-    if (_isLoading) return;
-
     if (cipherId == -1) {
       _ciphers.remove(-1);
       return;
     }
 
-    _isLoading = true;
     _error = null;
     notifyListeners();
 
@@ -158,7 +150,6 @@ class CipherProvider extends ChangeNotifier {
       debugPrint('CIPHER - Error loading cipher: $e');
     } finally {
       _hasUnsavedChanges = false;
-      _isLoading = false;
       notifyListeners();
     }
   }
@@ -299,7 +290,6 @@ class CipherProvider extends ChangeNotifier {
   /// Clear cached data and reset state for debugging
   void clearCache() {
     _ciphers.clear();
-    _isLoading = false;
     _isSaving = false;
     _hasUnsavedChanges = false;
     _error = null;

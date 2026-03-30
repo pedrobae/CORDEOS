@@ -12,7 +12,7 @@ import 'package:cordeos/providers/navigation_provider.dart';
 import 'package:cordeos/providers/playlist/playlist_provider.dart';
 import 'package:cordeos/providers/schedule/local_schedule_provider.dart';
 import 'package:cordeos/providers/version/local_version_provider.dart';
-import 'package:cordeos/widgets/playlist/play_playlist.dart';
+import 'package:cordeos/widgets/play/play_playlist.dart';
 import 'package:cordeos/services/sync_service.dart';
 
 import 'package:cordeos/widgets/playlist/viewer/add_to_playlist_sheet.dart';
