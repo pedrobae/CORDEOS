@@ -229,6 +229,7 @@ class ScheduleCard extends StatelessWidget {
                 isDark: true,
                 onPressed: () {
                   final nav = context.read<NavigationProvider>();
+                  Navigator.of(context).pop(); // Close the sheet
                   nav.push(
                     () => ViewScheduleScreen(scheduleId: scheduleId),
                     showBottomNavBar: true,

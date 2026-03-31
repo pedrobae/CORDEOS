@@ -4,6 +4,7 @@ import 'package:cordeos/providers/selection_provider.dart';
 import 'package:cordeos/providers/user/my_auth_provider.dart';
 import 'package:cordeos/providers/version/local_version_provider.dart';
 import 'package:cordeos/services/sync_service.dart';
+import 'package:cordeos/widgets/common/cloud_download_indicator.dart';
 import 'package:flutter/material.dart';
 
 import 'package:cordeos/l10n/app_localizations.dart';
@@ -37,6 +38,8 @@ class ViewScheduleScreen extends StatefulWidget {
 }
 
 class _ViewScheduleScreenState extends State<ViewScheduleScreen> {
+  bool _isPublishing = false;
+
   @override
   void initState() {
     super.initState();
@@ -109,6 +112,9 @@ class _ViewScheduleScreenState extends State<ViewScheduleScreen> {
                       _buildPlaylistSection(nav, play, schedule),
                       _buildMembersSection(nav, localSch, schedule),
                       _buildPublishButton(schedule),
+                      if (_isPublishing) ...[
+                        Center(child: CloudDownloadIndicator(isUpload: true)),
+                      ],
                     ],
                   );
                 },
@@ -436,7 +442,10 @@ class _ViewScheduleScreenState extends State<ViewScheduleScreen> {
     return count;
   }
 
-  void _publishSchedule() {
+  void _publishSchedule() async {
+    setState(() {
+      _isPublishing = true;
+    });
     final syncService = ScheduleSyncService();
 
     final localSch = context.read<LocalScheduleProvider>();
@@ -449,6 +458,10 @@ class _ViewScheduleScreenState extends State<ViewScheduleScreen> {
       return;
     }
 
-    syncService.upsertToCloud(schedule, auth.id!);
+    await syncService.upsertToCloud(schedule, auth.id!);
+
+    setState(() {
+      _isPublishing = false;
+    });
   }
 }

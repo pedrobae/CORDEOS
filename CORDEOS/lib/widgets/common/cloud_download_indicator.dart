@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 class CloudDownloadIndicator extends StatelessWidget {
-  const CloudDownloadIndicator({super.key});
+  final bool isUpload;
+
+  const CloudDownloadIndicator({super.key, this.isUpload = false});
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +32,7 @@ class CloudDownloadIndicator extends StatelessWidget {
               ),
               padding: const EdgeInsets.only(left: 6),
               child: Icon(
-                Icons.cloud_download,
+                isUpload ? Icons.cloud_upload : Icons.cloud_download,
                 size: 25,
                 color: colorScheme.onSurface,
               ),
