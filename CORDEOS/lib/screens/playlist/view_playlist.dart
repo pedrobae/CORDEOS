@@ -188,7 +188,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
     );
 
     if (schedule != null && schedule.scheduleState == ScheduleState.published) {
-      ScheduleSyncService().upsertToCloud(schedule, auth.id!);
+      ScheduleSyncService().upsertScheduleToCloud(schedule, auth.id!);
     }
 
     sel.clearNewlyAddedVersionIds();

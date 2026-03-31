@@ -202,7 +202,7 @@ class LocalScheduleProvider extends ChangeNotifier {
     if (DateTime.now().isAfter(schedule.date)) return;
 
     try {
-      await _syncService.upsertToCloud(schedule, userFirebaseId);
+      await _syncService.upsertScheduleToCloud(schedule, userFirebaseId);
     } catch (e) {
       _error = e.toString();
       notifyListeners();

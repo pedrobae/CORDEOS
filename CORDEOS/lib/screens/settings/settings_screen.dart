@@ -224,7 +224,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       );
 
       await _reloadMainData();
-
     } catch (e) {
       if (!mounted) return;
 
@@ -270,6 +269,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         context.read<UserProvider>().loadUsers(),
         context.read<LocalScheduleProvider>().loadSchedules(),
         context.read<CloudScheduleProvider>().loadSchedules(
+          context,
           context.read<MyAuthProvider>().id!,
           forceFetch: true,
         ),

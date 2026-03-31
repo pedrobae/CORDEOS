@@ -413,8 +413,10 @@ class _ViewScheduleScreenState extends State<ViewScheduleScreen> {
                       )!.publishPlaceholder(''),
                       isDark: true,
                       onPressed: () async {
+                        final nav = context.read<NavigationProvider>();
                         Navigator.of(context).pop();
                         await _publishSchedule();
+                        nav.pop();
                       },
                     ),
                     FilledTextButton(
@@ -457,7 +459,7 @@ class _ViewScheduleScreenState extends State<ViewScheduleScreen> {
       return;
     }
 
-    await syncService.upsertToCloud(schedule, auth.id!);
+    await syncService.upsertScheduleToCloud(schedule, auth.id!);
 
     setState(() {
       _isPublishing = false;

@@ -25,8 +25,8 @@ class _ScheduleLibraryScreenState extends State<ScheduleLibraryScreen> {
       final auth = context.read<MyAuthProvider>();
 
       if (mounted) {
+        await cloudSch.loadSchedules(context, auth.id!);
         await localSch.loadSchedules();
-        await cloudSch.loadSchedules(auth.id!);
       }
     });
   }

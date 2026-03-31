@@ -42,7 +42,12 @@ class Schedule {
     if (!isPublic) {
       return ScheduleState.draft;
     } else {
-      if (DateTime.now().isAfter(date)) {
+      if (DateTime.now().year > date.year ||
+          (DateTime.now().year == date.year &&
+              DateTime.now().month > date.month) ||
+          (DateTime.now().year == date.year &&
+              DateTime.now().month == date.month &&
+              DateTime.now().day > date.day)) {
         return ScheduleState.completed;
       } else {
         return ScheduleState.published;

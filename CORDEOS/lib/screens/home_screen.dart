@@ -37,7 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!authProvider.isAuthenticated) {
       return;
     }
-    await cloudScheduleProvider.loadSchedules(authProvider.id!);
+    await cloudScheduleProvider.loadSchedules(context, authProvider.id!);
     await localScheduleProvider.loadSchedules();
 
     final user = userProvider.getUserByFirebaseId(authProvider.id!);

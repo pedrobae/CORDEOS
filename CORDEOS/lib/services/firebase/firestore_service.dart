@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cordeos/services/firebase/firebase_service.dart';
+import 'package:flutter/material.dart';
 
 /// Generic Firestore service for database operations.
 class FirestoreService {
@@ -7,13 +10,19 @@ class FirestoreService {
 
   // ===== CREATE METHODS =====
   /// Create a new document in a specified collection, with auto-generated ID.
+  /// With timeout handling
   Future<String> createDocument({
     required String collectionPath,
     required Map<String, dynamic> data,
   }) async {
     try {
+      /// FOR DEBUGGING THE TIMING OUT ISSUE
+      Timer timeoutTimer = Timer(const Duration(seconds: 10), () {
+        throw TimeoutException('Firestore createDocument timed out');
+      });
       data['updatedAt'] = FieldValue.serverTimestamp();
       final docRef = await _firestore.collection(collectionPath).add(data);
+      timeoutTimer.cancel();
       return docRef.id;
     } catch (e) {
       FirebaseService.logError('Failed to create document', e);
@@ -37,6 +46,7 @@ class FirestoreService {
           .add(data);
       return docRef.id;
     } catch (e) {
+      debugPrint(e.toString());
       FirebaseService.logError('Failed to create sub-collection document', e);
       rethrow;
     }

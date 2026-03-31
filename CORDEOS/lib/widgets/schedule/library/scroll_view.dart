@@ -121,7 +121,7 @@ class _ScheduleScrollViewState extends State<ScheduleScrollView> {
     List<dynamic> futureScheduleIDs,
   ) {
     final textTheme = Theme.of(context).textTheme;
-    
+
     final localSch = context.read<LocalScheduleProvider>();
     final cloudSch = context.read<CloudScheduleProvider>();
     final auth = context.read<MyAuthProvider>();
@@ -148,8 +148,8 @@ class _ScheduleScrollViewState extends State<ScheduleScrollView> {
         Expanded(
           child: RefreshIndicator(
             onRefresh: () async {
+              await cloudSch.loadSchedules(context, auth.id!, forceFetch: true);
               await localSch.loadSchedules();
-              await cloudSch.loadSchedules(auth.id!, forceFetch: true);
             },
             child: SingleChildScrollView(
               controller: _scrollController,

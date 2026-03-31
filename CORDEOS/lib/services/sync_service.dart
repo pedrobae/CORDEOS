@@ -298,8 +298,11 @@ class ScheduleSyncService {
   }
 
   /// =========================================================================
-  /// Syncs changes to a published playlist into firestore
-  Future<void> upsertToCloud(Schedule schedule, String ownerFirebaseID) async {
+  /// Syncs changes to a published schedule into firestore
+  Future<void> upsertScheduleToCloud(
+    Schedule schedule,
+    String ownerFirebaseID,
+  ) async {
     debugPrint(
       'Syncing schedule ${schedule.id} to cloud for owner $ownerFirebaseID',
     );
@@ -341,26 +344,32 @@ class ScheduleSyncService {
           break;
       }
     }
-
-    final firebaseId = await _cloudRepo.upsertSchedule(
-      ownerFirebaseID,
-      schedule.toDto(
-        PlaylistDto(
-          name: domainPlaylist.name,
-          itemOrder: itemOrder,
-          flowItems: flowItems,
-          versions: versions,
-        ),
+    final scheduleDto = schedule.toDto(
+      PlaylistDto(
+        name: domainPlaylist.name,
+        itemOrder: itemOrder,
+        flowItems: flowItems,
+        versions: versions,
       ),
     );
+    debugPrint("Built scheduleDto");
 
-    if (schedule.firebaseId == null) {
-      debugPrint(
-        'Schedule was created, updating local schedule with firebase ID $firebaseId',
-      );
-      await _localRepo.updateSchedule(
-        schedule.copyWith(firebaseId: firebaseId, isPublic: true),
-      );
+    try {
+      if (schedule.firebaseId == null) {
+        final newID = await _cloudRepo.publishSchedule(scheduleDto);
+        debugPrint(
+          'Schedule was created, updating local schedule with firebase ID $newID',
+        );
+        await _localRepo.updateSchedule(
+          schedule.copyWith(firebaseId: newID, isPublic: true),
+        );
+      } else {
+        await _cloudRepo.update(ownerFirebaseID, scheduleDto);
+      }
+
+      debugPrint('Finished syncing schedule ${schedule.id} to cloud');
+    } catch (e) {
+      debugPrint('Error syncing schedule ${schedule.id} to cloud: $e');
     }
   }
 }

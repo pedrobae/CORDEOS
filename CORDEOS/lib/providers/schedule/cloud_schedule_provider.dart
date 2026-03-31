@@ -2,9 +2,11 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cordeos/models/dtos/schedule_dto.dart';
+import 'package:cordeos/providers/schedule/local_schedule_provider.dart';
 import 'package:cordeos/repositories/cloud/schedule_repository.dart';
 import 'package:cordeos/services/sync_service.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class CloudScheduleProvider extends ChangeNotifier {
   final _repo = CloudScheduleRepository();
@@ -83,7 +85,11 @@ class CloudScheduleProvider extends ChangeNotifier {
 
   // ===== READ =====
   /// Fetches all schedules from the cloud repository (user has to be a collaborator)
-  Future<void> loadSchedules(String userId, {bool forceFetch = false}) async {
+  Future<void> loadSchedules(
+    BuildContext context,
+    String userId, {
+    bool forceFetch = false,
+  }) async {
     if (_isLoading) return;
 
     _isLoading = true;
@@ -111,8 +117,8 @@ class CloudScheduleProvider extends ChangeNotifier {
     // Owner schedule sync can be slow and should not block the screen loader.
     for (final schedule in _schedules.values.toList()) {
       if (schedule.ownerFirebaseId == userId && schedule.firebaseId != null) {
-        if (forceFetch || _oldSync(schedule.firebaseId!)) {
-          unawaited(_syncOwnedSchedule(schedule));
+        if ((forceFetch || _oldSync(schedule.firebaseId!)) && context.mounted) {
+          unawaited(_syncOwnedSchedule(context, schedule));
         } else {
           _schedules.remove(schedule.firebaseId!);
         }
@@ -120,16 +126,24 @@ class CloudScheduleProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> _syncOwnedSchedule(ScheduleDto schedule) async {
+  Future<void> _syncOwnedSchedule(
+    BuildContext context,
+    ScheduleDto schedule,
+  ) async {
     final scheduleId = schedule.firebaseId!;
 
     _isSyncing[scheduleId] = true;
     notifyListeners();
 
     try {
-      await _syncService.scheduleToLocal(schedule);
+      final localID = await _syncService.scheduleToLocal(schedule);
       _lastSyncTimes[scheduleId] = DateTime.now();
       _schedules.remove(scheduleId);
+      // Trigger local provider load.
+      if (context.mounted) {
+        final localScheduleProvider = context.read<LocalScheduleProvider>();
+        localScheduleProvider.loadSchedule(localID);
+      }
     } catch (e) {
       debugPrint('Error syncing owned schedule $scheduleId: $e');
     } finally {

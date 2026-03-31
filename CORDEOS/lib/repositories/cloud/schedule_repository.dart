@@ -2,7 +2,6 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:cordeos/helpers/guard.dart';
 import 'package:cordeos/models/dtos/schedule_dto.dart';
 import 'package:cordeos/services/firebase/firestore_service.dart';
-import 'package:cordeos/utils/timezone_utils.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
@@ -24,10 +23,7 @@ class CloudScheduleRepository {
 
       final docId = await _firestoreService.createDocument(
         collectionPath: 'schedules',
-        data: scheduleDto.toFirestore()
-          ..['createdAt'] = TimezoneUtils.dateTimeToTimestamp(
-            DateTime.now().toUtc(),
-          ),
+        data: scheduleDto.toFirestore(),
       );
 
       await FirebaseAnalytics.instance.logEvent(
@@ -96,34 +92,23 @@ class CloudScheduleRepository {
   }
 
   // ===== UPDATE =====
-
   /// Update an existing schedule in Firestore on the changes map
-  Future<String> upsertSchedule(String ownerId, ScheduleDto schedule) async {
-    return await _withErrorHandling('upsert_schedule', () async {
+  Future<void> update(String ownerId, ScheduleDto schedule) async {
+    return await _withErrorHandling('update_schedule', () async {
       await _guardHelper.requireAuth();
       await _guardHelper.requireOwnership(ownerId);
-
-      String? id = schedule.firebaseId;
-
-      if (id == null || id.isEmpty) {
-        id = await _firestoreService.createDocument(
-          collectionPath: 'schedules',
-          data: schedule.toFirestore(),
-        );
-      } else {
-        await _firestoreService.updateDocument(
-          collectionPath: 'schedules',
-          documentId: id,
-          data: schedule.toFirestore(),
-          merge: false,
-        );
-      }
+      await _firestoreService.updateDocument(
+        collectionPath: 'schedules',
+        documentId: schedule.firebaseId!,
+        data: schedule.toFirestore(),
+        merge: false,
+      );
 
       await FirebaseAnalytics.instance.logEvent(
-        name: 'upserted_schedule',
-        parameters: {'scheduleId': id},
+        name: 'updated_schedule',
+        parameters: {'scheduleId': schedule.firebaseId!},
       );
-      return id;
+      return;
     });
   }
 
@@ -188,7 +173,7 @@ class CloudScheduleRepository {
           parameters: {'error': e.message!},
         );
       }
-
+      debugPrint(e.toString());
       rethrow;
     }
   }
