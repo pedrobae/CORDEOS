@@ -58,7 +58,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
             actions: [
               // Play
               IconButton(
-                icon: Icon(Icons.play_arrow, color: colorScheme.onSurface),
+                icon: Icon(Icons.play_circle_fill_rounded, color: colorScheme.onSurface, size: 30,),
                 onPressed: () {
                   final localVer = context.read<LocalVersionProvider>();
                   final sect = context.read<SectionProvider>();
@@ -90,7 +90,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
               ),
               // Save
               IconButton(
-                icon: Icon(Icons.save, color: colorScheme.onSurface),
+                icon: Icon(Icons.save, color: colorScheme.onSurface, size: 30,),
                 onPressed: () => _handleSave(playlist, nav),
               ),
             ],

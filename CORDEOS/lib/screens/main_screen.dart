@@ -105,6 +105,7 @@ class MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
             key: _scaffoldKey,
             resizeToAvoidBottomInset: false,
             drawer: SideMenu(),
+            drawerEnableOpenDragGesture: false,
             body: Row(
               children: [
                 if (showWideSidebar) _buildWideSidebar(nav),

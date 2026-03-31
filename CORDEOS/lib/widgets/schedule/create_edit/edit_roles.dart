@@ -37,7 +37,7 @@ class EditRoles extends StatelessWidget {
             ),
             actions: [
               IconButton(
-                icon: Icon(Icons.save),
+                icon: Icon(Icons.save, size: 30,),
                 onPressed: () {
                   localSch.saveSchedule(scheduleId);
                   localSch.uploadChangesToCloud(scheduleId, auth.id!);
@@ -66,7 +66,7 @@ class EditRoles extends StatelessWidget {
           child: Builder(
             builder: (context) {
               final schedule = localSch.getSchedule(scheduleId);
-          
+
               if (schedule == null) {
                 return Center(child: CircularProgressIndicator());
               }
@@ -107,10 +107,15 @@ class EditRoles extends StatelessWidget {
           isDense: true,
           icon: Icons.add,
           onPressed: () => showModalBottomSheet(
-            context: context,
             isScrollControlled: true,
+            context: context,
             builder: (context) {
-              return EditRoleSheet(scheduleId: scheduleId, role: null);
+              return Padding(
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).viewInsets.bottom,
+                ),
+                child: EditRoleSheet(scheduleId: scheduleId, role: null),
+              );
             },
           ),
         ),

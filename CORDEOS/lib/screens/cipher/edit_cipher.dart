@@ -188,7 +188,6 @@ class _EditCipherScreenState extends State<EditCipherScreen>
 
   AppBar _buildAppBar(NavigationProvider nav) {
     final textTheme = Theme.of(context).textTheme;
-    final colorScheme = Theme.of(context).colorScheme;
 
     final auth = context.read<MyAuthProvider>();
 
@@ -207,14 +206,14 @@ class _EditCipherScreenState extends State<EditCipherScreen>
               await _publish();
               nav.pop();
             },
-            icon: Icon(Icons.publish, color: colorScheme.onSurface),
+            icon: Icon(Icons.publish, size: 30),
           ),
         IconButton(
           onPressed: () async {
             await _save(context);
             nav.pop();
           },
-          icon: Icon(Icons.save, color: colorScheme.onSurface),
+          icon: Icon(Icons.save, size: 30),
         ),
       ],
     );

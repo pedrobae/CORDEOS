@@ -105,11 +105,7 @@ class _EditSectionScreenState extends State<EditSectionScreen> {
                         _upsertSection();
                         context.read<NavigationProvider>().pop();
                       },
-                      icon: Icon(
-                        Icons.save,
-                        size: 24,
-                        color: colorScheme.onSurface,
-                      ),
+                      icon: Icon(Icons.save, size: 30),
                     ),
                   ],
                 ),

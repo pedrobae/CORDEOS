@@ -146,14 +146,14 @@ class _ViewScheduleScreenState extends State<ViewScheduleScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(schedule.name, style: textTheme.headlineSmall),
+                  Text(schedule.name, style: textTheme.titleLarge),
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     spacing: 16,
                     children: [
                       Text(
                         DateTimeUtils.formatDate(schedule.date),
-                        style: textTheme.bodySmall,
+                        style: textTheme.bodyMedium,
                       ),
                       Text(
                         DateTimeUtils.formatTime(
@@ -165,9 +165,9 @@ class _ViewScheduleScreenState extends State<ViewScheduleScreen> {
                             schedule.time.minute,
                           ),
                         ),
-                        style: textTheme.bodySmall,
+                        style: textTheme.bodyMedium,
                       ),
-                      Text(schedule.location, style: textTheme.bodySmall),
+                      Text(schedule.location, style: textTheme.bodyMedium),
                     ],
                   ),
                 ],
@@ -227,8 +227,8 @@ class _ViewScheduleScreenState extends State<ViewScheduleScreen> {
                   children: [
                     Text(
                       AppLocalizations.of(context)!.playlist,
-                      style: textTheme.bodySmall?.copyWith(
-                        color: colorScheme.surfaceContainerLowest,
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.primary,
                       ),
                     ),
                     Text(playlist.name, style: textTheme.titleMedium),
@@ -316,8 +316,8 @@ class _ViewScheduleScreenState extends State<ViewScheduleScreen> {
               children: [
                 Text(
                   '${AppLocalizations.of(context)!.roles} & ${AppLocalizations.of(context)!.pluralPlaceholder(AppLocalizations.of(context)!.member)}',
-                  style: textTheme.bodySmall?.copyWith(
-                    color: colorScheme.surfaceContainerLowest,
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.primary,
                   ),
                 ),
                 if (schedule.roles.isEmpty)
@@ -336,7 +336,7 @@ class _ViewScheduleScreenState extends State<ViewScheduleScreen> {
                     (memberCount == 1)
                         ? '1 ${AppLocalizations.of(context)!.member}'
                         : '$memberCount ${AppLocalizations.of(context)!.pluralPlaceholder(AppLocalizations.of(context)!.member)}',
-                    style: textTheme.bodySmall,
+                    style: textTheme.bodyMedium,
                   ),
                 ],
               ],

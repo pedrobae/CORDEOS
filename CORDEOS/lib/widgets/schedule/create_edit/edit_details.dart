@@ -108,7 +108,7 @@ class _EditDetailsState extends State<EditDetails> {
               localSch.uploadChangesToCloud(widget.scheduleID, auth.id!);
               nav.pop();
             },
-            icon: Icon(Icons.save),
+            icon: Icon(Icons.save, size: 30,),
           ),
         ],
       ),
