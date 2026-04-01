@@ -454,6 +454,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transitions => 'Transitions';
 
   @override
+  String get code => 'Code';
+
+  @override
   String get sectionCode => 'Section Code';
 
   @override
@@ -1123,6 +1126,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fieldRequired => 'This field is required.';
+
+  @override
+  String tooLongPlaceholder(Object field, Object max) {
+    return '$field is too long. Maximum $max characters allowed.';
+  }
 
   @override
   String get intValidationError => 'Please enter a valid positive integer.';

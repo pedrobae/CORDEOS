@@ -29,6 +29,7 @@ class EditSectionScreen extends StatefulWidget {
 }
 
 class _EditSectionScreenState extends State<EditSectionScreen> {
+  final _formKey = GlobalKey<FormState>();
   late TextEditingController contentCodeController;
   late TextEditingController contentTypeController;
   late TextEditingController contentTextController;
@@ -102,8 +103,10 @@ class _EditSectionScreenState extends State<EditSectionScreen> {
                     ),
                     IconButton(
                       onPressed: () {
-                        _upsertSection();
-                        context.read<NavigationProvider>().pop();
+                        if (_formKey.currentState!.validate()) {
+                          _upsertSection();
+                          context.read<NavigationProvider>().pop();
+                        }
                       },
                       icon: Icon(Icons.save, size: 30),
                     ),
@@ -113,10 +116,12 @@ class _EditSectionScreenState extends State<EditSectionScreen> {
                 // CONTENT
                 Expanded(
                   child: SingleChildScrollView(
-                    child: Column(
-                      spacing: 16,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        spacing: 16,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
                         // TYPE SELECTION
                         if (widget.canChangeType)
                           SizedBox(
@@ -182,6 +187,20 @@ class _EditSectionScreenState extends State<EditSectionScreen> {
                           instruction: AppLocalizations.of(
                             context,
                           )!.sectionCodeInstruction,
+                          validator: (value) {
+                            // CODE HAS A 3 CHAR MAX CONSTRAINT
+                            if (value == null || value.isEmpty) {
+                              return AppLocalizations.of(context)!.fieldRequired;
+                            }
+                            if (value.length > 3) {
+                              return AppLocalizations.of(context)!.tooLongPlaceholder(
+                                AppLocalizations.of(context)!.code,
+                                3,
+                              );
+                            } else {
+                              return null;
+                            }
+                          },
                         ),
 
                         // SECTION TYPE
@@ -201,6 +220,7 @@ class _EditSectionScreenState extends State<EditSectionScreen> {
                         ),
                       ],
                     ),
+                  ),
                   ),
                 ),
 

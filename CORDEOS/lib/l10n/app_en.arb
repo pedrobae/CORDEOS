@@ -311,6 +311,8 @@
   "@chords": {"description": "Chords field label"},
   "transitions": "Transitions",
   "@transitions": {"description": "Transitions field label"},
+  "code" : "Code",
+  "@code" : {"description": "Section code label"},
   "sectionCode": "Section Code",
   "@sectionCode": {"description": "Section code field label"},  
   "sectionCodeHint": "e.g. V1, C, I, ...",
@@ -743,6 +745,8 @@
   "@invalidTimeFormat": {"description": "Error message for invalid time format"},
   "fieldRequired": "This field is required.",
   "@fieldRequired": {"description": "Validation message indicating a required field"},
+  "tooLongPlaceholder": "{field} is too long. Maximum {max} characters allowed.",
+  "@tooLongPlaceholder": {"description": "Validation message for input that exceeds maximum length", "placeholders": {"field": {}, "max": {}}},
   "intValidationError": "Please enter a valid positive integer.",
   "@intValidationError": {"description": "Validation message for integer input"},
 

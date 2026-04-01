@@ -443,6 +443,13 @@ class LocalVersionProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void clearVersionFromCache({int versionId = -1}) {
+    _versions.remove(versionId);
+    _isLoadingVersion.remove(versionId);
+    _hasUnsavedChanges = false;
+    notifyListeners();
+  }
+
   void clearUnsavedChanges() {
     _hasUnsavedChanges = false;
   }

@@ -177,20 +177,10 @@ class _CipherCardState extends State<CipherCard> {
                                 scrollDirection: Axis.horizontal,
                                 itemCount: s.version!.songStructure.length,
                                 itemBuilder: (_, index) {
-                                  final sect = context.read<SectionProvider>();
-                
                                   final sectionCode =
                                       s.version!.songStructure[index];
-                
-                                  final section = sect.getSection(
-                                    widget.versionID,
-                                    sectionCode,
-                                  );
-                
-                                  final color =
-                                      section?.contentColor ?? Colors.grey;
-                
-                                  // Painter for sections with large codes
+
+                                  // Painter for sections code width
                                   final textPainter = TextPainter(
                                     text: TextSpan(
                                       text: sectionCode,
@@ -203,27 +193,39 @@ class _CipherCardState extends State<CipherCard> {
                                     textDirection: TextDirection.ltr,
                                   )..layout();
                 
-                                  return Container(
-                                    height: 25,
-                                    width: max(25, textPainter.size.width + 8),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(6),
-                                      color: color,
-                                    ),
-                                    margin: const EdgeInsets.only(right: 3),
-                                    child: Center(
-                                      child: Text(
-                                        strutStyle: StrutStyle(
-                                          forceStrutHeight: true,
-                                        ),
+                                  return Selector<SectionProvider, Color>(
+                                    selector: (context, sect) {
+                                      final section = sect.getSection(
+                                        widget.versionID,
                                         sectionCode,
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w500,
-                                          color: Colors.white,
+                                      );
+                                      return section?.contentColor ??
+                                          Colors.grey;
+                                    },
+                                    builder: (context, color, child) {
+                                      return Container(
+                                        height: 25,
+                                        width: max(25, textPainter.size.width + 8),
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(6),
+                                          color: color,
                                         ),
-                                      ),
-                                    ),
+                                        margin: const EdgeInsets.only(right: 3),
+                                        child: Center(
+                                          child: Text(
+                                            strutStyle: StrutStyle(
+                                              forceStrutHeight: true,
+                                            ),
+                                            sectionCode,
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w500,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    }
                                   );
                                 },
                               ),

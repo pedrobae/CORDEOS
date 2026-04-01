@@ -1,7 +1,9 @@
 import 'package:cordeos/l10n/app_localizations.dart';
 import 'package:cordeos/models/domain/cipher/version.dart';
+import 'package:cordeos/providers/cipher/cipher_provider.dart';
 import 'package:cordeos/providers/navigation_provider.dart';
 import 'package:cordeos/providers/user/my_auth_provider.dart';
+import 'package:cordeos/providers/version/local_version_provider.dart';
 import 'package:cordeos/screens/cipher/edit_cipher.dart';
 import 'package:cordeos/screens/cipher/import/import_pdf.dart';
 import 'package:cordeos/screens/cipher/import/import_text.dart';
@@ -56,6 +58,9 @@ class NewSongSheet extends StatelessWidget {
             icon: Icons.add,
             trailingIcon: Icons.chevron_right,
             onPressed: () {
+              final ciph = context.read<CipherProvider>();
+              final localVer = context.read<LocalVersionProvider>();
+
               Navigator.of(context).pop();
               nav.push(
                 () => const EditCipherScreen(
@@ -63,7 +68,14 @@ class NewSongSheet extends StatelessWidget {
                   versionID: -1,
                   versionType: VersionType.brandNew,
                 ),
-                showBottomNavBar: true
+                changeDetector: () {
+                  return ciph.hasUnsavedChanges || localVer.hasUnsavedChanges;
+                },
+                onChangeDiscarded: () {
+                  ciph.clearCipherFromCache();
+                  localVer.clearVersionFromCache();
+                },
+                showBottomNavBar: true,
               );
             },
           ),

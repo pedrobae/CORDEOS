@@ -944,6 +944,12 @@ abstract class AppLocalizations {
   /// **'Transições'**
   String get transitions;
 
+  /// Section code label
+  ///
+  /// In pt, this message translates to:
+  /// **'Código'**
+  String get code;
+
   /// Section code field label
   ///
   /// In pt, this message translates to:
@@ -2107,6 +2113,12 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Este campo é obrigatório.'**
   String get fieldRequired;
+
+  /// Validation message for input that exceeds maximum length
+  ///
+  /// In pt, this message translates to:
+  /// **'{field} é muito longo. Máximo de {max} caracteres permitidos.'**
+  String tooLongPlaceholder(Object field, Object max);
 
   /// Validation message for integer input
   ///
