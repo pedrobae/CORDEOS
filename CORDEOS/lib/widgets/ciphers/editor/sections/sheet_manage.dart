@@ -37,12 +37,25 @@ class _ManageSheetState extends State<ManageSheet> {
     if (version != null) {
       _durationController.text = DateTimeUtils.formatDuration(version.duration);
     }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _addListeners();
+    });
   }
 
   @override
   void dispose() {
     _durationController.dispose();
     super.dispose();
+  }
+
+  void _addListeners() {
+    _durationController.addListener(() {
+      final duration = DateTimeUtils.parseDuration(_durationController.text);
+      context.read<LocalVersionProvider>().cacheUpdates(
+        widget.versionID,
+        duration: duration,
+      );
+    });
   }
 
   @override
@@ -55,22 +68,12 @@ class _ManageSheetState extends State<ManageSheet> {
     return Selector2<
       LocalVersionProvider,
       CipherProvider,
-      ({
-        List<String>? songStructure,
-        String? transposedKey,
-        String originalKey,
-        Duration? duration,
-      })
+      ({List<String>? songStructure, Duration? duration})
     >(
       selector: (context, localVer, ciph) {
         final version = localVer.getVersion(widget.versionID);
-        final cipher = version != null
-            ? ciph.getCipher(version.cipherID)
-            : null;
         return (
           songStructure: version?.songStructure,
-          transposedKey: version?.transposedKey,
-          originalKey: cipher?.musicKey ?? '',
           duration: version?.duration,
         );
       },
@@ -133,59 +136,7 @@ class _ManageSheetState extends State<ManageSheet> {
                   Expanded(
                     child: DurationPickerField(controller: _durationController),
                   ),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        showModalBottomSheet(
-                          context: context,
-                          builder: (context) {
-                            return SelectKeySheet(
-                              needsSave: false,
-                              initialKey: s.transposedKey,
-                              originalKey: s.originalKey,
-                              onKeySelected: (key) {
-                                context
-                                    .read<LocalVersionProvider>()
-                                    .cacheUpdates(
-                                      widget.versionID,
-                                      transposedKey: key,
-                                    );
-                              },
-                            );
-                          },
-                        );
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 11,
-                        ),
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: colorScheme.shadow,
-                            width: 1,
-                          ),
-                          borderRadius: BorderRadius.circular(0),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              s.transposedKey ?? s.originalKey,
-                              style: TextStyle(
-                                color: colorScheme.onSurface,
-                                fontSize: 16,
-                              ),
-                            ),
-                            Icon(
-                              Icons.arrow_drop_down,
-                              color: colorScheme.onSurface,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
+                  Expanded(child: _buildKeySelector()),
                 ],
               ),
 
@@ -266,6 +217,66 @@ class _ManageSheetState extends State<ManageSheet> {
                 ),
               ),
             ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildKeySelector() {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Selector2<
+      LocalVersionProvider,
+      CipherProvider,
+      ({String? transposedKey, String originalKey})
+    >(
+      selector: (context, localVer, ciph) {
+        final version = localVer.getVersion(widget.versionID);
+        final cipher = version != null
+            ? ciph.getCipher(version.cipherID)
+            : null;
+        return (
+          transposedKey: version?.transposedKey,
+          originalKey: cipher?.musicKey ?? '',
+        );
+      },
+      builder: (context, s, child) {
+        return GestureDetector(
+          onTap: () {
+            showModalBottomSheet(
+              context: context,
+              builder: (context) {
+                return SelectKeySheet(
+                  needsSave: false,
+                  initialKey: s.transposedKey,
+                  originalKey: s.originalKey,
+                  onKeySelected: (key) {
+                    context.read<LocalVersionProvider>().cacheUpdates(
+                      widget.versionID,
+                      transposedKey: key,
+                    );
+                  },
+                );
+              },
+            );
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
+            decoration: BoxDecoration(
+              border: Border.all(color: colorScheme.shadow, width: 1),
+              borderRadius: BorderRadius.circular(0),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  s.transposedKey ?? s.originalKey,
+                  style: TextStyle(color: colorScheme.onSurface, fontSize: 16),
+                ),
+                Icon(Icons.arrow_drop_down, color: colorScheme.onSurface),
+              ],
+            ),
           ),
         );
       },

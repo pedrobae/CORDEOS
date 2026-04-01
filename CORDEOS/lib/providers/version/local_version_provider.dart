@@ -282,6 +282,15 @@ class LocalVersionProvider extends ChangeNotifier {
     Duration? duration,
     int? bpm,
   }) {
+    debugPrint(
+      'LOCAL VERSION PROVIDER - Caching - ${ //
+      versionName != null ? 'Name ' : ''}${ //
+      transposedKey != null ? 'Transposed Key ' : ''}${ //
+      songStructure != null ? 'Song Structure ' : ''}${ //
+      duration != null ? 'Duration ' : ''}${ //
+      bpm != null ? 'BPM ' : ''}',
+    );
+
     _versions[versionId] = _versions[versionId]!.copyWith(
       versionName: versionName,
       transposedKey: transposedKey,

@@ -49,13 +49,11 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard> {
       final ciph = context.read<CipherProvider>();
 
       Version? version = localVer.getVersion(widget.versionId);
-      if (version == null) {
-        await localVer.loadVersion(widget.versionId);
-        version = localVer.getVersion(widget.versionId);
+      await localVer.loadVersion(widget.versionId);
+      version = localVer.getVersion(widget.versionId);
 
-        if (version == null) {
-          throw Exception('Failed to load version with ID ${widget.versionId}');
-        }
+      if (version == null) {
+        throw Exception('Failed to load version with ID ${widget.versionId}');
       }
 
       final cipher = ciph.getCipher(version.cipherID);
@@ -87,7 +85,6 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard> {
         return (version: version, cipher: cipher);
       },
       builder: (context, s, child) {
-        // If version is not loaded yet, show loading indicator
         if (s.version == null || s.cipher == null) {
           return Center(child: CircularProgressIndicator());
         }
@@ -177,9 +174,7 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard> {
                               ],
                             ),
                             Text(
-                              DateTimeUtils.formatDuration(
-                                s.version!.duration,
-                              ),
+                              DateTimeUtils.formatDuration(s.version!.duration),
                               style: theme.textTheme.bodyMedium,
                             ),
                           ],
@@ -235,12 +230,16 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard> {
             itemCount: songStructure.length,
             onReorder: (oldIndex, newIndex) {
               if (newIndex > oldIndex) newIndex--;
-              localVer.reorderSongStructure(widget.versionId, oldIndex, newIndex);
+              localVer.reorderSongStructure(
+                widget.versionId,
+                oldIndex,
+                newIndex,
+              );
             },
             itemBuilder: (_, index) {
               final sectionCode = songStructure[index];
               final section = sections[sectionCode];
-          
+
               final color = section?.contentColor ?? Colors.grey;
               final codeWidth = (TextPainter(
                 text: TextSpan(
@@ -249,7 +248,7 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard> {
                 ),
                 textDirection: TextDirection.ltr,
               )..layout()).size.width;
-          
+
               return CustomReorderableDelayed(
                 delay: Duration(milliseconds: 100),
                 key: ValueKey(
@@ -280,7 +279,7 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard> {
               );
             },
           );
-        }
+        },
       ),
     );
   }
