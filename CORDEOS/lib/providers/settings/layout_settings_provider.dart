@@ -36,6 +36,9 @@ class LayoutSetProvider extends ChangeNotifier {
     LayoutFilter.annotations: _showAnnotations,
     LayoutFilter.transitions: _showTransitions,
     LayoutFilter.repeatSections: _showRepeatSections,
+
+    bool get showChords => _showChords;
+    bool get showLyrics => _showLyrics;
   };
 
   /// Initialize with stored settings
