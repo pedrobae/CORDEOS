@@ -170,9 +170,10 @@ class _PlayPlaylistState extends State<PlayPlaylist> {
                     ? const EdgeInsets.symmetric(horizontal: 8)
                     : const EdgeInsets.symmetric(vertical: 8),
                 child: Flex(
+                  spacing: 8,
                   direction: scrollDirection,
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: _buildItems(itemCount),
+                  children: _buildItems(itemCount, scrollDirection),
                 ),
               );
             },
@@ -201,7 +202,7 @@ class _PlayPlaylistState extends State<PlayPlaylist> {
     );
   }
 
-  List<Widget> _buildItems(int itemCount) {
+  List<Widget> _buildItems(int itemCount, Axis scrollDirection) {
     final items = <Widget>[];
     for (int i = 0; i < itemCount; i++) {
       final key = _scroll.registerItem(i);

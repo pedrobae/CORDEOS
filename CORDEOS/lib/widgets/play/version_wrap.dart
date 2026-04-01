@@ -57,19 +57,13 @@ class VersionWrap extends StatelessWidget {
         );
       },
       builder: (context, s, child) {
-        return Padding(
-          padding: EdgeInsets.only(
-            left: s.wrapDirection == Axis.vertical ? 8.0 : 0.0,
-            top: s.wrapDirection == Axis.horizontal ? 8.0 : 0.0,
-          ),
-          child: Wrap(
-            direction: s.wrapDirection,
-            crossAxisAlignment: WrapCrossAlignment.start,
-            alignment: WrapAlignment.start,
-            runSpacing: 8,
-            spacing: 8,
-            children: _buildSectionCards(context, s.filteredStructure),
-          ),
+        return Wrap(
+          direction: s.wrapDirection,
+          crossAxisAlignment: WrapCrossAlignment.start,
+          alignment: WrapAlignment.start,
+          runSpacing: 8,
+          spacing: 8,
+          children: _buildSectionCards(context, s.filteredStructure),
         );
       },
     );
