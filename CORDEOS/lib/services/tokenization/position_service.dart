@@ -1,7 +1,6 @@
 import 'dart:math';
-
-import 'package:cordeos/services/tokenization/build_service.dart';
 import 'package:cordeos/services/tokenization/helper_classes.dart';
+import 'package:cordeos/utils/token_cache_keys.dart';
 import 'package:flutter/material.dart';
 
 /// Service responsible for calculating token positions and applying them to widgets.
@@ -14,8 +13,6 @@ import 'package:flutter/material.dart';
 class PositionService {
   const PositionService();
 
-  static const _builder = TokenizationBuilder();
-
   /// Calculates positions for all tokens in the organized structure.
   ///
   /// Takes organized tokens and their measurements, calculates x,y coordinates
@@ -24,39 +21,41 @@ class PositionService {
   /// This allows features like drag feedback to access final positions during build.
   TokenPositionMap calculateTokenPositions({
     required OrganizedTokens organizedTokens,
-    required PositioningContext posCtx,
-    required TokenBuildContext buildCtx,
-    required Map<ContentToken, Measurements> tokenMsr,
+    required Map<String, Measurements> measurements,
+    required TextStyle lyricStyle,
+    required TextStyle chordStyle,
+    required double maxWidth,
+    required double lineSpacing,
+    required double lineBreakSpacing,
+    required double chordLyricSpacing,
+    required double minChordSpacing,
+    required double letterSpacing,
+    required double lineHeight,
+    required double chordHeight,
+    required double lyricHeight,
+    required bool isEditMode,
   }) {
-    final chordMsr = _builder.measureText(
-      text: 'teste',
-      style: buildCtx.chordStyle,
-    );
-    final lyricMsr = _builder.measureText(
-      text: 'teste',
-      style: buildCtx.lyricStyle,
-    );
-
     final precedingOffset = _calculatePrecedingChordOffset(
       organizedTokens,
-      tokenMsr,
-      posCtx,
+      measurements,
+      lyricStyle,
+      chordStyle,
+      isEditMode,
     );
 
-    if (posCtx.isEditMode) {
-      chordMsr.size += 2 * TokenizationConstants.chordTokenHeightPadding;
-    }
-
-    final lineHeight = chordMsr.size + lyricMsr.size + posCtx.chordLyricSpacing;
-    buildCtx.lineHeight = lineHeight;
-    buildCtx.chordHeight = chordMsr.size;
-
     final ctx = _LayoutCtx(
-      chordHeight: chordMsr.size,
-      lyricMsr: lyricMsr,
+      chordHeight: chordHeight,
       precedingOffset: precedingOffset,
-      posCtx: posCtx,
-      tokenMsr: tokenMsr,
+      measurements: measurements,
+      maxWidth: maxWidth,
+      lineSpacing: lineSpacing,
+      lineBreakSpacing: lineBreakSpacing,
+      chordLyricSpacing: chordLyricSpacing,
+      minChordSpacing: minChordSpacing,
+      letterSpacing: letterSpacing,
+      lineHeight: lineHeight,
+      chordStyle: chordStyle,
+      lyricStyle: lyricStyle,
     );
 
     final cursor = _LayoutCursor(
@@ -70,6 +69,7 @@ class PositionService {
       for (var word in line.words) {
         // Initial pass — detects overflow.
         _WordLayoutResult result = _layoutWord(
+          isEditMode: isEditMode,
           word: word,
           cursor: cursor,
           ctx: ctx,
@@ -77,9 +77,14 @@ class PositionService {
 
         if (result.lineBroke) {
           // Word overflowed: bump Y and redo layout from the new line origin.
-          cursor.breakLine(ctx.posCtx.lineBreakSpacing);
+          cursor.breakLine(ctx.lineBreakSpacing);
 
-          result = _layoutWord(word: word, cursor: cursor, ctx: ctx.asReflow());
+          result = _layoutWord(
+            word: word,
+            cursor: cursor,
+            ctx: ctx,
+            isEditMode: isEditMode,
+          );
         }
 
         // MUTATE
@@ -88,7 +93,7 @@ class PositionService {
           word.add(entry.value, entry.key);
         }
       }
-      cursor.newLine(ctx.posCtx.lineSpacing);
+      cursor.newLine(ctx.lineSpacing);
     }
 
     return positionMap;
@@ -98,35 +103,31 @@ class PositionService {
   ///
   /// Mutates [cursor] in-place with advanced x positions after the word.
   /// On overflow the caller calls [cursor.reset] and re-invokes with
-  /// [ctx.asReflow()] to reposition on the new line.
+  /// [ctx.markReflow()] to reposition on the new line.
   _WordLayoutResult _layoutWord({
     required TokenWord word,
     required _LayoutCursor cursor,
     required _LayoutCtx ctx,
+    required bool isEditMode,
   }) {
     final positions = TokenPositionMap();
     final tokensToAdd = <int, ContentToken>{};
     int charIndex = 0;
 
     for (var token in word.tokens) {
-      final msr = ctx.tokenMsr[token];
-      if (msr == null) continue;
-
       switch (token.type) {
         case TokenType.postSeparator:
           final xOffset = max(cursor.chordX, cursor.lyricsX);
-          if (ctx.posCtx.isEditMode) {
+          if (isEditMode) {
             cursor.chordX =
                 xOffset +
                 TokenizationConstants.targetWidth +
-                2 * ctx.posCtx.minChordSpacing +
-                TokenizationConstants.chordTokenWidthPadding;
-          } else {
-            cursor.chordX = xOffset + 2 * ctx.posCtx.minChordSpacing;
+                ctx.minChordSpacing +
+                2 * TokenizationConstants.chordTokenWidthPadding;
           }
           positions.setPosition(
             token,
-            xOffset + ctx.posCtx.minChordSpacing,
+            xOffset + ctx.minChordSpacing,
             cursor.yOffset,
           );
 
@@ -134,8 +135,8 @@ class PositionService {
           break;
 
         case TokenType.preSeparator:
-          cursor.lyricsX = ctx.precedingOffset + ctx.posCtx.minChordSpacing;
-          cursor.chordX = ctx.precedingOffset + ctx.posCtx.minChordSpacing;
+          cursor.lyricsX = ctx.precedingOffset + ctx.minChordSpacing;
+          cursor.chordX = ctx.precedingOffset + ctx.minChordSpacing;
           cursor.foundPreSeparator = true;
 
           positions.setPosition(
@@ -163,14 +164,14 @@ class PositionService {
               positions.setPosition(
                 underlineToken,
                 cursor.lyricsX,
-                cursor.yOffset + ctx.posCtx.chordLyricSpacing + ctx.chordHeight,
+                cursor.yOffset,
               );
 
-              ctx.tokenMsr[underlineToken] = Measurements(
+              ctx.measurements[underlineToken.toKey()] = Measurements(
                 width: cursor.chordX - cursor.lyricsX,
-                height: ctx.lyricMsr.height,
-                baseline: ctx.lyricMsr.baseline,
-                size: ctx.lyricMsr.size,
+                height: ctx.chordHeight,
+                baseline: ctx.chordHeight,
+                size: ctx.chordHeight,
               );
 
               tokensToAdd[charIndex] = underlineToken;
@@ -182,18 +183,22 @@ class PositionService {
           positions.setPosition(
             token,
             cursor.lyricsX -
-                (ctx.posCtx.isEditMode
-                    ? TokenizationConstants.chordTokenWidthPadding
-                    : 0),
+                (isEditMode ? TokenizationConstants.chordTokenWidthPadding : 0),
             cursor.yOffset,
           );
 
-          cursor.chordX =
-              cursor.lyricsX + msr.width + ctx.posCtx.minChordSpacing;
+          final msr =
+              ctx.measurements[measurementKey(
+                token.text,
+                ctx.chordStyle,
+                isChordToken: isEditMode,
+              )]!;
+
+          cursor.chordX = cursor.lyricsX + msr.width + ctx.minChordSpacing;
 
           charIndex++;
 
-          if (ctx.checkOverflow && cursor.chordX > ctx.posCtx.maxWidth) {
+          if (ctx.checkOverflow && cursor.chordX > ctx.maxWidth) {
             return _WordLayoutResult(
               wordPositions: positions,
               tokensToAdd: tokensToAdd,
@@ -204,14 +209,13 @@ class PositionService {
 
         case TokenType.lyric:
           final xOffset = max(ctx.precedingOffset, cursor.lyricsX);
-          if (ctx.posCtx.isEditMode && !ctx.loggedLyricYDebug) {
-            ctx.loggedLyricYDebug = true;
-          }
           positions.setPosition(token, xOffset, cursor.yOffset);
-          cursor.lyricsX = xOffset + msr.width + ctx.posCtx.letterSpacing;
+          final msr =
+              ctx.measurements[measurementKey(token.text, ctx.lyricStyle)]!;
 
+          cursor.lyricsX = xOffset + msr.width + ctx.letterSpacing;
           charIndex++;
-          if (ctx.checkOverflow && cursor.lyricsX > ctx.posCtx.maxWidth) {
+          if (ctx.checkOverflow && cursor.lyricsX > ctx.maxWidth) {
             return _WordLayoutResult(
               wordPositions: positions,
               tokensToAdd: tokensToAdd,
@@ -222,9 +226,12 @@ class PositionService {
 
         case TokenType.space:
           positions.setPosition(token, cursor.lyricsX, cursor.yOffset);
-          cursor.lyricsX += msr.width + ctx.posCtx.letterSpacing;
+
+          final msr =
+              ctx.measurements[measurementKey(token.text, ctx.lyricStyle)]!;
+          cursor.lyricsX += msr.width + ctx.letterSpacing;
           charIndex++;
-          if (ctx.checkOverflow && cursor.lyricsX > ctx.posCtx.maxWidth) {
+          if (ctx.checkOverflow && cursor.lyricsX > ctx.maxWidth) {
             return _WordLayoutResult(
               wordPositions: positions,
               tokensToAdd: tokensToAdd,
@@ -237,10 +244,8 @@ class PositionService {
           positions.setPosition(
             token,
             cursor.chordX -
-                (ctx.posCtx.isEditMode
-                    ? TokenizationConstants.chordTokenWidthPadding
-                    : 0),
-            cursor.yOffset + ctx.posCtx.chordLyricSpacing + ctx.chordHeight,
+                (isEditMode ? TokenizationConstants.chordTokenWidthPadding : 0),
+            cursor.yOffset,
           );
 
           charIndex++;
@@ -266,7 +271,9 @@ class PositionService {
   ContentTokenized applyPositionsToWidgets(
     OrganizedWidgets contentWidgets,
     TokenPositionMap positionMap,
-    TokenBuildContext buildCtx,
+    double lineHeight,
+    double chordHeight,
+    bool isEditMode,
   ) {
     double maxY = 0;
     bool hasLyrics = false;
@@ -297,7 +304,7 @@ class PositionService {
       }
     }
 
-    maxY += hasLyrics ? buildCtx.lineHeight! : buildCtx.chordHeight!;
+    maxY += (hasLyrics || isEditMode) ? lineHeight : chordHeight;
 
     return ContentTokenized(tokenWidgets, maxY);
   }
@@ -310,8 +317,10 @@ class PositionService {
   /// [C] [D] [E]lyrics -> len([C] [D])
   double _calculatePrecedingChordOffset(
     OrganizedTokens contentTokens,
-    Map<ContentToken, Measurements> tokenMeasurements,
-    PositioningContext ctx,
+    Map<String, Measurements> measurements,
+    TextStyle lyricStyle,
+    TextStyle chordStyle,
+    bool isEditMode,
   ) {
     double precedingOffset = 0;
     for (var line in contentTokens.lines) {
@@ -326,15 +335,27 @@ class PositionService {
         for (var token in word.tokens) {
           if (token.type == TokenType.preSeparator) {
             foundSeparator = true;
-            if (ctx.isEditMode) {
+            if (isEditMode) {
               lineChordX += TokenizationConstants.targetWidth;
             }
             break;
           } else if (token.type == TokenType.chord) {
             // Accumulate all widths
-            lineChordX += tokenMeasurements[token]?.width ?? 0.0;
+            lineChordX +=
+                measurements[measurementKey(
+                      token.text,
+                      chordStyle,
+                      isChordToken: true,
+                    )]?.width ?? 0.0;
           } else {
-            lineLyricX += tokenMeasurements[token]?.width ?? 0.0;
+            lineLyricX +=
+                measurements[measurementKey(
+                      token.text,
+                      lyricStyle,
+                      isChordToken: false,
+                    )]
+                    ?.width ??
+                0.0;
           }
         }
       }
@@ -392,34 +413,39 @@ class PositionService {
 /// [tokenMsr] is the shared mutable measurement map — underline tokens
 /// are added into it during layout.
 class _LayoutCtx {
-  final Measurements lyricMsr;
   final double chordHeight;
   final double precedingOffset;
-  final PositioningContext posCtx;
-  final Map<ContentToken, Measurements> tokenMsr;
-  final bool checkOverflow;
-  bool loggedLyricYDebug;
+  final Map<String, Measurements> measurements;
+  final double maxWidth;
+  final double lineSpacing;
+  final double lineBreakSpacing;
+  final double chordLyricSpacing;
+  final double minChordSpacing;
+  final double letterSpacing;
+  final double lineHeight;
+  final TextStyle chordStyle;
+  final TextStyle lyricStyle;
+  bool checkOverflow = true;
 
   _LayoutCtx({
-    required this.lyricMsr,
     required this.chordHeight,
     required this.precedingOffset,
-    required this.posCtx,
-    required this.tokenMsr,
-    this.checkOverflow = true,
-    this.loggedLyricYDebug = false,
+    required this.measurements,
+    required this.maxWidth,
+    required this.lineSpacing,
+    required this.lineBreakSpacing,
+    required this.chordLyricSpacing,
+    required this.minChordSpacing,
+    required this.letterSpacing,
+    required this.lineHeight,
+    required this.chordStyle,
+    required this.lyricStyle,
   });
 
-  /// Returns a copy with [checkOverflow] disabled for the reflow pass.
-  _LayoutCtx asReflow() => _LayoutCtx(
-    lyricMsr: lyricMsr,
-    chordHeight: chordHeight,
-    precedingOffset: precedingOffset,
-    posCtx: posCtx,
-    tokenMsr: tokenMsr,
-    checkOverflow: false,
-    loggedLyricYDebug: loggedLyricYDebug,
-  );
+  /// Marks the context for reflow, which relaxes overflow checks and allows
+  void markReflow() {
+    checkOverflow = false;
+  }
 }
 
 /// Mutable x-axis cursors shared across word layout passes within a line.

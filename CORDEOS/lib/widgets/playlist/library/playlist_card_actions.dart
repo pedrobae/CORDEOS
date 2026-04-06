@@ -175,7 +175,7 @@ class PlaylistCardActionsSheet extends StatelessWidget {
                   '${version.versionName} (${AppLocalizations.of(context)!.copy})',
             ),
           );
-          final newId = (await localVer.createVersion())!;
+          final newId = await localVer.createVersion();
 
           play.cacheAddVersion(playlistID, newId);
 

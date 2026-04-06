@@ -90,7 +90,7 @@ class CloudScheduleProvider extends ChangeNotifier {
     String userId, {
     bool forceFetch = false,
   }) async {
-    if (_isLoading) return;
+    if (_isLoading && !forceFetch) return;
 
     _isLoading = true;
     _error = null;

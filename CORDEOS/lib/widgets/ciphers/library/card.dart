@@ -273,11 +273,6 @@ class _CipherCardState extends State<CipherCard> {
       cipherID: version.cipherID,
     );
 
-    if (newVersionID == null) {
-      debugPrint('Could not create a copy of version');
-      return;
-    }
-
     await sect.loadSectionsOfVersion(version.id!);
     sect.cacheCopyOfVersion(version.id!, newVersionID);
     sect.saveSections(versionID: newVersionID);

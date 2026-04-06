@@ -31,7 +31,7 @@ class _StyleSettingsState extends State<StyleSettings> {
         _localLineSpacing ??= settings.lineSpacing.clamp(-5, 10);
         _localLineBreakSpacing ??= settings.lineBreakSpacing.clamp(-5, 10);
         _localChordLyricSpacing ??= settings.chordLyricSpacing.clamp(-5, 15);
-        _localMinChordSpacing ??= settings.minChordSpacing.clamp(-5, 5);
+        _localMinChordSpacing ??= settings.minChordSpacing.clamp(0, 10);
         _localLetterSpacing ??= settings.letterSpacing.clamp(-3, 3);
 
         return Container(
@@ -233,6 +233,7 @@ class _StyleSettingsState extends State<StyleSettings> {
                 ),
 
                 if (widget.secret) ...[
+                  // line spacing
                   _buildOption(
                     context,
                     child: Row(
@@ -271,6 +272,7 @@ class _StyleSettingsState extends State<StyleSettings> {
                       ],
                     ),
                   ),
+                  // line break spacing
                   _buildOption(
                     context,
                     child: Row(
@@ -309,6 +311,7 @@ class _StyleSettingsState extends State<StyleSettings> {
                       ],
                     ),
                   ),
+                  // chord-lyric spacing
                   _buildOption(
                     context,
                     child: Row(
@@ -347,6 +350,7 @@ class _StyleSettingsState extends State<StyleSettings> {
                       ],
                     ),
                   ),
+                  // min-chord spacing
                   _buildOption(
                     context,
                     child: Row(
@@ -372,8 +376,8 @@ class _StyleSettingsState extends State<StyleSettings> {
                             ),
                             value: _localMinChordSpacing!,
                             divisions: 50,
-                            min: -5,
-                            max: 5,
+                            min: 0,
+                            max: 10,
                             onChanged: (v) {
                               setState(() => _localMinChordSpacing = v);
                             },

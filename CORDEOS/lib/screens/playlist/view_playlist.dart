@@ -66,7 +66,6 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                   final scroll = context.read<ScrollProvider>();
 
                   scroll.disableAutoScrollMode();
-
                   state.setItemCount(playlist.items.length);
                   for (var item in playlist.items) {
                     state.appendItem(item);

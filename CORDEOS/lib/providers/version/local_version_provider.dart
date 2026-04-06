@@ -18,8 +18,6 @@ class LocalVersionProvider extends ChangeNotifier {
   // Getters
   Map<int, Version> get versions => _versions;
 
-  bool get isSaving => _isSaving;
-
   String? get error => _error;
 
   bool get hasUnsavedChanges => _hasUnsavedChanges;
@@ -88,8 +86,8 @@ class LocalVersionProvider extends ChangeNotifier {
   // ===== CREATE =====
   /// Creates a new version from the local cache (-1) to an existing cipher
   /// If no cipherId is provided, the version will use the cached cipherID or throw an error
-  Future<int?> createVersion({int? cipherID}) async {
-    if (_isSaving) return null;
+  Future<int> createVersion({int? cipherID}) async {
+    if (_isSaving) return -1;
 
     _isSaving = true;
     _error = null;
@@ -126,7 +124,7 @@ class LocalVersionProvider extends ChangeNotifier {
       _hasUnsavedChanges = false;
       notifyListeners();
     }
-    return versionId;
+    return versionId!;
   }
 
   /// Initialize cloud cache from domain object, with ID -1

@@ -6,12 +6,14 @@ import 'package:provider/provider.dart';
 class ChordToken extends StatelessWidget {
   final ContentToken token;
   final Color sectionColor;
+  final Color textColor;
   final TextStyle chordStyle;
 
   const ChordToken({
     super.key,
     required this.token,
     required this.sectionColor,
+    required this.textColor,
     required this.chordStyle,
   });
 
@@ -31,7 +33,9 @@ class ChordToken extends StatelessWidget {
           child: Text(
             trans.transposeChord(token.text),
             textAlign: TextAlign.center,
-            style: chordStyle,
+            style: chordStyle.copyWith(
+              color: textColor,
+            ),
           ),
         );
       },

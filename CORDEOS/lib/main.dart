@@ -1,6 +1,7 @@
 import 'package:cordeos/providers/auto_scroll_provider.dart';
 import 'package:cordeos/providers/bug_report_provider.dart';
 import 'package:cordeos/providers/cipher/edit_sections_state_provider.dart';
+import 'package:cordeos/providers/token_cache_provider.dart';
 import 'package:cordeos/providers/settings/secret_settings_provider.dart';
 import 'package:cordeos/providers/transposition_provider.dart';
 import 'package:cordeos/screens/splash_screen.dart';
@@ -95,6 +96,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ScrollProvider()),
         ChangeNotifierProvider(create: (_) => PlayStateProvider()),
         ChangeNotifierProvider(create: (_) => EditSectionsStateProvider()),
+        ChangeNotifierProvider(create: (_) => TokenProvider()),
         // FUNCTIONALITY PROVIDERS
         ChangeNotifierProvider(create: (_) => SelectionProvider()),
         ChangeNotifierProvider(create: (_) => TranspositionProvider()),

@@ -45,12 +45,11 @@ class PositioningContext {
 }
 
 /// Context object to hold common styling and behavior parameters
-/// for edit mode widget building, reducing parameter clutter.
+/// for widget building, reducing parameter clutter.
 class TokenBuildContext {
   /// TEXT PARAMETERS
   final TextStyle chordStyle;
   final TextStyle lyricStyle;
-  final Map<String, Measurements> cache;
 
   /// COLOR PARAMETERS
   final Color contentColor;
@@ -60,8 +59,8 @@ class TokenBuildContext {
 
   /// LAYOUT PARAMETERS
   final double maxWidth;
-  double? lineHeight; // calculated during layout, used for drag feedback positioning and content height calculation
-  double? chordHeight; // calculated during layout, used for content height calculation
+  double? lineHeight; // calculated during layout
+  double? chordHeight; // calculated during layout
 
   /// TRANSPOSER
   final String Function(String chord) transposeChord;
@@ -80,7 +79,6 @@ class TokenBuildContext {
     required this.onSurfaceColor,
     required this.chordTargetColor,
     required this.maxWidth,
-    required this.cache,
     required this.transposeChord,
     this.lineHeight,
     this.isEnabled,
@@ -96,12 +94,16 @@ class ContentToken {
   int? position;
 
   ContentToken({this.text = '', required this.type, this.position});
+
+  String toKey() {
+    return hashCode.toString();
+  }
 }
 
 enum TokenType {
-  chord, // Used to render a chord widget - '[C]', 
+  chord, // Used to render a chord widget - '[C]',
   lyric, // Used to render a lyric widget - 'Hello'
-  space,  // Used to render a space between words - ' '
+  space, // Used to render a space between words - ' '
   newline, // Used to render a line break - '\n'
   preSeparator, // Used to separate preceding chords - '<'
   postSeparator, // Used to separate following chords - '>'
@@ -255,5 +257,13 @@ class TokenPositionMap {
 
   void merge(TokenPositionMap other) {
     _positions.addAll(other._positions);
+  }
+
+  // PRINT FOR DEBUGGING
+  void print() {
+    _positions.forEach((token, offset) {
+      debugPrint(
+          "Token: ${token.text} (${token.type}), Position: (${offset.dx}, ${offset.dy})");
+    });
   }
 }

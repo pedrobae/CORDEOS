@@ -107,7 +107,7 @@ class TranspositionProvider extends ChangeNotifier {
     String transposedRoot = ChordHelper().transpose(
       root,
       _transposeValue,
-      sharpKey: !useSharp,
+      sharpKey: useSharp,
     );
     String result = prefix + transposedRoot + chordSuffix;
 
@@ -115,7 +115,7 @@ class TranspositionProvider extends ChangeNotifier {
       String transposedBass = ChordHelper().transpose(
         bass,
         _transposeValue,
-        sharpKey: !useSharp,
+        sharpKey: useSharp,
       );
       result += '/$transposedBass';
     }

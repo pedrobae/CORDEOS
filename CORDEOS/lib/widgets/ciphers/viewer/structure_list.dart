@@ -121,10 +121,7 @@ class _StructureListState extends State<StructureList> {
                               sectionCode: sectionCode,
                               onTap: () {
                                 if (s.tapEnabled) {
-                                  scroll.scrollToItemSection(
-                                    itemIndex: state.currentItemIndex,
-                                    sectionIndex: index,
-                                  );
+                                  scroll.probeScrollToItem(state.currentItemIndex, index);
                                 } else {
                                   scroll.currentSectionIndex = index;
                                 }

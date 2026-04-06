@@ -47,11 +47,13 @@ class _PlayPlaylistState extends State<PlayPlaylist> {
 
     _state = context.read<PlayStateProvider>();
     _scroll = context.read<ScrollProvider>();
+    _scroll.setScrollController(_scrollController);
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       _scroll.clearCache();
 
       setState(() {
+        debugPrint("PLAY PLAYLIST - finished loading");
         _isLoading = false;
       });
     });
@@ -163,18 +165,26 @@ class _PlayPlaylistState extends State<PlayPlaylist> {
                 );
               }
 
-              return SingleChildScrollView(
+              return CustomScrollView(
                 controller: _scrollController,
                 scrollDirection: scrollDirection,
-                padding: scrollDirection == Axis.vertical
-                    ? const EdgeInsets.symmetric(horizontal: 8)
-                    : const EdgeInsets.symmetric(vertical: 8),
-                child: Flex(
-                  spacing: 8,
-                  direction: scrollDirection,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: _buildItems(itemCount, scrollDirection),
-                ),
+                slivers: [
+                  SliverPadding(
+                    padding: scrollDirection == Axis.vertical
+                        ? const EdgeInsets.symmetric(horizontal: 8)
+                        : const EdgeInsets.symmetric(vertical: 8),
+                    sliver: SliverList.separated(
+                      addAutomaticKeepAlives: true,
+                      itemCount: itemCount,
+                      separatorBuilder: (context, index) => const SizedBox(
+                        width: 8,
+                        height: 8,
+                      ),
+                      itemBuilder: (context, index) =>
+                          _buildItem(index, scrollDirection),
+                    ),
+                  ),
+                ],
               );
             },
           ),
@@ -202,50 +212,44 @@ class _PlayPlaylistState extends State<PlayPlaylist> {
     );
   }
 
-  List<Widget> _buildItems(int itemCount, Axis scrollDirection) {
-    final items = <Widget>[];
-    for (int i = 0; i < itemCount; i++) {
-      final key = _scroll.registerItem(i);
+  Widget _buildItem(int i, Axis scrollDirection) {
+    final key = _scroll.registerItem(i);
 
-      items.add(
-        Container(
-          key: key,
-          child: Selector<PlayStateProvider, PlaylistItem?>(
-            selector: (context, play) => play.getItemAt(i),
-            builder: (context, item, child) {
-              if (item == null) {
-                return Center(child: CircularProgressIndicator());
+    return Container(
+      key: key,
+      child: Selector<PlayStateProvider, PlaylistItem?>(
+        selector: (context, play) => play.getItemAt(i),
+        builder: (context, item, child) {
+          if (item == null) {
+            return Center(child: CircularProgressIndicator());
+          }
+
+          switch (item.type) {
+            case PlaylistItemType.version:
+              return VersionWrap(
+                itemIndex: i,
+                versionID: widget.playlistDto != null
+                    ? item.firebaseContentId
+                    : item.contentId,
+              );
+            case PlaylistItemType.flowItem:
+              FlowItem? flow;
+              if (widget.playlistDto != null) {
+                flow = FlowItem.fromFirestore(
+                  widget.playlistDto!.flowItems[item.firebaseContentId]!,
+                  playlistId: -1,
+                );
               }
 
-              switch (item.type) {
-                case PlaylistItemType.version:
-                  return VersionWrap(
-                    itemIndex: i,
-                    versionID: widget.playlistDto != null
-                        ? item.firebaseContentId
-                        : item.contentId,
-                  );
-                case PlaylistItemType.flowItem:
-                  FlowItem? flow;
-                  if (widget.playlistDto != null) {
-                    flow = FlowItem.fromFirestore(
-                      widget.playlistDto!.flowItems[item.firebaseContentId]!,
-                      playlistId: -1,
-                    );
-                  }
-
-                  return FlowFlex(
-                    itemIndex: i,
-                    flowID: item.contentId,
-                    flowItem: flow,
-                  );
-              }
-            },
-          ),
-        ),
-      );
-    }
-    return items;
+              return FlowFlex(
+                itemIndex: i,
+                flowID: item.contentId,
+                flowItem: flow,
+              );
+          }
+        },
+      ),
+    );
   }
 
   Widget _buildTransparentButtons() {

@@ -1,4 +1,5 @@
 import 'package:cordeos/services/tokenization/helper_classes.dart';
+import 'package:cordeos/utils/token_cache_keys.dart';
 import 'package:cordeos/widgets/ciphers/editor/sections/chord_token.dart';
 import 'package:flutter/material.dart';
 
@@ -14,38 +15,31 @@ class TokenizationBuilder {
   Measurements measureText({
     required String text,
     required TextStyle style,
-    Map<String, Measurements>? cache,
     bool isChordToken = false,
   }) {
-    cache ??= {};
-    final key =
-        '$text|${style.fontFamily}|${style.fontSize}|'
-        '${style.fontWeight?.value}|${style.letterSpacing}';
-    return cache.putIfAbsent(key, () {
-      final textPainter = TextPainter(
-        text: TextSpan(text: text, style: style),
-        maxLines: 1,
-        textDirection: TextDirection.ltr,
-      )..layout();
-      final measurements = Measurements(
-        width:
-            textPainter.width +
-            (isChordToken
-                ? 2 * TokenizationConstants.chordTokenWidthPadding
-                : 0.0), // Add horizontal padding for chord tokens to prevent overlap
-        height:
-            textPainter.height +
-            (isChordToken
-                ? 2 * TokenizationConstants.chordTokenHeightPadding
-                : 0.0), // Add vertical padding for chord tokens to prevent overlap
-        baseline: textPainter.computeDistanceToActualBaseline(
-          TextBaseline.alphabetic,
-        ),
-        size: style.fontSize ?? 14.0,
-      );
+    final textPainter = TextPainter(
+      text: TextSpan(text: text, style: style),
+      maxLines: 1,
+      textDirection: TextDirection.ltr,
+    )..layout();
+    final measurements = Measurements(
+      width:
+          textPainter.width +
+          (isChordToken
+              ? 2 * TokenizationConstants.chordTokenWidthPadding
+              : 0.0), // Add horizontal padding for chord tokens to prevent overlap
+      height:
+          textPainter.height +
+          (isChordToken
+              ? 2 * TokenizationConstants.chordTokenHeightPadding
+              : 0.0), // Add vertical padding for chord tokens to prevent overlap
+      baseline: textPainter.computeDistanceToActualBaseline(
+        TextBaseline.alphabetic,
+      ),
+      size: style.fontSize ?? 14.0,
+    );
 
-      return measurements;
-    });
+    return measurements;
   }
 
   /// Builds widgets for viewing mode, with their sizes pre-calculated.
@@ -54,11 +48,14 @@ class TokenizationBuilder {
   /// Returns organized structure with lines -> words -> widgets.
   /// Widget sizes are measured and cached for efficient positioning.
   OrganizedWidgets buildViewWidgets({
-    required OrganizedTokens organizedTokens,
-    required Map<ContentToken, Measurements> tokenMeasurements,
     required List<ContentToken> tokens,
-    required TokenBuildContext ctx,
-    required TokenPositionMap tokenPositions,
+    required OrganizedTokens organizedTokens,
+    required Map<String, Measurements> measurements,
+    required TextStyle chordStyle,
+    required TextStyle lyricStyle,
+    required double lineHeight,
+    required Color textColor,
+    required Color chordColor,
   }) {
     final lines = <WidgetLine>[];
 
@@ -72,8 +69,8 @@ class TokenizationBuilder {
               wordWidgets.add(
                 TokenWidget(
                   widget: Text(
-                    ctx.transposeChord(token.text),
-                    style: ctx.chordStyle,
+                    token.text,
+                    style: chordStyle.copyWith(color: chordColor),
                   ),
                   token: token,
                 ),
@@ -84,10 +81,10 @@ class TokenizationBuilder {
               wordWidgets.add(
                 TokenWidget(
                   widget: SizedBox(
-                    height: ctx.lineHeight,
+                    height: lineHeight,
                     child: Align(
                       alignment: Alignment.bottomCenter,
-                      child: Text(token.text, style: ctx.lyricStyle),
+                      child: Text(token.text, style: lyricStyle),
                     ),
                   ),
                   token: token,
@@ -108,9 +105,14 @@ class TokenizationBuilder {
             case TokenType.underline:
               wordWidgets.add(
                 TokenWidget(
-                  widget: buildUnderlineWidget(
-                    msr: tokenMeasurements[token]!,
-                    color: ctx.onSurfaceColor,
+                  widget: Container(
+                    height: lineHeight,
+                    width: measurements[token.toKey()]!.width,
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(color: textColor, width: 1),
+                      ),
+                    ),
                   ),
                   token: token,
                 ),
@@ -139,15 +141,28 @@ class TokenizationBuilder {
   ///
   /// Returns organized structure with lines -> words -> widgets.
   OrganizedWidgets buildEditWidgets({
-    required OrganizedTokens contentTokens,
-    required Map<ContentToken, Measurements> tokenMeasurements,
     required List<ContentToken> tokens,
-    required TokenBuildContext ctx,
+    required OrganizedTokens organizedTokens,
+    required Map<String, Measurements> measurements,
     required TokenPositionMap tokenPositions,
+    required TextStyle chordStyle,
+    required TextStyle lyricStyle,
+    required double maxWidth,
+    required double lineHeight,
+    required double chordHeight,
+    required Color chordTargetColor,
+    required Color surfaceColor,
+    required Color onSurfaceColor,
+    required Color contentColor,
+    required Color onContentColor,
+    required bool isEnabled,
+    required Function(ContentToken, ContentToken) onAddChord,
+    required Function(ContentToken) onRemoveChord,
+    required Function() toggleDrag,
   }) {
-    /// Build all token widgets, and calculate their sizes for positioning
+    /// Build all token widgets
     final lines = <WidgetLine>[];
-    for (var line in contentTokens.lines) {
+    for (var line in organizedTokens.lines) {
       final words = <WidgetWord>[];
       for (var word in line.words) {
         final wordWidgets = <TokenWidget>[];
@@ -157,13 +172,21 @@ class TokenizationBuilder {
               wordWidgets.add(
                 TokenWidget(
                   widget: _buildChordTarget(
-                    ctx: ctx,
-                    tokenMeasurements: tokenMeasurements,
-
+                    tokenMeasurements: measurements,
                     tokenLine: line,
                     tokens: tokens,
                     token: token,
                     tokenPositions: tokenPositions,
+                    chordTargetColor: chordTargetColor,
+                    chordStyle: chordStyle,
+                    lyricStyle: lyricStyle,
+                    maxWidth: maxWidth,
+                    lineHeight: lineHeight,
+                    surfaceColor: surfaceColor,
+                    onSurfaceColor: onSurfaceColor,
+                    isEnabled: isEnabled,
+                    onAddChord: onAddChord,
+                    onRemoveChord: onRemoveChord,
                   ),
                   token: token,
                 ),
@@ -173,12 +196,21 @@ class TokenizationBuilder {
               wordWidgets.add(
                 TokenWidget(
                   widget: _buildChordTarget(
-                    ctx: ctx,
-                    tokenMeasurements: tokenMeasurements,
+                    tokenMeasurements: measurements,
                     tokenLine: line,
                     tokens: tokens,
                     token: token,
                     tokenPositions: tokenPositions,
+                    lineHeight: lineHeight,
+                    chordTargetColor: chordTargetColor,
+                    chordStyle: chordStyle,
+                    lyricStyle: lyricStyle,
+                    maxWidth: maxWidth,
+                    surfaceColor: surfaceColor,
+                    onSurfaceColor: onSurfaceColor,
+                    isEnabled: isEnabled,
+                    onAddChord: onAddChord,
+                    onRemoveChord: onRemoveChord,
                   ),
                   token: token,
                 ),
@@ -188,12 +220,21 @@ class TokenizationBuilder {
               wordWidgets.add(
                 TokenWidget(
                   widget: _buildChordTarget(
-                    ctx: ctx,
-                    tokenMeasurements: tokenMeasurements,
+                    tokenMeasurements: measurements,
                     tokenLine: line,
                     tokens: tokens,
                     token: token,
                     tokenPositions: tokenPositions,
+                    chordTargetColor: chordTargetColor,
+                    chordStyle: chordStyle,
+                    lyricStyle: lyricStyle,
+                    maxWidth: maxWidth,
+                    lineHeight: lineHeight,
+                    surfaceColor: surfaceColor,
+                    onSurfaceColor: onSurfaceColor,
+                    isEnabled: isEnabled,
+                    onAddChord: onAddChord,
+                    onRemoveChord: onRemoveChord,
                   ),
                   token: token,
                 ),
@@ -202,7 +243,14 @@ class TokenizationBuilder {
             case TokenType.chord:
               wordWidgets.add(
                 TokenWidget(
-                  widget: buildDraggableChord(ctx: ctx, token: token),
+                  widget: buildDraggableChord(
+                    token: token,
+                    contentColor: contentColor,
+                    onContentColor: onContentColor,
+                    chordStyle: chordStyle,
+                    isEnabled: isEnabled,
+                    toggleDrag: toggleDrag,
+                  ),
                   token: token,
                 ),
               );
@@ -211,12 +259,19 @@ class TokenizationBuilder {
               wordWidgets.add(
                 TokenWidget(
                   widget: _buildLyricDragTarget(
-                    ctx: ctx,
                     tokenLine: line,
                     tokens: tokens,
                     token: token,
-                    tokenMeasurements: tokenMeasurements,
                     tokenPositions: tokenPositions,
+                    chordStyle: chordStyle,
+                    lyricStyle: lyricStyle,
+                    maxWidth: maxWidth,
+                    surfaceColor: surfaceColor,
+                    onSurfaceColor: onSurfaceColor,
+                    isEnabled: isEnabled,
+                    onAddChord: onAddChord,
+                    onRemoveChord: onRemoveChord,
+                    lineHeight: lineHeight,
                   ),
                   token: token,
                 ),
@@ -227,12 +282,19 @@ class TokenizationBuilder {
               wordWidgets.add(
                 TokenWidget(
                   widget: _buildSpaceDragTarget(
-                    ctx: ctx,
                     tokenLine: line,
-                    tokens: tokens,
                     token: token,
-                    tokenMeasurements: tokenMeasurements,
                     tokenPositions: tokenPositions,
+                    measurements: measurements,
+                    chordStyle: chordStyle,
+                    lyricStyle: lyricStyle,
+                    maxWidth: maxWidth,
+                    lineHeight: lineHeight,
+                    surfaceColor: surfaceColor,
+                    onSurfaceColor: onSurfaceColor,
+                    isEnabled: isEnabled,
+                    onAddChord: onAddChord,
+                    onRemoveChord: onRemoveChord,
                   ),
                   token: token,
                 ),
@@ -248,9 +310,14 @@ class TokenizationBuilder {
             case TokenType.underline:
               wordWidgets.add(
                 TokenWidget(
-                  widget: buildUnderlineWidget(
-                    msr: tokenMeasurements[token]!,
-                    color: ctx.onSurfaceColor,
+                  widget: Container(
+                    height: lineHeight,
+                    width: measurements[token.toKey()]!.width,
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(color: onSurfaceColor, width: 1),
+                      ),
+                    ),
                   ),
                   token: token,
                 ),
@@ -270,28 +337,34 @@ class TokenizationBuilder {
   }
 
   Widget buildDraggableChord({
-    required TokenBuildContext ctx,
     required ContentToken token,
+    required Color contentColor,
+    required Color onContentColor,
+    required TextStyle chordStyle,
+    required bool isEnabled,
+    required Function() toggleDrag,
   }) {
     // ChordTokens
     final chordWidget = ChordToken(
       token: token,
-      sectionColor: ctx.contentColor,
-      chordStyle: ctx.chordStyle,
+      sectionColor: contentColor,
+      textColor: onContentColor,
+      chordStyle: chordStyle,
     );
 
     final dimChordWidget = ChordToken(
       token: token,
-      sectionColor: ctx.contentColor.withValues(alpha: .5),
-      chordStyle: ctx.chordStyle,
+      sectionColor: contentColor.withValues(alpha: .5),
+      chordStyle: chordStyle,
+      textColor: onContentColor,
     );
 
     // GestureDetector to handle long press to drag transition
-    return ctx.isEnabled!
+    return isEnabled
         ? LongPressDraggable<ContentToken>(
             data: token,
-            onDragStarted: ctx.toggleDrag,
-            onDragEnd: (details) => ctx.toggleDrag!(),
+            onDragStarted: toggleDrag,
+            onDragEnd: (details) => toggleDrag(),
             feedback: Material(
               color: Colors.transparent,
               child: dimChordWidget,
@@ -303,104 +376,163 @@ class TokenizationBuilder {
   }
 
   Widget _buildChordTarget({
-    required TokenBuildContext ctx,
-    required Map<ContentToken, Measurements> tokenMeasurements,
+    required Map<String, Measurements> tokenMeasurements,
     required TokenLine tokenLine,
     required List<ContentToken> tokens,
     required ContentToken token,
     required TokenPositionMap tokenPositions,
+    required TextStyle chordStyle,
+    required TextStyle lyricStyle,
+    required double maxWidth,
+    required double lineHeight,
+    required Color chordTargetColor,
+    required Color surfaceColor,
+    required Color onSurfaceColor,
+    required bool isEnabled,
+    required Function(ContentToken, ContentToken) onAddChord,
+    required Function(ContentToken) onRemoveChord,
   }) {
-    final dragTargetChild = Container(
-      decoration: BoxDecoration(
-        color: ctx.chordTargetColor,
-        borderRadius: BorderRadius.circular(20),
+    final msr = token.type == TokenType.chordTarget
+        ? tokenMeasurements[chordTargetKey(token.text, chordStyle, lyricStyle)]!
+        : tokenMeasurements[separatorKey(chordStyle, lyricStyle)]!;
+
+    final dragTargetChild = SizedBox(
+      height: lineHeight,
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        child: Container(
+          decoration: BoxDecoration(
+            color: chordTargetColor,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          width: msr.width,
+          height: msr.height,
+        ),
       ),
-      width: tokenMeasurements[token]!.width,
-      height: tokenMeasurements[token]!.height,
     );
 
     return _buildGenericDragTarget(
-      buildCtx: ctx,
-      tokenMeasurements: tokenMeasurements,
       child: dragTargetChild,
-      token: token,
       tokenLine: tokenLine,
+      token: token,
       tokenPositions: tokenPositions,
-      isChordTarget: true,
+      chordStyle: chordStyle,
+      lyricStyle: lyricStyle,
+      maxWidth: maxWidth,
+      surfaceColor: surfaceColor,
+      onSurfaceColor: onSurfaceColor,
+      isEnabled: isEnabled,
+      onAddChord: onAddChord,
+      onRemoveChord: onRemoveChord,
     );
   }
 
   Widget _buildLyricDragTarget({
-    required TokenBuildContext ctx,
     required TokenLine tokenLine,
     required List<ContentToken> tokens,
     required ContentToken token,
-    required Map<ContentToken, Measurements> tokenMeasurements,
     required TokenPositionMap tokenPositions,
+    required TextStyle chordStyle,
+    required TextStyle lyricStyle,
+    required double maxWidth,
+    required double lineHeight,
+    required Color surfaceColor,
+    required Color onSurfaceColor,
+    required bool isEnabled,
+    required Function(ContentToken, ContentToken) onAddChord,
+    required Function(ContentToken) onRemoveChord,
   }) {
     final dragTargetChild = SizedBox(
-      height: ctx.lineHeight,
+      height: lineHeight,
       child: Align(
         alignment: Alignment.bottomCenter,
-        child: Text(token.text, style: ctx.lyricStyle),
+        child: Text(token.text, style: lyricStyle),
       ),
     );
 
     return _buildGenericDragTarget(
-      buildCtx: ctx,
-      tokenMeasurements: tokenMeasurements,
       child: dragTargetChild,
       tokenLine: tokenLine,
       token: token,
       tokenPositions: tokenPositions,
+      chordStyle: chordStyle,
+      lyricStyle: lyricStyle,
+      maxWidth: maxWidth,
+      surfaceColor: surfaceColor,
+      onSurfaceColor: onSurfaceColor,
+      isEnabled: isEnabled,
+      onAddChord: onAddChord,
+      onRemoveChord: onRemoveChord,
     );
   }
 
   Widget _buildSpaceDragTarget({
-    required TokenBuildContext ctx,
     required TokenLine tokenLine,
-    required List<ContentToken> tokens,
     required ContentToken token,
-    required Map<ContentToken, Measurements> tokenMeasurements,
+    required Map<String, Measurements> measurements,
     required TokenPositionMap tokenPositions,
+    required TextStyle chordStyle,
+    required TextStyle lyricStyle,
+    required double maxWidth,
+    required double lineHeight,
+    required Color surfaceColor,
+    required Color onSurfaceColor,
+    required bool isEnabled,
+    required Function(ContentToken, ContentToken) onAddChord,
+    required Function(ContentToken) onRemoveChord,
   }) {
     final dragTargetChild = SizedBox(
-      width: tokenMeasurements[token]!.width,
-      height: ctx.lineHeight
+      width: measurements[measurementKey(' ', lyricStyle)]!.width,
+      height: lineHeight,
     );
 
     return _buildGenericDragTarget(
-      buildCtx: ctx,
-      tokenMeasurements: tokenMeasurements,
       child: dragTargetChild,
       tokenLine: tokenLine,
       token: token,
       tokenPositions: tokenPositions,
+      chordStyle: chordStyle,
+      lyricStyle: lyricStyle,
+      maxWidth: maxWidth,
+      surfaceColor: surfaceColor,
+      onSurfaceColor: onSurfaceColor,
+      isEnabled: isEnabled,
+      onAddChord: onAddChord,
+      onRemoveChord: onRemoveChord,
     );
   }
 
   /// Generic drag target builder to reduce code duplication.
   /// Wraps a child widget with DragTarget functionality if enabled.
   Widget _buildGenericDragTarget({
-    required TokenBuildContext buildCtx,
-    required Map<ContentToken, Measurements> tokenMeasurements,
     required Widget child,
     required ContentToken token,
     required TokenLine tokenLine,
     required TokenPositionMap tokenPositions,
+    required TextStyle chordStyle,
+    required TextStyle lyricStyle,
+    required double maxWidth,
+    required Color surfaceColor,
+    required Color onSurfaceColor,
+    required bool isEnabled,
+    required Function(ContentToken, ContentToken) onAddChord,
+    required Function(ContentToken) onRemoveChord,
     bool isChordTarget = false,
   }) {
-    return buildCtx.isEnabled!
+    return isEnabled
         ? DragTarget<ContentToken>(
             onAcceptWithDetails: (details) {
-              buildCtx.onRemoveChord!(details.data);
-              buildCtx.onAddChord!(details.data, token);
+              onRemoveChord(details.data);
+              onAddChord(details.data, token);
             },
             builder: (context, candidateData, rejectedData) {
               if (candidateData.isNotEmpty) {
                 return _buildDragTargetFeedback(
-                  tokenMeasurements: tokenMeasurements,
-                  ctx: buildCtx,
+                  chordStyle: chordStyle,
+                  lyricStyle: lyricStyle,
+                  maxWidth: maxWidth,
+                  surfaceColor: surfaceColor,
+                  onSurfaceColor: onSurfaceColor,
                   dragTargetChild: child,
                   draggedChord: candidateData.first!,
                   draggedToToken: token,
@@ -419,24 +551,27 @@ class TokenizationBuilder {
   /// Showing the chord above the target, with the close by tokens,
   /// Similar to what is shown when selecting text in a text editor, to give better context of where the chord will be dropped.
   Widget _buildDragTargetFeedback({
-    required TokenBuildContext ctx,
     required Widget dragTargetChild,
-    required Map<ContentToken, Measurements> tokenMeasurements,
     required ContentToken draggedChord,
     required ContentToken draggedToToken,
     required TokenPositionMap tokenPositions,
     required TokenLine tokenLine,
     required bool isChordTarget,
+    required TextStyle chordStyle,
+    required TextStyle lyricStyle,
+    required double maxWidth,
+    required Color surfaceColor,
+    required Color onSurfaceColor,
   }) {
     final chordMsr = measureText(
       text: draggedChord.text,
-      style: ctx.chordStyle,
-      cache: ctx.cache,
+      style: chordStyle,
+      isChordToken: false,
     );
     final lyricMsr = measureText(
       text: draggedToToken.text,
-      style: ctx.lyricStyle,
-      cache: ctx.cache,
+      style: lyricStyle,
+      isChordToken: false,
     );
     // ISOLATE LYRIC TOKENS FOR THE FEEDBACK
     // SAVE THE INDEX OF THE DRAGGED TO TOKEN
@@ -465,9 +600,9 @@ class TokenizationBuilder {
     final midPoint =
         (TokenizationConstants.dragFeedbackCutoutWidth -
             measureText(
-              text: ctx.transposeChord(draggedChord.text),
-              style: ctx.lyricStyle,
-              cache: ctx.cache,
+              text: draggedChord.text,
+              style: chordStyle,
+              isChordToken: false,
             ).width) /
         2; // Start with dragged chord centered in cutout
 
@@ -479,8 +614,8 @@ class TokenizationBuilder {
         xOffset -=
             measureText(
               text: token.text,
-              style: ctx.lyricStyle,
-              cache: ctx.cache,
+              style: lyricStyle,
+              isChordToken: false,
             ).width +
             1;
       }
@@ -490,7 +625,7 @@ class TokenizationBuilder {
           Positioned(
             left: xOffset,
             bottom: TokenizationConstants.dragFeedbackCutoutPadding,
-            child: Text(token.text, style: ctx.lyricStyle),
+            child: Text(token.text, style: lyricStyle),
           ),
         );
       }
@@ -503,18 +638,15 @@ class TokenizationBuilder {
       Positioned(
         left: xOffset,
         bottom: lyricMsr.size + TokenizationConstants.dragFeedbackCutoutPadding,
-        child: Text(
-          ctx.transposeChord(draggedChord.text),
-          style: ctx.lyricStyle,
-        ),
+        child: Text(draggedChord.text, style: chordStyle),
       ),
     );
 
     xOffset +=
         measureText(
           text: draggedToToken.text,
-          style: ctx.lyricStyle,
-          cache: ctx.cache,
+          style: lyricStyle,
+          isChordToken: false,
         ).width +
         1;
 
@@ -528,18 +660,12 @@ class TokenizationBuilder {
           Positioned(
             left: xOffset,
             bottom: TokenizationConstants.dragFeedbackCutoutPadding,
-            child: Text(token.text, style: ctx.lyricStyle),
+            child: Text(token.text, style: lyricStyle),
           ),
         );
       }
 
-      xOffset +=
-          measureText(
-            text: token.text,
-            style: ctx.lyricStyle,
-            cache: ctx.cache,
-          ).width +
-          1;
+      xOffset += measureText(text: token.text, style: lyricStyle).width + 1;
     }
 
     final draggedToX = tokenPositions.getX(draggedToToken) ?? 0.0;
@@ -549,10 +675,10 @@ class TokenizationBuilder {
       // Too close to left edge - align cutout to left edge of content
       cutoutXOffset = -draggedToX;
     } else if (draggedToX >
-        ctx.maxWidth - TokenizationConstants.dragFeedbackCutoutWidth / 2) {
+        maxWidth - TokenizationConstants.dragFeedbackCutoutWidth / 2) {
       // Too close to right edge - align cutout to right edge of content
       cutoutXOffset =
-          (ctx.maxWidth - draggedToX) -
+          (maxWidth - draggedToX) -
           TokenizationConstants.dragFeedbackCutoutWidth;
     } else {
       // Enough space on both sides - center cutout on token
@@ -574,10 +700,10 @@ class TokenizationBuilder {
             width: TokenizationConstants.dragFeedbackCutoutWidth,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
-              color: ctx.surfaceColor,
+              color: surfaceColor,
               boxShadow: [
                 BoxShadow(
-                  color: ctx.onSurfaceColor,
+                  color: onSurfaceColor,
                   blurRadius: 8,
                   offset: Offset(2, 2),
                 ),
@@ -587,25 +713,6 @@ class TokenizationBuilder {
           ),
         ),
       ],
-    );
-  }
-
-  Widget buildUnderlineWidget({
-    required Measurements msr,
-    required Color color,
-  }) {
-    return SizedBox(
-      height: msr.height,
-      width: msr.width,
-      child: Stack(
-        children: [
-          Positioned(
-            top: msr.baseline,
-            width: msr.width,
-            child: Container(width: msr.width, height: 1, color: color),
-          ),
-        ],
-      ),
     );
   }
 }

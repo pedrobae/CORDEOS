@@ -19,16 +19,10 @@ class _CipherScrollViewState extends State<CipherScrollView> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback(
-      (_) => _loadData(context, isInitiating: true),
-    );
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadData());
   }
 
-  void _loadData(
-    BuildContext context, {
-    bool forceReload = false,
-    bool isInitiating = false,
-  }) async {
+  void _loadData({bool forceReload = false}) async {
     final cipherProvider = context.read<CipherProvider>();
     final cloudVersionProvider = context.read<CloudVersionProvider>();
     final localVersionProvider = context.read<LocalVersionProvider>();
@@ -76,7 +70,7 @@ class _CipherScrollViewState extends State<CipherScrollView> {
       builder: (context, s, child) {
         return RefreshIndicator(
           onRefresh: () async {
-            _loadData(context, forceReload: true);
+            _loadData(forceReload: true);
           },
           child: (s.filteredIDs.isEmpty)
               ? Column(

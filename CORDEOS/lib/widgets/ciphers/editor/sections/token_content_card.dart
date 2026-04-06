@@ -1,19 +1,25 @@
+import 'package:flutter/material.dart';
 import 'package:cordeos/l10n/app_localizations.dart';
+
 import 'package:cordeos/models/domain/cipher/section.dart';
+
+import 'package:provider/provider.dart';
 import 'package:cordeos/providers/cipher/edit_sections_state_provider.dart';
 import 'package:cordeos/providers/settings/layout_settings_provider.dart';
 import 'package:cordeos/providers/navigation_provider.dart';
 import 'package:cordeos/providers/section_provider.dart';
+import 'package:cordeos/providers/token_cache_provider.dart';
 import 'package:cordeos/providers/transposition_provider.dart';
 import 'package:cordeos/providers/version/local_version_provider.dart';
+
 import 'package:cordeos/services/tokenization/helper_classes.dart';
+
+import 'package:cordeos/utils/token_cache_keys.dart';
+
 import 'package:cordeos/widgets/ciphers/editor/sections/edit_section.dart';
 import 'package:cordeos/widgets/ciphers/section_badge.dart';
 import 'package:cordeos/widgets/common/delete_confirmation.dart';
 import 'package:cordeos/widgets/common/filled_text_button.dart';
-import 'package:flutter/material.dart';
-import 'package:cordeos/services/tokenization/tokenization_service.dart';
-import 'package:provider/provider.dart';
 
 class TokenContentCard extends StatefulWidget {
   final int versionID;
@@ -32,80 +38,20 @@ class TokenContentCard extends StatefulWidget {
 }
 
 class _TokenContentCardState extends State<TokenContentCard> {
-  static const TokenizationService _tokenizer = TokenizationService();
+  late TokenProvider _tokenProv;
+  late TokenCacheKey _tokensKey;
 
-  bool _isDragging = false;
+  @override
+  void initState() {
+    super.initState();
+    _tokenProv = context.read<TokenProvider>();
+    final sect = context.read<SectionProvider>();
 
-  List<ContentToken>? _activeTokens;
-  String? _activeContent;
-
-  void _toggleDrag() {
-    setState(() {
-      _isDragging = !_isDragging;
-    });
-  }
-
-  List<ContentToken> _tokensForContent(
-    String content, {
-    required bool triggerBuild,
-  }) {
-    final shouldRetokenize =
-        _activeTokens == null || (!_isDragging && _activeContent != content);
-
-    if (shouldRetokenize) {
-      if (triggerBuild) {
-        setState(() {
-          _activeTokens = _tokenizer.tokenize(content);
-          _activeContent = content;
-        });
-      } else {
-        _activeTokens = _tokenizer.tokenize(content);
-        _activeContent = content;
-      }
-    }
-
-    return _activeTokens!;
-  }
-
-  void _cacheChanges() {
-    if (_activeTokens == null) return;
-
-    final newContent = _tokenizer.reconstructContent(_activeTokens!);
-
-    context.read<SectionProvider>().cacheContent(
-      versionID: widget.versionID,
-      sectionCode: widget.sectionCode,
-      content: newContent,
+    _tokensKey = TokenCacheKey(
+      content:
+          sect.getSection(widget.versionID, widget.sectionCode)?.contentText ??
+          '',
     );
-
-    _tokensForContent(newContent, triggerBuild: true);
-  }
-
-  void _addChord(ContentToken draggable, ContentToken target) {
-    if (_activeTokens == null) return;
-
-    int index = 0;
-    for (var token in _activeTokens!) {
-      if (token == target) break;
-      index++;
-    }
-    if (target.type == TokenType.postSeparator) {
-      index++;
-    }
-    _activeTokens!.insert(index, draggable);
-
-    _cacheChanges();
-  }
-
-  void _removeChord(ContentToken draggable) {
-    if (_activeTokens == null) return;
-
-    final index = _activeTokens!.indexOf(draggable);
-    if (index >= 0 && index < _activeTokens!.length) {
-      _activeTokens!.removeAt(index);
-    }
-
-    _cacheChanges();
   }
 
   @override
@@ -113,41 +59,16 @@ class _TokenContentCardState extends State<TokenContentCard> {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Selector3<
-      SectionProvider,
-      TranspositionProvider,
-      LayoutSetProvider,
-      ({
-        Section? section,
-        Function(String) transpose,
-        double lineSpacing,
-        double lineBreakSpacing,
-        double chordLyricSpacing,
-        double minChordSpacing,
-        double letterSpacing,
-        TextStyle chordStyle,
-        TextStyle lyricStyle,
-      })
-    >(
-      selector: (context, sect, trans, laySet) {
-        return (
-          section: sect.getSection(widget.versionID, widget.sectionCode),
-          transpose: trans.transposeChord,
-          lineSpacing: laySet.lineSpacing,
-          lineBreakSpacing: laySet.lineBreakSpacing,
-          chordLyricSpacing: laySet.chordLyricSpacing,
-          minChordSpacing: laySet.minChordSpacing,
-          letterSpacing: laySet.letterSpacing,
-          chordStyle: laySet.chordTextStyle(colorScheme.surface),
-          lyricStyle: laySet.lyricTextStyle,
-        );
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    return Selector<SectionProvider, Section?>(
+      selector: (context, sect) {
+        return sect.getSection(widget.versionID, widget.sectionCode);
       },
-      builder: (context, s, child) {
-        if (s.section == null) {
+      builder: (context, section, child) {
+        if (section == null) {
           return const Center(child: CircularProgressIndicator());
         }
-
-        _tokensForContent(s.section!.contentText, triggerBuild: false);
 
         return Container(
           decoration: BoxDecoration(
@@ -173,32 +94,50 @@ class _TokenContentCardState extends State<TokenContentCard> {
                   children: [
                     /// Section Code badge
                     SectionBadge(
-                      sectionCode: s.section!.contentCode,
-                      sectionColor: s.section!.contentColor,
+                      sectionCode: section.contentCode,
+                      sectionColor: section.contentColor,
                     ),
 
                     /// Section Type label
                     Expanded(
                       child: Text(
-                        s.section!.contentType,
+                        section.contentType,
                         style: textTheme.bodyLarge,
                       ),
                     ),
 
                     /// Delete icon (only visible when dragging)
-                    _isDragging
-                        ? DragTarget<ContentToken>(
-                            onAcceptWithDetails: (details) => {
-                              _removeChord(details.data),
-                            },
-                            builder: (context, candidateData, rejectedData) {
-                              if (candidateData.isNotEmpty) {
-                                return Icon(Icons.delete, color: Colors.red);
-                              }
-                              return Icon(Icons.delete, color: Colors.grey);
-                            },
-                          )
-                        : const SizedBox.shrink(),
+                    Selector<
+                      TokenProvider,
+                      ({bool isDragging, Function(ContentToken) removeChord})
+                    >(
+                      selector: (context, tokenProv) => (
+                        isDragging: tokenProv.isDragging,
+                        removeChord: tokenProv.removeChord(_tokensKey),
+                      ),
+                      builder: (context, s, child) {
+                        return s.isDragging
+                            ? DragTarget<ContentToken>(
+                                onAcceptWithDetails: (details) => {
+                                  s.removeChord(details.data),
+                                },
+                                builder:
+                                    (context, candidateData, rejectedData) {
+                                      if (candidateData.isNotEmpty) {
+                                        return Icon(
+                                          Icons.delete,
+                                          color: Colors.red,
+                                        );
+                                      }
+                                      return Icon(
+                                        Icons.delete,
+                                        color: Colors.grey,
+                                      );
+                                    },
+                              )
+                            : SizedBox(width: 28);
+                      },
+                    ),
 
                     /// Edit Section button
                     if (widget.isEnabled)
@@ -221,52 +160,122 @@ class _TokenContentCardState extends State<TokenContentCard> {
                   padding: const EdgeInsets.only(
                     left: TokenizationConstants.chordTokenWidthPadding,
                   ),
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final buildCtx = TokenBuildContext(
-                        chordStyle: s.chordStyle,
-                        lyricStyle: s.lyricStyle,
-                        contentColor: s.section!.contentColor,
-                        surfaceColor: colorScheme.surface,
-                        onSurfaceColor: colorScheme.onSurface,
-                        chordTargetColor: colorScheme.surfaceTint,
-                        isEnabled: widget.isEnabled,
-                        cache: {},
-                        maxWidth: constraints.maxWidth,
-                        transposeChord: (String chord) => s.transpose(chord),
-                        toggleDrag: _toggleDrag,
-                        onAddChord: _addChord,
-                        onRemoveChord: _removeChord,
-                      );
-
-                      final content = _tokenizer.createContent(
-                        content: s.section!.contentText,
-                        initialTokens: _activeTokens,
-                        posCtx: PositioningContext(
-                          underLineColor: colorScheme.onSurface,
-                          maxWidth: constraints.maxWidth,
-                          isEditMode: true,
-                          lineSpacing: s.lineSpacing,
-                          lineBreakSpacing: s.lineBreakSpacing,
-                          chordLyricSpacing: s.chordLyricSpacing,
-                          minChordSpacing: s.minChordSpacing,
-                          letterSpacing: s.letterSpacing,
+                  child:
+                      Selector2<
+                        LayoutSetProvider,
+                        TranspositionProvider,
+                        ({
+                          bool showLyrics,
+                          bool showChords,
+                          String? transposedKey,
+                        })
+                      >(
+                        selector: (context, laySet, trans) => (
+                          showLyrics: laySet.showLyrics,
+                          showChords: laySet.showChords,
+                          transposedKey: trans.transposedKey,
                         ),
-                        buildCtx: buildCtx,
-                        showChords: true,
-                        showLyrics: true,
-                      );
+                        builder: (context, filter, child) {
+                          final trans = context.read<TranspositionProvider>();
+                          // PHASE 1: Ensure tokens are cached & organized for this content + filters
+                          _tokensKey.showChords = filter.showChords;
+                          _tokensKey.showLyrics = filter.showLyrics;
+                          _tokensKey.transposedKey = filter.transposedKey;
+                          
+                          _tokenProv.tokenize(
+                            _tokensKey,
+                            transposeChord: trans.transposeChord,
+                          );
+                          _tokenProv.organize(_tokensKey);
+                          return Selector2<
+                            LayoutSetProvider,
+                            TranspositionProvider,
+                            ({
+                              TextStyle lyricStyle,
+                              TextStyle chordStyle,
+                              double chordLyricSpacing,
+                            })
+                          >(
+                            selector: (context, laySet, trans) => (
+                              lyricStyle: laySet.lyricTextStyle,
+                              chordStyle: laySet.chordTextStyle,
+                              chordLyricSpacing: laySet.chordLyricSpacing,
+                            ),
+                            builder: (context, measure, child) {
+                              // PHASE 2: Ensure measurements are cached for this content + style
+                              _tokensKey.chordLyricSpacing =
+                                  measure.chordLyricSpacing;
+                              _tokenProv.measureTokens(
+                                chordStyle: measure.chordStyle,
+                                lyricStyle: measure.lyricStyle,
+                                isEditMode: true,
+                                key: _tokensKey,
+                              );
 
-                      return SizedBox(
-                        width: double.infinity,
-                        height: content.contentHeight,
-                        child: Stack(
-                          clipBehavior: Clip.none,
-                          children: [...content.tokens],
-                        ),
-                      );
-                    },
-                  ),
+                              return Selector<
+                                LayoutSetProvider,
+                                ({
+                                  double maxWidth,
+                                  double letterSpacing,
+                                  double lineSpacing,
+                                  double lineBreakSpacing,
+                                  double minChordSpacing,
+                                })
+                              >(
+                                selector: (context, laySet) {
+                                  return (
+                                    maxWidth:
+                                        screenWidth * laySet.cardWidthMult,
+                                    letterSpacing: laySet.letterSpacing,
+                                    lineSpacing: laySet.lineSpacing,
+                                    lineBreakSpacing: laySet.lineBreakSpacing,
+                                    minChordSpacing: laySet.minChordSpacing,
+                                  );
+                                },
+                                builder: (context, l, child) {
+                                  // PHASE 3: Calculate and cache widget positions based on width constraints
+                                  _tokensKey.maxWidth = l.maxWidth;
+                                  _tokensKey.letterSpacing = l.letterSpacing;
+                                  _tokensKey.lineSpacing = l.lineSpacing;
+                                  _tokensKey.lineBreakSpacing =
+                                      l.lineBreakSpacing;
+                                  _tokensKey.minChordSpacing =
+                                      l.minChordSpacing;
+
+                                  _tokenProv.calculatePositions(
+                                    key: _tokensKey,
+                                    isEditMode: true,
+                                    lyricStyle: measure.lyricStyle,
+                                    chordStyle: measure.chordStyle,
+                                  );
+
+                                  final content = _tokenProv.buildEditWidgets(
+                                    key: _tokensKey,
+                                    lyricStyle: measure.lyricStyle,
+                                    chordStyle: measure.chordStyle,
+                                    contentColor: section.contentColor,
+                                    chordTargetColor: colorScheme.surfaceTint,
+                                    surfaceColor: colorScheme.surface,
+                                    onSurfaceColor: colorScheme.onSurface,
+                                    onContentColor: colorScheme.onSurface,
+                                    isEnabled: widget.isEnabled,
+                                    isEditMode: true,
+                                  );
+
+                                  return SizedBox(
+                                    width: double.infinity,
+                                    height: content.contentHeight,
+                                    child: Stack(
+                                      clipBehavior: Clip.none,
+                                      children: [...content.tokens],
+                                    ),
+                                  );
+                                },
+                              );
+                            },
+                          );
+                        },
+                      ),
                 ),
               ),
             ],

@@ -20,34 +20,14 @@ class BottomControls extends StatefulWidget {
 }
 
 class _BottomControlsState extends State<BottomControls> {
-  late final PlayStateProvider _state;
   late final ScrollProvider _scroll;
+  late final PlayStateProvider _playState;
 
   @override
   void initState() {
     super.initState();
-    _state = context.read<PlayStateProvider>();
     _scroll = context.read<ScrollProvider>();
-  }
-
-  Future<void> _scrollToItem(int index) async {
-    if (index < 0 || index >= _state.itemCount) return;
-    final itemKey = _scroll.registerItem(index);
-    final itemContext = itemKey.currentContext;
-    if (itemContext == null) return;
-
-    _state.currentItemIndex = index;
-
-    await Scrollable.ensureVisible(
-      itemContext,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-      alignment: 0,
-    );
-
-    _scroll.stopAutoScroll();
-    _scroll.currentSectionIndex = 0;
-    _scroll.currentItemIndex = index;
+    _playState = context.read<PlayStateProvider>();
   }
 
   @override
@@ -98,7 +78,8 @@ class _BottomControlsState extends State<BottomControls> {
     return GestureDetector(
       onTap: () {
         if (currentIndex > 0) {
-          _scrollToItem(currentIndex - 1);
+          _scroll.probeScrollToItem(currentIndex - 1, 0);
+          _playState.currentItemIndex = currentIndex - 1;
         }
       },
       child: SizedBox(
@@ -125,7 +106,8 @@ class _BottomControlsState extends State<BottomControls> {
     return GestureDetector(
       onTap: () {
         if (currentIndex < itemCount - 1) {
-          _scrollToItem(currentIndex + 1);
+          _scroll.probeScrollToItem(currentIndex + 1, 0);
+          _playState.currentItemIndex = currentIndex + 1;
         }
       },
       child: SizedBox(

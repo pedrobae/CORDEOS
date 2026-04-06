@@ -181,14 +181,16 @@ class VersionWrap extends StatelessWidget {
       }
 
       sectionWidgets.add(
-        SectionCard(
-          key: key,
-          index: i,
-          itemIndex: itemIndex,
-          sectionType: section.contentType,
-          sectionCode: code,
-          sectionText: section.contentText,
-          sectionColor: section.contentColor,
+        RepaintBoundary(
+          child: SectionCard(
+            key: key,
+            index: i,
+            itemIndex: itemIndex,
+            sectionType: section.contentType,
+            sectionCode: code,
+            sectionText: section.contentText,
+            sectionColor: section.contentColor,
+          ),
         ),
       );
     }

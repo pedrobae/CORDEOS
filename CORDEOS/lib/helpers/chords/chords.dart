@@ -154,14 +154,12 @@ class ChordHelper {
   }
 
   String transpose(String chord, int value, {required bool sharpKey}) {
-    final sharpChord = chord.contains('#');
-    final chordChrom = getChordRoots(sharpChord);
+    final chordChrom = getChordRoots(chord.contains('#'));
     int chordIndex = chordChrom.indexOf(chord);
     if (chordIndex == -1) {
       throw ArgumentError('Chord not found in its own chromatic scale: $chord');
     }
     int newIndex = (chordIndex + value) % 12;
-
     final keyChrom = getChordRoots(sharpKey);
     return keyChrom[newIndex];
   }

@@ -31,6 +31,18 @@ class ScrollProvider extends ChangeNotifier {
 
   final Map<int, Map<int, int>> _sectionLineCounts = {};
 
+  // ScrollController for manual scroll operations when items aren't built
+  ScrollController? _scrollController;
+  double _probeDistance = 800.0; // Fallback estimate
+
+  void setScrollController(ScrollController controller) {
+    _scrollController = controller;
+  }
+
+  void updateEstimatedItemHeight(double height) {
+    _probeDistance = height;
+  }
+
   Map<int, GlobalKey> get currentItemSectionKeys =>
       _sectionKeys[_currentItemIndex] ?? {};
 
@@ -162,10 +174,19 @@ class ScrollProvider extends ChangeNotifier {
       // Move to next section
       if (currentSectionIndex < _sectionCount - 1) {
         currentSectionIndex++;
-        scrollToItemSection(
-          itemIndex: _currentItemIndex,
-          sectionIndex: currentSectionIndex,
-        );
+
+        final sectionKey =
+            _sectionKeys[_currentItemIndex]?[currentSectionIndex];
+        final sectionContext = sectionKey?.currentContext;
+
+        if (sectionContext != null && sectionContext.mounted) {
+          Scrollable.ensureVisible(
+            sectionContext,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            alignment: 0.2,
+          );
+        }
         _scheduleNextSectionScroll(); // Schedule next with its line count
       } else {
         // Stop at the end
@@ -180,47 +201,120 @@ class ScrollProvider extends ChangeNotifier {
 
     final nextSectionIndex = currentSectionIndex + (forward ? 1 : -1);
     if (nextSectionIndex < _sectionCount && nextSectionIndex >= 0) {
-      scrollToItemSection(
-        itemIndex: _currentItemIndex,
-        sectionIndex: nextSectionIndex,
-      );
-      _currentSectionIndex = nextSectionIndex;
+      // Next section is within current item - scroll to it
+      currentSectionIndex = nextSectionIndex;
+      final sectionKey = _sectionKeys[_currentItemIndex]?[_currentSectionIndex];
+      final sectionContext = sectionKey?.currentContext;
+
+      if (sectionContext != null && sectionContext.mounted) {
+        Scrollable.ensureVisible(
+          sectionContext,
+          duration: const Duration(milliseconds: 400),
+          curve: Curves.easeInOut,
+          alignment: 0.2,
+        );
+      }
     } else {
+      // Next section is in next item - assume built check if next item exists
       final nextItemIndex = _currentItemIndex + (forward ? 1 : -1);
       if (nextItemIndex < _itemKeys.length && nextItemIndex >= 0) {
-        final resetIndex = forward
+        // Next item exists - scroll
+        currentSectionIndex = forward
             ? 0
             : _sectionKeys[nextItemIndex]!.length - 1;
-        scrollToItemSection(itemIndex: nextItemIndex, sectionIndex: resetIndex);
+        _currentItemIndex = nextItemIndex;
+
+        final sectionKey =
+            _sectionKeys[_currentItemIndex]?[_currentSectionIndex];
+        final sectionContext = sectionKey?.currentContext;
+
+        if (sectionContext != null && sectionContext.mounted) {
+          Scrollable.ensureVisible(
+            sectionContext,
+            duration: const Duration(milliseconds: 400),
+            curve: Curves.easeOut,
+            alignment: 0.2,
+          );
+        }
       }
       // End of playlist - do nothing
     }
   }
 
-  /// Scrolls to the section at the given index using its GlobalKey
-  /// Scrolls to the section at the given indexes using its GlobalKey
-  void scrollToItemSection({
-    required int? itemIndex,
-    required int sectionIndex,
-  }) {
-    final itemIdx = itemIndex ?? _currentItemIndex;
-    if (_sectionKeys[itemIdx] == null) return;
-    if (_sectionKeys[itemIdx]![sectionIndex] == null) return;
+  /// Recursive method that probes whether the target item / section is built,
+  /// If not, scrolls toward it and probes again after postFrameCallback.
+  void probeScrollToItem(int targetItemIndex, int targetSectionIndex) {
+    // Try to get section context
+    final sectionKey = _sectionKeys[targetItemIndex]?[targetSectionIndex];
+    final sectionContext = sectionKey?.currentContext;
 
-    final sectionKey = _sectionKeys[itemIdx]![sectionIndex];
-    final context = sectionKey!.currentContext;
-
-    if (context != null && context.mounted) {
+    if (sectionContext != null && sectionContext.mounted) {
+      if (_currentItemIndex != targetItemIndex) {
+        _currentItemIndex = targetItemIndex;
+        notifyListeners();
+      }
+      if (_currentSectionIndex != targetSectionIndex) {
+        _currentSectionIndex = targetSectionIndex;
+        notifyListeners();
+      }
+      // Section is built - scroll directly to it
       Scrollable.ensureVisible(
-        context,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-        alignment: 0.2, // Position section 20% from top
+        sectionContext,
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeOut,
+        alignment: 0.2,
       );
+      return;
     }
 
-    _currentItemIndex = itemIdx;
-    currentSectionIndex = sectionIndex;
+    // Section not built - try scrolling to item first
+    final itemKey = _itemKeys[targetItemIndex];
+    final itemContext = itemKey?.currentContext;
+
+    if (itemContext != null && itemContext.mounted) {
+      // Item is built but section isn't registered yet - scroll to item
+      if (_currentItemIndex != targetItemIndex) {
+        _currentItemIndex = targetItemIndex;
+        notifyListeners();
+      }
+      Scrollable.ensureVisible(
+        itemContext,
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeInOut,
+        alignment: 0.2,
+      ).then((_) {
+        // After scroll completes, try section again
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          probeScrollToItem(targetItemIndex, targetSectionIndex);
+        });
+      });
+      return;
+    }
+
+    // Neither item nor section is built - use scroll controller to scroll
+    // toward the target item, which will trigger lazy loading
+    if (_scrollController != null && _scrollController!.hasClients) {
+      final currentOffset = _scrollController!.offset;
+      final direction = targetItemIndex > _currentItemIndex ? 1.0 : -1.0;
+      final targetOffset = currentOffset + (direction * _probeDistance);
+
+      _scrollController!
+          .animateTo(
+            targetOffset.clamp(
+              _scrollController!.position.minScrollExtent,
+              _scrollController!.position.maxScrollExtent,
+            ),
+            duration: const Duration(milliseconds: 400),
+            curve: Curves.linear,
+          )
+          .then((_) {
+            // After scroll, item should be built - retry navigation
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              probeScrollToItem(targetItemIndex, targetSectionIndex);
+            });
+          });
+      return;
+    }
   }
 
   // ===== HELPER METHODS =====

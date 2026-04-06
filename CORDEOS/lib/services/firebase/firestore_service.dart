@@ -428,13 +428,15 @@ class FirestoreService {
     int limit = 50,
   }) async {
     try {
+      debugPrint("FIRESTORE - querying doc containing value");
       final querySnapshot = await _firestore
           .collection(collectionPath)
           .where(field, arrayContains: value)
           .where(orderField, isGreaterThanOrEqualTo: Timestamp.now())
           .orderBy(orderField)
           .limit(limit)
-          .get();
+          .get(const GetOptions(source: Source.server));
+      debugPrint("FIRESTORE - finished querying doc containing value");
       return querySnapshot.docs;
     } catch (e) {
       FirebaseService.logError('Failed to query collection', e);

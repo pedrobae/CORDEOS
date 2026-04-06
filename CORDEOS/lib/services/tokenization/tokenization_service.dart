@@ -1,15 +1,10 @@
-import 'package:cordeos/services/tokenization/build_service.dart';
 import 'package:cordeos/services/tokenization/helper_classes.dart';
-import 'package:cordeos/services/tokenization/position_service.dart';
 
 /// Service responsible for tokenizing ChordPro content,
 /// organizing it into a hierarchical structure,
 /// and orchestrating the widget building and positioning workflow.
 class TokenizationService {
   const TokenizationService();
-
-  static const _builder = TokenizationBuilder();
-  static const _positioner = PositionService();
 
   /// Tokenizes the given content string into a list of ContentTokens.
   ///
@@ -22,7 +17,12 @@ class TokenizationService {
   /// final service = TokenizationService();
   /// final tokens = service.tokenize('[Am]Amazing [F]grace\nHow [C]sweet');
   /// ```
-  List<ContentToken> tokenize(String content) {
+  List<ContentToken> tokenize(
+    String content, {
+    required bool showLyrics,
+    required bool showChords,
+    required String Function(String) transposeChord,
+  }) {
     if (content.isEmpty) {
       return [];
     }
@@ -37,16 +37,18 @@ class TokenizationService {
           continue;
         }
 
-        _ensureSeparators(lineTokens);
+        if (showLyrics || showChords) {
+          _ensureSeparators(lineTokens);
 
-        lineTokens.add(ContentToken(type: TokenType.newline, text: char));
+          lineTokens.add(ContentToken(type: TokenType.newline, text: char));
 
-        _prePostHandling(lineTokens);
-        _removeAdjacentSeparators(lineTokens);
+          _prePostHandling(lineTokens);
+          _removeAdjacentSeparators(lineTokens);
+        }
 
         tokens.addAll(lineTokens);
         lineTokens.clear();
-      } else if (char == ' ' || char == '\t') {
+      } else if ((char == ' ' || char == '\t') && showLyrics) {
         lineTokens.add(ContentToken(type: TokenType.space, text: char));
       } else if (char == '[') {
         // GROUP CHORD TOKEN
@@ -56,14 +58,21 @@ class TokenizationService {
           chordText += content[index];
           index++;
         }
-        lineTokens.add(ContentToken(type: TokenType.chord, text: chordText));
-      } else if (char == '<') {
+        if (showChords) {
+          lineTokens.add(
+            ContentToken(
+              type: TokenType.chord,
+              text: transposeChord(chordText),
+            ),
+          );
+        }
+      } else if (char == '<' && (showLyrics || showChords)) {
         lineTokens.add(ContentToken(type: TokenType.preSeparator, text: char));
-      } else if (char == '>') {
+      } else if (char == '>' && (showLyrics || showChords)) {
         lineTokens.add(ContentToken(type: TokenType.postSeparator, text: char));
-      } else if (char == '@') {
+      } else if (char == '@' && (showLyrics || showChords)) {
         lineTokens.add(ContentToken(type: TokenType.chordTarget, text: char));
-      } else {
+      } else if (showLyrics) {
         lineTokens.add(ContentToken(type: TokenType.lyric, text: char));
       }
     }
@@ -182,213 +191,6 @@ class TokenizationService {
     }).join();
   }
 
-  /// Creates tokenized and positioned content for both edit and view modes.
-  ///
-  /// **Edit Mode** (provide [content] and [buildCtx])
-  /// **View Mode** (provide [content] and [contentFilters])
-  /// Orchestrates the complete content creation workflow from a content string:
-  /// 1. Tokenizes content into ChordPro format
-  /// 2. Mode processing (Chord transposition // Filter Application)
-  /// 3. Organizes tokens into hierarchical structure
-  /// 4. Measures tokens
-  /// 5. Calculates positions
-  /// 6. Builds widgets (Edit // view)
-  /// 7. Positions widgets for final rendering
-  ///
-  /// Returns [ContentTokenized] with positioned widgets and total content height.
-  ContentTokenized createContent({
-    required String content,
-    required PositioningContext posCtx,
-    required TokenBuildContext buildCtx,
-    List<ContentToken>? initialTokens,
-    // View mode parameters
-    required bool showChords,
-    required bool showLyrics,
-  }) {
-    // Step 1: Tokenize content (shared)
-    List<ContentToken> tokens = initialTokens ?? tokenize(content);
-
-    // Underline tokens are transient layout artifacts.
-    // Ensure they never persist across rebuilds when using cached initialTokens.
-    tokens = tokens
-        .where((token) => token.type != TokenType.underline)
-        .toList();
-
-    // Step 2: Apply mode-specific processing
-    if (posCtx.isEditMode) {
-    } else {
-      tokens = filterTokens(tokens, showChords: showChords, showLyrics: showLyrics);
-    }
-
-    // Step 3: Organize tokens
-    final organizedTokens = _organize(tokens);
-
-    // // Assert that all tokens and organization maintain the same order and count after processing
-    // assert(() {
-    //   final flatOrganizedTokens = organizedTokens.lines
-    //       .expand((line) => line.words)
-    //       .expand((word) => word.tokens)
-    //       .toList();
-    //   for (int i = 0; i < tokens.length; i++) {
-    //     if (tokens[i] != flatOrganizedTokens[i]) {
-    //       throw Exception(
-    //         'Token mismatch at index $i after organization. Token: ${tokens[i].text} (${tokens[i].type}), Organized: ${flatOrganizedTokens[i].text} (${flatOrganizedTokens[i].type})',
-    //       );
-    //     }
-    //   }
-    //   return true;
-    // }());
-
-    // Step 4: Measure tokens
-    final tokenMeasurements = <ContentToken, Measurements>{};
-    for (var token in tokens) {
-      switch (token.type) {
-        case TokenType.chord:
-          tokenMeasurements[token] = _builder.measureText(
-            text: buildCtx.transposeChord(token.text),
-            style: buildCtx.chordStyle,
-            cache: buildCtx.cache,
-            isChordToken: posCtx.isEditMode,
-          );
-          break;
-
-        case TokenType.space:
-        case TokenType.lyric:
-          tokenMeasurements[token] = _builder.measureText(
-            text: token.text,
-            style: buildCtx.lyricStyle,
-            cache: buildCtx.cache,
-          );
-          break;
-        case TokenType.preSeparator:
-        case TokenType.postSeparator:
-          final msr = _builder.measureText(
-            text: '<>',
-            style: buildCtx.lyricStyle,
-            cache: buildCtx.cache,
-          );
-          final chordMsr = _builder.measureText(
-            text: 'C',
-            style: buildCtx.chordStyle,
-            cache: buildCtx.cache,
-            isChordToken: posCtx.isEditMode,
-          );
-          tokenMeasurements[token] = Measurements(
-            width: TokenizationConstants.targetWidth,
-            height: msr.height + chordMsr.height + posCtx.chordLyricSpacing,
-            baseline: msr.baseline,
-            size: msr.size + chordMsr.size,
-          );
-          break;
-        case TokenType.chordTarget:
-          final msr = _builder.measureText(
-            text: '@',
-            style: buildCtx.lyricStyle,
-            cache: buildCtx.cache,
-          );
-          final chordMsr = _builder.measureText(
-            text: token.text,
-            style: buildCtx.chordStyle,
-            cache: buildCtx.cache,
-            isChordToken: posCtx.isEditMode,
-          );
-          tokenMeasurements[token] = Measurements(
-            width: chordMsr.width,
-            height: msr.height,
-            baseline: msr.baseline,
-            size: msr.size,
-          );
-          break;
-        case TokenType.underline:
-        case TokenType.newline:
-          // These tokens are dynamic, the measurements are based on positioning.
-          break;
-      }
-    }
-
-    // Step 5: Calculate positions for all tokens
-    final tokenPositions = _positioner.calculateTokenPositions(
-      organizedTokens: organizedTokens,
-      posCtx: posCtx,
-      buildCtx: buildCtx,
-      tokenMsr: tokenMeasurements,
-    );
-
-    // Assert that all lines start at x=0
-    // assert(() {
-    //   for (var line in organizedTokens.lines) {
-    //     final firstToken = line.words.expand((word) => word.tokens).first;
-    //     final firstTokenX = tokenPositions.getX(firstToken)!;
-    //     if (firstTokenX != 0) {
-    //       throw Exception(
-    //         'Line does not start at x=0. First token: ${firstToken.text} (${firstToken.type}), x: $firstTokenX',
-    //       );
-    //     }
-    //   }
-    //   return true;
-    // }());
-
-    // Step 6: Build widgets
-    final OrganizedWidgets contentWidgets;
-    if (posCtx.isEditMode) {
-      // Build edit widgets with pre-calculated positions
-      contentWidgets = _builder.buildEditWidgets(
-        contentTokens: organizedTokens,
-        tokenMeasurements: tokenMeasurements,
-        tokens: tokens,
-        ctx: buildCtx,
-        tokenPositions: tokenPositions,
-      );
-    } else {
-      // Build view widgets
-      contentWidgets = _builder.buildViewWidgets(
-        organizedTokens: organizedTokens,
-        tokenMeasurements: tokenMeasurements,
-        tokens: tokens,
-        ctx: buildCtx,
-        tokenPositions: tokenPositions,
-      );
-    }
-
-    // Step 7: Apply positions to widgets (shared)
-    final positionedContent = _positioner.applyPositionsToWidgets(
-      contentWidgets,
-      tokenPositions,
-      buildCtx,
-    );
-
-    return positionedContent;
-  }
-
-  /// Filters tokens based on content filter settings.
-  ///
-  /// Allows showing/hiding chords and lyrics independently.
-  /// Visual tokens (newline, underline, precedingChordTarget) are shown if any content is visible.
-  List<ContentToken> filterTokens(
-    List<ContentToken> tokens, {
-    required bool showChords,
-    required bool showLyrics,
-  }) {
-    return tokens.where((token) {
-      switch (token.type) {
-        case TokenType.chord:
-          return showChords;
-        case TokenType.space:
-        case TokenType.lyric:
-          return showLyrics;
-
-        case TokenType.underline:
-          return false;
-        case TokenType.newline:
-        case TokenType.postSeparator:
-        case TokenType.preSeparator:
-        case TokenType.chordTarget:
-          // Returns true if any content is shown
-          return showChords || showLyrics;
-      }
-    }).toList();
-  }
-
   /// Organizes tokens into a hierarchical structure: lines -> words -> tokens.
   ///
   /// Logic:
@@ -397,7 +199,7 @@ class TokenizationService {
   /// - Lyric, chord, and precedingChordTarget tokens are part of words
   ///
   /// Returns [OrganizedTokens] with clear hierarchical structure.
-  OrganizedTokens _organize(List<ContentToken> tokens) {
+  OrganizedTokens organize(List<ContentToken> tokens) {
     // Organize tokens by lines and words
     final currentWord = <ContentToken>[];
     final currentLine = <TokenWord>[];

@@ -28,6 +28,7 @@ class PlaySchedule extends StatefulWidget {
 
 class PlayScheduleState extends State<PlaySchedule> {
   late final bool isCloud = widget.scheduleId is String;
+  bool _isReady = false;
 
   @override
   void initState() {
@@ -35,17 +36,32 @@ class PlayScheduleState extends State<PlaySchedule> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _loadData();
+      if (mounted) {
+        setState(() => _isReady = true);
+      }
     });
+  }
+
+  @override
+  void dispose() {
+    // Clear token cache when leaving play screen
+    super.dispose();
   }
 
   Future<void> _loadData() async {
     if (widget.scheduleId == null) throw Exception("Schedule ID is required");
+
+    final loadStart = DateTime.now();
+    debugPrint('PlaySchedule: Starting _loadData at ${loadStart.toIso8601String()}');
 
     if (!isCloud) {
       await _loadLocal();
     } else {
       await _loadCloud();
     }
+    
+    final loadDuration = DateTime.now().difference(loadStart);
+    debugPrint('PlaySchedule: _loadData completed in ${loadDuration.inMilliseconds}ms');
   }
 
   Future<void> _loadLocal() async {
@@ -117,14 +133,24 @@ class PlayScheduleState extends State<PlaySchedule> {
           // Flow items are loaded as part of the schedule
           break;
       }
-      // To prevent UI jank, we append items one by one with a short delay
-      await Future.delayed(const Duration(milliseconds: 100));
+
       state.appendItem(item);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (!_isReady) {
+      return const Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [CircularProgressIndicator()],
+          ),
+        ),
+      );
+    }
+
     final cloudSch = context.read<CloudScheduleProvider>();
 
     return PlayPlaylist(

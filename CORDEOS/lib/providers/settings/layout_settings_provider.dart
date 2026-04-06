@@ -142,10 +142,9 @@ class LayoutSetProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  TextStyle chordTextStyle(Color color) => TextStyle(
+  TextStyle get chordTextStyle => TextStyle(
     fontFamily: fontFamily,
     fontSize: fontSize.toDouble(),
-    color: color,
     fontWeight: FontWeight.bold,
     height: 1,
     letterSpacing: 0,

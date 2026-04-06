@@ -1,4 +1,7 @@
 import 'package:cordeos/providers/auto_scroll_provider.dart';
+import 'package:cordeos/providers/token_cache_provider.dart';
+import 'package:cordeos/providers/transposition_provider.dart';
+import 'package:cordeos/utils/token_cache_keys.dart';
 import 'package:cordeos/widgets/ciphers/section_badge.dart';
 import 'package:cordeos/widgets/ciphers/viewer/token_view.dart';
 import 'package:flutter/material.dart';
@@ -27,77 +30,173 @@ class SectionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
-    final width = MediaQuery.of(context).size.width;
+    final screenWidth = MediaQuery.of(context).size.width;
 
+    final tokenProv = context.read<TokenProvider>();
+    final trans = context.read<TranspositionProvider>();
+
+    final layoutKey = TokenCacheKey(content: sectionText);
     return Selector2<
       LayoutSetProvider,
-      ScrollProvider,
-      ({bool isCurrent, bool showSectionHeaders, double cardWidthMult})
+      TranspositionProvider,
+      ({bool showLyrics, bool showChords, String? transposedKey})
     >(
-      selector: (context, laySet, scroll) => (
-        showSectionHeaders: laySet.showSectionHeaders,
-        isCurrent:
-            (scroll.currentSectionIndex == index &&
-            (scroll.currentItemIndex == itemIndex)),
-        cardWidthMult: laySet.cardWidthMult,
+      selector: (context, laySet, trans) => (
+        showLyrics: laySet.showLyrics,
+        showChords: laySet.showChords,
+        transposedKey: trans.transposedKey,
       ),
-      builder: (context, s, child) {
-        final showSectionHeaders = s.showSectionHeaders;
-        final Color dimmedSectionColor =
-            Color.lerp(sectionColor, colorScheme.surface, 0.82) ?? sectionColor;
+      builder: (context, filter, child) {
+        // PHASE 1: Ensure tokens are cached & organized for this content + filters
+        layoutKey.showChords = filter.showChords;
+        layoutKey.showLyrics = filter.showLyrics;
+        layoutKey.transposedKey = filter.transposedKey;
+        
+        tokenProv.tokenize(layoutKey, transposeChord: trans.transposeChord);
+        tokenProv.organize(layoutKey);
+        return Selector<
+          LayoutSetProvider,
+          ({
+            TextStyle lyricStyle,
+            TextStyle chordStyle,
+            double chordLyricSpacing,
+          })
+        >(
+          selector: (context, laySet) => (
+            lyricStyle: laySet.lyricTextStyle,
+            chordStyle: laySet.chordTextStyle,
+            chordLyricSpacing: laySet.chordLyricSpacing,
+          ),
+          builder: (context, measure, child) {
+            // PHASE 2: Ensure measurements are cached for this content + style
+            layoutKey.chordLyricSpacing = measure.chordLyricSpacing;
 
-        return SizedBox(
-          width: width * s.cardWidthMult,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: showSectionHeaders
-                  ? colorScheme.surface
-                  : dimmedSectionColor,
-              border: Border.all(
-                color: showSectionHeaders
-                    ? colorScheme.surfaceContainerHigh
-                    : sectionColor,
-              ),
-              borderRadius: BorderRadius.circular(0),
-              boxShadow: s.isCurrent
-                  ? [BoxShadow(color: colorScheme.primary, blurRadius: 8)]
-                  : null,
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (showSectionHeaders)
-                    Row(
-                      spacing: 8,
-                      children: [
-                        SectionBadge(
-                          sectionCode: sectionCode,
-                          sectionColor: sectionColor,
+            tokenProv.measureTokens(
+              chordStyle: measure.chordStyle,
+              lyricStyle: measure.lyricStyle,
+              isEditMode: false,
+              key: layoutKey,
+            );
+
+            return Selector<
+              LayoutSetProvider,
+              ({
+                double maxWidth,
+                double letterSpacing,
+                double lineSpacing,
+                double lineBreakSpacing,
+                double minChordSpacing,
+              })
+            >(
+              selector: (context, laySet) {
+                return (
+                  maxWidth: screenWidth * laySet.cardWidthMult,
+                  letterSpacing: laySet.letterSpacing,
+                  lineSpacing: laySet.lineSpacing,
+                  lineBreakSpacing: laySet.lineBreakSpacing,
+                  minChordSpacing: laySet.minChordSpacing,
+                );
+              },
+              builder: (context, l, child) {
+                // PHASE 3: Calculate and cache widget positions based on width constraints
+                layoutKey.maxWidth = l.maxWidth;
+                layoutKey.letterSpacing = l.letterSpacing;
+                layoutKey.lineSpacing = l.lineSpacing;
+                layoutKey.lineBreakSpacing = l.lineBreakSpacing;
+                layoutKey.minChordSpacing = l.minChordSpacing;
+
+                tokenProv.calculatePositions(
+                  key: layoutKey,
+                  isEditMode: false,
+                  lyricStyle: measure.lyricStyle,
+                  chordStyle: measure.chordStyle,
+                );
+
+                return Selector2<
+                  LayoutSetProvider,
+                  ScrollProvider,
+                  ({bool isCurrent, bool showSectionHeaders})
+                >(
+                  selector: (context, laySet, scroll) => (
+                    showSectionHeaders: laySet.showSectionHeaders,
+                    isCurrent:
+                        (scroll.currentSectionIndex == index &&
+                        (scroll.currentItemIndex == itemIndex)),
+                  ),
+                  builder: (context, s, child) {
+                    final Color dimmedSectionColor =
+                        Color.lerp(sectionColor, colorScheme.surface, 0.82) ??
+                        sectionColor;
+
+                    return SizedBox(
+                      width: l.maxWidth,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: s.showSectionHeaders
+                              ? colorScheme.surface
+                              : dimmedSectionColor,
+                          border: Border.all(
+                            color: s.showSectionHeaders
+                                ? colorScheme.surfaceContainerHigh
+                                : sectionColor,
+                          ),
+                          borderRadius: BorderRadius.circular(0),
+                          boxShadow: s.isCurrent
+                              ? [
+                                  BoxShadow(
+                                    color: colorScheme.primary,
+                                    blurRadius: 8,
+                                  ),
+                                ]
+                              : null,
                         ),
-                        Expanded(
-                          child: Text(
-                            sectionType.isNotEmpty
-                                ? sectionType[0].toUpperCase() +
-                                      sectionType.substring(1)
-                                : sectionType,
-                            style: textTheme.labelLarge,
-                            overflow: TextOverflow.fade,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (s.showSectionHeaders)
+                                Row(
+                                  spacing: 8,
+                                  children: [
+                                    SectionBadge(
+                                      sectionCode: sectionCode,
+                                      sectionColor: sectionColor,
+                                    ),
+                                    Expanded(
+                                      child: Text(
+                                        sectionType.isNotEmpty
+                                            ? sectionType[0].toUpperCase() +
+                                                  sectionType.substring(1)
+                                            : sectionType,
+                                        style: textTheme.labelLarge,
+                                        overflow: TextOverflow.fade,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              SizedBox(height: s.showSectionHeaders ? 8 : 0),
+                              child!,
+                            ],
                           ),
                         ),
-                      ],
-                    ),
-                  SizedBox(height: showSectionHeaders ? 8 : 0),
-                  child!,
-                ],
-              ),
-            ),
-          ),
+                      ),
+                    );
+                  },
+                  child: TokenView(
+                    layoutKey: layoutKey,
+                    contentColor: sectionColor,
+                  ),
+                );
+              },
+            );
+          },
         );
       },
-      child: TokenView(chordPro: sectionText),
     );
   }
 }

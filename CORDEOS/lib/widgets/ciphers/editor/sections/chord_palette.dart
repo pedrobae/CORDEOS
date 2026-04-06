@@ -214,7 +214,8 @@ class _ChordPaletteState extends State<ChordPalette> {
         child: ChordToken(
           token: token,
           sectionColor: colorScheme.onSurface.withValues(alpha: .7),
-          chordStyle: laySet.chordTextStyle(colorScheme.surface),
+          chordStyle: laySet.chordTextStyle,
+          textColor: colorScheme.surface,
         ),
       ),
       childWhenDragging: Opacity(
@@ -222,13 +223,15 @@ class _ChordPaletteState extends State<ChordPalette> {
         child: ChordToken(
           token: token,
           sectionColor: colorScheme.onSurface.withValues(alpha: .4),
-          chordStyle: laySet.chordTextStyle(colorScheme.surface),
+          chordStyle: laySet.chordTextStyle,
+          textColor: colorScheme.surface,
         ),
       ),
       child: ChordToken(
         token: token,
         sectionColor: colorScheme.onSurface,
-        chordStyle: laySet.chordTextStyle(colorScheme.surface),
+        textColor: colorScheme.surface,
+        chordStyle: laySet.chordTextStyle,
       ),
     );
   }
