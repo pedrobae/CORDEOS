@@ -119,11 +119,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               },
               shape: ContinuousRectangleBorder(),
               builder: (BuildContext context) {
-                return ReAuthSheet(
-                  onReAuthSuccess: () {
-                    auth.deleteAccount();
-                  },
-                );
+                return ReAuthSheet(onReAuthSuccess: () {});
               },
             );
           },
