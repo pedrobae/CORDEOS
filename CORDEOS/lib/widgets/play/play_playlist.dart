@@ -53,7 +53,6 @@ class _PlayPlaylistState extends State<PlayPlaylist> {
       _scroll.clearCache();
 
       setState(() {
-        debugPrint("PLAY PLAYLIST - finished loading");
         _isLoading = false;
       });
     });
@@ -165,26 +164,23 @@ class _PlayPlaylistState extends State<PlayPlaylist> {
                 );
               }
 
-              return CustomScrollView(
+              return SingleChildScrollView(
                 controller: _scrollController,
                 scrollDirection: scrollDirection,
-                slivers: [
-                  SliverPadding(
-                    padding: scrollDirection == Axis.vertical
-                        ? const EdgeInsets.symmetric(horizontal: 8)
-                        : const EdgeInsets.symmetric(vertical: 8),
-                    sliver: SliverList.separated(
-                      addAutomaticKeepAlives: true,
-                      itemCount: itemCount,
-                      separatorBuilder: (context, index) => const SizedBox(
-                        width: 8,
-                        height: 8,
+                child: Flex(
+                  direction: scrollDirection,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    for (int i = 0; i < itemCount; i++) ...[
+                      Padding(
+                        padding: scrollDirection == Axis.vertical
+                            ? const EdgeInsets.symmetric(horizontal: 8)
+                            : const EdgeInsets.symmetric(vertical: 8),
+                        child: _buildItem(i, scrollDirection),
                       ),
-                      itemBuilder: (context, index) =>
-                          _buildItem(index, scrollDirection),
-                    ),
-                  ),
-                ],
+                    ],
+                  ],
+                ),
               );
             },
           ),
