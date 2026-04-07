@@ -14,7 +14,7 @@ class ScrollProvider extends ChangeNotifier {
 
   bool isAutoScrolling = false;
   bool scrollModeEnabled = false;
-  bool transparentButtons = false;
+  bool transparentButtons = true;
 
   int _currentItemIndex = 0;
   int _currentSectionIndex = 0;

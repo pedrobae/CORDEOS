@@ -3,7 +3,7 @@ import 'package:cordeos/l10n/app_localizations.dart';
 import 'package:cordeos/models/domain/playlist/playlist.dart';
 import 'package:cordeos/models/domain/playlist/playlist_item.dart';
 import 'package:cordeos/models/domain/schedule.dart';
-import 'package:cordeos/providers/auto_scroll_provider.dart';
+import 'package:cordeos/providers/playlist/auto_scroll_provider.dart';
 import 'package:cordeos/providers/playlist/play_state_provider.dart';
 import 'package:cordeos/providers/section_provider.dart';
 import 'package:cordeos/providers/selection_provider.dart';

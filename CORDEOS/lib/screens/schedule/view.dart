@@ -13,7 +13,7 @@ import 'package:cordeos/models/domain/schedule.dart';
 import 'package:flutter/services.dart';
 
 import 'package:provider/provider.dart';
-import 'package:cordeos/providers/auto_scroll_provider.dart';
+import 'package:cordeos/providers/playlist/auto_scroll_provider.dart';
 import 'package:cordeos/providers/navigation_provider.dart';
 import 'package:cordeos/providers/playlist/playlist_provider.dart';
 import 'package:cordeos/providers/schedule/local_schedule_provider.dart';

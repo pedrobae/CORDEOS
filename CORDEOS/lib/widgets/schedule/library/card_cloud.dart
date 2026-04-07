@@ -1,6 +1,6 @@
 import 'package:cordeos/l10n/app_localizations.dart';
 import 'package:cordeos/models/dtos/schedule_dto.dart';
-import 'package:cordeos/providers/auto_scroll_provider.dart';
+import 'package:cordeos/providers/playlist/auto_scroll_provider.dart';
 import 'package:cordeos/screens/schedule/play.dart';
 import 'package:cordeos/widgets/common/cloud_download_indicator.dart';
 import 'package:cordeos/widgets/schedule/status_chip.dart';

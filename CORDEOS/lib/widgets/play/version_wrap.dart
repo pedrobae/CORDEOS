@@ -1,5 +1,5 @@
 import 'package:cordeos/l10n/app_localizations.dart';
-import 'package:cordeos/providers/auto_scroll_provider.dart';
+import 'package:cordeos/providers/playlist/auto_scroll_provider.dart';
 import 'package:cordeos/providers/cipher/cipher_provider.dart';
 import 'package:cordeos/providers/settings/layout_settings_provider.dart';
 import 'package:cordeos/providers/section_provider.dart';

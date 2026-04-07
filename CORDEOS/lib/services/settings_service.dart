@@ -311,7 +311,7 @@ class SettingsService {
 
   /// Get transparent scroll buttons
   static bool getTransparentScrollButtons() {
-    return _preferences.getBool(_keyTransparentScrollButtons) ?? false;
+    return _preferences.getBool(_keyTransparentScrollButtons) ?? true;
   }
 
   // === NOTIFICATION SETTINGS ===

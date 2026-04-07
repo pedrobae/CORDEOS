@@ -1,7 +1,7 @@
 import 'package:cordeos/l10n/app_localizations.dart';
 import 'package:cordeos/models/domain/playlist/playlist_item.dart';
 import 'package:cordeos/models/dtos/playlist_dto.dart';
-import 'package:cordeos/providers/auto_scroll_provider.dart';
+import 'package:cordeos/providers/playlist/auto_scroll_provider.dart';
 import 'package:cordeos/providers/cipher/cipher_provider.dart';
 import 'package:cordeos/providers/playlist/flow_item_provider.dart';
 import 'package:cordeos/providers/playlist/play_state_provider.dart';

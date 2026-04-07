@@ -1,4 +1,4 @@
-import 'package:cordeos/providers/auto_scroll_provider.dart';
+import 'package:cordeos/providers/playlist/auto_scroll_provider.dart';
 import 'package:cordeos/providers/bug_report_provider.dart';
 import 'package:cordeos/providers/cipher/edit_sections_state_provider.dart';
 import 'package:cordeos/providers/token_cache_provider.dart';

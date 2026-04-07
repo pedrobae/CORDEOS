@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:cordeos/l10n/app_localizations.dart';
 
 import 'package:provider/provider.dart';
-import 'package:cordeos/providers/auto_scroll_provider.dart';
+import 'package:cordeos/providers/playlist/auto_scroll_provider.dart';
 import 'package:cordeos/providers/settings/layout_settings_provider.dart';
 import 'package:cordeos/providers/version/cloud_version_provider.dart';
 import 'package:cordeos/providers/version/local_version_provider.dart';
