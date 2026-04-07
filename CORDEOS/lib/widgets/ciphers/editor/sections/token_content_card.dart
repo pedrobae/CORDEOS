@@ -124,7 +124,7 @@ class _TokenContentCardState extends State<TokenContentCard> {
             children: [
               /// HEADER
               Container(
-                padding: const EdgeInsets.symmetric(vertical: 4),
+                padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(0),
                   border: Border(

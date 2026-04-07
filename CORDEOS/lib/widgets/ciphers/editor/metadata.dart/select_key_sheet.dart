@@ -4,17 +4,21 @@ import 'package:cordeos/widgets/common/filled_text_button.dart';
 import 'package:flutter/material.dart';
 
 class SelectKeySheet extends StatefulWidget {
-  final bool needsSave;
+  final bool showSave;
+  final bool showOriginal;
   final String? initialKey;
   final String originalKey;
   final Function(String) onKeySelected;
+  final Function(String)? onSave;
 
   const SelectKeySheet({
     super.key,
-    this.needsSave = true,
+    this.showSave = true,
+    this.showOriginal = true,
     this.initialKey,
     required this.originalKey,
     required this.onKeySelected,
+    this.onSave,
   });
 
   @override
@@ -77,22 +81,18 @@ class _SelectKeySheetState extends State<SelectKeySheet> {
                 children: ChordHelper.keyList.map((key) {
                   return GestureDetector(
                     onTap: () {
-                      if (widget.needsSave) {
-                        setState(() {
-                          if (selectedKey == key) {
-                            selectedKey = widget.originalKey;
-                          } else {
-                            selectedKey = key;
-                          }
-                        });
+                      if (selectedKey == key) {
+                        widget.onKeySelected(widget.originalKey);
                       } else {
-                        if (selectedKey == key) {
-                          widget.onKeySelected(widget.originalKey);
-                        } else {
-                          widget.onKeySelected(key);
-                        }
-                        Navigator.of(context).pop();
+                        widget.onKeySelected(key);
                       }
+                      setState(() {
+                        if (selectedKey == key) {
+                          selectedKey = widget.originalKey;
+                        } else {
+                          selectedKey = key;
+                        }
+                      });
                     },
                     child: Container(
                       decoration: BoxDecoration(
@@ -122,7 +122,7 @@ class _SelectKeySheetState extends State<SelectKeySheet> {
               );
             },
           ),
-          if (widget.originalKey != '')
+          if (widget.showOriginal && widget.originalKey != '')
             FilledTextButton(
               text: AppLocalizations.of(context)!.originalKey,
               isDark: true,
@@ -131,12 +131,14 @@ class _SelectKeySheetState extends State<SelectKeySheet> {
                 Navigator.of(context).pop();
               },
             ),
-          if (widget.needsSave) ...[
+          if (widget.showSave) ...[
             FilledTextButton(
               text: AppLocalizations.of(context)!.save,
               isDark: true,
               onPressed: () {
-                widget.onKeySelected(selectedKey);
+                if (widget.onSave != null) {
+                  widget.onSave!(selectedKey);
+                }
                 Navigator.of(context).pop();
               },
             ),

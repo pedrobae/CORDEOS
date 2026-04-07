@@ -114,6 +114,7 @@ class _SectionsTabState extends State<SectionsTab> {
                           }),
                       ],
                     ),
+                    SizedBox(height: 80), // Extra space for FAB
                   ],
                 ),
               ),
@@ -137,7 +138,7 @@ class _SectionsTabState extends State<SectionsTab> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         if (s.paletteIsOpen)
-                          ChordPalette(versionId: widget.versionID),
+                          ChordPalette(versionID: widget.versionID),
 
                         if (s.mergeOverlayIsOpen)
                           MergeStructure(versionID: widget.versionID),

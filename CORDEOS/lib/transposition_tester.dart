@@ -16,7 +16,7 @@ class TranspositionTestApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => TranspositionProvider()..setOriginalKey('C'),
+      create: (_) => TranspositionProvider()..setOriginalKey('C', -2),
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         localizationsDelegates: const [
@@ -224,7 +224,7 @@ class _TranspositionSandboxScreenState
                         .toList(),
                     onChanged: (value) {
                       if (value != null) {
-                        tp.setOriginalKey(value);
+                        tp.setOriginalKey(value, -2);
                       }
                     },
                   ),

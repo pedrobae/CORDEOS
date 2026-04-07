@@ -251,7 +251,7 @@ class _ManageSheetState extends State<ManageSheet> {
               context: context,
               builder: (context) {
                 return SelectKeySheet(
-                  needsSave: false,
+                  showSave: false,
                   initialKey: s.transposedKey,
                   originalKey: s.originalKey,
                   onKeySelected: (key) {

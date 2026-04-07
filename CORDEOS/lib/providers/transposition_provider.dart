@@ -4,6 +4,7 @@ import 'package:cordeos/helpers/chords/chords.dart';
 class TranspositionProvider extends ChangeNotifier {
   String _originalKey = '';
   String? _transposedKey;
+  int _versionID = -1;
 
   bool get useSharp => _transposedKey != null && _transposedKey!.contains('#');
 
@@ -20,21 +21,24 @@ class TranspositionProvider extends ChangeNotifier {
 
   String get originalKey => _originalKey;
   String? get transposedKey => _transposedKey;
+  int get versionID => _versionID;
 
   void setTransposedKey(String? newKey) {
     _transposedKey = newKey;
     notifyListeners();
   }
 
-  void setOriginalKey(String newKey) {
+  void setOriginalKey(String newKey, int versionID) {
     _originalKey = newKey;
     _transposedKey = null;
+    _versionID = versionID;
     notifyListeners();
   }
 
   void clearTransposer() {
     _transposedKey = null;
     _originalKey = '';
+    _versionID = -1;
   }
 
   void transposeUp() {

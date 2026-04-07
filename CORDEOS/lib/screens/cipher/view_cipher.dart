@@ -120,7 +120,7 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
       originalKey = cipher!.musicKey;
       transposedKey = version?.transposedKey;
     }
-    _trans.setOriginalKey(originalKey);
+    _trans.setOriginalKey(originalKey, widget.cipherID ?? -2);
     _trans.setTransposedKey(transposedKey);
   }
 

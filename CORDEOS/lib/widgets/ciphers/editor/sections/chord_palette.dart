@@ -1,6 +1,7 @@
 import 'package:cordeos/l10n/app_localizations.dart';
+import 'package:cordeos/providers/cipher/cipher_provider.dart';
 import 'package:cordeos/providers/settings/layout_settings_provider.dart';
-import 'package:cordeos/providers/transposition_provider.dart';
+import 'package:cordeos/providers/version/local_version_provider.dart';
 import 'package:cordeos/services/tokenization/helper_classes.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -8,9 +9,9 @@ import 'package:cordeos/helpers/chords/chords.dart';
 import 'package:cordeos/widgets/ciphers/editor/sections/chord_token.dart';
 
 class ChordPalette extends StatefulWidget {
-  final dynamic versionId;
+  final int versionID;
 
-  const ChordPalette({super.key, required this.versionId});
+  const ChordPalette({super.key, required this.versionID});
   @override
   State<ChordPalette> createState() => _ChordPaletteState();
 }
@@ -53,13 +54,23 @@ class _ChordPaletteState extends State<ChordPalette> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<TranspositionProvider>(
-      builder: (context, tp, child) {
+    return Selector2<CipherProvider, LocalVersionProvider, String?>(
+      selector: (context, ciph, localVer) {
+        final version = localVer.getVersion(widget.versionID);
+        final cipher = ciph.getCipher(version?.cipherID ?? -1);
+        
+        if (cipher == null || version == null) return null;
+
+        final musicKey = cipher.musicKey;
+
+        return musicKey;
+      },
+      builder: (context, originalKey, child) {
         final textTheme = Theme.of(context).textTheme;
         final colorScheme = Theme.of(context).colorScheme;
 
         final chords = ChordHelper().getDiatonicChords(
-          tp.transposedKey ?? tp.originalKey,
+          originalKey ?? 'C',
         );
 
         return Container(

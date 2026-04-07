@@ -245,41 +245,26 @@ class _MetadataTabState extends State<MetadataTab> {
       spacing: 8,
       children: [
         Text(_getLabel(field), style: theme.textTheme.labelMedium),
-        Selector2<
-          LocalVersionProvider,
-          CipherProvider,
-          ({String? transposedKey, String? originalKey})
-        >(
-          selector: (context, localVer, ciph) {
+        Selector<CipherProvider, String?>(
+          selector: (context, ciph) {
             final cipher = ciph.getCipher(widget.cipherID);
-            final version = localVer.getVersion(widget.versionID);
-            return (
-              transposedKey: version?.transposedKey,
-              originalKey: cipher?.musicKey,
-            );
+            return cipher?.musicKey;
           },
-          builder: (context, keys, child) {
+          builder: (context, originalKey, child) {
             return GestureDetector(
               onTap: () {
                 showModalBottomSheet(
                   context: context,
                   builder: (context) {
                     return SelectKeySheet(
-                      initialKey: keys.transposedKey,
-                      originalKey: keys.originalKey ?? '',
+                      initialKey: originalKey ?? '',
+                      originalKey: originalKey ?? '',
+                      showOriginal: false,
                       onKeySelected: (key) {
-                        if (widget.versionType == VersionType.brandNew ||
-                            widget.versionType == VersionType.import) {
-                          context.read<CipherProvider>().cacheMusicKey(
-                            widget.cipherID,
-                            key,
-                          );
-                        } else {
-                          context.read<LocalVersionProvider>().cacheUpdates(
-                            widget.versionID,
-                            transposedKey: key,
-                          );
-                        }
+                        context.read<CipherProvider>().cacheMusicKey(
+                          widget.cipherID,
+                          key,
+                        );
                       },
                     );
                   },
@@ -298,9 +283,7 @@ class _MetadataTabState extends State<MetadataTab> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      keys.transposedKey ??
-                          keys.originalKey ??
-                          AppLocalizations.of(context)!.keyHint,
+                      originalKey ?? AppLocalizations.of(context)!.keyHint,
                       style: TextStyle(
                         color: colorScheme.onSurface,
                         fontSize: 16,
