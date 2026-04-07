@@ -18,6 +18,8 @@ class TokenCacheKey {
   bool? showLyrics;
   bool isEditMode;
   String? transposedKey;
+  Color? chordColor;
+  Color? lyricColor;
 
   TokenCacheKey({
     required this.content,
@@ -31,6 +33,8 @@ class TokenCacheKey {
     this.showLyrics,
     this.transposedKey,
     this.isEditMode = false,
+    this.chordColor,
+    this.lyricColor,
   });
 
   @override
@@ -102,3 +106,8 @@ String positionCacheKey(TokenCacheKey k) {
   k.minChordSpacing}|lts:${ //
   k.letterSpacing}';
 }
+
+String paintCacheKey(TokenCacheKey k) =>
+    '${positionCacheKey(k)}|chordColor:${ //
+    k.chordColor}|lyricColor:${ //
+    k.lyricColor}';

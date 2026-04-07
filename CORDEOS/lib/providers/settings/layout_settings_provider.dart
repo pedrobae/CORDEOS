@@ -142,7 +142,7 @@ class LayoutSetProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  TextStyle get chordTextStyle => TextStyle(
+  TextStyle get chordStyle => TextStyle(
     fontFamily: fontFamily,
     fontSize: fontSize.toDouble(),
     fontWeight: FontWeight.bold,
@@ -150,7 +150,7 @@ class LayoutSetProvider extends ChangeNotifier {
     letterSpacing: 0,
   );
 
-  TextStyle get lyricTextStyle => TextStyle(
+  TextStyle get lyricStyle => TextStyle(
     fontFamily: fontFamily,
     fontSize: fontSize.toDouble(),
     height: 1,

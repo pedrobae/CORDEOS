@@ -225,7 +225,7 @@ class _ChordPaletteState extends State<ChordPalette> {
         child: ChordToken(
           token: token,
           sectionColor: colorScheme.onSurface.withValues(alpha: .7),
-          chordStyle: laySet.chordTextStyle,
+          chordStyle: laySet.chordStyle,
           textColor: colorScheme.surface,
         ),
       ),
@@ -234,7 +234,7 @@ class _ChordPaletteState extends State<ChordPalette> {
         child: ChordToken(
           token: token,
           sectionColor: colorScheme.onSurface.withValues(alpha: .4),
-          chordStyle: laySet.chordTextStyle,
+          chordStyle: laySet.chordStyle,
           textColor: colorScheme.surface,
         ),
       ),
@@ -242,7 +242,7 @@ class _ChordPaletteState extends State<ChordPalette> {
         token: token,
         sectionColor: colorScheme.onSurface,
         textColor: colorScheme.surface,
-        chordStyle: laySet.chordTextStyle,
+        chordStyle: laySet.chordStyle,
       ),
     );
   }

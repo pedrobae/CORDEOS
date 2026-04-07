@@ -31,7 +31,7 @@ class FlowFlex extends StatelessWidget {
     >(
       selector: (context, flow, laySet) {
         final fItem = flowItem ?? flow.getFlowItem(flowID!);
-        return (fItem, laySet.lyricTextStyle);
+        return (fItem, laySet.lyricStyle);
       },
       builder: (context, value, child) {
         final (flowItem, lyricStyle) = value;

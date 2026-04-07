@@ -63,8 +63,8 @@ class SectionCard extends StatelessWidget {
           })
         >(
           selector: (context, laySet) => (
-            lyricStyle: laySet.lyricTextStyle,
-            chordStyle: laySet.chordTextStyle,
+            lyricStyle: laySet.lyricStyle,
+            chordStyle: laySet.chordStyle,
             chordLyricSpacing: laySet.chordLyricSpacing,
           ),
           builder: (context, measure, child) {
@@ -186,7 +186,7 @@ class SectionCard extends StatelessWidget {
                     );
                   },
                   child: TokenView(
-                    layoutKey: layoutKey,
+                    tokensKey: layoutKey,
                     contentColor: sectionColor,
                   ),
                 );

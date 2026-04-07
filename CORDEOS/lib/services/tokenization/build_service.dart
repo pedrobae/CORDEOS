@@ -42,94 +42,89 @@ class TokenizationBuilder {
     return measurements;
   }
 
-  /// Builds widgets for viewing mode, with their sizes pre-calculated.
-  ///
-  /// Creates read-only text widgets for chords and lyrics.
-  /// Returns organized structure with lines -> words -> widgets.
-  /// Widget sizes are measured and cached for efficient positioning.
-  OrganizedWidgets buildViewWidgets({
-    required List<ContentToken> tokens,
-    required OrganizedTokens organizedTokens,
+  SectionPaintModel buildPaintModel({
     required Map<String, Measurements> measurements,
+    required TokenPositionMap positions,
     required TextStyle chordStyle,
     required TextStyle lyricStyle,
-    required double lineHeight,
-    required Color textColor,
+    required Color lyricColor,
     required Color chordColor,
   }) {
-    final lines = <WidgetLine>[];
+    final texts = <TextPaintInstruction>[];
+    final underlines = <UnderLinePaintInstruction>[];
+    for (var entry in positions.tokens.entries) {
+      final token = entry.key;
+      final offset = entry.value;
 
-    for (var line in organizedTokens.lines) {
-      final words = <WidgetWord>[];
-      for (var word in line.words) {
-        final wordWidgets = <TokenWidget>[];
-        for (var token in word.tokens) {
-          switch (token.type) {
-            case TokenType.chord:
-              wordWidgets.add(
-                TokenWidget(
-                  widget: Text(
-                    token.text,
-                    style: chordStyle.copyWith(color: chordColor),
-                  ),
-                  token: token,
-                ),
-              );
-              break;
-            case TokenType.space:
-            case TokenType.lyric:
-              wordWidgets.add(
-                TokenWidget(
-                  widget: SizedBox(
-                    height: lineHeight,
-                    child: Align(
-                      alignment: Alignment.bottomCenter,
-                      child: Text(token.text, style: lyricStyle),
-                    ),
-                  ),
-                  token: token,
-                ),
-              );
-              break;
-            case TokenType.newline:
-              // NEW LINE TOKENS INDICATE LINE BREAKS
-              wordWidgets.add(
-                TokenWidget(widget: SizedBox.shrink(), token: token),
-              );
-              break;
-            case TokenType.preSeparator:
-            case TokenType.postSeparator:
-            case TokenType.chordTarget:
-              // Preceding chord targets and separators are only relevant in edit mode, so we skip
-              break;
-            case TokenType.underline:
-              wordWidgets.add(
-                TokenWidget(
-                  widget: Container(
-                    height: lineHeight,
-                    width: measurements[token.toKey()]!.width,
-                    decoration: BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(color: textColor, width: 1),
-                      ),
-                    ),
-                  ),
-                  token: token,
-                ),
-              );
-              break;
-          }
-        }
-        if (wordWidgets.isNotEmpty) {
-          words.add(WidgetWord(wordWidgets));
-        }
-      }
-      if (words.isNotEmpty) {
-        lines.add(WidgetLine(words));
+      switch (token.type) {
+        case TokenType.chord:
+          final painter = TextPainter(
+            text: TextSpan(
+              text: token.text,
+              style: chordStyle.copyWith(color: chordColor),
+            ),
+            textDirection: TextDirection.ltr,
+            maxLines: 1,
+          )..layout();
+
+          texts.add(
+            TextPaintInstruction(
+              painter: painter,
+              offset: Offset(offset.dx, offset.dy),
+            ),
+          );
+          break;
+
+        case TokenType.lyric:
+          final painter = TextPainter(
+            text: TextSpan(
+              text: token.text,
+              style: lyricStyle.copyWith(color: lyricColor),
+            ),
+            textDirection: TextDirection.ltr,
+            maxLines: 1,
+          )..layout();
+
+          final msr = measurements[measurementKey(token.text, lyricStyle)]!;
+
+          texts.add(
+            TextPaintInstruction(
+              painter: painter,
+              offset: Offset(
+                offset.dx,
+                offset.dy + positions.lineHeight - msr.height,
+              ),
+            ),
+          );
+          break;
+
+        case TokenType.underline:
+          underlines.add(
+            UnderLinePaintInstruction(
+              offset: Offset(
+                offset.dx,
+                offset.dy + positions.lineHeight,
+              ),
+              width: measurements[token.toKey()]!.width,
+            ),
+          );
+          break;
+
+        case TokenType.space:
+        case TokenType.newline:
+        case TokenType.preSeparator:
+        case TokenType.postSeparator:
+        case TokenType.chordTarget:
+          break;
       }
     }
 
-    return OrganizedWidgets(lines);
+    return SectionPaintModel(
+      textInstructions: texts,
+      underlines: underlines,
+      size: Size(positions.contentWidth, positions.contentHeight!),
+      underlineColor: lyricColor,
+    );
   }
 
   /// Builds widgets with drag-and-drop capabilities for editing mode.
@@ -402,6 +397,7 @@ class TokenizationBuilder {
         alignment: Alignment.bottomCenter,
         child: Container(
           decoration: BoxDecoration(
+            border: Border.all(color: surfaceColor, width: 0),
             color: chordTargetColor,
             borderRadius: BorderRadius.circular(20),
           ),

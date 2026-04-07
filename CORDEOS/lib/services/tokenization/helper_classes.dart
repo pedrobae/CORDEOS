@@ -159,9 +159,8 @@ class PositionedWithRef {
 
 class ContentTokenized {
   final List<Positioned> tokens;
-  final double contentHeight;
 
-  ContentTokenized(this.tokens, this.contentHeight);
+  ContentTokenized(this.tokens);
 }
 
 /// Hierarchical structures to organize tokens into lines and words.
@@ -239,11 +238,19 @@ class OrganizedWidgets {
 /// on final positioning calculations (e.g., drag feedback positioning).
 class TokenPositionMap {
   final Map<ContentToken, Offset> _positions = {};
+  double? contentHeight;
+  double contentWidth;
+  double lineHeight;
+
+  TokenPositionMap({required this.lineHeight, required this.contentWidth});
 
   /// Records the position of a token
   void setPosition(ContentToken token, double x, double y) {
     _positions[token] = Offset(x, y);
   }
+
+  /// Gets all positions
+  Map<ContentToken, Offset> get tokens => _positions;
 
   /// Gets the x-coordinate of a token
   double? getX(ContentToken token) {
@@ -263,7 +270,44 @@ class TokenPositionMap {
   void print() {
     _positions.forEach((token, offset) {
       debugPrint(
-          "Token: ${token.text} (${token.type}), Position: (${offset.dx}, ${offset.dy})");
+        "Token: ${token.text} (${token.type}), Position: (${offset.dx}, ${offset.dy})",
+      );
     });
   }
 }
+
+class SectionPaintModel {
+  final List<TextPaintInstruction> textInstructions;
+  final List<UnderLinePaintInstruction> underlines;
+  final Size size;
+  final Color underlineColor;
+
+  SectionPaintModel({
+    required this.textInstructions,
+    required this.underlines,
+    required this.size,
+    required this.underlineColor,
+
+  });
+}
+
+class TextPaintInstruction {
+  final Offset offset;
+  final TextPainter painter;
+
+  TextPaintInstruction({
+    required this.offset,
+    required this.painter,
+  });
+}
+
+class UnderLinePaintInstruction {
+  final Offset offset;
+  final double width;
+
+  UnderLinePaintInstruction({
+    required this.offset,
+    required this.width,
+  });
+}
+

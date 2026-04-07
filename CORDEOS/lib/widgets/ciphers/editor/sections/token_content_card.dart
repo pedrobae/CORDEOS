@@ -240,8 +240,8 @@ class _TokenContentCardState extends State<TokenContentCard> {
                             })
                           >(
                             selector: (context, laySet, trans) => (
-                              lyricStyle: laySet.lyricTextStyle,
-                              chordStyle: laySet.chordTextStyle,
+                              lyricStyle: laySet.lyricStyle,
+                              chordStyle: laySet.chordStyle,
                               chordLyricSpacing: laySet.chordLyricSpacing,
                             ),
                             builder: (context, measure, child) {
@@ -290,6 +290,8 @@ class _TokenContentCardState extends State<TokenContentCard> {
                                     chordStyle: measure.chordStyle,
                                   );
 
+                                  final positions = _tokenProv.getPositions(_tokensKey!);
+
                                   final content = _tokenProv.buildEditWidgets(
                                     key: _tokensKey!,
                                     lyricStyle: measure.lyricStyle,
@@ -306,7 +308,7 @@ class _TokenContentCardState extends State<TokenContentCard> {
 
                                   return SizedBox(
                                     width: double.infinity,
-                                    height: content.contentHeight,
+                                    height: positions?.contentHeight,
                                     child: Stack(
                                       clipBehavior: Clip.none,
                                       children: [...content.tokens],

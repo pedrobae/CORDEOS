@@ -247,6 +247,7 @@ class _ManageSheetState extends State<ManageSheet> {
       builder: (context, s, child) {
         return GestureDetector(
           onTap: () {
+            final localVer = context.read<LocalVersionProvider>();
             showModalBottomSheet(
               context: context,
               builder: (context) {
@@ -255,10 +256,8 @@ class _ManageSheetState extends State<ManageSheet> {
                   initialKey: s.transposedKey,
                   originalKey: s.originalKey,
                   onKeySelected: (key) {
-                    context.read<LocalVersionProvider>().cacheUpdates(
-                      widget.versionID,
-                      transposedKey: key,
-                    );
+                    localVer.cacheUpdates(widget.versionID, transposedKey: key);
+                    localVer.saveVersion(versionID: widget.versionID);
                   },
                 );
               },

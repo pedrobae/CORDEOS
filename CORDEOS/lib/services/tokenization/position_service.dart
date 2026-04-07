@@ -30,7 +30,6 @@ class PositionService {
     required double chordLyricSpacing,
     required double minChordSpacing,
     required double letterSpacing,
-    required double lineHeight,
     required double chordHeight,
     required double lyricHeight,
     required bool isEditMode,
@@ -42,6 +41,9 @@ class PositionService {
       chordStyle,
       isEditMode,
     );
+
+    final lineHeight = lyricHeight + chordLyricSpacing + chordHeight;
+    debugPrint("chordHeight - $chordHeight | lyricHeight - $lyricHeight | lineHeight - $lineHeight");
 
     final ctx = _LayoutCtx(
       chordHeight: chordHeight,
@@ -63,7 +65,10 @@ class PositionService {
       lineHeight: lineHeight,
     );
 
-    final positionMap = TokenPositionMap();
+    final positionMap = TokenPositionMap(
+      lineHeight: ctx.lineHeight,
+      contentWidth: ctx.maxWidth,
+    );
 
     for (var line in organizedTokens.lines) {
       for (var word in line.words) {
@@ -95,7 +100,9 @@ class PositionService {
       }
       cursor.newLine(ctx.lineSpacing);
     }
-
+    positionMap.contentHeight =
+        cursor.yOffset +
+        ((cursor.hasLyrics || isEditMode) ? ctx.chordHeight : 0);
     return positionMap;
   }
 
@@ -110,7 +117,10 @@ class PositionService {
     required _LayoutCtx ctx,
     required bool isEditMode,
   }) {
-    final positions = TokenPositionMap();
+    final positions = TokenPositionMap(
+      lineHeight: ctx.lineHeight,
+      contentWidth: ctx.maxWidth,
+    );
     final tokensToAdd = <int, ContentToken>{};
     int charIndex = 0;
 
@@ -127,7 +137,7 @@ class PositionService {
           }
           positions.setPosition(
             token,
-            xOffset + ctx.minChordSpacing,
+            xOffset,
             cursor.yOffset,
           );
 
@@ -169,9 +179,9 @@ class PositionService {
 
               ctx.measurements[underlineToken.toKey()] = Measurements(
                 width: cursor.chordX - cursor.lyricsX,
-                height: ctx.chordHeight,
+                height: ctx.lineHeight,
                 baseline: ctx.chordHeight,
-                size: ctx.chordHeight,
+                size: 1,
               );
 
               tokensToAdd[charIndex] = underlineToken;
@@ -208,6 +218,9 @@ class PositionService {
           break;
 
         case TokenType.lyric:
+          if (cursor.hasLyrics == false) {
+            cursor.hasLyrics = true;
+          }
           final xOffset = max(ctx.precedingOffset, cursor.lyricsX);
           positions.setPosition(token, xOffset, cursor.yOffset);
           final msr =
@@ -271,12 +284,8 @@ class PositionService {
   ContentTokenized applyPositionsToWidgets(
     OrganizedWidgets contentWidgets,
     TokenPositionMap positionMap,
-    double lineHeight,
-    double chordHeight,
     bool isEditMode,
   ) {
-    double maxY = 0;
-    bool hasLyrics = false;
     final tokenWidgets = <Positioned>[];
     for (var widgetLine in contentWidgets.lines) {
       for (var widgetWord in widgetLine.words) {
@@ -285,17 +294,9 @@ class PositionService {
           if (tokenWidget.type == TokenType.newline) {
             continue;
           }
-          if (tokenWidget.type == TokenType.lyric) {
-            hasLyrics = true;
-          }
-
           // Get position from map
           final x = positionMap.getX(tokenWidget.token) ?? 0.0;
           final y = positionMap.getY(tokenWidget.token) ?? 0.0;
-
-          if (y > maxY) {
-            maxY = y;
-          }
 
           tokenWidgets.add(
             Positioned(left: x, top: y, child: tokenWidget.widget),
@@ -303,10 +304,7 @@ class PositionService {
         }
       }
     }
-
-    maxY += (hasLyrics || isEditMode) ? lineHeight : chordHeight;
-
-    return ContentTokenized(tokenWidgets, maxY);
+    return ContentTokenized(tokenWidgets);
   }
 
   /// Calculates preceding chord offset.
@@ -462,6 +460,7 @@ class _LayoutCursor {
   double precedingOffset;
   double lineHeight;
   bool foundPreSeparator = false;
+  bool hasLyrics = false;
 
   _LayoutCursor({required this.precedingOffset, required this.lineHeight});
 

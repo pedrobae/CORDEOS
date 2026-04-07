@@ -38,21 +38,17 @@ class TokenProvider extends ChangeNotifier {
 
   /// Phase 2: content|style → measurements (shared across all content)
   final Map<String, Measurements> _measurementCache = {};
+  Map<String, Measurements> getMeasurements() => _measurementCache;
 
   /// Phase 3: content|style|layout → positions
   final Map<String, TokenPositionMap> _positionCache = {};
-  TokenPositionMap? getCachedPositions(TokenCacheKey key, bool isEditMode) =>
+  TokenPositionMap? getPositions(TokenCacheKey key) =>
       _positionCache[positionCacheKey(key)];
 
-  double _chordHeight = 0;
-  double _lyricHeight = 0;
-  double lineHeight(TokenCacheKey key) {
-    return _lyricHeight +
-        key.chordLyricSpacing! +
-        (key.isEditMode
-            ? _chordHeight + 2 * TokenizationConstants.chordTokenHeightPadding
-            : _chordHeight);
-  }
+  /// Phase 4a: content|style|layout|color → paintModel (view mode only)
+  final Map<String, SectionPaintModel> _paintCache = {};
+  SectionPaintModel? getPaintModel(TokenCacheKey key) =>
+      _paintCache[paintCacheKey(key)];
 
   // ═══════════════════════════════════════════════════════════════════════════
   // PHASE 1: TOKENIZE
@@ -115,15 +111,6 @@ class TokenProvider extends ChangeNotifier {
     for (var token in tokens) {
       switch (token.type) {
         case TokenType.chord:
-          if (_chordHeight == 0) {
-            final msr = _builder.measureText(
-              text: token.text,
-              style: chordStyle,
-              isChordToken: key.isEditMode,
-            );
-            _chordHeight = msr.height;
-          }
-
           final msrKey = measurementKey(
             token.text,
             chordStyle,
@@ -147,9 +134,6 @@ class TokenProvider extends ChangeNotifier {
             break;
           }
           final msr = _builder.measureText(text: token.text, style: lyricStyle);
-          if (_lyricHeight == 0) {
-            _lyricHeight = msr.height;
-          }
           _measurementCache[msrKey] = msr;
           break;
         case TokenType.preSeparator:
@@ -218,6 +202,13 @@ class TokenProvider extends ChangeNotifier {
       return;
     }
 
+    final lyricHeight = _builder
+        .measureText(style: lyricStyle, text: 'Sample Text')
+        .height;
+    final chordHeight = _builder
+        .measureText(style: chordStyle, text: 'C', isChordToken: key.isEditMode)
+        .height;
+
     // Cache miss - compute
     final positions = _positioner.calculateTokenPositions(
       organizedTokens: getOrganized(key)!,
@@ -228,12 +219,11 @@ class TokenProvider extends ChangeNotifier {
       chordLyricSpacing: key.chordLyricSpacing!,
       minChordSpacing: key.minChordSpacing!,
       letterSpacing: key.letterSpacing!,
-      lineHeight: lineHeight(key),
-      chordHeight: _chordHeight,
-      lyricHeight: _lyricHeight,
       isEditMode: key.isEditMode,
       lyricStyle: lyricStyle,
       chordStyle: chordStyle,
+      lyricHeight: lyricHeight,
+      chordHeight: chordHeight,
     );
 
     // Cache results
@@ -258,16 +248,21 @@ class TokenProvider extends ChangeNotifier {
     required Function(ContentToken, ContentToken) onAddChord,
     required Function(ContentToken) onRemoveChord,
   }) {
+    final chordHeight = _builder
+        .measureText(style: chordStyle, text: 'C', isChordToken: true)
+        .height;
+    final lyricHeight = _builder
+        .measureText(style: lyricStyle, text: 'Sample Text')
+        .height;
+
     final OrganizedWidgets contentWidgets = _builder.buildEditWidgets(
       tokens: getTokens(key)!,
       organizedTokens: getOrganized(key)!,
       measurements: _measurementCache,
-      tokenPositions: getCachedPositions(key, true)!,
+      tokenPositions: getPositions(key)!,
       chordStyle: chordStyle,
       lyricStyle: lyricStyle,
       maxWidth: key.maxWidth!,
-      lineHeight: lineHeight(key),
-      chordHeight: _chordHeight,
       chordTargetColor: chordTargetColor,
       surfaceColor: surfaceColor,
       onSurfaceColor: onSurfaceColor,
@@ -276,46 +271,40 @@ class TokenProvider extends ChangeNotifier {
       isEnabled: isEnabled,
       onAddChord: onAddChord,
       onRemoveChord: onRemoveChord,
+      lineHeight: lyricHeight + key.chordLyricSpacing! + chordHeight,
+      chordHeight: chordHeight,
       toggleDrag: _toggleDragging(),
     );
 
     final positionedContent = _positioner.applyPositionsToWidgets(
       contentWidgets,
-      getCachedPositions(key, true)!,
-      lineHeight(key),
-      _chordHeight,
+      getPositions(key)!,
       key.isEditMode,
     );
     return positionedContent;
   }
 
-  ContentTokenized buildViewWidgets({
-    required TokenCacheKey key,
-    required TextStyle lyricStyle,
-    required TextStyle chordStyle,
-    required Color textColor,
-    required Color chordColor,
-  }) {
+  /// View mode paint caching
+  void cachePaintInstructions(
+    TokenCacheKey key,
+    TextStyle lyricStyle,
+    TextStyle chordStyle,
+  ) {
+    final cacheKey = paintCacheKey(key);
+    if (_paintCache.containsKey(cacheKey)) {
+      return;
+    }
 
-    final contentWidgets = _builder.buildViewWidgets(
-      tokens: getTokens(key)!,
-      organizedTokens: getOrganized(key)!,
+    final model = _builder.buildPaintModel(
+      measurements: _measurementCache,
+      positions: getPositions(key)!,
       chordStyle: chordStyle,
       lyricStyle: lyricStyle,
-      lineHeight: lineHeight(key),
-      textColor: textColor,
-      chordColor: chordColor,
-      measurements: _measurementCache,
+      chordColor: key.chordColor!,
+      lyricColor: key.lyricColor!,
     );
 
-    final positionedContent = _positioner.applyPositionsToWidgets(
-      contentWidgets,
-      getCachedPositions(key, false)!,
-      lineHeight(key),
-      _chordHeight,
-      false,
-    );
-    return positionedContent;
+    _paintCache[cacheKey] = model;
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -352,8 +341,6 @@ class TokenProvider extends ChangeNotifier {
   /// Invalidates measurement cache only (when text styles change).
   void invalidateMeasurements() {
     _measurementCache.clear();
-    _chordHeight = 0;
-    _lyricHeight = 0;
     invalidatePositions(); // Positions depend on measurements
   }
 }
