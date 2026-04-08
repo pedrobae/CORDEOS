@@ -275,7 +275,7 @@ class _CipherCardState extends State<CipherCard> {
 
     await sect.loadSectionsOfVersion(version.id!);
     sect.cacheCopyOfVersion(version.id!, newVersionID);
-    sect.saveSections(versionID: newVersionID);
+    await sect.saveSections(versionID: newVersionID);
 
     sel.addVersionIdToDelete(newVersionID);
 

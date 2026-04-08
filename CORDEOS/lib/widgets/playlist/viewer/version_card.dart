@@ -1,7 +1,6 @@
 import 'dart:math';
 
 import 'package:cordeos/models/domain/cipher/cipher.dart';
-import 'package:cordeos/models/domain/cipher/section.dart';
 import 'package:flutter/material.dart';
 import 'package:cordeos/l10n/app_localizations.dart';
 
@@ -215,32 +214,33 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard> {
 
     return ConstrainedBox(
       constraints: BoxConstraints(maxHeight: 25),
-      child: Selector<SectionProvider, Map<String, Section>>(
-        selector: (context, sect) {
-          return sect.getSections(widget.versionId);
+      child: ReorderableListView.builder(
+        shrinkWrap: true,
+        proxyDecorator: (child, index, animation) =>
+            Material(type: MaterialType.transparency, child: child),
+        buildDefaultDragHandles: false,
+        physics: const ClampingScrollPhysics(),
+        scrollDirection: Axis.horizontal,
+        itemCount: songStructure.length,
+        onReorder: (oldIndex, newIndex) {
+          if (newIndex > oldIndex) newIndex--;
+          localVer.reorderSongStructure(widget.versionId, oldIndex, newIndex);
         },
-        builder: (context, sections, child) {
-          return ReorderableListView.builder(
-            shrinkWrap: true,
-            proxyDecorator: (child, index, animation) =>
-                Material(type: MaterialType.transparency, child: child),
-            buildDefaultDragHandles: false,
-            physics: const ClampingScrollPhysics(),
-            scrollDirection: Axis.horizontal,
-            itemCount: songStructure.length,
-            onReorder: (oldIndex, newIndex) {
-              if (newIndex > oldIndex) newIndex--;
-              localVer.reorderSongStructure(
-                widget.versionId,
-                oldIndex,
-                newIndex,
-              );
-            },
-            itemBuilder: (_, index) {
-              final sectionCode = songStructure[index];
-              final section = sections[sectionCode];
+        itemBuilder: (_, index) {
+          final sectionCode = songStructure[index];
 
-              final color = section?.contentColor ?? Colors.grey;
+          return Selector<SectionProvider, Color>(
+            key: ValueKey(
+              'ver${widget.versionId}_idx_${widget.index}_sect_${sectionCode}_idx_$index',
+            ),
+            selector: (context, sect) {
+              final sectionCode = songStructure[index];
+              return sect
+                      .getSections(widget.versionId)[sectionCode]
+                      ?.contentColor ??
+                  Colors.grey;
+            },
+            builder: (context, color, child) {
               final codeWidth = (TextPainter(
                 text: TextSpan(
                   text: sectionCode,
@@ -251,9 +251,6 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard> {
 
               return CustomReorderableDelayed(
                 delay: Duration(milliseconds: 100),
-                key: ValueKey(
-                  'ver${widget.versionId}_idx_${widget.index}_sect_${sectionCode}_idx_$index',
-                ),
                 index: index,
                 child: Container(
                   height: 25,
@@ -261,7 +258,7 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard> {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(0),
                     color: color.withValues(alpha: 0.8),
-                    border: BoxBorder.all(color: color, width: 2),
+                    border: Border.all(color: color, width: 2),
                   ),
                   margin: const EdgeInsets.only(right: 4),
                   child: Center(
