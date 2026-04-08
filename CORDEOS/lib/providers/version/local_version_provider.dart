@@ -152,7 +152,7 @@ class LocalVersionProvider extends ChangeNotifier {
         _versions[version.id!] = version;
       }
       debugPrint(
-        'Loaded cipher $cipherId: VERSIONS - ${versionList.map((v) => v.id).toList()}',
+        'LOCAL VERSION - ensuring cipher $cipherId\'s VERSIONS - loaded ${versionList.length} unloaded versions',
       );
     } catch (e) {
       _error = e.toString();
@@ -178,7 +178,7 @@ class LocalVersionProvider extends ChangeNotifier {
 
       _versions[versionId] = version;
       debugPrint(
-        'Loaded the version: ${_versions[versionId]?.versionName} into cache',
+        'LOCAL VERSION - Loaded version $versionId}',
       );
     } catch (e) {
       _error = e.toString();

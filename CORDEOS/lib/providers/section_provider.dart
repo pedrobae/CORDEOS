@@ -136,7 +136,7 @@ class SectionProvider extends ChangeNotifier {
 
     try {
       _sections[versionId] = await _repo.getSections(versionId);
-      debugPrint("Loaded version $versionId: SECTION count - ${_sections[versionId]!.length}");
+      debugPrint("SECTION - Loaded version $versionId's SECTIONS - ${_sections[versionId]!.length} loaded");
     } catch (e) {
       _error = e.toString();
       if (kDebugMode) {
