@@ -1,14 +1,14 @@
 import 'package:cordeos/models/domain/cipher/section.dart';
-import 'package:cordeos/providers/playlist/play_state_provider.dart';
+import 'package:cordeos/providers/play/play_state_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:cordeos/l10n/app_localizations.dart';
 
 import 'package:provider/provider.dart';
-import 'package:cordeos/providers/playlist/auto_scroll_provider.dart';
+import 'package:cordeos/providers/play/auto_scroll_provider.dart';
 import 'package:cordeos/providers/settings/layout_settings_provider.dart';
 import 'package:cordeos/providers/version/cloud_version_provider.dart';
 import 'package:cordeos/providers/version/local_version_provider.dart';
-import 'package:cordeos/providers/section_provider.dart';
+import 'package:cordeos/providers/section/section_provider.dart';
 
 import 'package:cordeos/utils/section_constants.dart';
 

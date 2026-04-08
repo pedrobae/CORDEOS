@@ -14,7 +14,7 @@ import 'package:cordeos/providers/cipher/cipher_provider.dart';
 import 'package:cordeos/providers/playlist/playlist_provider.dart';
 import 'package:cordeos/providers/settings/settings_provider.dart';
 import 'package:cordeos/providers/user/my_auth_provider.dart';
-import 'package:cordeos/providers/section_provider.dart';
+import 'package:cordeos/providers/section/section_provider.dart';
 import 'package:cordeos/providers/playlist/flow_item_provider.dart';
 import 'package:cordeos/providers/selection_provider.dart';
 import 'package:cordeos/providers/user/user_provider.dart';

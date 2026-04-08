@@ -12,7 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cordeos/providers/cipher/cipher_provider.dart';
 import 'package:cordeos/providers/version/local_version_provider.dart';
-import 'package:cordeos/providers/section_provider.dart';
+import 'package:cordeos/providers/section/section_provider.dart';
 import 'package:cordeos/widgets/ciphers/editor/metadata_tab.dart';
 import 'package:cordeos/widgets/ciphers/editor/sections_tab.dart';
 

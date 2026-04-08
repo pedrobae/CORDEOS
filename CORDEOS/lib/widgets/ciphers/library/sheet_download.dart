@@ -2,7 +2,7 @@ import 'package:cordeos/l10n/app_localizations.dart';
 
 import 'package:cordeos/models/domain/cipher/cipher.dart';
 import 'package:cordeos/models/domain/cipher/section.dart';
-import 'package:cordeos/providers/section_provider.dart';
+import 'package:cordeos/providers/section/section_provider.dart';
 import 'package:cordeos/widgets/common/labeled_text_field.dart';
 
 import 'package:provider/provider.dart';

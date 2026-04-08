@@ -5,7 +5,7 @@ import 'package:cordeos/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 
 import 'package:cordeos/models/domain/bug_report.dart';
-import 'package:cordeos/providers/app_info_provider.dart';
+import 'package:cordeos/providers/settings/app_info_provider.dart';
 
 import 'package:cordeos/widgets/common/filled_text_button.dart';
 import 'package:cordeos/widgets/common/labeled_text_field.dart';

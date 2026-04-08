@@ -1,8 +1,8 @@
 import 'package:cordeos/l10n/app_localizations.dart';
-import 'package:cordeos/providers/playlist/auto_scroll_provider.dart';
+import 'package:cordeos/providers/play/auto_scroll_provider.dart';
 import 'package:cordeos/providers/cipher/cipher_provider.dart';
 import 'package:cordeos/providers/settings/layout_settings_provider.dart';
-import 'package:cordeos/providers/section_provider.dart';
+import 'package:cordeos/providers/section/section_provider.dart';
 import 'package:cordeos/providers/version/cloud_version_provider.dart';
 import 'package:cordeos/providers/version/local_version_provider.dart';
 import 'package:cordeos/utils/date_utils.dart';
@@ -58,6 +58,7 @@ class VersionWrap extends StatelessWidget {
       builder: (context, s, child) {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 4,
           children: [
             _buildHeader(context),
             Expanded(
@@ -106,33 +107,30 @@ class VersionWrap extends StatelessWidget {
       duration = version.duration;
     }
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(title, style: textTheme.titleMedium),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            spacing: 16.0,
-            children: [
-              Text(
-                AppLocalizations.of(context)!.keyWithPlaceholder(key),
-                style: textTheme.bodyMedium,
-              ),
-              Text(
-                AppLocalizations.of(context)!.bpmWithPlaceholder(bpm),
-                style: textTheme.bodyMedium,
-              ),
-              Text(
-                '${AppLocalizations.of(context)!.duration}: ${DateTimeUtils.formatDuration(duration)}',
-                style: textTheme.bodyMedium,
-              ),
-            ],
-          ),
-        ],
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(title, style: textTheme.titleMedium),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          spacing: 16.0,
+          children: [
+            Text(
+              AppLocalizations.of(context)!.keyWithPlaceholder(key),
+              style: textTheme.bodyMedium,
+            ),
+            Text(
+              AppLocalizations.of(context)!.bpmWithPlaceholder(bpm),
+              style: textTheme.bodyMedium,
+            ),
+            Text(
+              '${AppLocalizations.of(context)!.duration}: ${DateTimeUtils.formatDuration(duration)}',
+              style: textTheme.bodyMedium,
+            ),
+          ],
+        ),
+      ],
     );
   }
 

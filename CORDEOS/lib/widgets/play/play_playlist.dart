@@ -2,10 +2,10 @@ import 'package:cordeos/l10n/app_localizations.dart';
 import 'package:cordeos/models/domain/playlist/flow_item.dart';
 import 'package:cordeos/models/domain/playlist/playlist_item.dart';
 import 'package:cordeos/models/dtos/playlist_dto.dart';
-import 'package:cordeos/providers/playlist/auto_scroll_provider.dart';
+import 'package:cordeos/providers/play/auto_scroll_provider.dart';
 import 'package:cordeos/providers/navigation_provider.dart';
-import 'package:cordeos/providers/playlist/play_state_provider.dart';
-import 'package:cordeos/providers/section_provider.dart';
+import 'package:cordeos/providers/play/play_state_provider.dart';
+import 'package:cordeos/providers/section/section_provider.dart';
 import 'package:cordeos/providers/settings/layout_settings_provider.dart';
 import 'package:cordeos/providers/version/local_version_provider.dart';
 import 'package:cordeos/widgets/ciphers/editor/sections/sheet_manage.dart';
@@ -117,7 +117,8 @@ class _PlayPlaylistState extends State<PlayPlaylist> {
       // HORIZONTAL: calculate scroll offset based on card width (always constant)
       final width = MediaQuery.of(context).size.width;
       final scrollAmount =
-          width * laySet.cardWidthMult + 8; // card width + padding
+          (width ~/ (width * laySet.cardWidthMult + 8)) *
+          (width * laySet.cardWidthMult + 8);
       final targetOffset = forward
           ? _scrollController.offset + scrollAmount
           : _scrollController.offset - scrollAmount;
@@ -167,6 +168,9 @@ class _PlayPlaylistState extends State<PlayPlaylist> {
               return SingleChildScrollView(
                 controller: _scrollController,
                 scrollDirection: scrollDirection,
+                padding: scrollDirection == Axis.vertical
+                    ? const EdgeInsets.symmetric(vertical: 8)
+                    : const EdgeInsets.symmetric(horizontal: 8),
                 child: Flex(
                   direction: scrollDirection,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -174,8 +178,8 @@ class _PlayPlaylistState extends State<PlayPlaylist> {
                     for (int i = 0; i < itemCount; i++) ...[
                       Padding(
                         padding: scrollDirection == Axis.vertical
-                            ? const EdgeInsets.symmetric(vertical: 8)
-                            : const EdgeInsets.symmetric(horizontal: 8),
+                            ? const EdgeInsets.symmetric(vertical: 4)
+                            : const EdgeInsets.symmetric(horizontal: 4),
                         child: _buildItem(i, scrollDirection),
                       ),
                     ],

@@ -1,5 +1,5 @@
 import 'package:cordeos/l10n/app_localizations.dart';
-import 'package:cordeos/providers/section_provider.dart';
+import 'package:cordeos/providers/section/section_provider.dart';
 import 'package:cordeos/providers/version/local_version_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:cordeos/widgets/common/custom_reorderable_delayed.dart';

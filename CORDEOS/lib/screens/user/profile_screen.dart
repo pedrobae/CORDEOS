@@ -3,7 +3,7 @@ import 'package:cordeos/providers/user/my_auth_provider.dart';
 import 'package:cordeos/providers/navigation_provider.dart';
 import 'package:cordeos/providers/settings/settings_provider.dart';
 import 'package:cordeos/providers/user/user_provider.dart';
-import 'package:cordeos/providers/app_info_provider.dart';
+import 'package:cordeos/providers/settings/app_info_provider.dart';
 import 'package:cordeos/screens/user/login_screen.dart';
 import 'package:cordeos/screens/user/new_password_screen.dart';
 import 'package:cordeos/utils/locale.dart';

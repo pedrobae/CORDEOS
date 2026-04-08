@@ -10,10 +10,10 @@ import 'package:cordeos/providers/playlist/flow_item_provider.dart';
 import 'package:cordeos/providers/playlist/playlist_provider.dart';
 import 'package:cordeos/providers/schedule/local_schedule_provider.dart';
 import 'package:cordeos/providers/schedule/cloud_schedule_provider.dart';
-import 'package:cordeos/providers/playlist/play_state_provider.dart';
+import 'package:cordeos/providers/play/play_state_provider.dart';
 import 'package:cordeos/providers/version/cloud_version_provider.dart';
 import 'package:cordeos/providers/version/local_version_provider.dart';
-import 'package:cordeos/providers/section_provider.dart';
+import 'package:cordeos/providers/section/section_provider.dart';
 
 import 'package:cordeos/widgets/play/play_playlist.dart';
 

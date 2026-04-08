@@ -1,7 +1,7 @@
 import 'package:cordeos/models/domain/cipher/version.dart';
-import 'package:cordeos/providers/playlist/auto_scroll_provider.dart';
+import 'package:cordeos/providers/play/auto_scroll_provider.dart';
 import 'package:cordeos/providers/navigation_provider.dart';
-import 'package:cordeos/providers/section_provider.dart';
+import 'package:cordeos/providers/section/section_provider.dart';
 import 'package:cordeos/providers/transposition_provider.dart';
 import 'package:cordeos/widgets/ciphers/transposer.dart';
 import 'package:cordeos/widgets/ciphers/viewer/structure_list.dart';

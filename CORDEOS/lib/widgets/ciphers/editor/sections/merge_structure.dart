@@ -3,7 +3,7 @@ import 'package:cordeos/l10n/app_localizations.dart';
 
 import 'package:provider/provider.dart';
 import 'package:cordeos/providers/cipher/edit_sections_state_provider.dart';
-import 'package:cordeos/providers/section_provider.dart';
+import 'package:cordeos/providers/section/section_provider.dart';
 import 'package:cordeos/providers/version/local_version_provider.dart';
 
 class MergeStructure extends StatefulWidget {

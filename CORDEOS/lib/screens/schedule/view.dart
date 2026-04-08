@@ -1,5 +1,5 @@
 import 'package:cordeos/providers/playlist/flow_item_provider.dart';
-import 'package:cordeos/providers/section_provider.dart';
+import 'package:cordeos/providers/section/section_provider.dart';
 import 'package:cordeos/providers/selection_provider.dart';
 import 'package:cordeos/providers/user/my_auth_provider.dart';
 import 'package:cordeos/providers/version/local_version_provider.dart';
@@ -13,7 +13,7 @@ import 'package:cordeos/models/domain/schedule.dart';
 import 'package:flutter/services.dart';
 
 import 'package:provider/provider.dart';
-import 'package:cordeos/providers/playlist/auto_scroll_provider.dart';
+import 'package:cordeos/providers/play/auto_scroll_provider.dart';
 import 'package:cordeos/providers/navigation_provider.dart';
 import 'package:cordeos/providers/playlist/playlist_provider.dart';
 import 'package:cordeos/providers/schedule/local_schedule_provider.dart';

@@ -7,7 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:cordeos/providers/cipher/edit_sections_state_provider.dart';
 import 'package:cordeos/providers/settings/layout_settings_provider.dart';
 import 'package:cordeos/providers/navigation_provider.dart';
-import 'package:cordeos/providers/section_provider.dart';
+import 'package:cordeos/providers/section/section_provider.dart';
 import 'package:cordeos/providers/token_cache_provider.dart';
 import 'package:cordeos/providers/transposition_provider.dart';
 import 'package:cordeos/providers/version/local_version_provider.dart';

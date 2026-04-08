@@ -1,7 +1,7 @@
 import "package:cordeos/l10n/app_localizations.dart";
 import "package:cordeos/providers/cipher/cipher_provider.dart";
 import "package:cordeos/providers/navigation_provider.dart";
-import "package:cordeos/providers/section_provider.dart";
+import "package:cordeos/providers/section/section_provider.dart";
 import "package:cordeos/providers/version/local_version_provider.dart";
 import "package:cordeos/utils/date_utils.dart";
 import "package:cordeos/utils/section_constants.dart";

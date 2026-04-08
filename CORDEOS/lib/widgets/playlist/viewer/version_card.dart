@@ -11,7 +11,7 @@ import 'package:provider/provider.dart';
 import 'package:cordeos/providers/navigation_provider.dart';
 import 'package:cordeos/providers/cipher/cipher_provider.dart';
 import 'package:cordeos/providers/version/local_version_provider.dart';
-import 'package:cordeos/providers/section_provider.dart';
+import 'package:cordeos/providers/section/section_provider.dart';
 
 import 'package:cordeos/screens/cipher/view_cipher.dart';
 

@@ -1,7 +1,7 @@
 import 'package:cordeos/l10n/app_localizations.dart';
 
-import 'package:cordeos/providers/playlist/auto_scroll_provider.dart';
-import 'package:cordeos/providers/playlist/play_state_provider.dart';
+import 'package:cordeos/providers/play/auto_scroll_provider.dart';
+import 'package:cordeos/providers/play/play_state_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

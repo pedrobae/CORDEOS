@@ -4,7 +4,7 @@ import 'package:cordeos/models/domain/parsing_cipher.dart';
 import 'package:cordeos/providers/cipher/cipher_provider.dart';
 import 'package:cordeos/providers/navigation_provider.dart';
 import 'package:cordeos/providers/cipher/parser_provider.dart';
-import 'package:cordeos/providers/section_provider.dart';
+import 'package:cordeos/providers/section/section_provider.dart';
 import 'package:cordeos/providers/version/local_version_provider.dart';
 import 'package:cordeos/screens/cipher/edit_cipher.dart';
 import 'package:cordeos/widgets/common/filled_text_button.dart';
