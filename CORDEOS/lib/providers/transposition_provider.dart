@@ -10,13 +10,13 @@ class TranspositionProvider extends ChangeNotifier {
       _transposedKey != null && _transposedKey!.contains('b') ||
       _transposedKey == 'F';
 
-  int get _transposeValue {
+  int get transposeValue {
     if (_transposedKey == null) return 0;
 
     int indexOriginal = ChordHelper.keyList.indexOf(_originalKey);
     int indexTransposed = ChordHelper.keyList.indexOf(_transposedKey!);
 
-    if (indexOriginal == -1 || indexTransposed == -1) return 0;
+    if (indexOriginal == -1 || indexTransposed == -1) return -1;
 
     return (indexTransposed - indexOriginal) % 12;
   }
@@ -111,7 +111,7 @@ class TranspositionProvider extends ChangeNotifier {
     // Transpose root and bass
     String transposedRoot = ChordHelper().transpose(
       root,
-      _transposeValue,
+      transposeValue,
       sharpKey: !useFlat,
     );
     String result = prefix + transposedRoot + chordSuffix;
@@ -119,7 +119,7 @@ class TranspositionProvider extends ChangeNotifier {
     if (bass != null) {
       String transposedBass = ChordHelper().transpose(
         bass,
-        _transposeValue,
+        transposeValue,
         sharpKey: !useFlat,
       );
       result += '/$transposedBass';

@@ -39,18 +39,18 @@ class SectionCard extends StatelessWidget {
     return Selector2<
       LayoutSetProvider,
       TranspositionProvider,
-      ({bool showLyrics, bool showChords, String? transposedKey})
+      ({bool showLyrics, bool showChords, int transposeValue})
     >(
       selector: (context, laySet, trans) => (
         showLyrics: laySet.showLyrics,
         showChords: laySet.showChords,
-        transposedKey: trans.transposedKey,
+        transposeValue: trans.transposeValue,
       ),
       builder: (context, filter, child) {
         // PHASE 1: Ensure tokens are cached & organized for this content + filters
         layoutKey.showChords = filter.showChords;
         layoutKey.showLyrics = filter.showLyrics;
-        layoutKey.transposedKey = filter.transposedKey;
+        layoutKey.transposeValue = filter.transposeValue;
 
         tokenProv.tokenize(layoutKey, transposeChord: trans.transposeChord);
         tokenProv.organize(layoutKey);

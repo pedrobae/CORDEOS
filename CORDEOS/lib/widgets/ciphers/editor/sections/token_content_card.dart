@@ -210,20 +210,20 @@ class _TokenContentCardState extends State<TokenContentCard> {
                         ({
                           bool showLyrics,
                           bool showChords,
-                          String? transposedKey,
+                          int transposeValue,
                         })
                       >(
                         selector: (context, laySet, trans) => (
                           showLyrics: laySet.showLyrics,
                           showChords: laySet.showChords,
-                          transposedKey: trans.transposedKey,
+                          transposeValue: trans.transposeValue,
                         ),
                         builder: (context, filter, child) {
                           final trans = context.read<TranspositionProvider>();
                           // PHASE 1: Ensure tokens are cached & organized for this content + filters
                           _tokensKey!.showChords = filter.showChords;
                           _tokensKey!.showLyrics = filter.showLyrics;
-                          _tokensKey!.transposedKey = filter.transposedKey;
+                          _tokensKey!.transposeValue = filter.transposeValue;
 
                           _tokenProv.tokenize(
                             _tokensKey!,
