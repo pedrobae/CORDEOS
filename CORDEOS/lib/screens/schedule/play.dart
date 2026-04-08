@@ -51,17 +51,11 @@ class PlayScheduleState extends State<PlaySchedule> {
   Future<void> _loadData() async {
     if (widget.scheduleId == null) throw Exception("Schedule ID is required");
 
-    final loadStart = DateTime.now();
-    debugPrint('PlaySchedule: Starting _loadData at ${loadStart.toIso8601String()}');
-
     if (!isCloud) {
       await _loadLocal();
     } else {
       await _loadCloud();
     }
-    
-    final loadDuration = DateTime.now().difference(loadStart);
-    debugPrint('PlaySchedule: _loadData completed in ${loadDuration.inMilliseconds}ms');
   }
 
   Future<void> _loadLocal() async {

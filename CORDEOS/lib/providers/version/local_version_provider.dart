@@ -178,7 +178,7 @@ class LocalVersionProvider extends ChangeNotifier {
 
       _versions[versionId] = version;
       debugPrint(
-        'LOCAL VERSION - Loaded version $versionId}',
+        'LOCAL VERSION - Loaded version $versionId',
       );
     } catch (e) {
       _error = e.toString();

@@ -43,7 +43,9 @@ class PositionService {
     );
 
     final lineHeight = lyricHeight + chordLyricSpacing + chordHeight;
-    debugPrint("chordHeight - $chordHeight | lyricHeight - $lyricHeight | lineHeight - $lineHeight");
+    debugPrint(
+      "chordHeight - $chordHeight | lyricHeight - $lyricHeight | lineHeight - $lineHeight",
+    );
 
     final ctx = _LayoutCtx(
       chordHeight: chordHeight,
@@ -101,8 +103,10 @@ class PositionService {
       cursor.newLine(ctx.lineSpacing);
     }
     positionMap.contentHeight =
-        cursor.yOffset +
-        ((cursor.hasLyrics || isEditMode) ? ctx.chordHeight : 0);
+        cursor.yOffset -
+        ((cursor.hasLyrics || isEditMode)
+            ? 0
+            : (ctx.lineHeight - ctx.chordHeight - ctx.chordLyricSpacing));
     return positionMap;
   }
 
@@ -135,11 +139,7 @@ class PositionService {
                 ctx.minChordSpacing +
                 2 * TokenizationConstants.chordTokenWidthPadding;
           }
-          positions.setPosition(
-            token,
-            xOffset,
-            cursor.yOffset,
-          );
+          positions.setPosition(token, xOffset, cursor.yOffset);
 
           charIndex++;
           break;
