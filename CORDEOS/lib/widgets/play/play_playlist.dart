@@ -169,7 +169,7 @@ class _PlayPlaylistState extends State<PlayPlaylist> {
                 controller: _scrollController,
                 scrollDirection: scrollDirection,
                 padding: scrollDirection == Axis.vertical
-                    ? const EdgeInsets.symmetric(vertical: 8)
+                    ? const EdgeInsets.all(8)
                     : const EdgeInsets.symmetric(horizontal: 8),
                 child: Flex(
                   direction: scrollDirection,
