@@ -62,6 +62,7 @@ class VersionWrap extends StatelessWidget {
           children: [
             _buildHeader(context),
             Expanded(
+              flex: s.wrapDirection == Axis.vertical ? 1 : 0,
               child: Wrap(
                 direction: s.wrapDirection,
                 crossAxisAlignment: WrapCrossAlignment.start,

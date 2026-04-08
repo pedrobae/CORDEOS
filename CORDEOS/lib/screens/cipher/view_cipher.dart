@@ -148,8 +148,8 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
                 controller: _scrollController,
                 scrollDirection: scrollDirection,
                 padding: scrollDirection == Axis.vertical
-                    ? const EdgeInsets.only(bottom: 16, left: 8, right: 8)
-                    : const EdgeInsets.only(right: 16, top: 8, bottom: 8),
+                    ? const EdgeInsets.symmetric(vertical: 16, horizontal: 8)
+                    : const EdgeInsets.symmetric(horizontal: 8),
                 child: VersionWrap(itemIndex: 0, versionID: widget.versionID),
               ),
             );
