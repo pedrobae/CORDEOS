@@ -42,6 +42,7 @@ class TokenView extends StatelessWidget {
 
     return SizedBox(
       height: model.size.height,
+      width: tokensKey.maxWidth!,
       child: CustomPaint(painter: SectionPainter(model: model)),
     );
   }

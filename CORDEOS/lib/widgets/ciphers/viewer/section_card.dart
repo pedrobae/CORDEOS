@@ -126,11 +126,10 @@ class SectionCard extends StatelessWidget {
                         sectionColor;
 
                     return Container(
-                      width: width * l.cardWidthMult,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
+                      width:
+                          width * l.cardWidthMult +
+                          16, // account for horizontal padding
+                      padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
                         color: s.showSectionHeaders
                             ? colorScheme.surface
