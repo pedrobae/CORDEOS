@@ -169,11 +169,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
     SettingsProvider settings,
     UserProvider user,
   ) {
-    return LabeledCountryPicker(
-      countryCode: auth.userCountry ?? settings.country,
-      onCountryChanged: (value) {
-        settings.setCountry(value.countryCode);
-        user.cacheUserCountry(auth.id!, value.countryCode);
+    return Selector<UserProvider, String>(
+      selector: (_, user) =>
+          user.getUserByFirebaseId(auth.id!)?.country ?? settings.country,
+      builder: (context, country, child) {
+        return LabeledCountryPicker(
+          countryCode: country,
+          onCountryChanged: (value) {
+            settings.setCountry(value.countryCode);
+            user.cacheUserCountry(auth.id!, value.countryCode);
+          },
+        );
       },
     );
   }
@@ -183,14 +189,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
     SettingsProvider settings,
     UserProvider user,
   ) {
-    return LabeledLanguagePicker(
-      language:
-          auth.userLanguage ??
+    return Selector<UserProvider, String>(
+      selector: (_, user) =>
+          user.getUserByFirebaseId(auth.id!)?.language ??
           LocaleUtils.getLanguageName(settings.locale, context),
-      onLanguageChanged: (value) {
-        final locale = LocaleUtils.getLocaleFromLanguageName(value, context);
-        settings.setLocale(locale);
-        user.cacheUserLanguage(auth.id!, locale.languageCode);
+      builder: (context, language, child) {
+        return LabeledLanguagePicker(
+          language: language,
+          onLanguageChanged: (value) {
+            final locale = LocaleUtils.getLocaleFromLanguageName(
+              value,
+              context,
+            );
+            settings.setLocale(locale);
+            user.cacheUserLanguage(auth.id!, locale.languageCode);
+          },
+        );
       },
     );
   }
@@ -200,11 +214,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
     SettingsProvider settings,
     UserProvider user,
   ) {
-    return LabeledTimezonePicker(
-      timezone: auth.userTimeZone ?? settings.timeZone,
-      onTimezoneChanged: (value) {
-        settings.setTimeZone(value);
-        user.cacheUserTimeZone(auth.id!, value);
+    return Selector<UserProvider, String>(
+      selector: (_, user) =>
+          user.getUserByFirebaseId(auth.id!)?.timeZone ?? settings.timeZone,
+      builder: (context, timeZone, child) {
+        return LabeledTimezonePicker(
+          timezone: timeZone,
+          onTimezoneChanged: (value) {
+            settings.setTimeZone(value);
+            user.cacheUserTimeZone(auth.id!, value);
+          },
+        );
       },
     );
   }

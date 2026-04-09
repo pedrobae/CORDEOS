@@ -204,120 +204,108 @@ class _TokenContentCardState extends State<TokenContentCard> {
                   padding: const EdgeInsets.only(
                     left: TokenizationConstants.chordTokenWidthPadding,
                   ),
-                  child:
-                      Selector2<
+                  child: Selector<TranspositionProvider, int>(
+                    selector: (context, trans) => trans.transposeValue,
+                    builder: (context, transposeValue, child) {
+                      final trans = context.read<TranspositionProvider>();
+                      // PHASE 1: Ensure tokens are cached & organized for this content + filters
+                      _tokensKey!.transposeValue = transposeValue;
+
+                      _tokenProv.tokenize(
+                        _tokensKey!,
+                        transposeChord: trans.transposeChord,
+                      );
+                      _tokenProv.organize(_tokensKey!);
+                      return Selector2<
                         LayoutSetProvider,
                         TranspositionProvider,
-                        ({bool showLyrics, bool showChords, int transposeValue})
+                        ({
+                          TextStyle lyricStyle,
+                          TextStyle chordStyle,
+                          double chordLyricSpacing,
+                        })
                       >(
                         selector: (context, laySet, trans) => (
-                          showLyrics: laySet.showLyrics,
-                          showChords: laySet.showChords,
-                          transposeValue: trans.transposeValue,
+                          lyricStyle: laySet.lyricStyle,
+                          chordStyle: laySet.chordStyle,
+                          chordLyricSpacing: laySet.chordLyricSpacing,
                         ),
-                        builder: (context, filter, child) {
-                          final trans = context.read<TranspositionProvider>();
-                          // PHASE 1: Ensure tokens are cached & organized for this content + filters
-                          _tokensKey!.showChords = filter.showChords;
-                          _tokensKey!.showLyrics = filter.showLyrics;
-                          _tokensKey!.transposeValue = filter.transposeValue;
-
-                          _tokenProv.tokenize(
-                            _tokensKey!,
-                            transposeChord: trans.transposeChord,
+                        builder: (context, measure, child) {
+                          // PHASE 2: Ensure measurements are cached for this content + style
+                          _tokensKey!.chordLyricSpacing =
+                              measure.chordLyricSpacing;
+                          _tokenProv.measureTokens(
+                            chordStyle: measure.chordStyle,
+                            lyricStyle: measure.lyricStyle,
+                            key: _tokensKey!,
                           );
-                          _tokenProv.organize(_tokensKey!);
-                          return Selector2<
+
+                          return Selector<
                             LayoutSetProvider,
-                            TranspositionProvider,
                             ({
-                              TextStyle lyricStyle,
-                              TextStyle chordStyle,
-                              double chordLyricSpacing,
+                              double letterSpacing,
+                              double lineSpacing,
+                              double lineBreakSpacing,
+                              double minChordSpacing,
                             })
                           >(
-                            selector: (context, laySet, trans) => (
-                              lyricStyle: laySet.lyricStyle,
-                              chordStyle: laySet.chordStyle,
-                              chordLyricSpacing: laySet.chordLyricSpacing,
-                            ),
-                            builder: (context, measure, child) {
-                              // PHASE 2: Ensure measurements are cached for this content + style
-                              _tokensKey!.chordLyricSpacing =
-                                  measure.chordLyricSpacing;
-                              _tokenProv.measureTokens(
-                                chordStyle: measure.chordStyle,
-                                lyricStyle: measure.lyricStyle,
+                            selector: (context, laySet) {
+                              return (
+                                letterSpacing: laySet.letterSpacing,
+                                lineSpacing: laySet.lineSpacing,
+                                lineBreakSpacing: laySet.lineBreakSpacing,
+                                minChordSpacing: laySet.minChordSpacing,
+                              );
+                            },
+                            builder: (context, l, child) {
+                              // PHASE 3: Calculate and cache widget positions based on width constraints
+                              final width =
+                                  MediaQuery.of(context).size.width -
+                                  32; // 32 for padding
+                              _tokensKey!.letterSpacing = l.letterSpacing;
+                              _tokensKey!.lineSpacing = l.lineSpacing;
+                              _tokensKey!.lineBreakSpacing = l.lineBreakSpacing;
+                              _tokensKey!.minChordSpacing = l.minChordSpacing;
+                              _tokensKey!.maxWidth = width;
+
+                              _tokenProv.calculatePositions(
                                 key: _tokensKey!,
+                                lyricStyle: measure.lyricStyle,
+                                chordStyle: measure.chordStyle,
                               );
 
-                              return Selector<
-                                LayoutSetProvider,
-                                ({
-                                  double letterSpacing,
-                                  double lineSpacing,
-                                  double lineBreakSpacing,
-                                  double minChordSpacing,
-                                })
-                              >(
-                                selector: (context, laySet) {
-                                  return (
-                                    letterSpacing: laySet.letterSpacing,
-                                    lineSpacing: laySet.lineSpacing,
-                                    lineBreakSpacing: laySet.lineBreakSpacing,
-                                    minChordSpacing: laySet.minChordSpacing,
-                                  );
-                                },
-                                builder: (context, l, child) {
-                                  // PHASE 3: Calculate and cache widget positions based on width constraints
-                                  _tokensKey!.maxWidth = MediaQuery.of(
-                                    context,
-                                  ).size.width;
-                                  _tokensKey!.letterSpacing = l.letterSpacing;
-                                  _tokensKey!.lineSpacing = l.lineSpacing;
-                                  _tokensKey!.lineBreakSpacing =
-                                      l.lineBreakSpacing;
-                                  _tokensKey!.minChordSpacing =
-                                      l.minChordSpacing;
+                              final positions = _tokenProv.getPositions(
+                                _tokensKey!,
+                              );
 
-                                  _tokenProv.calculatePositions(
-                                    key: _tokensKey!,
-                                    lyricStyle: measure.lyricStyle,
-                                    chordStyle: measure.chordStyle,
-                                  );
+                              final content = _tokenProv.buildEditWidgets(
+                                key: _tokensKey!,
+                                lyricStyle: measure.lyricStyle,
+                                chordStyle: measure.chordStyle,
+                                contentColor: s.section!.contentColor,
+                                chordTargetColor: colorScheme.surfaceTint,
+                                surfaceColor: colorScheme.surface,
+                                onSurfaceColor: colorScheme.onSurface,
+                                onContentColor: colorScheme.surface,
+                                isEnabled: widget.isEnabled,
+                                onAddChord: _addChord(_tokensKey!),
+                                onRemoveChord: _removeChord(_tokensKey!),
+                              );
 
-                                  final positions = _tokenProv.getPositions(
-                                    _tokensKey!,
-                                  );
-
-                                  final content = _tokenProv.buildEditWidgets(
-                                    key: _tokensKey!,
-                                    lyricStyle: measure.lyricStyle,
-                                    chordStyle: measure.chordStyle,
-                                    contentColor: s.section!.contentColor,
-                                    chordTargetColor: colorScheme.surfaceTint,
-                                    surfaceColor: colorScheme.surface,
-                                    onSurfaceColor: colorScheme.onSurface,
-                                    onContentColor: colorScheme.surface,
-                                    isEnabled: widget.isEnabled,
-                                    onAddChord: _addChord(_tokensKey!),
-                                    onRemoveChord: _removeChord(_tokensKey!),
-                                  );
-
-                                  return SizedBox(
-                                    width: double.infinity,
-                                    height: positions?.contentHeight,
-                                    child: Stack(
-                                      clipBehavior: Clip.none,
-                                      children: [...content.tokens],
-                                    ),
-                                  );
-                                },
+                              return SizedBox(
+                                width: width,
+                                height: positions?.contentHeight,
+                                child: Stack(
+                                  clipBehavior: Clip.none,
+                                  children: [...content.tokens],
+                                ),
                               );
                             },
                           );
                         },
-                      ),
+                      );
+                    },
+                  ),
                 ),
               ),
             ],

@@ -102,7 +102,8 @@ class SectionCard extends StatelessWidget {
                 layoutKey.lineSpacing = l.lineSpacing;
                 layoutKey.lineBreakSpacing = l.lineBreakSpacing;
                 layoutKey.minChordSpacing = l.minChordSpacing;
-                layoutKey.maxWidth = width * l.cardWidthMult;
+                layoutKey.maxWidth =
+                    width * l.cardWidthMult - 16; // 16 for padding
 
                 tokenProv.calculatePositions(
                   key: layoutKey,
@@ -126,9 +127,7 @@ class SectionCard extends StatelessWidget {
                         sectionColor;
 
                     return Container(
-                      width:
-                          width * l.cardWidthMult +
-                          16, // account for horizontal padding
+                      width: width * l.cardWidthMult,
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
                         color: s.showSectionHeaders

@@ -68,6 +68,7 @@ class _MetadataTabState extends State<MetadataTab> {
       switch (InfoField.values[i]) {
         case InfoField.key:
         case InfoField.tags:
+        case InfoField.language:
           // THESE FIELDS ARE HANDLED SEPARATELY, NOT USING TEXT CONTROLLERS
           break;
         default:
@@ -93,7 +94,6 @@ class _MetadataTabState extends State<MetadataTab> {
           controllers[InfoField.author]!.text = cipher.author;
           controllers[InfoField.versionName]!.text = version.versionName;
           controllers[InfoField.bpm]!.text = version.bpm.toString();
-          controllers[InfoField.language]!.text = cipher.language;
           controllers[InfoField.duration]!.text = DateTimeUtils.formatDuration(
             version.duration,
           );
@@ -132,12 +132,6 @@ class _MetadataTabState extends State<MetadataTab> {
             ),
           );
           break;
-        case InfoField.language:
-          controller.addListener(
-            () =>
-                ciph.cacheUpdates(widget.versionID, language: controller.text),
-          );
-          break;
         case InfoField.bpm:
           controller.addListener(() {
             final bpm = int.tryParse(controller.text) ?? 0;
@@ -154,6 +148,7 @@ class _MetadataTabState extends State<MetadataTab> {
           controller.addListener(
             () => ciph.cacheUpdates(widget.cipherID, link: controller.text),
           );
+        case InfoField.language:
         case InfoField.tags:
         case InfoField.key:
           // THESE FIELDS ARE HANDLED SEPARATELY, NOT USING TEXT CONTROLLERS
@@ -226,10 +221,21 @@ class _MetadataTabState extends State<MetadataTab> {
               },
             ),
             InfoField.key => _buildKeySelector(context: context, field: field),
-            InfoField.language => LabeledLanguagePicker(
-              language: _getController(field).text,
-              onLanguageChanged: (value) {
-                _getController(field).text = value;
+            InfoField.language => Selector<CipherProvider, String>(
+              selector: (context, ciph) {
+                final cipher = ciph.getCipher(widget.cipherID);
+                return cipher?.language ?? '';
+              },
+              builder: (context, language, child) {
+                return LabeledLanguagePicker(
+                  language: language,
+                  onLanguageChanged: (value) {
+                    context.read<CipherProvider>().cacheUpdates(
+                      widget.cipherID,
+                      language: value,
+                    );
+                  },
+                );
               },
             ),
             _ => LabeledTextField(

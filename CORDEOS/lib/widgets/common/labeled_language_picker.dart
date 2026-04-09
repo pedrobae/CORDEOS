@@ -32,24 +32,29 @@ class LabeledLanguagePicker extends StatelessWidget {
                 AppLocalizations.of(context)!.language,
                 style: textTheme.labelMedium,
               ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            border: Border.all(color: isDiscrete ? colorScheme.surfaceContainer : colorScheme.shadow, width: 1),
-            borderRadius: BorderRadius.circular(0),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              singleLine
-                  ? Text(
-                      AppLocalizations.of(context)!.language,
-                      style: textTheme.labelMedium,
-                    )
-                  : SizedBox.shrink(),
-              Expanded(
-                child: GestureDetector(
-                  onTap: showLanguageSheet(context),
+        GestureDetector(
+          onTap: showLanguageSheet(context),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: isDiscrete
+                    ? colorScheme.surfaceContainer
+                    : colorScheme.shadow,
+                width: 1,
+              ),
+              borderRadius: BorderRadius.circular(0),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                singleLine
+                    ? Text(
+                        AppLocalizations.of(context)!.language,
+                        style: textTheme.labelMedium,
+                      )
+                    : SizedBox.shrink(),
+                Expanded(
                   child: Row(
                     mainAxisAlignment: singleLine
                         ? MainAxisAlignment.end
@@ -70,8 +75,8 @@ class LabeledLanguagePicker extends StatelessWidget {
                     ],
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ],
