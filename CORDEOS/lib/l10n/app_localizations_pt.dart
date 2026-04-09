@@ -387,6 +387,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get linkHint => 'Digite um Link';
 
   @override
+  String get openLink => 'Abrir Link';
+
+  @override
   String get version => 'Versão';
 
   @override

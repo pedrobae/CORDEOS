@@ -259,6 +259,8 @@
   "@link": {"description": "Link field label"},
   "linkHint": "Enter a URL",
   "@linkHint": {"description": "Hint for link field"},
+  "openLink": "Open Link",
+  "@openLink": {"description": "Button label for opening the song's link"},
 
 
   "version": "Version",

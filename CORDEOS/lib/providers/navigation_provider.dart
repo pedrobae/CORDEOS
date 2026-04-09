@@ -4,6 +4,7 @@ import 'package:cordeos/screens/cipher/cipher_library.dart';
 import 'package:cordeos/screens/playlist/playlist_library.dart';
 import 'package:cordeos/screens/schedule/library.dart';
 import 'package:cordeos/widgets/common/unsaved_changes_warning.dart';
+import 'package:url_launcher/url_launcher.dart' as url_launcher;
 import 'package:flutter/material.dart';
 
 enum NavigationRoute { home, library, playlists, schedule }
@@ -34,6 +35,7 @@ class _ScreenMetadata {
 }
 
 class NavigationProvider extends ChangeNotifier {
+
   NavigationRoute _currentRoute = NavigationRoute.home;
 
   // Store screen metadata instead of Widget instances to avoid build scope issues
@@ -193,6 +195,13 @@ class NavigationProvider extends ChangeNotifier {
       return;
     }
     return;
+  }
+
+  /// Launch external URL using the default browser
+  void launchURL(String url) {
+    debugPrint('NAVIGATION - Launching URL: $url');
+    // Use url_launcher to open the URL
+    url_launcher.launchUrl(Uri.parse(url));
   }
 
   // Error handling following your provider pattern

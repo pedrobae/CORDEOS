@@ -269,6 +269,8 @@
   "@link": {"description": "Link field label"},
   "linkHint": "Digite um Link",
   "@linkHint": {"description": "Hint for link field"},
+  "openLink": "Abrir Link",
+  "@openLink": {"description": "Button label for opening the song's link"},
 
 
 

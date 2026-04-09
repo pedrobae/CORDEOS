@@ -37,6 +37,8 @@ class CipherCardActionsSheet extends StatelessWidget {
     final cloudVer = context.read<CloudVersionProvider>();
     final sect = context.read<SectionProvider>();
 
+    final link = ciph.ciphers[cipherId]?.link;
+
     final versionID = localVer.getIdOfOldestVersionOfCipher(cipherId);
 
     if (versionID == null) {
@@ -104,6 +106,18 @@ class CipherCardActionsSheet extends StatelessWidget {
               );
             },
           ),
+          if (link != null && link.isNotEmpty)
+            FilledTextButton(
+              text: AppLocalizations.of(context)!.openLink,
+              tooltip: link,
+              trailingIcon: Icons.open_in_new,
+              isDiscrete: true,
+              onPressed: () {
+                // Open the cipher's link in the default browser
+                final url = ciph.ciphers[cipherId]!.link!;
+                nav.launchURL(url);
+              },
+            ),
           // SELECT VERSION
           // Only show if there are multiple versions available
           if (localVer.getVersionsByCipherId(cipherId).length > 1)

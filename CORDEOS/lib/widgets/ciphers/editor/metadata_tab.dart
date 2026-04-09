@@ -97,6 +97,7 @@ class _MetadataTabState extends State<MetadataTab> {
           controllers[InfoField.duration]!.text = DateTimeUtils.formatDuration(
             version.duration,
           );
+          controllers[InfoField.link]!.text = cipher.link ?? '';
           break;
         case VersionType.brandNew:
           // Empty controllers for brand new versions

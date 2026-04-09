@@ -806,6 +806,12 @@ abstract class AppLocalizations {
   /// **'Digite um Link'**
   String get linkHint;
 
+  /// Button label for opening the song's link
+  ///
+  /// In pt, this message translates to:
+  /// **'Abrir Link'**
+  String get openLink;
+
   /// Version label
   ///
   /// In pt, this message translates to:

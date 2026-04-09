@@ -135,7 +135,7 @@ class _CipherCardState extends State<CipherCard> {
                         children: [
                           // TITLE
                           Text(s.cipher!.title, style: textTheme.titleMedium),
-                
+
                           // INFO
                           Row(
                             spacing: 16.0,
@@ -168,7 +168,7 @@ class _CipherCardState extends State<CipherCard> {
                                   : Text('-'),
                             ],
                           ),
-                
+
                           // STRUCTURE LIST
                           if (!isDense)
                             SizedBox(
@@ -192,7 +192,7 @@ class _CipherCardState extends State<CipherCard> {
                                     maxLines: 1,
                                     textDirection: TextDirection.ltr,
                                   )..layout();
-                
+
                                   return Selector<SectionProvider, Color>(
                                     selector: (context, sect) {
                                       final section = sect.getSection(
@@ -205,9 +205,14 @@ class _CipherCardState extends State<CipherCard> {
                                     builder: (context, color, child) {
                                       return Container(
                                         height: 25,
-                                        width: max(25, textPainter.size.width + 8),
+                                        width: max(
+                                          25,
+                                          textPainter.size.width + 8,
+                                        ),
                                         decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(6),
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
                                           color: color,
                                         ),
                                         margin: const EdgeInsets.only(right: 3),
@@ -225,7 +230,7 @@ class _CipherCardState extends State<CipherCard> {
                                           ),
                                         ),
                                       );
-                                    }
+                                    },
                                   );
                                 },
                               ),
@@ -233,7 +238,13 @@ class _CipherCardState extends State<CipherCard> {
                         ],
                       ),
                     ),
-                
+
+                    if (s.cipher?.link != null && s.cipher!.link!.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 4.0),
+                        child: Icon(Icons.link, size: 20),
+                      ),
+
                     // ACTIONS SHEET
                     GestureDetector(
                       onTap: _openCipherActionsSheet(s.cipher!.id),

@@ -384,6 +384,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get linkHint => 'Enter a URL';
 
   @override
+  String get openLink => 'Open Link';
+
+  @override
   String get version => 'Version';
 
   @override
