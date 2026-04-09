@@ -116,12 +116,11 @@ class _EditSectionScreenState extends State<EditSectionScreen> {
                 // CONTENT
                 Expanded(
                   child: SingleChildScrollView(
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        spacing: 16,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
+                    child: Column(
+                      spacing: 16,
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
                         // TYPE SELECTION
                         if (widget.canChangeType)
                           SizedBox(
@@ -180,27 +179,34 @@ class _EditSectionScreenState extends State<EditSectionScreen> {
                             ),
                           ),
                         // SECTION CODE
-                        LabeledTextField(
-                          label: AppLocalizations.of(context)!.sectionCode,
-                          hint: AppLocalizations.of(context)!.sectionCodeHint,
-                          controller: contentCodeController,
-                          instruction: AppLocalizations.of(
-                            context,
-                          )!.sectionCodeInstruction,
-                          validator: (value) {
-                            // CODE HAS A 3 CHAR MAX CONSTRAINT
-                            if (value == null || value.isEmpty) {
-                              return AppLocalizations.of(context)!.fieldRequired;
-                            }
-                            if (value.length > 3) {
-                              return AppLocalizations.of(context)!.tooLongPlaceholder(
-                                AppLocalizations.of(context)!.code,
-                                3,
-                              );
-                            } else {
-                              return null;
-                            }
-                          },
+                        Form(
+                          key: _formKey,
+                          child: LabeledTextField(
+                            label: AppLocalizations.of(context)!.sectionCode,
+                            hint: AppLocalizations.of(context)!.sectionCodeHint,
+                            controller: contentCodeController,
+                            instruction: AppLocalizations.of(
+                              context,
+                            )!.sectionCodeInstruction,
+                            validator: (value) {
+                              // CODE HAS A 3 CHAR MAX CONSTRAINT
+                              if (value == null || value.isEmpty) {
+                                return AppLocalizations.of(
+                                  context,
+                                )!.fieldRequired;
+                              }
+                              if (value.length > 3) {
+                                return AppLocalizations.of(
+                                  context,
+                                )!.tooLongPlaceholder(
+                                  AppLocalizations.of(context)!.code,
+                                  3,
+                                );
+                              } else {
+                                return null;
+                              }
+                            },
+                          ),
                         ),
 
                         // SECTION TYPE
@@ -218,32 +224,33 @@ class _EditSectionScreenState extends State<EditSectionScreen> {
                           lineCount: 8,
                           keyboardType: TextInputType.multiline,
                         ),
+
+                        // DELETE BUTTON
+                        if (!widget.isNewSection)
+                          FilledTextButton(
+                            text: AppLocalizations.of(context)!.delete,
+                            isDangerous: true,
+                            onPressed: () {
+                              showModalBottomSheet(
+                                context: context,
+                                builder: (context) {
+                                  return DeleteConfirmationSheet(
+                                    itemType: AppLocalizations.of(
+                                      context,
+                                    )!.section,
+                                    onConfirm: () {
+                                      _deleteSection();
+                                      context.read<NavigationProvider>().pop();
+                                    },
+                                  );
+                                },
+                              );
+                            },
+                          ),
                       ],
                     ),
                   ),
-                  ),
                 ),
-
-                // DELETE BUTTON
-                if (!widget.isNewSection)
-                  FilledTextButton(
-                    text: AppLocalizations.of(context)!.delete,
-                    isDangerous: true,
-                    onPressed: () {
-                      showModalBottomSheet(
-                        context: context,
-                        builder: (context) {
-                          return DeleteConfirmationSheet(
-                            itemType: AppLocalizations.of(context)!.section,
-                            onConfirm: () {
-                              _deleteSection();
-                              context.read<NavigationProvider>().pop();
-                            },
-                          );
-                        },
-                      );
-                    },
-                  ),
               ],
             ),
           ),
