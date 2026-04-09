@@ -686,7 +686,7 @@ class TokenizationBuilder {
       children: [
         dragTargetChild,
         Positioned(
-          bottom: lyricMsr.height,
+          bottom: 2* lyricMsr.height,
           left: cutoutXOffset,
           child: Container(
             height:

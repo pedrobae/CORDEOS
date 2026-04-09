@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class TokenizationConstants {
   /// GENERIC TARGET
-  static const double targetWidth = 12.0;
+  static const double targetWidth = 24.0;
 
   /// CHORD TOKEN
   static const double chordTokenHeightPadding = 4;

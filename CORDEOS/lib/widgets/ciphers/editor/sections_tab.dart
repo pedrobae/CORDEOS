@@ -114,7 +114,7 @@ class _SectionsTabState extends State<SectionsTab> {
                           }),
                       ],
                     ),
-                    SizedBox(height: 80), // Extra space for FAB
+                    SizedBox(height: 200), // Extra space for FAB
                   ],
                 ),
               ),
