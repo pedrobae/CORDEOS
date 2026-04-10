@@ -25,7 +25,6 @@ class _StyleSettingsState extends State<StyleSettings> {
   double _calcCardsOnScreen(double widthMult, double screenWidth) {
     final cardWidth = screenWidth * widthMult;
     final cardsOnScreen = ((screenWidth - 8) / (cardWidth + 8));
-    debugPrint("$cardsOnScreen");
     return cardsOnScreen;
   }
 
@@ -33,7 +32,6 @@ class _StyleSettingsState extends State<StyleSettings> {
     final totalSpacing = 8 * (cardsOnScreen + 1);
     final availableWidth = screenWidth - totalSpacing;
     final cardWidth = availableWidth / cardsOnScreen;
-    debugPrint("${cardWidth/screenWidth}");
     return cardWidth / screenWidth;
   }
 
@@ -47,7 +45,7 @@ class _StyleSettingsState extends State<StyleSettings> {
     return Consumer<LayoutSetProvider>(
       builder: (context, settings, child) {
         _cardsOnScreen ??= _calcCardsOnScreen(
-          settings.cardWidthMult.clamp(0.2, 1),
+          settings.cardWidthMult,
           width,
         );
         _localLineSpacing ??= settings.lineSpacing.clamp(-5, 10);
@@ -158,7 +156,7 @@ class _StyleSettingsState extends State<StyleSettings> {
                       SizedBox(
                         width: 150,
                         child: Slider(
-                          value: (1 / _cardsOnScreen!).clamp(0.2, 1.0),
+                          value: ((6 - _cardsOnScreen!) / 5).clamp(0.2, 1.0),
                           padding: EdgeInsets.symmetric(
                             horizontal: 8,
                             vertical: 16,
@@ -167,11 +165,11 @@ class _StyleSettingsState extends State<StyleSettings> {
                           min: 0.2,
                           max: 1.0,
                           onChanged: (v) {
-                            setState(() => _cardsOnScreen = 1 / v);
+                            setState(() => _cardsOnScreen = 6 - v * 5);
                           },
                           onChangeEnd: (v) {
                             settings.setCardWidthMult(
-                              _calcWidthMult(1 / v, width),
+                              _calcWidthMult(_cardsOnScreen!, width),
                             );
                           },
                         ),
