@@ -44,10 +44,7 @@ class _StyleSettingsState extends State<StyleSettings> {
 
     return Consumer<LayoutSetProvider>(
       builder: (context, settings, child) {
-        _cardsOnScreen ??= _calcCardsOnScreen(
-          settings.cardWidthMult,
-          width,
-        );
+        _cardsOnScreen ??= _calcCardsOnScreen(settings.cardWidthMult, width);
         _localLineSpacing ??= settings.lineSpacing.clamp(-5, 10);
         _localLineBreakSpacing ??= settings.lineBreakSpacing.clamp(-5, 10);
         _localChordLyricSpacing ??= settings.chordLyricSpacing.clamp(-5, 15);

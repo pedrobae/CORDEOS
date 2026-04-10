@@ -10,7 +10,7 @@ class Version {
   final int cipherID;
   final String versionName;
   final String? transposedKey;
-  final List<String> songStructure; // Changed from String to List<String>
+  final List<String> songStructure;
   final int bpm;
   final Duration duration;
   final DateTime createdAt;

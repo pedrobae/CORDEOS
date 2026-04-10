@@ -55,7 +55,7 @@ class CloudCipherCard extends StatelessWidget {
                 right: -5,
                 bottom: -25,
                 child: SvgPicture.asset(
-                  'assets/logos/v2_simple_color_white.svg',
+                  'assets/logos/nh_colored_white.svg',
                   colorFilter: ColorFilter.mode(
                     colorScheme.surfaceTint,
                     BlendMode.srcIn,

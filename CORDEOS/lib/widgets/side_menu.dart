@@ -216,7 +216,7 @@ class SideMenu extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 SvgPicture.asset(
-                  'assets/logos/v2_simple_color_white.svg',
+                  'assets/logos/nh_colored_white.svg',
                   height: MediaQuery.of(context).size.height * 0.05,
                   fit: BoxFit.contain,
                 ),

@@ -11,7 +11,6 @@ class Cipher {
   final DateTime? updatedAt;
   final bool isLocal;
   final List<String> tags;
-  final List<Version> versions;
   final String? link;
 
   const Cipher({
@@ -24,7 +23,6 @@ class Cipher {
     required this.createdAt,
     this.updatedAt,
     required this.isLocal,
-    this.versions = const [],
     this.link,
   });
 
@@ -73,7 +71,6 @@ class Cipher {
       language: 'pt-BR',
       isLocal: true,
       tags: [],
-      versions: [],
       createdAt: DateTime.now(),
     );
   }
@@ -104,7 +101,6 @@ class Cipher {
       'updated_at': updatedAt?.millisecondsSinceEpoch,
       'isLocal': false,
       'tags': tags,
-      'versions': versions,
       'link': link,
     };
   }
@@ -146,7 +142,6 @@ class Cipher {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       isLocal: isLocal ?? this.isLocal,
-      versions: versions ?? this.versions,
       link: link ?? this.link,
     );
   }
@@ -162,8 +157,6 @@ class Cipher {
       createdAt: createdAt,
       updatedAt: updatedAt ?? other.updatedAt,
       isLocal: isLocal,
-      versions:
-          versions, // We don't want to merge versions here, as they are managed separately in the schedule sync process
       link: link ?? other.link,
     );
   }
