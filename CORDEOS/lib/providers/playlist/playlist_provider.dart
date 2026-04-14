@@ -211,6 +211,19 @@ class PlaylistProvider extends ChangeNotifier {
     }
   }
 
+  void cacheAddFlowItem(int playlistId, int flowItemId) {
+    final playlist = _playlists[playlistId];
+    if (playlist != null) {
+      final newItem = PlaylistItem.flowItem(
+        flowItemId: flowItemId,
+        position: playlist.items.length,
+      );
+      playlist.items.add(newItem);
+      _hasUnsavedChanges = true;
+      notifyListeners();
+    }
+  }
+
   void cacheReposition(int playlistId, int oldPosition, int newPosition) {
     final playlist = _playlists[playlistId];
     if (playlist != null) {

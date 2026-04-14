@@ -95,7 +95,6 @@ class _FlowItemEditorState extends State<FlowItemEditor> {
     final textTheme = Theme.of(context).textTheme;
 
     final nav = context.read<NavigationProvider>();
-    final flow = context.read<FlowItemProvider>();
 
     return Scaffold(
       appBar: AppBar(
@@ -116,12 +115,22 @@ class _FlowItemEditorState extends State<FlowItemEditor> {
         ),
         actions: [
           IconButton(
-            onPressed: () {
+            onPressed: () async {
+              final flow = context.read<FlowItemProvider>();
+              final play = context.read<PlaylistProvider>();
+
               if (!_formKey.currentState!.validate()) {
                 return;
               }
 
-              flow.save(widget.flowID);
+              if (widget.flowID == -1) {
+                final newID = await flow.createFromCache(-1);
+                if (newID != null) {
+                  play.cacheAddFlowItem(widget.playlistID, newID);
+                }
+              } else {
+                flow.save(widget.flowID);
+              }
 
               nav.pop();
             },

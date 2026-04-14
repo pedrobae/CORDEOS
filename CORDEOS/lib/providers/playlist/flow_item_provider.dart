@@ -9,6 +9,8 @@ class FlowItemProvider extends ChangeNotifier {
   FlowItemProvider();
 
   final Map<int, FlowItem> _flowItems = {};
+  final List<int> _cachedDeletions = [];
+  final List<int> _cachedCreations = [];
 
   bool _hasUnsavedChanges = false;
   bool _isLoading = false;
@@ -76,13 +78,12 @@ class FlowItemProvider extends ChangeNotifier {
   // Create a new FlowItem from scratch
   Future<void> create(FlowItem flowItem) async {
     if (_isSaving) return;
-
+    _isSaving = true;
+    _error = null;
+    notifyListeners();
     try {
-      _isSaving = true;
-      _error = null;
-      notifyListeners();
-
       final id = await _flowItemRepo.createFlowItem(flowItem);
+      _cachedCreations.add(id);
       await loadFlowItem(id);
     } catch (e) {
       _error = e.toString();
@@ -90,6 +91,27 @@ class FlowItemProvider extends ChangeNotifier {
       _isSaving = false;
       notifyListeners();
     }
+  }
+
+  Future<int?> createFromCache(int id) async {
+    int? newID;
+    if (_isSaving) return newID;
+    if (!_flowItems.containsKey(id)) return newID;
+    _isSaving = true;
+    _error = null;
+    notifyListeners();
+    try {
+      final flowItem = _flowItems[id]!;
+      newID = await _flowItemRepo.createFlowItem(flowItem);
+      _cachedCreations.add(newID);
+      await loadFlowItem(newID);
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _isSaving = false;
+      notifyListeners();
+    }
+    return newID;
   }
 
   void initializeNewFlow(int playlistID, int position) {
@@ -102,6 +124,8 @@ class FlowItemProvider extends ChangeNotifier {
       duration: Duration.zero,
     );
     _flowItems[-1] = newFlowItem; // Temporary Cache for item creation
+    _hasUnsavedChanges = true;
+    notifyListeners();
   }
 
   /// Duplicate a Flow Item by ID
@@ -181,20 +205,14 @@ class FlowItemProvider extends ChangeNotifier {
     try {
       final flowItem = _flowItems[id]!;
 
-      if (id == -1) {
-        // New Flow Item creation
-        final newId = await _flowItemRepo.createFlowItem(flowItem);
-        await loadFlowItem(newId);
-        _flowItems.remove(-1); // Clear temporary cache
-      } else {
-        await _flowItemRepo.updateFlowItem(
-          id,
-          title: flowItem.title,
-          content: flowItem.contentText,
-          position: flowItem.position,
-          duration: flowItem.duration.inSeconds,
-        );
-      }
+      await _flowItemRepo.updateFlowItem(
+        id,
+        title: flowItem.title,
+        content: flowItem.contentText,
+        position: flowItem.position,
+        duration: flowItem.duration.inSeconds,
+      );
+
       _hasUnsavedChanges = false;
     } catch (e) {
       _error = e.toString();
@@ -224,6 +242,42 @@ class FlowItemProvider extends ChangeNotifier {
     }
   }
 
+  void cacheDeletion(int id) {
+    _flowItems.remove(id);
+    _cachedDeletions.add(id);
+    _hasUnsavedChanges = true;
+    notifyListeners();
+  }
+
+  Future<void> persistDeletions() async {
+    if (_isDeleting) return;
+
+    _isDeleting = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      debugPrint("FLOW PROVIDER - persisting deletion of flow items");
+      for (var id in _cachedDeletions) {
+        debugPrint("\t ID - $id");
+        await _flowItemRepo.deleteFlowItem(id);
+      }
+      _cachedDeletions.clear();
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _isDeleting = false;
+      notifyListeners();
+    }
+  }
+
+  void removeFromCache(int id) {
+    _flowItems.remove(id);
+    _cachedCreations.remove(id);
+    _hasUnsavedChanges = false;
+    notifyListeners();
+  }
+
   // ===== UTILITY =====
   // Clear cached data and reset state
   void clearCache() {
@@ -232,11 +286,20 @@ class FlowItemProvider extends ChangeNotifier {
     _isLoading = false;
     _isSaving = false;
     _isDeleting = false;
+    _cachedCreations.clear();
+    _cachedDeletions.clear();
+    _hasUnsavedChanges = false;
     notifyListeners();
   }
 
-  void clearUnsavedChanges() {
+  void clearUnsavedChanges() async {
     _hasUnsavedChanges = false;
+    for (var id in _cachedCreations) {
+      debugPrint(
+        "FLOW PROVIDER - clearing unsaved changes, deleting new flow item with ID $id",
+      );
+      await _flowItemRepo.deleteFlowItem(id);
+    }
     notifyListeners();
   }
 }

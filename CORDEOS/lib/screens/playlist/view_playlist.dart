@@ -5,6 +5,7 @@ import 'package:cordeos/models/domain/playlist/playlist_item.dart';
 import 'package:cordeos/models/domain/schedule.dart';
 import 'package:cordeos/providers/play/auto_scroll_provider.dart';
 import 'package:cordeos/providers/play/play_state_provider.dart';
+import 'package:cordeos/providers/playlist/flow_item_provider.dart';
 import 'package:cordeos/providers/section/section_provider.dart';
 import 'package:cordeos/providers/selection_provider.dart';
 import 'package:cordeos/providers/user/my_auth_provider.dart';
@@ -58,7 +59,11 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
             actions: [
               // Play
               IconButton(
-                icon: Icon(Icons.play_circle_fill_rounded, color: colorScheme.onSurface, size: 30,),
+                icon: Icon(
+                  Icons.play_circle_fill_rounded,
+                  color: colorScheme.onSurface,
+                  size: 30,
+                ),
                 onPressed: () {
                   final localVer = context.read<LocalVersionProvider>();
                   final sect = context.read<SectionProvider>();
@@ -89,7 +94,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
               ),
               // Save
               IconButton(
-                icon: Icon(Icons.save, color: colorScheme.onSurface, size: 30,),
+                icon: Icon(Icons.save, color: colorScheme.onSurface, size: 30),
                 onPressed: () => _handleSave(playlist, nav),
               ),
             ],
@@ -177,8 +182,10 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
     final localSch = context.read<LocalScheduleProvider>();
     final auth = context.read<MyAuthProvider>();
     final sel = context.read<SelectionProvider>();
+    final flow = context.read<FlowItemProvider>();
 
     localVer.persistCachedDeletions();
+    flow.persistDeletions();
 
     play.saveFromCache(playlist.id);
 

@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import 'package:cordeos/providers/playlist/flow_item_provider.dart';
 import 'package:cordeos/providers/playlist/playlist_provider.dart';
 
-import 'package:cordeos/widgets/common/delete_confirmation.dart';
 import 'package:cordeos/widgets/common/filled_text_button.dart';
 
 class FlowItemCardActionsSheet extends StatelessWidget {
@@ -72,23 +71,7 @@ class FlowItemCardActionsSheet extends StatelessWidget {
             isDiscrete: true,
             isDangerous: true,
             onPressed: () {
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                builder: (context) {
-                  return DeleteConfirmationSheet(
-                    itemType: AppLocalizations.of(context)!.flowItem,
-                    isDangerous: true,
-                    onConfirm: () async {
-                      await flow.deleteFlowItem(flowItemId);
-                      await play.loadPlaylist(playlistId);
-                      if (context.mounted) {
-                        Navigator.of(context).pop();
-                      }
-                    },
-                  );
-                },
-              );
+              flow.cacheDeletion(flowItemId);
             },
           ),
           SizedBox(),
