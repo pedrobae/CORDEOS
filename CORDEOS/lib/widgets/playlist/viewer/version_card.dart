@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:cordeos/models/domain/cipher/cipher.dart';
+import 'package:cordeos/providers/token_cache_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:cordeos/l10n/app_localizations.dart';
 
@@ -114,12 +115,16 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard> {
               Expanded(
                 child: GestureDetector(
                   onTap: () {
+                    final token = context.read<TokenProvider>();
                     nav.push(
                       () => ViewCipherScreen(
                         versionType: VersionType.playlist,
                         versionID: widget.versionId,
                         cipherID: s.version!.cipherID,
                       ),
+                      onPopCallback: () {
+                        token.clear();
+                      },
                       showBottomNavBar: true,
                     );
                   },

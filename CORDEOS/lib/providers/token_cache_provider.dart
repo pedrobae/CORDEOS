@@ -296,6 +296,16 @@ class TokenProvider extends ChangeNotifier {
     TextStyle lyricStyle,
     TextStyle chordStyle,
   ) {
+    // DEBUG - print caches size
+    debugPrint(
+      "TOKEN PROVIDER - cache sizes"
+      "\n\ttokens:${_tokenCache.length} | "
+      "\n\torganized:${_organizedCache.length} | "
+      "\n\tmeasurements:${_measurementCache.length} | "
+      "\n\tpositions:${_positionCache.length} | "
+      "\n\tpaint:${_paintCache.length}",
+    );
+
     final cacheKey = paintCacheKey(key, chordStyle, lyricStyle);
     if (_paintCache.containsKey(cacheKey)) {
       return;
@@ -333,10 +343,12 @@ class TokenProvider extends ChangeNotifier {
   // LIFECYCLE
   // ═══════════════════════════════════════════════════════════════════════════
   void clear() {
+    debugPrint("TOKEN PROVIDER - clearing caches");
     _tokenCache.clear();
     _organizedCache.clear();
     _measurementCache.clear();
     _positionCache.clear();
+    _paintCache.clear();
   }
 
   void clearIndex(TokenCacheKey key) {
@@ -353,6 +365,9 @@ class TokenProvider extends ChangeNotifier {
       (k, v) => k.startsWith(key.sectionIndex.toString()),
     );
     _positionCache.removeWhere(
+      (k, v) => k.startsWith(key.sectionIndex.toString()),
+    );
+    _paintCache.removeWhere(
       (k, v) => k.startsWith(key.sectionIndex.toString()),
     );
   }

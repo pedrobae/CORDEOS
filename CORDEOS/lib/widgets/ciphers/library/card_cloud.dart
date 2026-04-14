@@ -1,4 +1,5 @@
 import 'package:cordeos/models/dtos/version_dto.dart';
+import 'package:cordeos/providers/token_cache_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:cordeos/models/domain/cipher/version.dart';
 
@@ -40,12 +41,16 @@ class CloudCipherCard extends StatelessWidget {
         final version = sel.version;
         return GestureDetector(
           onTap: () {
+            final token = context.read<TokenProvider>();
             nav.push(
               () => ViewCipherScreen(
                 cipherID: null,
                 versionID: versionId,
                 versionType: VersionType.cloud,
               ),
+              onPopCallback: () {
+                token.clear();
+              },
               showBottomNavBar: true,
             );
           },

@@ -305,12 +305,14 @@ class TokenizationBuilder {
             case TokenType.underline:
               wordWidgets.add(
                 TokenWidget(
-                  widget: Container(
-                    height: lineHeight,
-                    width: measurements[token.toKey()]!.width,
-                    decoration: BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(color: onSurfaceColor, width: 1),
+                  widget: IgnorePointer(
+                    child: Container(
+                      height: lineHeight,
+                      width: measurements[token.toKey()]!.width,
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(color: onSurfaceColor, width: 1),
+                        ),
                       ),
                     ),
                   ),

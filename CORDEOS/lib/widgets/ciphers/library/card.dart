@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:cordeos/models/domain/cipher/cipher.dart';
+import 'package:cordeos/providers/token_cache_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:cordeos/l10n/app_localizations.dart';
 
@@ -86,12 +87,16 @@ class _CipherCardState extends State<CipherCard> {
 
                 nav.pop();
               } else {
+                    final token = context.read<TokenProvider>();
                 nav.push(
                   () => ViewCipherScreen(
                     cipherID: s.cipher!.id,
                     versionID: widget.versionID,
                     versionType: VersionType.local,
                   ),
+                  onPopCallback: () {
+                    token.clear();
+                  },
                   showBottomNavBar: true,
                 );
               }
@@ -248,7 +253,7 @@ class _CipherCardState extends State<CipherCard> {
                         ),
                       ),
 
-                    // ACTIONS SHEET   
+                    // ACTIONS SHEET
                     GestureDetector(
                       onTap: _openCipherActionsSheet(s.cipher!.id),
                       child: SizedBox(
