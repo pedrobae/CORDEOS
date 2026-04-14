@@ -7,6 +7,7 @@ import 'package:cordeos/providers/navigation_provider.dart';
 import 'package:cordeos/providers/play/play_state_provider.dart';
 import 'package:cordeos/providers/section/section_provider.dart';
 import 'package:cordeos/providers/settings/layout_settings_provider.dart';
+import 'package:cordeos/providers/token_cache_provider.dart';
 import 'package:cordeos/providers/version/local_version_provider.dart';
 import 'package:cordeos/widgets/ciphers/editor/sections/sheet_manage.dart';
 import 'package:cordeos/widgets/ciphers/viewer/structure_list.dart';
@@ -39,6 +40,7 @@ class _PlayPlaylistState extends State<PlayPlaylist> {
   late final ScrollController _scrollController;
   late final PlayStateProvider _state;
   late final ScrollProvider _scroll;
+  late final TokenProvider _token;
 
   @override
   void initState() {
@@ -47,6 +49,8 @@ class _PlayPlaylistState extends State<PlayPlaylist> {
 
     _state = context.read<PlayStateProvider>();
     _scroll = context.read<ScrollProvider>();
+    _token = context.read<TokenProvider>();
+
     _scroll.setScrollController(_scrollController);
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -62,6 +66,7 @@ class _PlayPlaylistState extends State<PlayPlaylist> {
 
   @override
   void dispose() {
+    _token.clear();
     _scrollController.removeListener(_scrollListener);
     _scrollController.dispose();
     _state.reset();
