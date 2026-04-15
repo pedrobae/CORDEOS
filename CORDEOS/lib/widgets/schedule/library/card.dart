@@ -1,20 +1,25 @@
+import 'package:flutter/material.dart';
+
 import 'package:cordeos/l10n/app_localizations.dart';
+
 import 'package:cordeos/models/domain/playlist/playlist.dart';
 import 'package:cordeos/models/domain/schedule.dart';
+
+import 'package:provider/provider.dart';
 import 'package:cordeos/providers/user/my_auth_provider.dart';
 import 'package:cordeos/providers/navigation_provider.dart';
 import 'package:cordeos/providers/playlist/playlist_provider.dart';
 import 'package:cordeos/providers/schedule/local_schedule_provider.dart';
 import 'package:cordeos/providers/user/user_provider.dart';
 import 'package:cordeos/screens/schedule/view.dart';
+
 import 'package:cordeos/utils/date_utils.dart';
+
 import 'package:cordeos/widgets/common/delete_confirmation.dart';
 import 'package:cordeos/widgets/common/filled_text_button.dart';
 import 'package:cordeos/widgets/schedule/library/sheet_duplicate.dart';
 import 'package:cordeos/widgets/schedule/library/sheet_share.dart';
 import 'package:cordeos/widgets/schedule/status_chip.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class ScheduleCard extends StatelessWidget {
   final int scheduleId;

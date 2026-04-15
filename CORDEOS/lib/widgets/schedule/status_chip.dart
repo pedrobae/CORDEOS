@@ -18,8 +18,8 @@ class StatusChip extends StatelessWidget {
       decoration: BoxDecoration(
         color: switch (schedule.scheduleState) {
           ScheduleState.completed => colorScheme.onSurface,
-          ScheduleState.draft => Color(0XFFFFA500),
-          ScheduleState.published => Color(0xFF52A94F),
+          ScheduleState.draft => Color.fromARGB(255, 226, 147, 0),
+          ScheduleState.published => Color.fromARGB(255, 66, 180, 62),
         },
         borderRadius: BorderRadius.circular(100),
       ),

@@ -20,6 +20,21 @@ class _SplashScreenState extends State<SplashScreen> {
   bool _hasNavigated = false;
   Future<bool>? _versionSupportFuture;
   bool _isPreloading = false;
+  final DateTime _loadStartTime = DateTime.now();
+
+  PageRoute<void> _buildSplashExitRoute(Widget destination) {
+    return PageRouteBuilder<void>(
+      transitionDuration: const Duration(milliseconds: 220),
+      reverseTransitionDuration: const Duration(milliseconds: 180),
+      pageBuilder: (context, animation, secondaryAnimation) => destination,
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        return FadeTransition(
+          opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
+          child: child,
+        );
+      },
+    );
+  }
 
   void _navigateToNextScreen(BuildContext context, bool isAuthenticated) {
     if (_hasNavigated) return;
@@ -41,14 +56,26 @@ class _SplashScreenState extends State<SplashScreen> {
         } catch (_) {
           // Preload failures must not block navigation.
         }
+
+        // Ensure splash is visible for at least 5 seconds to avoid jarring transitions
+        final elapsed = DateTime.now().difference(_loadStartTime);
+        if (elapsed < const Duration(seconds: 5)) {
+          await Future.delayed(const Duration(seconds: 5) - elapsed);
+        }
         if (!context.mounted) return;
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const MainScreen()),
-        );
+        Navigator.of(
+          context,
+        ).pushReplacement(_buildSplashExitRoute(const MainScreen()));
       } else {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const LoginScreen()),
-        );
+        // Ensure splash is visible for at least 2.5 seconds to avoid jarring transitions
+        final elapsed = DateTime.now().difference(_loadStartTime);
+        if (elapsed < const Duration(milliseconds: 2500)) {
+          await Future.delayed(const Duration(milliseconds: 2500) - elapsed);
+        }
+        if (!context.mounted) return;
+        Navigator.of(
+          context,
+        ).pushReplacement(_buildSplashExitRoute(const LoginScreen()));
       }
     });
   }
