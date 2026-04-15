@@ -438,7 +438,7 @@ class _PlayPlaylistState extends State<PlayPlaylist> {
                   // Save button (edit only)
                   if (widget.canEdit)
                     GestureDetector(
-                      onTap: _handleSave,
+                      onTap: _handleSave(),
                       child: SizedBox(
                         width: 40,
                         height: 40,
@@ -567,7 +567,7 @@ class _PlayPlaylistState extends State<PlayPlaylist> {
       final localVer = context.read<LocalVersionProvider>();
       final sect = context.read<SectionProvider>();
       final nav = context.read<NavigationProvider>();
-
+      debugPrint("Saving playlist with ${_state.items.length} items");
       for (var item in _state.items) {
         switch (item.type) {
           case PlaylistItemType.version:

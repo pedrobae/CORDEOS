@@ -4,7 +4,6 @@ import 'package:cordeos/utils/palette.dart';
 enum ThemeColor { green, gold, orange, burgundy }
 
 class AppTheme {
-  // Pre-calculated static final color schemes for optimization
   static final ColorScheme _greenLightColorScheme = ColorScheme(
     brightness: Brightness.light,
     primary: BrandPalette.green,
@@ -73,7 +72,6 @@ class AppTheme {
     inverseSurface: NeutralPalette.surface5Light,
     onInverseSurface: NeutralPalette.surface1Dark,
   );
-
   static final ColorScheme _burgundyLightColorScheme = ColorScheme(
     brightness: Brightness.light,
     primary: BrandPalette.burgundy,
