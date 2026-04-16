@@ -123,8 +123,8 @@ class CloudCipherCard extends StatelessWidget {
                     if (sel.isDownloading == true)
                       const CloudDownloadIndicator()
                     else
-                      IconButton(
-                        onPressed: () => showModalBottomSheet(
+                      GestureDetector(
+                        onTap: () => showModalBottomSheet(
                           context: context,
                           isScrollControlled: true,
                           builder: (context) => Padding(
@@ -132,7 +132,24 @@ class CloudCipherCard extends StatelessWidget {
                             child: DownloadVersionSheet(versionId: versionId),
                           ),
                         ),
-                        icon: Icon(Icons.cloud_download),
+                        child: SizedBox(
+                          width: 40,
+                          height: 40,
+                          child: Stack(
+                            children: [
+                              Positioned.fill(
+
+                                child: Icon(
+                                  Icons.cloud_rounded,
+                                  color: colorScheme.surface,
+                                ),
+                              ),
+                              Positioned.fill(
+                                child: Icon(Icons.cloud_download),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                   ],
                 ),

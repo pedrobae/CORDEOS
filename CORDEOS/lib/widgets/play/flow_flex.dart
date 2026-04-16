@@ -40,6 +40,7 @@ class FlowFlex extends StatelessWidget {
         }
 
         return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -54,13 +55,12 @@ class FlowFlex extends StatelessWidget {
               ],
             ),
             Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(0),
                 border: Border.fromBorderSide(
                   BorderSide(
-                    color: colorScheme.surfaceContainerLow,
+                    color: colorScheme.surfaceContainerHigh,
                     width: 1.2,
                   ),
                 ),

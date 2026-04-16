@@ -228,7 +228,6 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard> {
         scrollDirection: Axis.horizontal,
         itemCount: songStructure.length,
         onReorder: (oldIndex, newIndex) {
-          if (newIndex > oldIndex) newIndex--;
           localVer.reorderSongStructure(widget.versionId, oldIndex, newIndex);
         },
         itemBuilder: (_, index) {
