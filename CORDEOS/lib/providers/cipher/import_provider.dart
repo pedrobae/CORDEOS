@@ -78,7 +78,7 @@ class ImportProvider extends ChangeNotifier {
           final pdfDocument = await _pdfService.extractTextWithFormatting(
             selectedFile!,
             selectedFileName!,
-            1,
+            _importVariation == ImportVariation.pdfWithColumns,
           );
 
           importedCipher = ParsingCipher(
@@ -93,10 +93,7 @@ class ImportProvider extends ChangeNotifier {
               .split('.') // remove file extension
               .first;
 
-          final importedLines =
-              _importVariation == ImportVariation.pdfWithColumns
-              ? pdfDocument.linesWithColumns
-              : pdfDocument.lines;
+          final importedLines = pdfDocument.lines;
 
           if (importedLines.isEmpty) {
             throw Exception('No text lines were extracted from the PDF');
