@@ -256,7 +256,6 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
           localVer.loadVersion(widget.versionID);
           ciph.loadCipher(widget.cipherID ?? -1);
         },
-        showBottomNavBar: true,
       );
     };
   }

@@ -917,7 +917,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get parsingStrategy => 'Parsing Strategy';
 
   @override
-  String get doubleNewLine => 'Double New Line';
+  String get doubleNewLine => 'Empty Line';
 
   @override
   String get sectionLabels => 'Section Labels';
@@ -1113,7 +1113,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get chordExpansionInstruction => 'Hold a chord to show variations.';
+  String get chordExpansionInstruction => 'Tap a chord to show variations.';
 
   @override
   String get customChord => 'Custom Chord';

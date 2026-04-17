@@ -923,7 +923,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get parsingStrategy => 'Estratégia de Processamento';
 
   @override
-  String get doubleNewLine => 'Dupla Nova Linha';
+  String get doubleNewLine => 'Linha Vazia';
 
   @override
   String get sectionLabels => 'Rótulos de Seção';
@@ -1121,7 +1121,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get chordExpansionInstruction =>
-      'Toque e segure um acorde para mostrar variações.';
+      'Toque um acorde para mostrar variações.';
 
   @override
   String get customChord => 'Acorde Personalizado';

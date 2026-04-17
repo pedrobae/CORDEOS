@@ -113,138 +113,134 @@ class _CipherCardState extends State<CipherCard> {
         }
 
         // Card content
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 8.0), // Spacing between cards
-          child: GestureDetector(
-            onTap: () async {
-              if (sel.isSelectionMode) {
-                await _createAndAddVersionToPlaylist();
-
-                nav.pop();
-              } else {
-                final token = context.read<TokenProvider>();
-                nav.push(
-                  () => ViewCipherScreen(
-                    cipherID: s.cipherID!,
-                    versionID: widget.versionID,
-                    versionType: VersionType.local,
-                  ),
-                  onPopCallback: () {
-                    token.clear();
-                  },
-                  showBottomNavBar: true,
-                );
-              }
-            },
-            onLongPress: () async {
-              final localVer = context.read<LocalVersionProvider>();
-              final ciph = context.read<CipherProvider>();
-
+        return GestureDetector(
+          onTap: () async {
+            if (sel.isSelectionMode) {
+              await _createAndAddVersionToPlaylist();
+        
+              nav.pop();
+            } else {
+              final token = context.read<TokenProvider>();
               nav.push(
-                () => EditCipherScreen(
+                () => ViewCipherScreen(
                   cipherID: s.cipherID!,
                   versionID: widget.versionID,
                   versionType: VersionType.local,
                 ),
-                keepAlive: true,
-                changeDetector: () {
-                  return localVer.hasUnsavedChanges || ciph.hasUnsavedChanges;
-                },
-                onChangeDiscarded: () {
-                  localVer.loadVersion(widget.versionID);
-                  ciph.loadCipher(s.cipherID!);
+                onPopCallback: () {
+                  token.clear();
                 },
                 showBottomNavBar: true,
               );
-            },
-            child: Container(
-              decoration: BoxDecoration(
-                border: Border.all(color: colorScheme.surfaceContainerLowest),
+            }
+          },
+          onLongPress: () async {
+            final localVer = context.read<LocalVersionProvider>();
+            final ciph = context.read<CipherProvider>();
+        
+            nav.push(
+              () => EditCipherScreen(
+                cipherID: s.cipherID!,
+                versionID: widget.versionID,
+                versionType: VersionType.local,
               ),
-              padding: const EdgeInsets.all(8.0),
-              child: IntrinsicHeight(
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        spacing: 2.0,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // TITLE
-                          Text(s.title, style: textTheme.titleMedium),
-
-                          // INFO
-                          Row(
-                            spacing: 16.0,
-                            children: [
-                              Text(
-                                '${AppLocalizations.of(context)!.musicKey}: ${s.key}',
-                                style: textTheme.bodyMedium,
-                              ),
-                              Text(
-                                AppLocalizations.of(
-                                  context,
-                                )!.bpmWithPlaceholder(s.bpm),
-                                style: textTheme.bodyMedium,
-                              ),
-                              Text(
-                                AppLocalizations.of(
-                                  context,
-                                )!.durationWithPlaceholder(s.duration),
-                                style: textTheme.bodyMedium,
-                              ),
-                            ],
-                          ),
-
-                          // STRUCTURE LIST
-                          if (!isDense)
-                            SizedBox(
-                              height: 25,
-                              child: ListView.builder(
-                                scrollDirection: Axis.horizontal,
-                                itemCount: s.songStructure.length,
-                                itemBuilder: (_, index) {
-                                  final key = s.songStructure[index];
-                                  final badgeData = s.sectionBadges[key];
-                                  if (badgeData == null) {
-                                    return SizedBox.shrink();
-                                  }
-                                  return Padding(
-                                    padding: const EdgeInsets.only(right: 2.0),
-                                    child: SectionBadge(
-                                      sectionBadgeData: badgeData,
-                                    ),
-                                  );
-                                },
-                              ),
+              keepAlive: true,
+              changeDetector: () {
+                return localVer.hasUnsavedChanges || ciph.hasUnsavedChanges;
+              },
+              onChangeDiscarded: () {
+                localVer.loadVersion(widget.versionID);
+                ciph.loadCipher(s.cipherID!);
+              },
+            );
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: colorScheme.surfaceContainerLowest),
+            ),
+            padding: const EdgeInsets.all(8.0),
+            child: IntrinsicHeight(
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      spacing: 2.0,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // TITLE
+                        Text(s.title, style: textTheme.titleMedium),
+        
+                        // INFO
+                        Row(
+                          spacing: 16.0,
+                          children: [
+                            Text(
+                              '${AppLocalizations.of(context)!.musicKey}: ${s.key}',
+                              style: textTheme.titleSmall,
                             ),
-                        ],
-                      ),
-                    ),
-
-                    if (s.link != null && s.link!.isNotEmpty)
-                      GestureDetector(
-                        onTap: () async {
-                          final url = s.link!;
-                          await nav.launchURL(url);
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.only(right: 4.0),
-                          child: Icon(Icons.link, size: 20),
+                            Text(
+                              AppLocalizations.of(
+                                context,
+                              )!.bpmWithPlaceholder(s.bpm),
+                              style: textTheme.titleSmall,
+                            ),
+                            Text(
+                              AppLocalizations.of(
+                                context,
+                              )!.durationWithPlaceholder(s.duration),
+                              style: textTheme.titleSmall,
+                            ),
+                          ],
                         ),
-                      ),
-
-                    // ACTIONS SHEET
+        
+                        // STRUCTURE LIST
+                        if (!isDense)
+                          SizedBox(
+                            height: 25,
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: s.songStructure.length,
+                              itemBuilder: (_, index) {
+                                final key = s.songStructure[index];
+                                final badgeData = s.sectionBadges[key];
+                                if (badgeData == null) {
+                                  return SizedBox.shrink();
+                                }
+                                return Padding(
+                                  padding: const EdgeInsets.only(right: 2.0),
+                                  child: SectionBadge(
+                                    sectionBadgeData: badgeData,
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+        
+                  if (s.link != null && s.link!.isNotEmpty)
                     GestureDetector(
-                      onTap: _openCipherActionsSheet(s.cipherID!),
-                      child: SizedBox(
-                        height: double.infinity,
-                        width: 40,
-                        child: Icon(Icons.more_vert),
+                      onTap: () async {
+                        final url = s.link!;
+                        await nav.launchURL(url);
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 4.0),
+                        child: Icon(Icons.link, size: 20),
                       ),
                     ),
-                  ],
-                ),
+        
+                  // ACTIONS SHEET
+                  GestureDetector(
+                    onTap: _openCipherActionsSheet(s.cipherID!),
+                    child: SizedBox(
+                      height: double.infinity,
+                      width: 40,
+                      child: Icon(Icons.more_vert),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),

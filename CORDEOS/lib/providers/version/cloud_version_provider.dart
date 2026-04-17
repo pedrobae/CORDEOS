@@ -30,21 +30,21 @@ class CloudVersionProvider extends ChangeNotifier {
     return _versions[firebaseId];
   }
 
-  List<String> get filteredCloudVersionIds {
+  Map<String, String> get filteredCloudVersionIds {
     if (_searchTerm.isEmpty) {
-      return _versions.keys.toList();
+      return _versions.map((id, version) => MapEntry(id, version.title));
     } else {
-      final List<String> tempList = [];
+      final Map<String, String> tempMap = {};
       for (var entry in _versions.entries) {
         if (entry.value.title.toLowerCase().contains(_searchTerm) ||
             entry.value.author.toLowerCase().contains(_searchTerm) ||
             entry.value.tags.any(
               (tag) => tag.toLowerCase().contains(_searchTerm),
             )) {
-          tempList.add(entry.key);
+          tempMap[entry.key] = entry.value.title;
         }
       }
-      return tempList;
+      return tempMap;
     }
   }
 

@@ -24,20 +24,20 @@ class CipherProvider extends ChangeNotifier {
 
   // Getters
   Map<int, Cipher> get ciphers => _ciphers;
-  List<int> get filteredCipherIds {
+  Map<int, String> get filteredCipherIds {
     if (_searchTerm.isEmpty) {
-      return _ciphers.keys.toList();
+      return _ciphers.map((id, cipher) => MapEntry(id, cipher.title));
     } else {
-      final List<int> tempList = [];
+      final Map<int, String> tempMap = {};
       for (var entry in _ciphers.entries) {
         final cipher = entry.value;
         if (cipher.title.toLowerCase().contains(_searchTerm) ||
             cipher.author.toLowerCase().contains(_searchTerm) ||
             cipher.tags.any((tag) => tag.toLowerCase().contains(_searchTerm))) {
-          tempList.add(entry.key);
+          tempMap[entry.key] = cipher.title;
         }
       }
-      return tempList;
+      return tempMap;
     }
   }
 

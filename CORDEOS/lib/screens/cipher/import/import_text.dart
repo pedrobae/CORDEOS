@@ -155,12 +155,13 @@ class _ImportTextScreenState extends State<ImportTextScreen> {
           style: textTheme.labelLarge,
         ),
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              AppLocalizations.of(context)!.doubleNewLine,
-              style: textTheme.bodyMedium,
-              textAlign: TextAlign.center,
+            Expanded(
+              child: Text(
+                AppLocalizations.of(context)!.doubleNewLine,
+                style: textTheme.bodyMedium,
+                textAlign: TextAlign.left,
+              ),
             ),
             Switch(
               inactiveTrackColor: colorScheme.primary,
@@ -174,10 +175,12 @@ class _ImportTextScreenState extends State<ImportTextScreen> {
                 imp.toggleParsingStrategy();
               },
             ),
-            Text(
-              AppLocalizations.of(context)!.sectionLabels,
-              style: textTheme.bodyMedium,
-              textAlign: TextAlign.center,
+            Expanded(
+              child: Text(
+                AppLocalizations.of(context)!.sectionLabels,
+                style: textTheme.bodyMedium,
+                textAlign: TextAlign.right,
+              ),
             ),
           ],
         ),
@@ -233,7 +236,6 @@ class _ImportTextScreenState extends State<ImportTextScreen> {
           await localVer.loadVersion(widget.versionID);
           await ciph.loadCipher(widget.cipherID);
         },
-        showBottomNavBar: true,
       );
     }
   }

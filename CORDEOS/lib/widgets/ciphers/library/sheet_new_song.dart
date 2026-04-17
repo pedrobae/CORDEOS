@@ -76,7 +76,6 @@ class NewSongSheet extends StatelessWidget {
                   ciph.clearCipherFromCache();
                   localVer.clearVersionFromCache();
                 },
-                showBottomNavBar: true,
               );
             },
           ),

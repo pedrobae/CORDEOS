@@ -57,7 +57,7 @@ class CloudCipherCard extends StatelessWidget {
           child: Stack(
             children: [
               Positioned(
-                right: -5,
+                right: -20,
                 bottom: -25,
                 child: SvgPicture.asset(
                   'assets/logos/nh_colored_white.svg',
@@ -75,21 +75,22 @@ class CloudCipherCard extends StatelessWidget {
                 padding: const EdgeInsets.all(8.0),
                 child: Row(
                   children: [
-                    Expanded(
+                    Container(
+                      color: colorScheme.surface,
                       child: Column(
                         spacing: 2.0,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // TITLE
                           Text(version.title, style: textTheme.titleMedium),
-
+                      
                           // INFO
                           Row(
                             spacing: 16.0,
                             children: [
                               Text(
                                 '${AppLocalizations.of(context)!.musicKey}: ${version.transposedKey ?? version.originalKey}',
-                                style: textTheme.bodyMedium,
+                                style: textTheme.titleSmall,
                               ),
                               version.bpm != 0
                                   ? Text(
@@ -98,7 +99,7 @@ class CloudCipherCard extends StatelessWidget {
                                       )!.bpmWithPlaceholder(
                                         version.bpm.toString(),
                                       ),
-                                      style: textTheme.bodyMedium,
+                                      style: textTheme.titleSmall,
                                     )
                                   : Text('-'),
                               version.duration > 0
@@ -110,7 +111,7 @@ class CloudCipherCard extends StatelessWidget {
                                           Duration(seconds: version.duration),
                                         ),
                                       ),
-                                      style: textTheme.bodyMedium,
+                                      style: textTheme.titleSmall,
                                     )
                                   : Text('-'),
                             ],
@@ -118,6 +119,7 @@ class CloudCipherCard extends StatelessWidget {
                         ],
                       ),
                     ),
+                    Spacer(),
 
                     // DOWNLOAD VERSION
                     if (sel.isDownloading == true)

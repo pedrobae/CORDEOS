@@ -99,7 +99,6 @@ class CipherCardActionsSheet extends StatelessWidget {
                   localVer.loadVersion(versionID);
                   ciph.loadCipher(cipherId);
                 },
-                showBottomNavBar: true,
               );
             },
           ),

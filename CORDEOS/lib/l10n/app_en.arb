@@ -1,806 +1,1621 @@
 {
   "@@locale": "en",
-
   "appName": "CORDEOS",
-  "@appName": {"description": "Application name"},
+  "@appName": {
+    "description": "Application name"
+  },
   "appVersion": "Version: {version}",
-  "@appVersion": {"description": "App version label", "placeholders": {"version": {}}},
+  "@appVersion": {
+    "description": "App version label",
+    "placeholders": {
+      "version": {}
+    }
+  },
   "appVersionNotSupported": "This app version is no longer supported.\nPlease update to the latest version to continue using CORDEOS.",
-  "@appVersionNotSupported": {"description": "Message displayed when the app version is no longer supported"},
+  "@appVersionNotSupported": {
+    "description": "Message displayed when the app version is no longer supported"
+  },
   "registrationDisabled": "New registrations are currently disabled.",
-  "@registrationDisabled": {"description": "Message displayed when account registration is disabled"},
-
-  "newHeart" : "New Heart Music Ministries",
-  "@newHeart" : {"description": "Company name"},
-
+  "@registrationDisabled": {
+    "description": "Message displayed when account registration is disabled"
+  },
+  "newHeart": "New Heart Music Ministries",
+  "@newHeart": {
+    "description": "Company name"
+  },
   "compactView": "Compact View",
-  "@compactView": {"description": "Compact view option label"},
-  
+  "@compactView": {
+    "description": "Compact view option label"
+  },
   "setup": "Setup",
-  "@setup": {"description": "Setup related messages"},
+  "@setup": {
+    "description": "Setup related messages"
+  },
   "hour": "Hour",
-  "@hour": {"description": "Hour field label"},
+  "@hour": {
+    "description": "Hour field label"
+  },
   "minute": "Minute",
-  "@minute": {"description": "Minute field label"},
+  "@minute": {
+    "description": "Minute field label"
+  },
   "second": "Second",
-  "@second": {"description": "Second field label"},
-
+  "@second": {
+    "description": "Second field label"
+  },
   "comingSoon": "Feature under development",
-  "@comingSoon": {"description": "Coming soon message"},
-
+  "@comingSoon": {
+    "description": "Coming soon message"
+  },
   "current": "Current",
-  "@current": {"description": "Label for current selection"},
-  
+  "@current": {
+    "description": "Label for current selection"
+  },
   "theme": "Theme Mode",
-  "@theme": {"description": "Theme field label"},
+  "@theme": {
+    "description": "Theme field label"
+  },
   "colorVariant": "Alternative Color",
-  "@colorVariant": {"description": "Color variant field label"},
+  "@colorVariant": {
+    "description": "Color variant field label"
+  },
   "changeLanguage": "Change Language",
-  "@changeLanguage": {"description": "Change language field label"},
+  "@changeLanguage": {
+    "description": "Change language field label"
+  },
   "changeLanguageSubtitle": "Change the application language",
-  "@changeLanguageSubtitle": {"description": "Subtitle for change language settings"},
+  "@changeLanguageSubtitle": {
+    "description": "Subtitle for change language settings"
+  },
   "developmentTools": "Development Tools",
-  "@developmentTools": {"description": "Development tools section title"},
+  "@developmentTools": {
+    "description": "Development tools section title"
+  },
   "database": "Database",
-  "@database": {"description": "Database related messages"},
+  "@database": {
+    "description": "Database related messages"
+  },
   "resetDatabase": "Reset Database",
-  "@resetDatabase": {"description": "Reset database dangerous action title"},
+  "@resetDatabase": {
+    "description": "Reset database dangerous action title"
+  },
   "resetDatabaseSubtitle": "Wipes the entire database",
-  "@resetDatabaseSubtitle": {"description": "Subtitle for reset database dangerous action"},
+  "@resetDatabaseSubtitle": {
+    "description": "Subtitle for reset database dangerous action"
+  },
   "databaseInformation": "Database Information",
-  "@databaseInformation": {"description": "Database information title"},
+  "@databaseInformation": {
+    "description": "Database information title"
+  },
   "recordsPerTable": "Records per Table",
-  "@recordsPerTable": {"description": "Label for records per table section"},
+  "@recordsPerTable": {
+    "description": "Label for records per table section"
+  },
   "tableData": "Table: {tableName}",
-  "@tableData": {"description": "Label for table data with table name placeholder", "placeholders": {"tableName": {}}},
+  "@tableData": {
+    "description": "Label for table data with table name placeholder",
+    "placeholders": {
+      "tableName": {}
+    }
+  },
   "databaseInfoSubtitle": "View tables and entries in the database",
-  "@databaseInfoSubtitle": {"description": "Subtitle for database information section"},
+  "@databaseInfoSubtitle": {
+    "description": "Subtitle for database information section"
+  },
   "reloadInterface": "Reload Interface",
-  "@reloadInterface": {"description": "Reload interface dangerous action title"},
+  "@reloadInterface": {
+    "description": "Reload interface dangerous action title"
+  },
   "reloadInterfaceSubtitle": "Clears cached data and reloads all providers",
-  "@reloadInterfaceSubtitle": {"description": "Subtitle for reload interface dangerous action"},
+  "@reloadInterfaceSubtitle": {
+    "description": "Subtitle for reload interface dangerous action"
+  },
   "databaseResetSuccess": "Database reset successfully!",
-  "@databaseResetSuccess": {"description": "Success message after resetting database"},
+  "@databaseResetSuccess": {
+    "description": "Success message after resetting database"
+  },
   "reloadInterfaceSuccess": "Interface and data fully reloaded!",
-  "@reloadInterfaceSuccess": {"description": "Success message after reloading interface and data"},
+  "@reloadInterfaceSuccess": {
+    "description": "Success message after reloading interface and data"
+  },
   "noRowsInTable": "No rows found in this table.",
-  "@noRowsInTable": {"description": "Message shown when selected table has no rows"},
+  "@noRowsInTable": {
+    "description": "Message shown when selected table has no rows"
+  },
   "actions": "Actions",
-  "@actions": {"description": "Header label for actions column in debug table"},
+  "@actions": {
+    "description": "Header label for actions column in debug table"
+  },
   "deleteRow": "Delete row",
-  "@deleteRow": {"description": "Tooltip for deleting a single row"},
+  "@deleteRow": {
+    "description": "Tooltip for deleting a single row"
+  },
   "rowHasNoId": "Row has no id",
-  "@rowHasNoId": {"description": "Tooltip when row cannot be deleted because it has no id"},
+  "@rowHasNoId": {
+    "description": "Tooltip when row cannot be deleted because it has no id"
+  },
   "deleteRowQuestion": "Delete row?",
-  "@deleteRowQuestion": {"description": "Confirmation dialog title for deleting a row"},
+  "@deleteRowQuestion": {
+    "description": "Confirmation dialog title for deleting a row"
+  },
   "deleteRowQuestionBody": "Delete id={rowId} from \"{tableName}\"?",
-  "@deleteRowQuestionBody": {"description": "Confirmation dialog body for deleting a row", "placeholders": {"rowId": {}, "tableName": {}}},
+  "@deleteRowQuestionBody": {
+    "description": "Confirmation dialog body for deleting a row",
+    "placeholders": {
+      "rowId": {},
+      "tableName": {}
+    }
+  },
   "rowDeletedFromTable": "Deleted row id={rowId} from {tableName}.",
-  "@rowDeletedFromTable": {"description": "Snackbar message after deleting a row from a table", "placeholders": {"rowId": {}, "tableName": {}}},
-
+  "@rowDeletedFromTable": {
+    "description": "Snackbar message after deleting a row from a table",
+    "placeholders": {
+      "rowId": {},
+      "tableName": {}
+    }
+  },
   "authentication": "Authentication",
-  "@authentication": {"description": "Authentication related messages"},
+  "@authentication": {
+    "description": "Authentication related messages"
+  },
   "reauthenticationRequired": "Re-authentication Required",
-  "@reauthenticationRequired": {"description": "Title for re-authentication required message"},
+  "@reauthenticationRequired": {
+    "description": "Title for re-authentication required message"
+  },
   "account": "Account",
-  "@account": {"description": "Account related messages"},
+  "@account": {
+    "description": "Account related messages"
+  },
   "email": "Email",
-  "@email": {"description": "Email field label"},
+  "@email": {
+    "description": "Email field label"
+  },
   "password": "Password",
-  "@password": {"description": "Password field label"},
+  "@password": {
+    "description": "Password field label"
+  },
   "login": "Log In",
-  "@login": {"description": "Login button label"},
+  "@login": {
+    "description": "Login button label"
+  },
   "signInTitle": "Sign in to CORDEOS",
-  "@signInTitle": {"description": "Title for sign in screen"},
+  "@signInTitle": {
+    "description": "Title for sign in screen"
+  },
   "signInWithPlaceholder": "Sign in with {method}",
-  "@signInWithPlaceholder": {"description": "Sign in with method placeholder", "placeholders": {"method": {}}},
-
+  "@signInWithPlaceholder": {
+    "description": "Sign in with method placeholder",
+    "placeholders": {
+      "method": {}
+    }
+  },
   "logOut": "Sign Out",
-  "@logOut": {"description": "Logout button label"},
+  "@logOut": {
+    "description": "Logout button label"
+  },
   "deleteAccountRequest": "Request account deletion",
-  "@deleteAccountRequest": {"description": "Delete account request button label"},
+  "@deleteAccountRequest": {
+    "description": "Delete account request button label"
+  },
   "accountCreationPrefix": "New User? ",
-  "@accountCreationPrefix": {"description": "Prefix text for account creation prompt"},
+  "@accountCreationPrefix": {
+    "description": "Prefix text for account creation prompt"
+  },
   "accountCreationSuffix": "Sign Up",
-  "@accountCreationSuffix": {"description": "Suffix text for account creation prompt"},
+  "@accountCreationSuffix": {
+    "description": "Suffix text for account creation prompt"
+  },
   "createNewAccount": "Create New Account",
-  "@createNewAccount": {"description": "Create new account button label"},
+  "@createNewAccount": {
+    "description": "Create new account button label"
+  },
   "joinAppDescription": "Join CORDEOS, store, share and access your songs.",
-  "@joinAppDescription": {"description": "Description for joining the app"},
+  "@joinAppDescription": {
+    "description": "Description for joining the app"
+  },
   "alreadyHaveAccount": "Already have an account? ",
-  "@alreadyHaveAccount": {"description": "Prompt for users who already have an account"},
+  "@alreadyHaveAccount": {
+    "description": "Prompt for users who already have an account"
+  },
   "forgotPassword": "Forgot Password?",
-  "@forgotPassword": {"description": "Forgot password link label"},
+  "@forgotPassword": {
+    "description": "Forgot password link label"
+  },
   "changePassword": "Change Password",
-  "@changePassword": {"description": "Change password button label"},
+  "@changePassword": {
+    "description": "Change password button label"
+  },
   "forgotPasswordSuffix": "Please try again or Request a new one.",
-  "@forgotPasswordSuffix": {"description": "Suffix text for forgot password message"},
+  "@forgotPasswordSuffix": {
+    "description": "Suffix text for forgot password message"
+  },
   "passwordResetTitle": "Password Reset",
-  "@passwordResetTitle": {"description": "Title for password reset screen"},
+  "@passwordResetTitle": {
+    "description": "Title for password reset screen"
+  },
   "passwordResetInstructions": "Enter your email address to receive a password reset email, then follow the instructions to reset your password.",
-  "@passwordResetInstructions": {"description": "Instructions for resetting password"},
+  "@passwordResetInstructions": {
+    "description": "Instructions for resetting password"
+  },
   "passwordResetEmailSent": "A password reset email has been sent to {email}.",
-  "@passwordResetEmailSent": {"description": "Confirmation message when password reset email is sent", "placeholders": {"email": {}}},
+  "@passwordResetEmailSent": {
+    "description": "Confirmation message when password reset email is sent",
+    "placeholders": {
+      "email": {}
+    }
+  },
   "checkSpamFolder": "Please check your spam folder if you don't see the email in your inbox.",
-    "@checkSpamFolder": {"description": "Instruction to check spam folder for password reset email"},
+  "@checkSpamFolder": {
+    "description": "Instruction to check spam folder for password reset email"
+  },
   "showPassword": "Show Password",
-  "@showPassword": {"description": "Tooltip for show password action"},
+  "@showPassword": {
+    "description": "Tooltip for show password action"
+  },
   "hidePassword": "Hide Password",
-  "@hidePassword": {"description": "Tooltip for hide password action"},
+  "@hidePassword": {
+    "description": "Tooltip for hide password action"
+  },
   "confirmPassword": "Confirm Password",
-  "@confirmPassword": {"description": "Confirm password field label"},
+  "@confirmPassword": {
+    "description": "Confirm password field label"
+  },
   "fillAllFields": "Please fill in all fields.",
-  "@fillAllFields": {"description": "Validation message for empty fields"},
+  "@fillAllFields": {
+    "description": "Validation message for empty fields"
+  },
   "passwordsDoNotMatch": "Passwords do not match.",
-  "@passwordsDoNotMatch": {"description": "Validation message for password mismatch"},
+  "@passwordsDoNotMatch": {
+    "description": "Validation message for password mismatch"
+  },
   "passwordTooShort": "Password must be at least {minLength} characters.",
-  "@passwordTooShort": {"description": "Validation message for short password", "placeholders": {"minLength": {}}},
-
+  "@passwordTooShort": {
+    "description": "Validation message for short password",
+    "placeholders": {
+      "minLength": {}
+    }
+  },
   "profileSavedSuccessfully": "Profile saved successfully!",
-  "@profileSavedSuccessfully": {"description": "Success message when profile is saved"},
-
+  "@profileSavedSuccessfully": {
+    "description": "Success message when profile is saved"
+  },
   "user": "User",
-  "@user": {"description": "User related messages"},
+  "@user": {
+    "description": "User related messages"
+  },
   "username": "Username",
-  "@username": {"description": "Username field label"},
+  "@username": {
+    "description": "Username field label"
+  },
   "country": "Country",
-  "@country": {"description": "Country field label"},
+  "@country": {
+    "description": "Country field label"
+  },
   "timezone": "Timezone",
-  "@timezone": {"description": "Timezone field label"},
+  "@timezone": {
+    "description": "Timezone field label"
+  },
   "guest": "Guest",
-  "@guest" : {"description": "Guest user label"},
+  "@guest": {
+    "description": "Guest user label"
+  },
   "name": "Name",
-  "@name": {"description": "Name field label"},
+  "@name": {
+    "description": "Name field label"
+  },
   "enterNameHint": "Enter name...",
-  "@enterNameHint": {"description": "Hint text for name input"},
+  "@enterNameHint": {
+    "description": "Hint text for name input"
+  },
   "enterEmailHint": "Enter email...",
-  "@enterEmailHint": {"description": "Hint text for email input"},
+  "@enterEmailHint": {
+    "description": "Hint text for email input"
+  },
   "pleaseEnterNameAndEmail": "Please enter name and email.",
-  "@pleaseEnterNameAndEmail": {"description": "Validation message for name and email"},
-
+  "@pleaseEnterNameAndEmail": {
+    "description": "Validation message for name and email"
+  },
   "userNotFoundInCloud": "User not found in cloud.",
-  "@userNotFoundInCloud": {"description": "Message displayed when a user is not found in the cloud"},
-
-
+  "@userNotFoundInCloud": {
+    "description": "Message displayed when a user is not found in the cloud"
+  },
   "home": "Home",
-  "@home": {"description": "Home navigation tab"},
+  "@home": {
+    "description": "Home navigation tab"
+  },
   "library": "Library",
-  "@library": {"description": "Library navigation tab"},
+  "@library": {
+    "description": "Library navigation tab"
+  },
   "playlists": "Playlists",
-  "@playlists": {"description": "Playlists navigation tab"},
+  "@playlists": {
+    "description": "Playlists navigation tab"
+  },
   "schedule": "Schedule",
-  "@schedule": {"description": "Schedule navigation tab"},
+  "@schedule": {
+    "description": "Schedule navigation tab"
+  },
   "settings": "Configuration",
-  "@settings": {"description": "Settings navigation tab"},
+  "@settings": {
+    "description": "Settings navigation tab"
+  },
   "about": "About",
-  "@about": {"description": "About navigation tab"},
+  "@about": {
+    "description": "About navigation tab"
+  },
   "admin": "Admin",
-    "@admin": {"description": "Admin navigation tab"},
-
+  "@admin": {
+    "description": "Admin navigation tab"
+  },
   "advancedSettings": "Advanced Settings",
-  "@advancedSettings": {"description": "Title for advanced settings section"},
+  "@advancedSettings": {
+    "description": "Title for advanced settings section"
+  },
   "denseCipherCard": "Dense Cipher Card",
-  "@denseCipherCard": {"description": "Label for dense cipher card setting"},
-
+  "@denseCipherCard": {
+    "description": "Label for dense cipher card setting"
+  },
   "styleSettings": "Style Settings",
-  "@styleSettings": {"description": "Title for style settings section"},
+  "@styleSettings": {
+    "description": "Title for style settings section"
+  },
   "scrollDirection": "Scroll Direction:",
-  "@scrollDirection": {"description": "Label for scroll direction setting"},
+  "@scrollDirection": {
+    "description": "Label for scroll direction setting"
+  },
   "chordColor": "Chord Color:",
-  "@chordColor": {"description": "Label for chord color setting"},
+  "@chordColor": {
+    "description": "Label for chord color setting"
+  },
   "contentFilters": "Content Filters",
-  "@contentFilters": {"description": "Title for content filters settings section"},
+  "@contentFilters": {
+    "description": "Title for content filters settings section"
+  },
   "repeatSections": "Repeat Sections",
-  "@repeatSections": {"description": "Label for repeat sections filter setting"},
-
+  "@repeatSections": {
+    "description": "Label for repeat sections filter setting"
+  },
   "cardWidth": "Card Width",
-  "@cardWidth": {"description": "Label for card width setting"},
+  "@cardWidth": {
+    "description": "Label for card width setting"
+  },
   "lineSpacing": "Line Spacing",
-  "@lineSpacing": {"description": "Label for line spacing setting"},
+  "@lineSpacing": {
+    "description": "Label for line spacing setting"
+  },
   "lineBreakSpacing": "Line Break Spacing",
-  "@lineBreakSpacing": {"description": "Label for line break spacing setting"},
+  "@lineBreakSpacing": {
+    "description": "Label for line break spacing setting"
+  },
   "chordLyricSpacing": "Chord-Lyric Spacing",
-  "@chordLyricSpacing": {"description": "Label for chord-lyric spacing setting"},
+  "@chordLyricSpacing": {
+    "description": "Label for chord-lyric spacing setting"
+  },
   "minChordSpacing": "Minimum Chord Spacing",
-  "@minChordSpacing": {"description": "Label for minimum chord spacing setting"},
+  "@minChordSpacing": {
+    "description": "Label for minimum chord spacing setting"
+  },
   "letterSpacing": "Letter Spacing",
-  "@letterSpacing": {"description": "Label for letter spacing setting"},
-  
+  "@letterSpacing": {
+    "description": "Label for letter spacing setting"
+  },
   "small": "Small",
-  "@small": {"description": "Label for small card width"},
+  "@small": {
+    "description": "Label for small card width"
+  },
   "large": "Large",
-  "@large": {"description": "Label for large card width"},
-
-
+  "@large": {
+    "description": "Label for large card width"
+  },
   "scrollSettings": "Scroll Settings",
-  "@scrollSettings": {"description": "Title for scroll settings section"},
+  "@scrollSettings": {
+    "description": "Title for scroll settings section"
+  },
   "transparentScrollButtons": "Transparent Scroll Buttons",
-  "@transparentScrollButtons": {"description": "Label for transparent scroll buttons setting"},
+  "@transparentScrollButtons": {
+    "description": "Label for transparent scroll buttons setting"
+  },
   "autoScroll": "Auto-Scroll",
-  "@autoScroll": {"description": "Label for auto-scroll toggle setting"},
+  "@autoScroll": {
+    "description": "Label for auto-scroll toggle setting"
+  },
   "autoScrollSpeed": "Scroll Speed",
-  "@autoScrollSpeed": {"description": "Label for auto-scroll speed setting"},
+  "@autoScrollSpeed": {
+    "description": "Label for auto-scroll speed setting"
+  },
   "slow": "Slow",
-  "@slow": {"description": "Label for slow auto-scroll speed"},
+  "@slow": {
+    "description": "Label for slow auto-scroll speed"
+  },
   "normal": "Normal",
-  "@normal": {"description": "Label for normal auto-scroll speed"},
+  "@normal": {
+    "description": "Label for normal auto-scroll speed"
+  },
   "fast": "Fast",
-  "@fast": {"description": "Label for fast auto-scroll speed"},
-
+  "@fast": {
+    "description": "Label for fast auto-scroll speed"
+  },
   "unsavedChangesTitle": "Unsaved Changes",
-  "@unsavedChangesTitle": {"description": "Title for unsaved changes warning"},
+  "@unsavedChangesTitle": {
+    "description": "Title for unsaved changes warning"
+  },
   "unsavedChangesMessage": "Any changes you made will be lost. Are you sure you want to leave without saving?",
-  "@unsavedChangesMessage": {"description": "Message for unsaved changes warning"},
+  "@unsavedChangesMessage": {
+    "description": "Message for unsaved changes warning"
+  },
   "leaveWithoutSaving": "Leave without Saving",
-  "@leaveWithoutSaving": {"description": "Button label for leaving without saving"},
+  "@leaveWithoutSaving": {
+    "description": "Button label for leaving without saving"
+  },
   "stayOnPage": "Stay on Page",
-  "@stayOnPage": {"description": "Button label for staying on the page"},
-
-
+  "@stayOnPage": {
+    "description": "Button label for staying on the page"
+  },
   "cipher": "Song",
-  "@cipher": {"description": "Cipher/Song label"},
+  "@cipher": {
+    "description": "Cipher/Song label"
+  },
   "title": "Title",
-  "@title": {"description": "Song title field label"},
+  "@title": {
+    "description": "Song title field label"
+  },
   "author": "Author",
-  "@author": {"description": "Song author field label"},
+  "@author": {
+    "description": "Song author field label"
+  },
   "musicKey": "Key",
-  "@musicKey": {"description": "Musical key field label"},
+  "@musicKey": {
+    "description": "Musical key field label"
+  },
   "originalKey": "Original Key",
-  "@originalKey": {"description": "Original musical key field label"},
+  "@originalKey": {
+    "description": "Original musical key field label"
+  },
   "bpm": "Tempo (BPM)",
-  "@bpm": {"description": "Beats per minute field label"},
+  "@bpm": {
+    "description": "Beats per minute field label"
+  },
   "duration": "Duration",
-  "@duration": {"description": "Song duration field label"},
+  "@duration": {
+    "description": "Song duration field label"
+  },
   "language": "Language",
-  "@language": {"description": "Song language field label"},
+  "@language": {
+    "description": "Song language field label"
+  },
   "tag": "Tag",
-  "@tag": {"description": "Single tag label"},
+  "@tag": {
+    "description": "Single tag label"
+  },
   "link": "Link",
-  "@link": {"description": "Link field label"},
+  "@link": {
+    "description": "Link field label"
+  },
   "linkHint": "Enter a URL",
-  "@linkHint": {"description": "Hint for link field"},
+  "@linkHint": {
+    "description": "Hint for link field"
+  },
   "openLink": "Open Link",
-  "@openLink": {"description": "Button label for opening the song's link"},
-
-
+  "@openLink": {
+    "description": "Button label for opening the song's link"
+  },
   "version": "Version",
-  "@version": {"description": "Version label"},
+  "@version": {
+    "description": "Version label"
+  },
   "versionName": "Version Name",
-  "@versionName": {"description": "Version name field label"},
+  "@versionName": {
+    "description": "Version name field label"
+  },
   "versions": " versions",
-  "@versions": {"description": "Label for number of versions of a cipher (lowercase 'v')"},
+  "@versions": {
+    "description": "Label for number of versions of a cipher (lowercase 'v')"
+  },
   "estimatedTime": "Estimated Time",
-  "@estimatedTime": {"description": "Estimated time field label"},
+  "@estimatedTime": {
+    "description": "Estimated time field label"
+  },
   "notes": "Notes",
-  "@notes": {"description": "Notes field label"},
-
-
+  "@notes": {
+    "description": "Notes field label"
+  },
   "sections": "Sections",
-  "@sections": {"description": "Sections field label"},
+  "@sections": {
+    "description": "Sections field label"
+  },
   "section": "Section",
-  "@section": {"description": "Section label"},
+  "@section": {
+    "description": "Section label"
+  },
   "sectionVerse": "Verse",
-  "@sectionVerse": {"description": "Canonical section label: Verse"},
+  "@sectionVerse": {
+    "description": "Canonical section label: Verse"
+  },
   "sectionChorus": "Chorus",
-  "@sectionChorus": {"description": "Canonical section label: Chorus"},
+  "@sectionChorus": {
+    "description": "Canonical section label: Chorus"
+  },
   "sectionBridge": "Bridge",
-  "@sectionBridge": {"description": "Canonical section label: Bridge"},
+  "@sectionBridge": {
+    "description": "Canonical section label: Bridge"
+  },
   "sectionIntro": "Intro",
-  "@sectionIntro": {"description": "Canonical section label: Intro"},
+  "@sectionIntro": {
+    "description": "Canonical section label: Intro"
+  },
   "sectionOutro": "Outro",
-  "@sectionOutro": {"description": "Canonical section label: Outro"},
+  "@sectionOutro": {
+    "description": "Canonical section label: Outro"
+  },
   "sectionSolo": "Solo",
-  "@sectionSolo": {"description": "Canonical section label: Solo"},
+  "@sectionSolo": {
+    "description": "Canonical section label: Solo"
+  },
   "sectionPreChorus": "Pre-Chorus",
-  "@sectionPreChorus": {"description": "Canonical section label: Pre-Chorus"},
+  "@sectionPreChorus": {
+    "description": "Canonical section label: Pre-Chorus"
+  },
   "sectionTag": "Tag",
-  "@sectionTag": {"description": "Canonical section label: Tag"},
+  "@sectionTag": {
+    "description": "Canonical section label: Tag"
+  },
   "sectionFinale": "Finale",
-  "@sectionFinale": {"description": "Canonical section label: Finale"},
+  "@sectionFinale": {
+    "description": "Canonical section label: Finale"
+  },
   "sectionAnnotations": "Annotation",
-  "@sectionAnnotations": {"description": "Canonical section label: Annotation"},
+  "@sectionAnnotations": {
+    "description": "Canonical section label: Annotation"
+  },
   "sectionUnlabeled": "Unlabeled Section",
-  "@sectionUnlabeled": {"description": "Fallback section label when no type is identified"},
+  "@sectionUnlabeled": {
+    "description": "Fallback section label when no type is identified"
+  },
   "songStructure": "Song Structure",
-  "@songStructure": {"description": "Song structure/map label"},
+  "@songStructure": {
+    "description": "Song structure/map label"
+  },
   "addSection": "Add Section",
-  "@addSection": {"description": "Add section button label"},
+  "@addSection": {
+    "description": "Add section button label"
+  },
   "selectSectionType": "Select your Section",
-  "@selectSectionType": {"description": "Prompt to select a section type"},
+  "@selectSectionType": {
+    "description": "Prompt to select a section type"
+  },
   "emptyStructure": "No sections in structure.\nUse the add button below to add sections.",
-  "@emptyStructure": {"description": "Prompt displayed when there are no sections in the song structure"},
+  "@emptyStructure": {
+    "description": "Prompt displayed when there are no sections in the song structure"
+  },
   "noLyrics": "Use the add button below to create new sections",
-  "@noLyrics": {"description": "Prompt displayed when there are no lyrics in the section"},
+  "@noLyrics": {
+    "description": "Prompt displayed when there are no lyrics in the section"
+  },
   "lyrics": "Lyrics",
-  "@lyrics": {"description": "Lyrics field label"},
+  "@lyrics": {
+    "description": "Lyrics field label"
+  },
   "chords": "Chords",
-  "@chords": {"description": "Chords field label"},
+  "@chords": {
+    "description": "Chords field label"
+  },
   "transitions": "Transitions",
-  "@transitions": {"description": "Transitions field label"},
-  "code" : "Code",
-  "@code" : {"description": "Section code label"},
+  "@transitions": {
+    "description": "Transitions field label"
+  },
+  "code": "Code",
+  "@code": {
+    "description": "Section code label"
+  },
   "sectionCode": "Section Code",
-  "@sectionCode": {"description": "Section code field label"},  
+  "@sectionCode": {
+    "description": "Section code field label"
+  },
   "sectionCodeHint": "e.g. V1, C, I, ...",
-  "@sectionCodeHint": {"description": "Hint text for section code input"},
+  "@sectionCodeHint": {
+    "description": "Hint text for section code input"
+  },
   "sectionCodeInstruction": "Max 2 characters allowed",
-  "@sectionCodeInstruction": {"description": "Instruction for section code character limit"},
+  "@sectionCodeInstruction": {
+    "description": "Instruction for section code character limit"
+  },
   "type": "Type",
-  "@type": {"description": "Type field label"},
+  "@type": {
+    "description": "Type field label"
+  },
   "sectionType": "Section Type",
-  "@sectionType": {"description": "Section type field label"},
+  "@sectionType": {
+    "description": "Section type field label"
+  },
   "sectionTypeHint": "e.g. Verse, Chorus, Bridge...",
-  "@sectionTypeHint": {"description": "Hint text for section type input"},
+  "@sectionTypeHint": {
+    "description": "Hint text for section type input"
+  },
   "sectionColor": "Section Color",
-  "@sectionColor": {"description": "Section color field label"},
+  "@sectionColor": {
+    "description": "Section color field label"
+  },
   "sectionColorHint": "Select the section color...",
-  "@sectionColorHint": {"description": "Hint text for section color input"},
+  "@sectionColorHint": {
+    "description": "Hint text for section color input"
+  },
   "sectionText": "Section Text",
-  "@sectionText": {"description": "Hint text for section text input"},
+  "@sectionText": {
+    "description": "Hint text for section text input"
+  },
   "sectionTextHint": "Enter the content in chordPro format \n ex.:\n<O Lord my G[G]od, when I in awesome [C]wonder>\n<Consider [G]all the [D]worlds Thy hands have [G]made>[D]\n...",
-  "@sectionTextHint": {"description": "Hint text for section text input, in chordPro format"},
+  "@sectionTextHint": {
+    "description": "Hint text for section text input, in chordPro format"
+  },
   "duplicateSectionTooltip": "Repeat the section on the Song Map",
-  "@duplicateSectionTooltip": {"description": "Tooltip for duplicate section action"},
+  "@duplicateSectionTooltip": {
+    "description": "Tooltip for duplicate section action"
+  },
   "copySectionTooltip": "Create a new section with the same content",
-  "@copySectionTooltip": {"description": "Tooltip for copy section action"},
-
-
+  "@copySectionTooltip": {
+    "description": "Tooltip for copy section action"
+  },
   "cipherEditorTitle": "Song Editor",
-  "@cipherEditorTitle": {"description": "Title for the cipher/song editor screen"},
+  "@cipherEditorTitle": {
+    "description": "Title for the cipher/song editor screen"
+  },
   "cloudCipher": "Cloud Song Map",
-  "@cloudCipher": {"description": "Label for cloud-based song maps"},
+  "@cloudCipher": {
+    "description": "Label for cloud-based song maps"
+  },
   "cipherParsing": "Choosing Parsing",
-  "@cipherParsing": {"description": "Title for the cipher parsing screen"},
+  "@cipherParsing": {
+    "description": "Title for the cipher parsing screen"
+  },
   "info": "Info",
-  "@info": {"description": "Information button/tab label"},
-
-
-
+  "@info": {
+    "description": "Information button/tab label"
+  },
   "cipherCreatedSuccessfully": "Cipher created successfully!",
-  "@cipherCreatedSuccessfully": {"description": "Success message when cipher is created"},
+  "@cipherCreatedSuccessfully": {
+    "description": "Success message when cipher is created"
+  },
   "cipherSavedSuccessfully": "Cipher saved successfully!",
-  "@cipherSavedSuccessfully": {"description": "Success message when cipher is saved"},
+  "@cipherSavedSuccessfully": {
+    "description": "Success message when cipher is saved"
+  },
   "failedToCreateCipher": "Failed to create cipher.",
-  "@failedToCreateCipher": {"description": "Error message when cipher creation fails"},
+  "@failedToCreateCipher": {
+    "description": "Error message when cipher creation fails"
+  },
   "failedToCreateVersion": "Failed to create version.",
-  "@failedToCreateVersion": {"description": "Error message when version creation fails"},
+  "@failedToCreateVersion": {
+    "description": "Error message when version creation fails"
+  },
   "cannotCreateCipherExistingCipher": "Could not create cipher: existing cipher found.",
-  "@cannotCreateCipherExistingCipher": {"description": "Error message when trying to create duplicate cipher"},
+  "@cannotCreateCipherExistingCipher": {
+    "description": "Error message when trying to create duplicate cipher"
+  },
   "deleteCipherDescription": "When deleting a song, all its versions will also be deleted. This action cannot be undone.",
-  "@deleteCipherDescription": {"description": "Description for deleting a cipher warning"},
-
-
+  "@deleteCipherDescription": {
+    "description": "Description for deleting a cipher warning"
+  },
   "searchCiphers": "Search title, author...",
-  "@searchCiphers": {"description": "Hint text for cipher search field"},
+  "@searchCiphers": {
+    "description": "Hint text for cipher search field"
+  },
   "filter": "Filter",
-  "@filter": {"description": "Filter button label"},
+  "@filter": {
+    "description": "Filter button label"
+  },
   "sort": "Sort",
-  "@sort": {"description": "Sort button label"},
+  "@sort": {
+    "description": "Sort button label"
+  },
   "emptyCipherLibrary": "No Songs in the Library.\nPlease add songs to get started.",
-  "@emptyCipherLibrary": {"description": "Message displayed when no ciphers are found"},
-
-
+  "@emptyCipherLibrary": {
+    "description": "Message displayed when no ciphers are found"
+  },
   "playlist": "Playlist",
-  "@playlist": {"description": "Playlist label"},
+  "@playlist": {
+    "description": "Playlist label"
+  },
   "flowItem": "Flow Item",
-  "@flowItem": {"description": "Flow item label"},
+  "@flowItem": {
+    "description": "Flow item label"
+  },
   "namePlaylistPrompt": "Name your playlist",
-  "@namePlaylistPrompt": {"description": "Prompt to name the playlist"},
+  "@namePlaylistPrompt": {
+    "description": "Prompt to name the playlist"
+  },
   "createPlaylistInstructions": "Create an empty playlist first, you can add songs and flow items later.",
-  "@createPlaylistInstructions": {"description": "Instructions for creating a new playlist"},
+  "@createPlaylistInstructions": {
+    "description": "Instructions for creating a new playlist"
+  },
   "playlistNameLabel": "Playlist Name",
-  "@playlistNameLabel": {"description": "Label for playlist name input field"},
+  "@playlistNameLabel": {
+    "description": "Label for playlist name input field"
+  },
   "playlistNameHint": "Enter a playlist name",
-  "@playlistNameHint": {"description": "Hint text for playlist name input field"},
+  "@playlistNameHint": {
+    "description": "Hint text for playlist name input field"
+  },
   "searchPlaylist": "Search playlists...",
-  "@searchPlaylist": {"description": "Hint text for searching playlists"},
+  "@searchPlaylist": {
+    "description": "Hint text for searching playlists"
+  },
   "emptyPlaylistLibrary": "No Playlists found.\nPlease create a playlist to get started.",
-  "@emptyPlaylistLibrary": {"description": "Message displayed when no playlists are found"},
+  "@emptyPlaylistLibrary": {
+    "description": "Message displayed when no playlists are found"
+  },
   "addToPlaylist": "Add to Playlist",
-  "@addToPlaylist": {"description": "Add song to playlist button label"},
+  "@addToPlaylist": {
+    "description": "Add song to playlist button label"
+  },
   "emptyPlaylist": "This Playlist is empty.",
-  "@emptyPlaylist": {"description": "Message displayed when a playlist is empty"},
+  "@emptyPlaylist": {
+    "description": "Message displayed when a playlist is empty"
+  },
   "emptyPlaylistInstructions": "Please add Song and Flow items to build your playlist.",
-  "@emptyPlaylistInstructions": {"description": "Instructions for adding items to an empty playlist"},
+  "@emptyPlaylistInstructions": {
+    "description": "Instructions for adding items to an empty playlist"
+  },
   "noPlaylistItems": "No items in this playlist.",
-  "@noPlaylistItems": {"description": "Message displayed when there are no items in a playlist"},
+  "@noPlaylistItems": {
+    "description": "Message displayed when there are no items in a playlist"
+  },
   "deletePlaylistDescription": "When deleting a playlist, all of its items will also be deleted. This action cannot be undone.",
-  "@deletePlaylistDescription": {"description": "Description for deleting a playlist warning"},
-
+  "@deletePlaylistDescription": {
+    "description": "Description for deleting a playlist warning"
+  },
   "item": "item",
-  "@item": {"description": "Singular item label"},
+  "@item": {
+    "description": "Singular item label"
+  },
   "role": "Role",
-  "@role": {"description": "User role label"},
+  "@role": {
+    "description": "User role label"
+  },
   "roles": "Roles",
-  "@roles": {"description": "User roles label"},
+  "@roles": {
+    "description": "User roles label"
+  },
   "owner": "Owner",
-  "@owner": {"description": "Owner user role label"},
+  "@owner": {
+    "description": "Owner user role label"
+  },
   "generalMember": "General Member",
-  "@generalMember": {"description": "Default user role"},
+  "@generalMember": {
+    "description": "Default user role"
+  },
   "viewPlaceholder": "View {object}",
-  "@viewPlaceholder": {"description": "View button label", "placeholders": {"object": {}}},
+  "@viewPlaceholder": {
+    "description": "View button label",
+    "placeholders": {
+      "object": {}
+    }
+  },
   "addPlaceholder": "Add {object}",
-  "@addPlaceholder": {"description": "Add object button label", "placeholders": {"object": {}}},
+  "@addPlaceholder": {
+    "description": "Add object button label",
+    "placeholders": {
+      "object": {}
+    }
+  },
   "editPlaceholder": "Edit {object}",
-  "@editPlaceholder": {"description": "Edit object button label", "placeholders": {"object": {}}},
+  "@editPlaceholder": {
+    "description": "Edit object button label",
+    "placeholders": {
+      "object": {}
+    }
+  },
   "createPlaceholder": "Create {object}",
-  "@createPlaceholder": {"description": "Create object button label", "placeholders": {"object": {}}},
+  "@createPlaceholder": {
+    "description": "Create object button label",
+    "placeholders": {
+      "object": {}
+    }
+  },
   "savePlaceholder": "Save {object}",
-  "@savePlaceholder": {"description": "Save object button label", "placeholders": {"object": {}}},
+  "@savePlaceholder": {
+    "description": "Save object button label",
+    "placeholders": {
+      "object": {}
+    }
+  },
   "duplicatePlaceholder": "Duplicate {object}",
-  "@duplicatePlaceholder": {"description": "Duplicate object button label", "placeholders": {"object": {}}},
+  "@duplicatePlaceholder": {
+    "description": "Duplicate object button label",
+    "placeholders": {
+      "object": {}
+    }
+  },
   "setPlaceholder": "Set {object}",
-  "@setPlaceholder": {"description": "Set object button label", "placeholders": {"object": {}}},
+  "@setPlaceholder": {
+    "description": "Set object button label",
+    "placeholders": {
+      "object": {}
+    }
+  },
   "downloadPlaceholder": "Download {object}",
-  "@downloadPlaceholder": {"description": "Download object button label", "placeholders": {"object": {}}},
+  "@downloadPlaceholder": {
+    "description": "Download object button label",
+    "placeholders": {
+      "object": {}
+    }
+  },
   "managePlaceholder": "Manage {object}",
-  "@managePlaceholder": {"description": "Manage object button label", "placeholders": {"object": {}}},
+  "@managePlaceholder": {
+    "description": "Manage object button label",
+    "placeholders": {
+      "object": {}
+    }
+  },
   "newPlaceholder": "New {object}",
-  "@newPlaceholder": {"description": "New object button label", "placeholders": {"object": {}}},
+  "@newPlaceholder": {
+    "description": "New object button label",
+    "placeholders": {
+      "object": {}
+    }
+  },
   "changePlaceholder": "Change {object}",
-  "@changePlaceholder": {"description": "Change object button label", "placeholders": {"object": {}}},
+  "@changePlaceholder": {
+    "description": "Change object button label",
+    "placeholders": {
+      "object": {}
+    }
+  },
   "publishPlaceholder": "Publish {object}",
-  "@publishPlaceholder": {"description": "Publish object button label", "placeholders": {"object": {}}},
+  "@publishPlaceholder": {
+    "description": "Publish object button label",
+    "placeholders": {
+      "object": {}
+    }
+  },
   "renamePlaceholder": "Rename {object}",
-  "@renamePlaceholder": {"description": "Rename object button label", "placeholders": {"object": {}}},
+  "@renamePlaceholder": {
+    "description": "Rename object button label",
+    "placeholders": {
+      "object": {}
+    }
+  },
   "optionsPlaceholder": "{object} Options",
-  "@optionsPlaceholder": {"description": "Object Options sheet title", "placeholders": {"object": {}}},
+  "@optionsPlaceholder": {
+    "description": "Object Options sheet title",
+    "placeholders": {
+      "object": {}
+    }
+  },
   "actionPlaceholder": "{object} Action",
-  "@actionPlaceholder": {"description": "Object Action sheet title", "placeholders": {"object": {}}},
+  "@actionPlaceholder": {
+    "description": "Object Action sheet title",
+    "placeholders": {
+      "object": {}
+    }
+  },
   "selectPlaceholder": "Select {object}",
-  "@selectPlaceholder": {"description": "Select object prompt", "placeholders": {"object": {}}},
+  "@selectPlaceholder": {
+    "description": "Select object prompt",
+    "placeholders": {
+      "object": {}
+    }
+  },
   "sendPlaceholder": "Send {object}",
-  "@sendPlaceholder": {"description": "Send object button label", "placeholders": {"object": {}}},
-
+  "@sendPlaceholder": {
+    "description": "Send object button label",
+    "placeholders": {
+      "object": {}
+    }
+  },
   "duplicateTooltip": "Create a copy of this {object}",
-  "@duplicateTooltip": {"description": "Tooltip for duplicate action", "placeholders": {"object": {}}},
-
+  "@duplicateTooltip": {
+    "description": "Tooltip for duplicate action",
+    "placeholders": {
+      "object": {}
+    }
+  },
   "createLocalCopy": "Create a Local Copy",
-  "@createLocalCopy": {"description": "Tooltip for creating a local copy of a cloud object"},
-
+  "@createLocalCopy": {
+    "description": "Tooltip for creating a local copy of a cloud object"
+  },
   "share": "Share",
-  "@share": {"description": "Share button label"},
+  "@share": {
+    "description": "Share button label"
+  },
   "shareCode": "Share Code",
-  "@shareCode": {"description": "Share code field label"},
+  "@shareCode": {
+    "description": "Share code field label"
+  },
   "enterShareCode": "Enter Share Code",
-  "@enterShareCode": {"description": "Enter share code button label"},
+  "@enterShareCode": {
+    "description": "Enter share code button label"
+  },
   "shareCodeInstructions": "Enter the share code provided by your team leader to access the schedule.",
-  "@shareCodeInstructions": {"description": "Instruction to share the code with others"},
+  "@shareCodeInstructions": {
+    "description": "Instruction to share the code with others"
+  },
   "joinedScheduleSuccessfully": "Joined schedule successfully!",
-  "@joinedScheduleSuccessfully": {"description": "Success message when joining a schedule with a share code"},
-
+  "@joinedScheduleSuccessfully": {
+    "description": "Success message when joining a schedule with a share code"
+  },
   "joinSchedule": "Join Service",
-  "@joinSchedule": {"description": "Share code screen title"},
+  "@joinSchedule": {
+    "description": "Share code screen title"
+  },
   "completed": "Completed",
-  "@completed": {"description": "Completed status label"},
+  "@completed": {
+    "description": "Completed status label"
+  },
   "draft": "Draft",
-  "@draft": {"description": "Draft status label"},
+  "@draft": {
+    "description": "Draft status label"
+  },
   "published": "Published",
-  "@published": {"description": "Published status label"},
+  "@published": {
+    "description": "Published status label"
+  },
   "publishScheduleWarning": "Once published, the schedule will be accessible to your team.\nChanges will be synced until the date of the Service.\nThis action cannot be undone.",
-  "@publishScheduleWarning": {"description": "Warning message when publishing a schedule"},
-
+  "@publishScheduleWarning": {
+    "description": "Warning message when publishing a schedule"
+  },
   "sendToRoleMembers": "Send to Role Members",
-  "@sendToRoleMembers": {"description": "Send/share to members of selected roles"},
+  "@sendToRoleMembers": {
+    "description": "Send/share to members of selected roles"
+  },
   "sendInvites": "Send Invites",
-  "@sendInvites": {"description": "Send invites button label"},
+  "@sendInvites": {
+    "description": "Send invites button label"
+  },
   "inviteSentSuccessfully": "Invites sent successfully!",
-  "@inviteSentSuccessfully": {"description": "Success message when invites are sent"},
+  "@inviteSentSuccessfully": {
+    "description": "Success message when invites are sent"
+  },
   "emailInviteDescription": "An email invite has been sent to the teams",
-  "@emailInviteDescription": {"description": "Description for email invite confirmation"},
-
+  "@emailInviteDescription": {
+    "description": "Description for email invite confirmation"
+  },
   "scheduleName": "Schedule Name",
-  "@scheduleName": {"description": "Label for schedule name input field"},
+  "@scheduleName": {
+    "description": "Label for schedule name input field"
+  },
   "date": "Date",
-  "@date": {"description": "Date field label"},
+  "@date": {
+    "description": "Date field label"
+  },
   "startTime": "Start Time",
-  "@startTime": {"description": "Start time field label"},
+  "@startTime": {
+    "description": "Start time field label"
+  },
   "location": "Location",
-  "@location": {"description": "Location field label"},
+  "@location": {
+    "description": "Location field label"
+  },
   "roomVenue": "Room/Venue",
-  "@roomVenue": {"description": "Room/Venue field label"},
+  "@roomVenue": {
+    "description": "Room/Venue field label"
+  },
   "annotations": "Annotations",
-  "@annotations": {"description": "Annotations field label"},
-
+  "@annotations": {
+    "description": "Annotations field label"
+  },
   "changePlaylist": "Change Playlist",
-  "@changePlaylist": {"description": "Change playlist button label"},
+  "@changePlaylist": {
+    "description": "Change playlist button label"
+  },
   "selectPlaylistForScheduleInstruction": "Please create a schedule by selecting a playlist below.",
-  "@selectPlaylistForScheduleInstruction": {"description": "Instruction to select a playlist for scheduling"},
+  "@selectPlaylistForScheduleInstruction": {
+    "description": "Instruction to select a playlist for scheduling"
+  },
   "scheduleDetails": "Schedule Details",
-  "@scheduleDetails": {"description": "Schedule details section title"},
+  "@scheduleDetails": {
+    "description": "Schedule details section title"
+  },
   "fillScheduleDetailsInstruction": "Please fill in the schedule details.",
-  "@fillScheduleDetailsInstruction": {"description": "Instruction to fill in schedule details"},
+  "@fillScheduleDetailsInstruction": {
+    "description": "Instruction to fill in schedule details"
+  },
   "createRolesAndAssignUsersInstruction": "Please create roles and assign Members to the schedule.",
-  "@createRolesAndAssignUsersInstruction": {"description": "Instruction to create roles and assign users"},
+  "@createRolesAndAssignUsersInstruction": {
+    "description": "Instruction to create roles and assign users"
+  },
   "pleaseEnterScheduleName": "Please enter a schedule name.",
-  "@pleaseEnterScheduleName": {"description": "Validation message for schedule name"},
+  "@pleaseEnterScheduleName": {
+    "description": "Validation message for schedule name"
+  },
   "pleaseEnterDate": "Please enter a valid date (DD/MM/YYYY).",
-  "@pleaseEnterDate": {"description": "Validation message for date"},
+  "@pleaseEnterDate": {
+    "description": "Validation message for date"
+  },
   "pleaseEnterStartTime": "Please enter a valid start time (HH:MM).",
-  "@pleaseEnterStartTime": {"description": "Validation message for start time"},
+  "@pleaseEnterStartTime": {
+    "description": "Validation message for start time"
+  },
   "pleaseEnterLocation": "Please enter a location.",
-  "@pleaseEnterLocation": {"description": "Validation message for location"},
-
+  "@pleaseEnterLocation": {
+    "description": "Validation message for location"
+  },
   "noRoles": "No roles yet.",
-  "@noRoles": {"description": "Message displayed when there are no roles defined"},
+  "@noRoles": {
+    "description": "Message displayed when there are no roles defined"
+  },
   "addRolesInstructions": "Add your own roles and people, and assign them to this schedule.",
-  "@addRolesInstructions": {"description": "Instructions to add roles and assign users to a schedule"},
+  "@addRolesInstructions": {
+    "description": "Instructions to add roles and assign users to a schedule"
+  },
   "roleNameHint": "e.g., Worship Leader, Vocalist",
-  "@roleNameHint": {"description": "Hint text for role name input field"},
+  "@roleNameHint": {
+    "description": "Hint text for role name input field"
+  },
   "member": "Member",
-  "@member": {"description": "Member label"},
+  "@member": {
+    "description": "Member label"
+  },
   "assignMembersToRole": "Assign Members to {role}",
-  "@assignMembersToRole": {"description": "Prompt to assign members to a role", "placeholders": {"role": {}}},
+  "@assignMembersToRole": {
+    "description": "Prompt to assign members to a role",
+    "placeholders": {
+      "role": {}
+    }
+  },
   "noMembers": "No members yet.",
-  "@noMembers": {"description": "Message displayed when there are no members defined"},
+  "@noMembers": {
+    "description": "Message displayed when there are no members defined"
+  },
   "xMembers": "{count} members",
-  "@xMembers": {"description": "Label for number of members with placeholder", "placeholders": {"count": {}}},
-
+  "@xMembers": {
+    "description": "Label for number of members with placeholder",
+    "placeholders": {
+      "count": {}
+    }
+  },
   "nextUp": "Next Up",
-  "@nextUp": {"description": "Next scheduled item label"},
+  "@nextUp": {
+    "description": "Next scheduled item label"
+  },
   "futureSchedules": "Next Schedules",
-  "@futureSchedules": {"description": "Next schedules header"},
+  "@futureSchedules": {
+    "description": "Next schedules header"
+  },
   "pastSchedules": "Past Schedules",
-  "@pastSchedules": {"description": "Past schedules header"},
+  "@pastSchedules": {
+    "description": "Past schedules header"
+  },
   "searchSchedule": "Search schedule...",
-  "@searchSchedule": {"description": "Hint text for searching schedule"},
+  "@searchSchedule": {
+    "description": "Hint text for searching schedule"
+  },
   "assignSchedule": "Assign Schedule",
-  "@assignSchedule": {"description": "Assign schedule button label"},
-
+  "@assignSchedule": {
+    "description": "Assign schedule button label"
+  },
   "scheduleActions": "Service Actions",
-  "@scheduleActions": {"description": "Schedule actions section title"},
+  "@scheduleActions": {
+    "description": "Schedule actions section title"
+  },
   "schedulePlaylist": "Schedule Playlist",
-  "@schedulePlaylist": {"description": "Create schedule screen title"},
+  "@schedulePlaylist": {
+    "description": "Create schedule screen title"
+  },
   "noPlaylistAssigned": "No playlist assigned.",
-  "@noPlaylistAssigned": {"description": "Message displayed when no playlist is assigned to a schedule"},
-
+  "@noPlaylistAssigned": {
+    "description": "Message displayed when no playlist is assigned to a schedule"
+  },
   "emptyScheduleLibrary": "Schedule is empty.\nPlease create a service to get started.",
-  "@emptyScheduleLibrary": {"description": "Message displayed when no schedules are found"},
+  "@emptyScheduleLibrary": {
+    "description": "Message displayed when no schedules are found"
+  },
   "scheduleNotFound": "Schedule Not Found",
-  "@scheduleNotFound": {"description": "Title for schedule not found screen"},
+  "@scheduleNotFound": {
+    "description": "Title for schedule not found screen"
+  },
   "scheduleNotFoundMessage": "The requested schedule could not be found.",
-  "@scheduleNotFoundMessage": {"description": "Message displayed when the requested schedule does not exist"},
+  "@scheduleNotFoundMessage": {
+    "description": "Message displayed when the requested schedule does not exist"
+  },
   "deleteScheduleTooltip": "Permanently delete this service",
-  "@deleteScheduleTooltip": {"description": "Tooltip for delete schedule action"},
-
+  "@deleteScheduleTooltip": {
+    "description": "Tooltip for delete schedule action"
+  },
   "play": "Play",
-  "@play": {"description": "Play button label"},
+  "@play": {
+    "description": "Play button label"
+  },
   "nextPlaceholder": "Next: {title}",
-  "@nextPlaceholder": {"description": "Next item placeholder with title", "placeholders": {"title": {}}},
-  
-
-
+  "@nextPlaceholder": {
+    "description": "Next item placeholder with title",
+    "placeholders": {
+      "title": {}
+    }
+  },
   "create": "Create",
-  "@create": {"description": "Create button label"},
+  "@create": {
+    "description": "Create button label"
+  },
   "createManually": "Create Manually",
-  "@createManually": {"description": "Create manually option label"},
+  "@createManually": {
+    "description": "Create manually option label"
+  },
   "import": "Import",
-  "@import": {"description": "Import button label"},
+  "@import": {
+    "description": "Import button label"
+  },
   "importFromPDF": "Import from PDF",
-  "@importFromPDF": {"description": "Import from PDF option"},
+  "@importFromPDF": {
+    "description": "Import from PDF option"
+  },
   "selectPDFFile": "Select PDF File",
-  "@selectPDFFile": {"description": "Prompt to select a PDF file"},
+  "@selectPDFFile": {
+    "description": "Prompt to select a PDF file"
+  },
   "selectedFile": "Selected File: ",
-  "@selectedFile": {"description": "Label for displaying the selected file name"},
+  "@selectedFile": {
+    "description": "Label for displaying the selected file name"
+  },
   "processPDF": "Process PDF",
-  "@processPDF": {"description": "Process PDF button label"},
+  "@processPDF": {
+    "description": "Process PDF button label"
+  },
   "howToImport": "How to Import",
-  "@howToImport": {"description": "How to import instructions title"},
+  "@howToImport": {
+    "description": "How to import instructions title"
+  },
   "importInstructions": "• Select a PDF with the song map\n• Choose whether the PDF has columns or not\n• Process the PDF and make the adjustments as needed\n• Save the imported song map to your library",
-  "@importInstructions": {"description": "Instructions for importing a song map from a PDF file"},
+  "@importInstructions": {
+    "description": "Instructions for importing a song map from a PDF file"
+  },
   "importFromImage": "Import from Image",
-  "@importFromImage": {"description": "Import from image option"},
+  "@importFromImage": {
+    "description": "Import from image option"
+  },
   "importFromText": "Import from Text",
-  "@importFromText": {"description": "Import from text option"},
+  "@importFromText": {
+    "description": "Import from text option"
+  },
   "pasteTextPrompt": "Paste the cipher text here...",
-  "@pasteTextPrompt": {"description": "Prompt to paste cipher text"},
+  "@pasteTextPrompt": {
+    "description": "Prompt to paste cipher text"
+  },
   "importedFrom": "Song imported from {importType}",
-  "@importedFrom": {"description": "Text indicating the source from which the song was imported", "placeholders": {"importType": {}}},
+  "@importedFrom": {
+    "description": "Text indicating the source from which the song was imported",
+    "placeholders": {
+      "importType": {}
+    }
+  },
   "addSongToLibrary": "Add Song to Library",
-  "@addSongToLibrary": {"description": "Add song to library button label"},
+  "@addSongToLibrary": {
+    "description": "Add song to library button label"
+  },
   "playlistVersion": "Playlist Version",
-  "@playlistVersion": {"description": "Label for a playlist version"},
+  "@playlistVersion": {
+    "description": "Label for a playlist version"
+  },
   "playlistVersionName": "{playlistName}'s Version",
-  "@playlistVersionName": {"description": "Default name for a playlist's new version", "placeholders": {"playlistName": {}}},
-
+  "@playlistVersionName": {
+    "description": "Default name for a playlist's new version",
+    "placeholders": {
+      "playlistName": {}
+    }
+  },
   "parsingStrategy": "Parsing Strategy",
-  "@parsingStrategy": {"description": "Title for parsing strategy selection"},
-  "doubleNewLine": "Double New Line",
-  "@doubleNewLine": {"description": "Parsing strategy option for double new lines"},
+  "@parsingStrategy": {
+    "description": "Title for parsing strategy selection"
+  },
+  "doubleNewLine": "Empty Line",
+  "@doubleNewLine": {
+    "description": "Parsing strategy option for double new lines"
+  },
   "sectionLabels": "Section Labels",
-  "@sectionLabels": {"description": "Parsing strategy option for section labels"},
+  "@sectionLabels": {
+    "description": "Parsing strategy option for section labels"
+  },
   "pdfFormatting": "PDF Formatting",
-  "@pdfFormatting": {"description": "Parsing strategy option for PDF formatting"},
-
+  "@pdfFormatting": {
+    "description": "Parsing strategy option for PDF formatting"
+  },
   "hasColumns": "Has Columns",
-  "@hasColumns": {"description": "Label for indicating whether the PDF has columns"},
+  "@hasColumns": {
+    "description": "Label for indicating whether the PDF has columns"
+  },
   "pdfWithColumns": "PDF with Columns",
-  "@pdfWithColumns": {"description": "Import variation option for PDFs with columns"},
+  "@pdfWithColumns": {
+    "description": "Import variation option for PDFs with columns"
+  },
   "pdfNoColumns": "PDF without Columns",
-  "@pdfNoColumns": {"description": "Import variation option for PDFs without columns"},
+  "@pdfNoColumns": {
+    "description": "Import variation option for PDFs without columns"
+  },
   "textDirect": "Direct Text",
-  "@textDirect": {"description": "Import variation option for direct text"},
+  "@textDirect": {
+    "description": "Import variation option for direct text"
+  },
   "imageOcr": "Image with OCR",
-  "@imageOcr": {"description": "Import variation option for images with OCR"},
-
+  "@imageOcr": {
+    "description": "Import variation option for images with OCR"
+  },
   "chooseLanguage": "Choose Language",
-  "@chooseLanguage": {"description": "Choose language prompt"},
+  "@chooseLanguage": {
+    "description": "Choose language prompt"
+  },
   "chooseTimezone": "Choose Timezone",
-  "@chooseTimezone": {"description": "Choose timezone prompt"},
+  "@chooseTimezone": {
+    "description": "Choose timezone prompt"
+  },
   "chooseCountry": "Choose Country",
-  "@chooseCountry": {"description": "Choose country prompt"},
+  "@chooseCountry": {
+    "description": "Choose country prompt"
+  },
   "selectAppLanguage": "Select the application language:",
-  "@selectAppLanguage": {"description": "Language selection instruction"},
+  "@selectAppLanguage": {
+    "description": "Language selection instruction"
+  },
   "portuguese": "Portuguese",
-  "@portuguese": {"description": "Portuguese language option"},
+  "@portuguese": {
+    "description": "Portuguese language option"
+  },
   "english": "English",
-  "@english": {"description": "English language option"},
-
-
+  "@english": {
+    "description": "English language option"
+  },
   "load": "Load",
-  "@load": {"description": "Load"},
+  "@load": {
+    "description": "Load"
+  },
   "loading": "Loading...",
-  "@loading": {"description": "Loading indicator text"},
+  "@loading": {
+    "description": "Loading indicator text"
+  },
   "tryAgain": "Try Again",
-  "@tryAgain": {"description": "Retry button label"},
+  "@tryAgain": {
+    "description": "Retry button label"
+  },
   "save": "Save",
-  "@save": {"description": "Save button label"},
+  "@save": {
+    "description": "Save button label"
+  },
   "cancel": "Cancel",
-  "@cancel": {"description": "Cancel button label"},
+  "@cancel": {
+    "description": "Cancel button label"
+  },
   "confirm": "Confirm",
-  "@confirm": {"description": "Confirm button label"},
+  "@confirm": {
+    "description": "Confirm button label"
+  },
   "keepGoing": "Continue",
-  "@keepGoing": {"description": "Continue button label"},
+  "@keepGoing": {
+    "description": "Continue button label"
+  },
   "quickAction": "Quick Action",
-  "@quickAction": {"description": "Label for quick action button"},
+  "@quickAction": {
+    "description": "Label for quick action button"
+  },
   "copy": "Copy",
-  "@copy": {"description": "Label for copy action"},
+  "@copy": {
+    "description": "Label for copy action"
+  },
   "copyCode": "Copy Code",
-  "@copyCode": {"description": "Copy to clipboard button label"},
+  "@copyCode": {
+    "description": "Copy to clipboard button label"
+  },
   "codeCopied": "Code Copied!",
-  "@codeCopied": {"description": "Confirmation message when code is copied to clipboard"},
+  "@codeCopied": {
+    "description": "Confirmation message when code is copied to clipboard"
+  },
   "assign": "Assign",
-  "@assign": {"description": "Assign button label"},
+  "@assign": {
+    "description": "Assign button label"
+  },
   "clear": "Clear",
-  "@clear": {"description": "Clear button label"},
+  "@clear": {
+    "description": "Clear button label"
+  },
   "mergePlaceholder": "Merge {object}",
-  "@mergePlaceholder": {"description": "Merge button label with placeholder", "placeholders": {"object": {}}},
-
-  
+  "@mergePlaceholder": {
+    "description": "Merge button label with placeholder",
+    "placeholders": {
+      "object": {}
+    }
+  },
   "delete": "Delete",
-  "@delete": {"description": "Delete button label"},
+  "@delete": {
+    "description": "Delete button label"
+  },
   "deleteConfirmationTitle": "Confirm Deletion",
-  "@deleteConfirmationTitle": {"description": "Title for delete confirmation dialog"},
+  "@deleteConfirmationTitle": {
+    "description": "Title for delete confirmation dialog"
+  },
   "deleteConfirmationMessage": "Are you sure you want to delete this {object}?",
-  "@deleteConfirmationMessage": {"description": "Message asking for confirmation to delete an object", "placeholders": {"object": {}}},
+  "@deleteConfirmationMessage": {
+    "description": "Message asking for confirmation to delete an object",
+    "placeholders": {
+      "object": {}
+    }
+  },
   "deleteWarningMessage": "This action cannot be undone.",
-  "@deleteWarningMessage": {"description": "Warning message when deleting"},
-
-
+  "@deleteWarningMessage": {
+    "description": "Warning message when deleting"
+  },
   "helloUser": "Hello {userName}",
-  "@helloUser": {"description": "Welcome message with the user's name", "placeholders": {"userName": {}}},
+  "@helloUser": {
+    "description": "Welcome message with the user's name",
+    "placeholders": {
+      "userName": {}
+    }
+  },
   "welcome": "Welcome",
-  "@welcome": {"description": "Generic welcome message"},
+  "@welcome": {
+    "description": "Generic welcome message"
+  },
   "getStarted": "Get Started",
-  "@getStarted": {"description": "Get started button label"},
+  "@getStarted": {
+    "description": "Get started button label"
+  },
   "noUpcomingSchedules": "No upcoming schedules.",
-  "@noUpcomingSchedules": {"description": "Message displayed when there are no upcoming schedules"},
-
+  "@noUpcomingSchedules": {
+    "description": "Message displayed when there are no upcoming schedules"
+  },
   "by": "by",
-  "@by": {"description": "By/author preposition"},
+  "@by": {
+    "description": "By/author preposition"
+  },
   "belongingTo": "of",
-  "@belongingTo": {"description": "Belonging/ownership preposition"},
-
-
+  "@belongingTo": {
+    "description": "Belonging/ownership preposition"
+  },
   "titleWithPlaceholder": "Title: {title}",
-  "@titleWithPlaceholder": {"description": "Label for the song title with placeholder", "placeholders": {"title": {}}},
+  "@titleWithPlaceholder": {
+    "description": "Label for the song title with placeholder",
+    "placeholders": {
+      "title": {}
+    }
+  },
   "authorWithPlaceholder": "Author: {author}",
-  "@authorWithPlaceholder": {"description": "Label for the author with placeholder", "placeholders": {"author": {}}},
+  "@authorWithPlaceholder": {
+    "description": "Label for the author with placeholder",
+    "placeholders": {
+      "author": {}
+    }
+  },
   "bpmWithPlaceholder": "BPM: {bpm}",
-  "@bpmWithPlaceholder": {"description": "Label for the BPM with placeholder", "placeholders": {"bpm": {}}},
+  "@bpmWithPlaceholder": {
+    "description": "Label for the BPM with placeholder",
+    "placeholders": {
+      "bpm": {}
+    }
+  },
   "durationWithPlaceholder": "Duration: {duration}",
-  "@durationWithPlaceholder": {"description": "Label for the duration with placeholder", "placeholders": {"duration": {}}},
+  "@durationWithPlaceholder": {
+    "description": "Label for the duration with placeholder",
+    "placeholders": {
+      "duration": {}
+    }
+  },
   "keyWithPlaceholder": "Key: {key}",
-  "@keyWithPlaceholder": {"description": "Label for the music key with placeholder", "placeholders": {"key": {}}},
+  "@keyWithPlaceholder": {
+    "description": "Label for the music key with placeholder",
+    "placeholders": {
+      "key": {}
+    }
+  },
   "nSections": "{count} sections",
-  "@nSections": {"description": "Label for number of sections with placeholder", "placeholders": {"count": {}}},
-
+  "@nSections": {
+    "description": "Label for number of sections with placeholder",
+    "placeholders": {
+      "count": {}
+    }
+  },
   "keyHint": "Select key...",
-  "@keyHint": {"description": "Hint text for selecting musical key"},
+  "@keyHint": {
+    "description": "Hint text for selecting musical key"
+  },
   "titleHint": "Enter a title",
-  "@titleHint": {"description": "Hint text for song title input"},
+  "@titleHint": {
+    "description": "Hint text for song title input"
+  },
   "authorHint": "Enter an author name",
-  "@authorHint": {"description": "Hint text for author name input"},
+  "@authorHint": {
+    "description": "Hint text for author name input"
+  },
   "versionNameHint": "Enter a version name",
-  "@versionNameHint":  {"description":  "Hint text for version name input"},
+  "@versionNameHint": {
+    "description": "Hint text for version name input"
+  },
   "durationHint": "Enter the Duration",
-  "@durationHint": {"description": "Hint text for duration input"},
+  "@durationHint": {
+    "description": "Hint text for duration input"
+  },
   "bpmHint": "Enter tempo in BPM",
-  "@bpmHint": {"description": "Hint text for BPM input"},
+  "@bpmHint": {
+    "description": "Hint text for BPM input"
+  },
   "languageHint": "Pick a language",
-  "@languageHint": {"description": "Hint text for song language input"},
+  "@languageHint": {
+    "description": "Hint text for song language input"
+  },
   "timezoneHint": "Pick a timezone",
-  "@timezoneHint": {"description": "Hint text for timezone input"},
+  "@timezoneHint": {
+    "description": "Hint text for timezone input"
+  },
   "countryHint": "Pick a country",
-  "@countryHint": {"description": "Hint text for country input"},
+  "@countryHint": {
+    "description": "Hint text for country input"
+  },
   "searchTimezone": "Search locale...",
-  "@searchTimezone": {"description": "Hint text for searching timezones"},
+  "@searchTimezone": {
+    "description": "Hint text for searching timezones"
+  },
   "searchCountry": "Search country...",
-  "@searchCountry": {"description": "Hint text for searching countries"},
+  "@searchCountry": {
+    "description": "Hint text for searching countries"
+  },
   "tagHint": "Type a tag",
-  "@tagHint": {"description": "Hint text for tag input"},
-
+  "@tagHint": {
+    "description": "Hint text for tag input"
+  },
   "stepXofY": "Step {current} of {total}",
-  "@stepXofY": {"description": "Indicates the current step out of total steps", "placeholders": {"current": {}, "total": {}}},
-
+  "@stepXofY": {
+    "description": "Indicates the current step out of total steps",
+    "placeholders": {
+      "current": {},
+      "total": {}
+    }
+  },
   "commonChordsOfKey": "Common Chords in - {key}",
-  "@commonChordsOfKey": {"description": "Title for common chords of a given key", "placeholders": {"key": {}}},
-  "chordExpansionInstruction": "Hold a chord to show variations.",
-  "@chordExpansionInstruction": {"description": "Instruction to hold a chord to see variations"},
+  "@commonChordsOfKey": {
+    "description": "Title for common chords of a given key",
+    "placeholders": {
+      "key": {}
+    }
+  },
+  "chordExpansionInstruction": "Tap a chord to show variations.",
+  "@chordExpansionInstruction": {
+    "description": "Instruction to tap a chord to see variations"
+  },
   "customChord": "Custom Chord",
-  "@customChord": {"description": "Custom chord label"},
+  "@customChord": {
+    "description": "Custom chord label"
+  },
   "customChordInstruction": "Type to create a custom chord.",
-  "@customChordInstruction": {"description": "Instruction to enter custom chord name"},
+  "@customChordInstruction": {
+    "description": "Instruction to enter custom chord name"
+  },
   "draggableChordInstruction": "Drag chords to the letters to add them to the song.",
-  "@draggableChordInstruction": {"description": "Instruction to drag chords to letters"},
-
+  "@draggableChordInstruction": {
+    "description": "Instruction to drag chords to letters"
+  },
   "error": "Error",
-  "@error": {"description": "Generic error label"},
+  "@error": {
+    "description": "Generic error label"
+  },
   "errorMessage": "Error during {job}: {errorDetails}",
-  "@errorMessage": {"description": "Generic error message with placeholders", "placeholders": {"job": {}, "errorDetails": {}}},
+  "@errorMessage": {
+    "description": "Generic error message with placeholders",
+    "placeholders": {
+      "job": {},
+      "errorDetails": {}
+    }
+  },
   "invalidTimeFormat": "Invalid time format. Please use MM:SS.",
-  "@invalidTimeFormat": {"description": "Error message for invalid time format"},
+  "@invalidTimeFormat": {
+    "description": "Error message for invalid time format"
+  },
   "fieldRequired": "This field is required.",
-  "@fieldRequired": {"description": "Validation message indicating a required field"},
+  "@fieldRequired": {
+    "description": "Validation message indicating a required field"
+  },
   "tooLongPlaceholder": "{field} is too long. Maximum {max} characters allowed.",
-  "@tooLongPlaceholder": {"description": "Validation message for input that exceeds maximum length", "placeholders": {"field": {}, "max": {}}},
+  "@tooLongPlaceholder": {
+    "description": "Validation message for input that exceeds maximum length",
+    "placeholders": {
+      "field": {},
+      "max": {}
+    }
+  },
   "intValidationError": "Please enter a valid positive integer.",
-  "@intValidationError": {"description": "Validation message for integer input"},
-
+  "@intValidationError": {
+    "description": "Validation message for integer input"
+  },
   "optionalPlaceholder": "{field} (Optional)",
-  "@optionalPlaceholder": {"description": "Generic optional field placeholder", "placeholders": {"field": {}}},
+  "@optionalPlaceholder": {
+    "description": "Generic optional field placeholder",
+    "placeholders": {
+      "field": {}
+    }
+  },
   "pluralPlaceholder": "{label}s",
-  "@pluralPlaceholder": {"description": "Generic plural placeholder for labels", "placeholders": {"label": {}}},
-
+  "@pluralPlaceholder": {
+    "description": "Generic plural placeholder for labels",
+    "placeholders": {
+      "label": {}
+    }
+  },
   "invitationGreeting": "Hello {username}!",
-  "@invitationGreeting": {"description": "Greeting in invitation email", "placeholders": {"username": {}}},
+  "@invitationGreeting": {
+    "description": "Greeting in invitation email",
+    "placeholders": {
+      "username": {}
+    }
+  },
   "invitationMessage": "You have been invited to participate as {role} in {scheduleName}.",
-  "@invitationMessage": {"description": "Main message in invitation email", "placeholders": {"role": {}, "scheduleName": {}}},
+  "@invitationMessage": {
+    "description": "Main message in invitation email",
+    "placeholders": {
+      "role": {},
+      "scheduleName": {}
+    }
+  },
   "instructions": "If you have an account with this email, just sign in. \n Otherwise, you can use this share code to gain access to the schedule: <strong>{shareCode}</strong>",
-  "@instructions": {"description": "Instructions paragraph in invitation email", "placeholders": {"shareCode": {}}},
+  "@instructions": {
+    "description": "Instructions paragraph in invitation email",
+    "placeholders": {
+      "shareCode": {}
+    }
+  },
   "contactSupport": "If you have any questions, please contact our support team.",
-  "@contactSupport": {"description": "Support contact paragraph in invitation email"},
+  "@contactSupport": {
+    "description": "Support contact paragraph in invitation email"
+  },
   "bestRegards": "Best regards,\nThe CORDEOS Team",
-  "@bestRegards": {"description": "Sign-off in invitation email"},
+  "@bestRegards": {
+    "description": "Sign-off in invitation email"
+  },
   "invitationSubject": "Invitation: {scheduleName} - {role}",
-  "@invitationSubject": {"description": "Subject line for invitation email", "placeholders": {"scheduleName": {}, "role": {}}},
-
+  "@invitationSubject": {
+    "description": "Subject line for invitation email",
+    "placeholders": {
+      "scheduleName": {},
+      "role": {}
+    }
+  },
   "support": "Support",
-  "@support": {"description": "Support section label"},
+  "@support": {
+    "description": "Support section label"
+  },
   "reportBug": "Report a Bug",
-  "@reportBug": {"description": "Report a bug button label"},
+  "@reportBug": {
+    "description": "Report a bug button label"
+  },
   "description": "Description",
-  "@description": {"description": "Label for the bug description field"},
+  "@description": {
+    "description": "Label for the bug description field"
+  },
   "stepsToReproduce": "Steps to Reproduce",
-  "@stepsToReproduce": {"description": "Label for the steps to reproduce field"},
+  "@stepsToReproduce": {
+    "description": "Label for the steps to reproduce field"
+  },
   "behavior": "Behavior",
-  "@behavior": {"description": "Label for the observed behavior field"},
+  "@behavior": {
+    "description": "Label for the observed behavior field"
+  },
   "expected": "Expected",
-  "@expected": {"description": "Label for the expected behavior field"},
+  "@expected": {
+    "description": "Label for the expected behavior field"
+  },
   "actual": "Actual",
-  "@actual": {"description": "Label for the actual behavior field"},
+  "@actual": {
+    "description": "Label for the actual behavior field"
+  },
   "severity": "Severity",
-  "@severity": {"description": "Label for the bug severity field"},
+  "@severity": {
+    "description": "Label for the bug severity field"
+  },
   "low": "Low",
-  "@low": {"description": "Low severity level"},
+  "@low": {
+    "description": "Low severity level"
+  },
   "medium": "Medium",
-  "@medium": {"description": "Medium severity level"},
+  "@medium": {
+    "description": "Medium severity level"
+  },
   "high": "High",
-  "@high": {"description": "High severity level"},
+  "@high": {
+    "description": "High severity level"
+  },
   "critical": "Critical",
-  "@critical": {"description": "Critical severity level"},
+  "@critical": {
+    "description": "Critical severity level"
+  },
   "report": "Report",
-  "@report": {"description": "Label for the report button"},
+  "@report": {
+    "description": "Label for the report button"
+  },
   "bugReportSuccess": "Bug report submitted successfully!",
-  "@bugReportSuccess": {"description": "Message for succesfull bug report"}
+  "@bugReportSuccess": {
+    "description": "Message for succesfull bug report"
+  }
 }

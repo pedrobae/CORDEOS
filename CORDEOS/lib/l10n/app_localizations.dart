@@ -1745,7 +1745,7 @@ abstract class AppLocalizations {
   /// Parsing strategy option for double new lines
   ///
   /// In pt, this message translates to:
-  /// **'Dupla Nova Linha'**
+  /// **'Linha Vazia'**
   String get doubleNewLine;
 
   /// Parsing strategy option for section labels
@@ -2090,10 +2090,10 @@ abstract class AppLocalizations {
   /// **'Acordes Comuns em - {key}'**
   String commonChordsOfKey(Object key);
 
-  /// Instruction to hold a chord to see variations
+  /// Instruction to tap a chord to see variations
   ///
   /// In pt, this message translates to:
-  /// **'Toque e segure um acorde para mostrar variações.'**
+  /// **'Toque um acorde para mostrar variações.'**
   String get chordExpansionInstruction;
 
   /// Custom chord label

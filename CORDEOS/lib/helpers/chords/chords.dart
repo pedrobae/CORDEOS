@@ -120,12 +120,13 @@ class ChordHelper {
   }
 
   List<String> getChordVariationsOnKey(String key, String chord, int index) {
-    
+    final keyChords = getChordsForKey(key);
+    int chordIndex = keyChords.indexOf(chord);
     switch (index) {
       case 0:
         return [
-          '$chord/${transpose(key, chord, 4)}',
-          '$chord/${transpose(key, chord, 7)}',
+          '$chord/${keyChords[(chordIndex + 4) % 12]}',
+          '$chord/${keyChords[(chordIndex + 7) % 12]}',
           '${chord}maj7',
           '${chord}9',
         ];
@@ -135,18 +136,18 @@ class ChordHelper {
         return ['${chord}7', minorToMajor(chord), '${minorToMajor(chord)}7'];
       case 3:
         return [
-          '$chord/${transpose(key, chord, 4)}',
-          '$chord/${transpose(key, chord, 7)}',
+          '$chord/${keyChords[(chordIndex + 4) % 12]}',
+          '$chord/${keyChords[(chordIndex + 7) % 12]}',
           '${chord}maj7',
-          '$chord/${transpose(key, chord, 2)}',
+          '$chord/${keyChords[(chordIndex + 2) % 12]}',
           '${chord}9',
           '${chord}m',
         ];
       case 4:
         return [
           '${chord}7',
-          '$chord/${transpose(key, chord, 4)}',
-          '$chord/${transpose(key, chord, 7)}',
+          '$chord/${keyChords[(chordIndex + 4) % 12]}',
+          '$chord/${keyChords[(chordIndex + 7) % 12]}',
           '${chord}9',
           '${chord}m',
         ];
@@ -155,7 +156,7 @@ class ChordHelper {
           '${dimToMajor(chord)}ø',
           '${dimToMajor(chord)}m',
           dimToMajor(chord),
-          '${dimToMajor(chord)}m/${transpose(key, dimToMajor(chord), 3)}',
+          '${dimToMajor(chord)}m/${keyChords[(chordIndex + 3) % 12]}',
         ];
       default:
         return [];

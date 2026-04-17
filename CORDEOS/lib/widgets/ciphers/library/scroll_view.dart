@@ -1,3 +1,4 @@
+import 'package:azlistview/azlistview.dart';
 import 'package:cordeos/providers/cipher/cipher_provider.dart';
 import 'package:cordeos/l10n/app_localizations.dart';
 import 'package:cordeos/providers/version/cloud_version_provider.dart';
@@ -7,6 +8,26 @@ import 'package:cordeos/widgets/ciphers/library/card_cloud.dart';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+/// Model for AzListView that holds cipher/cloud version data
+class CipherListItem extends ISuspensionBean {
+  final dynamic id; // int for local cipher, String for cloud version
+  final String title;
+  String tag = '';
+
+  CipherListItem({required this.id, required this.title}) {
+    // Extract first letter for alphabet grouping, handle special chars
+    if (title.isEmpty) {
+      tag = '#';
+    } else {
+      final firstChar = title[0].toUpperCase();
+      tag = RegExp(r'[A-Z]').hasMatch(firstChar) ? firstChar : '#';
+    }
+  }
+
+  @override
+  String getSuspensionTag() => tag;
+}
 
 class CipherScrollView extends StatefulWidget {
   const CipherScrollView({super.key});
@@ -43,36 +64,40 @@ class _CipherScrollViewState extends State<CipherScrollView> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Selector3<
       CipherProvider,
       CloudVersionProvider,
       LocalVersionProvider,
-      ({
-        List<dynamic> filteredIDs,
-        int localIDsCount,
-        List<int?> localVersionIds,
-      })
+      List<CipherListItem>
     >(
       selector: (context, ciph, cloudVer, localVer) {
         final filteredCipherIds = ciph.filteredCipherIds;
         final filteredCloudVersionIds = cloudVer.filteredCloudVersionIds;
-        final localVersionIds = filteredCipherIds
-            .map((id) => localVer.getIdOfOldestVersionOfCipher(id))
-            .whereType<int>()
+
+        final filteredIds = {
+          ...filteredCipherIds,
+          ...filteredCloudVersionIds,
+        }.entries.toList();
+
+        // Create CipherListItem objects for AzListView
+        final items = filteredIds
+            .map((entry) => CipherListItem(id: entry.key, title: entry.value))
             .toList();
 
-        return (
-          filteredIDs: [...filteredCipherIds, ...filteredCloudVersionIds],
-          localIDsCount: filteredCipherIds.length,
-          localVersionIds: localVersionIds,
-        );
+        // Sort and set suspension status for AzListView
+        SuspensionUtil.sortListBySuspensionTag(items);
+        SuspensionUtil.setShowSuspensionStatus(items);
+
+        return items;
       },
-      builder: (context, s, child) {
+      builder: (context, items, child) {
         return RefreshIndicator(
           onRefresh: () async {
             _loadData(forceReload: true);
           },
-          child: (s.filteredIDs.isEmpty)
+          child: (items.isEmpty)
               ? Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -84,29 +109,57 @@ class _CipherScrollViewState extends State<CipherScrollView> {
                     ),
                   ],
                 )
-              : ListView.builder(
-                  cacheExtent: 500,
+              : AzListView(
+                  data: items,
                   physics: const AlwaysScrollableScrollPhysics(),
-                  itemCount: s.filteredIDs.length,
+                  indexBarData: SuspensionUtil.getTagIndexList(items),
+                  indexBarOptions: IndexBarOptions(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: colorScheme.surfaceContainerLowest),
+                    ),
+                    needRebuild: false,
+                    indexHintAlignment: Alignment.centerRight,
+                    indexHintOffset: const Offset(-20, 0),
+                    selectItemDecoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: colorScheme.primary,
+                    ),
+                    selectTextStyle: TextStyle(
+                      fontSize: 12,
+                      color: colorScheme.onPrimary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textStyle: TextStyle(
+                      fontSize: 10,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  itemCount: items.length,
                   itemBuilder: (context, index) {
-                    if (index >= s.localIDsCount) {
+                    final item = items[index];
+                    const itemPadding = EdgeInsets.only(bottom: 8.0, right: 38);
+
+                    if (item.id is String) {
                       return Padding(
-                        padding: const EdgeInsets.only(
-                          bottom: 8.0,
-                        ), // Spacing between cards
-                        child: CloudCipherCard(versionId: s.filteredIDs[index]),
+                        padding: itemPadding,
+                        child: CloudCipherCard(versionId: item.id),
                       );
                     }
 
-                    if (index >= s.localVersionIds.length) {
+                    if (item.id == null) {
                       return const Center(child: CircularProgressIndicator());
                     }
 
-                    final versionID = s.localVersionIds[index];
+                    final versionID = context
+                        .read<LocalVersionProvider>()
+                        .getIdOfOldestVersionOfCipher(item.id);
                     if (versionID == null) {
                       return const Center(child: CircularProgressIndicator());
                     }
-                    return CipherCard(versionID: versionID);
+                    return Padding(
+                      padding: itemPadding,
+                      child: CipherCard(versionID: versionID),
+                    );
                   },
                 ),
         );
