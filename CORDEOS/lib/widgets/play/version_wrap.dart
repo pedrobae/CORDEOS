@@ -32,7 +32,7 @@ class VersionWrap extends StatelessWidget {
       ({
         Axis wrapDirection,
         List<int> filteredStructure,
-        List<SectionBadgeData> badgesData,
+        Map<int, SectionBadgeData> badgesData,
       })
     >(
       selector: (context, laySet, localVer, cloudVer, sect) {
@@ -59,14 +59,16 @@ class VersionWrap extends StatelessWidget {
           }
           filteredStructure.add(key);
         }
-        final sectionTypes = <SectionType>[];
+        final sectionTypes = <int, SectionType>{};
         for (var key in filteredStructure) {
           final sectionType = sect
               .getSection(versionKey: versionID, sectionKey: key)
               ?.sectionType;
 
           if (sectionType != null) {
-            sectionTypes.add(sectionType);
+            sectionTypes[key] = sectionType;
+          } else {
+            sectionTypes[key] = SectionType.unknown;
           }
         }
 
@@ -173,7 +175,7 @@ class VersionWrap extends StatelessWidget {
   List<Widget> _buildSectionCards(
     BuildContext context,
     List<int> filteredStructure,
-    List<SectionBadgeData> badgesData,
+    Map<int, SectionBadgeData> badgesData,
   ) {
     if (versionID == null) return [const SizedBox.shrink()];
 
@@ -226,7 +228,7 @@ class VersionWrap extends StatelessWidget {
             sectionType: section.contentType,
             sectionKey: sectionKey,
             sectionText: section.contentText,
-            sectionBadge: badgesData[i],
+            sectionBadge: badgesData[sectionKey]!,
           ),
         ),
       );

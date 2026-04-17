@@ -133,7 +133,7 @@ extension SectionTypeMethods on SectionType {
       case SectionType.intro:
         return ['intro'];
       case SectionType.outro:
-        return ['outro'];
+        return ['outro', 'ending', 'saída', 'saida'];
       case SectionType.solo:
         return ['solo'];
       case SectionType.preChorus:
@@ -157,29 +157,30 @@ extension SectionTypeMethods on SectionType {
   }
 
   String code(int index) {
+    final suffix = index > 0 ? '$index' : '';
     switch (this) {
       case SectionType.verse:
-        return 'V$index';
+        return 'V$suffix';
       case SectionType.chorus:
-        return 'C$index';
+        return 'C$suffix';
       case SectionType.bridge:
-        return 'B$index';
+        return 'B$suffix';
       case SectionType.intro:
-        return 'I$index';
+        return 'I$suffix';
       case SectionType.outro:
-        return 'O$index';
+        return 'O$suffix';
       case SectionType.solo:
-        return 'S$index';
+        return 'S$suffix';
       case SectionType.preChorus:
-        return 'PC$index';
+        return 'PC$suffix';
       case SectionType.tag:
-        return 'T$index';
+        return 'T$suffix';
       case SectionType.finale:
-        return 'F$index';
+        return 'F$suffix';
       case SectionType.annotation:
-        return 'N$index';
+        return 'N$suffix';
       case SectionType.unknown:
-        return 'U$index';
+        return 'U$suffix';
     }
   }
 }
@@ -196,20 +197,32 @@ class SectionBadgeData {
   });
 }
 
-List<SectionBadgeData> getSectionBadges(List<SectionType> types) {
-  final badgeData = <SectionBadgeData>[];
-  Map<SectionType, int> colorIndexMap = {};
-  for (var sectionType in types) {
-    colorIndexMap[sectionType] = (colorIndexMap[sectionType] ?? 0) + 1;
+Map<int, SectionBadgeData> getSectionBadges(Map<int, SectionType> types) {
+  final badgeData = <int, SectionBadgeData>{};
+  Map<SectionType, int> typeCountMap = {};
+  for (var entry in types.entries) {
+    final sectionType = entry.value;
+    typeCountMap[sectionType] = (typeCountMap[sectionType] ?? 0) + 1;
 
-    badgeData.add(
-      SectionBadgeData(
-        type: sectionType,
-        code: sectionType.code(colorIndexMap[sectionType]!),
-        color: sectionType.color,
-      ),
+    badgeData[entry.key] = SectionBadgeData(
+      type: sectionType,
+      code: sectionType.code(typeCountMap[sectionType]!),
+      color: sectionType.color,
     );
   }
+
+  // REMOVE NUMBERING FROM SINGLE TYPE OCURRENCES
+  for (var entry in badgeData.entries) {
+    final type = entry.value.type;
+    if (typeCountMap[type] == 1) {
+      badgeData[entry.key] = SectionBadgeData(
+        type: type,
+        code: type.code(0),
+        color: type.color,
+      );
+    }
+  }
+
   return badgeData;
 }
 

@@ -63,13 +63,21 @@ class _StructureListState extends State<StructureList> {
       LocalVersionProvider,
       CloudVersionProvider,
       SectionProvider,
-      ({List<int> filteredStructure, bool tapEnabled})
+      ({
+        List<int> filteredStructure,
+        Map<int, SectionBadgeData> badgesData,
+        bool tapEnabled,
+      })
     >(
       selector: (context, laySet, localVer, cloudVer, sect) {
         final tapEnabled = laySet.showRepeatSections == true;
 
         if (widget.versionID == null) {
-          return (filteredStructure: [], tapEnabled: tapEnabled);
+          return (
+            filteredStructure: [],
+            badgesData: {},
+            tapEnabled: tapEnabled,
+          );
         }
 
         final songStructure = widget.versionID is String
@@ -93,7 +101,23 @@ class _StructureListState extends State<StructureList> {
           filteredStructure.add(key);
         }
 
-        return (filteredStructure: filteredStructure, tapEnabled: tapEnabled);
+        final sectionTypes = <int, SectionType>{};
+        for (var key in filteredStructure) {
+          final type = sect
+              .getSection(versionKey: widget.versionID, sectionKey: key)
+              ?.sectionType;
+          if (type != null) {
+            sectionTypes[key] = type;
+          } else {
+            sectionTypes[key] = SectionType.unknown;
+          }
+        }
+
+        return (
+          filteredStructure: filteredStructure,
+          badgesData: getSectionBadges(sectionTypes),
+          tapEnabled: tapEnabled,
+        );
       },
       builder: (context, s, child) {
         return Padding(
@@ -126,6 +150,7 @@ class _StructureListState extends State<StructureList> {
                               index: index,
                               versionID: widget.versionID,
                               sectionKey: sectionKey,
+                              sectionCode: s.badgesData[sectionKey]!.code,
                               onTap: () {
                                 if (s.tapEnabled) {
                                   scroll.probeScrollToItem(
@@ -161,12 +186,14 @@ class _StructureSectionButton extends StatelessWidget {
   final int index;
   final dynamic versionID;
   final int sectionKey;
+  final String sectionCode;
   final VoidCallback onTap;
 
   const _StructureSectionButton({
     required this.index,
     required this.versionID,
     required this.sectionKey,
+    required this.sectionCode,
     required this.onTap,
   });
 
@@ -181,36 +208,16 @@ class _StructureSectionButton extends StatelessWidget {
             SectionProvider,
             LocalVersionProvider,
             CloudVersionProvider,
-            ({Section? section, bool highlighted, String sectionCode})
+            ({Section? section, bool highlighted})
           >(
             selector: (context, scroll, sect, localVer, cloudVer) {
-              final songStruct = versionID is int
-                  ? localVer.getSongStructure(versionID)
-                  : cloudVer.getSongStructure(versionID);
-
               final section = sect.getSection(
                 versionKey: versionID,
                 sectionKey: sectionKey,
               );
-
-              int typeCount = 1;
-              final sectionType = section?.sectionType;
-
-              for (var i = 0; (i < index); i++) {
-                if (i >= songStruct.length) break;
-                final key = songStruct[i];
-                final sec = sect.getSection(
-                  versionKey: versionID,
-                  sectionKey: key,
-                );
-                if (sec != null && sec.sectionType == sectionType) {
-                  typeCount++;
-                }
-              }
               return (
                 section: section,
                 highlighted: scroll.currentSectionIndex == index,
-                sectionCode: sectionType?.code(typeCount) ?? 'U$typeCount',
               );
             },
             builder: (context, s, child) {
@@ -236,7 +243,7 @@ class _StructureSectionButton extends StatelessWidget {
                   ),
                   child: Center(
                     child: Text(
-                      s.sectionCode,
+                      sectionCode,
                       style: TextStyle(
                         color: colorScheme.onPrimary,
                         fontWeight: FontWeight.w600,

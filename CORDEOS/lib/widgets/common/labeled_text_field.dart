@@ -14,6 +14,7 @@ class LabeledTextField extends StatelessWidget {
   final Widget? prefixIcon;
   final Widget? suffixIcon;
   final TextInputType keyboardType;
+  final TextCapitalization textCapitalization;
   final void Function(String)? onSubmitted;
 
   const LabeledTextField({
@@ -31,6 +32,7 @@ class LabeledTextField extends StatelessWidget {
     this.prefixIcon,
     this.suffixIcon,
     this.keyboardType = TextInputType.text,
+    this.textCapitalization = TextCapitalization.none,
     this.onSubmitted,
   });
 
@@ -78,6 +80,7 @@ class LabeledTextField extends StatelessWidget {
               onSubmitted!(value);
             }
           },
+          textCapitalization: textCapitalization,
         ),
         if (instruction != null)
           Text(

@@ -82,7 +82,8 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard> {
         String musicKey,
         String duration,
         String bpm,
-        List<SectionBadgeData> badgesData,
+        Map<int, SectionBadgeData> badgesData,
+        List<int> songStructure,
       })
     >(
       selector: (context, localVer, ciph, sect) {
@@ -93,13 +94,15 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard> {
 
         final songStructure = version?.songStructure;
 
-        final sectionTypes = <SectionType>[];
+        final sectionTypes = <int, SectionType>{};
         for (var key in songStructure ?? []) {
           final type = sect
               .getSection(versionKey: widget.versionId, sectionKey: key)
               ?.sectionType;
           if (type != null) {
-            sectionTypes.add(type);
+            sectionTypes[key] = type;
+          } else {
+            sectionTypes[key] = SectionType.unknown;
           }
         }
         return (
@@ -113,6 +116,7 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard> {
               ? version.bpm.toString()
               : '-',
           badgesData: getSectionBadges(sectionTypes),
+          songStructure: songStructure ?? [],
         );
       },
       builder: (context, s, child) {
@@ -197,7 +201,10 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard> {
                           ],
                         ),
                         // REORDERABLE SECTION CHIPS
-                        _buildReorderableSectionChips(s.badgesData),
+                        _buildReorderableSectionChips(
+                          s.badgesData,
+                          s.songStructure,
+                        ),
                       ],
                     ),
                   ),
@@ -221,7 +228,10 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard> {
     );
   }
 
-  Widget _buildReorderableSectionChips(List<SectionBadgeData> badgesData) {
+  Widget _buildReorderableSectionChips(
+    Map<int, SectionBadgeData> badgesData,
+    List<int> songStructure,
+  ) {
     final localVer = context.read<LocalVersionProvider>();
 
     return ConstrainedBox(
@@ -238,7 +248,8 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard> {
           localVer.reorderSongStructure(widget.versionId, oldIndex, newIndex);
         },
         itemBuilder: (_, index) {
-          final badgeData = badgesData[index];
+          final key = songStructure[index];
+          final badgeData = badgesData[key]!;
           final codeWidth = (TextPainter(
             text: TextSpan(
               text: badgeData.code,

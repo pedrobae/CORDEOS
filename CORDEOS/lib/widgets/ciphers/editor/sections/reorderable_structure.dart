@@ -52,18 +52,20 @@ class _ReorderableStructureState extends State<ReorderableStructure> {
     return Selector2<
       LocalVersionProvider,
       SectionProvider,
-      ({List<int> songStructure, List<SectionBadgeData> badgesData})
+      ({List<int> songStructure, Map<int, SectionBadgeData> badgesData})
     >(
       selector: (context, localVer, sect) {
         final songStruct = localVer.getSongStructure(widget.versionID);
 
-        final sectionTypes = <SectionType>[];
+        final sectionTypes = <int, SectionType>{};
         for (var key in songStruct) {
           final type = sect
               .getSection(versionKey: widget.versionID, sectionKey: key)
               ?.sectionType;
           if (type != null) {
-            sectionTypes.add(type);
+            sectionTypes[key] = type;
+          } else {
+            sectionTypes[key] = SectionType.unknown;
           }
         }
 
@@ -119,7 +121,7 @@ class _ReorderableStructureState extends State<ReorderableStructure> {
     BuildContext context,
     int index,
     List<int> songStructure,
-    List<SectionBadgeData> badgesData,
+    Map<int, SectionBadgeData> badgesData,
   ) {
     final sect = context.read<SectionProvider>();
     final localVer = context.read<LocalVersionProvider>();
@@ -127,7 +129,7 @@ class _ReorderableStructureState extends State<ReorderableStructure> {
     final colorScheme = Theme.of(context).colorScheme;
 
     final sectionKey = songStructure[index];
-    final badgeData = badgesData[index];
+    final badgeData = badgesData[sectionKey]!;
 
     final codeCount = songStructure.where((code) => code == sectionKey).length;
 

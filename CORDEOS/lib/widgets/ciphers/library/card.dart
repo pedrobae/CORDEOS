@@ -70,7 +70,8 @@ class _CipherCardState extends State<CipherCard> {
         String duration,
         String bpm,
         String? link,
-        List<SectionBadgeData> sectionBadges,
+        Map<int, SectionBadgeData> sectionBadges,
+        List<int> songStructure,
       })
     >(
       selector: (context, ciph, localVer, sect) {
@@ -79,15 +80,15 @@ class _CipherCardState extends State<CipherCard> {
             ? ciph.getCipher(version.cipherID)
             : null;
 
-        final sectionTypes = <SectionType>[];
-        for (var sectionKey in version?.songStructure ?? []) {
+        final sectionTypes = <int, SectionType>{};
+        for (var sectionKey in version?.songStructure.toSet().toList() ?? []) {
           final section = sect.getSection(
             versionKey: widget.versionID,
             sectionKey: sectionKey,
           );
 
           if (section?.sectionType != null) {
-            sectionTypes.add(section!.sectionType);
+            sectionTypes[sectionKey] = section!.sectionType;
           }
         }
 
@@ -103,6 +104,7 @@ class _CipherCardState extends State<CipherCard> {
               : '-',
           link: cipher?.link,
           sectionBadges: getSectionBadges(sectionTypes),
+          songStructure: version?.songStructure ?? [],
         );
       },
       builder: (context, s, child) {
@@ -203,10 +205,14 @@ class _CipherCardState extends State<CipherCard> {
                               height: 25,
                               child: ListView.builder(
                                 scrollDirection: Axis.horizontal,
-                                itemCount: s.sectionBadges.length,
+                                itemCount: s.songStructure.length,
                                 itemBuilder: (_, index) {
-                                  return SectionBadge(
-                                    sectionBadgeData: s.sectionBadges[index],
+                                  final key = s.songStructure[index];
+                                  return Padding(
+                                    padding: const EdgeInsets.only(right: 2.0),
+                                    child: SectionBadge(
+                                      sectionBadgeData: s.sectionBadges[key]!,
+                                    ),
                                   );
                                 },
                               ),

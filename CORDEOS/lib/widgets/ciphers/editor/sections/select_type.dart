@@ -160,14 +160,14 @@ class SelectType extends StatelessWidget {
       final newKey = sect.cacheAddSection(
         versionID,
         type.color,
-        type.canonicalLabel,
+        type.localizedLabel(context),
       );
       return newKey;
     } else {
       sect.cacheUpdate(
         versionID,
         sectionKey!,
-        newContentType: type.canonicalLabel,
+        newContentType: type.localizedLabel(context),
         newColor: type.color,
       );
       return sectionKey!;

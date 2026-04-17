@@ -38,23 +38,23 @@ class _SectionsTabState extends State<SectionsTab> {
     return Selector2<
       LocalVersionProvider,
       SectionProvider,
-      ({List<int> uniqueSections, List<SectionBadgeData> sectionBadgeData})
+      ({List<int> uniqueSections, Map<int, SectionBadgeData> badgesData})
     >(
       selector: (context, localVer, sect) {
         final songStructure = localVer.getSongStructure(widget.versionID);
-        final sectionTypes = <SectionType>[];
+        final sectionTypes = <int, SectionType>{};
         for (var sectionKey in songStructure) {
           final section = sect.getSection(
             versionKey: widget.versionID,
             sectionKey: sectionKey,
           );
           if (section != null) {
-            sectionTypes.add(section.sectionType);
+            sectionTypes[sectionKey] = section.sectionType;
           }
         }
         return (
           uniqueSections: songStructure.toSet().toList(),
-          sectionBadgeData: getSectionBadges(sectionTypes),
+          badgesData: getSectionBadges(sectionTypes),
         );
       },
       builder: (context, s, child) {
@@ -128,7 +128,7 @@ class _SectionsTabState extends State<SectionsTab> {
                             return TokenContentCard(
                               index: index,
                               versionID: widget.versionID,
-                              sectionBadgeData: s.sectionBadgeData[index],
+                              sectionBadgeData: s.badgesData[sectionKey]!,
                               sectionKey: sectionKey,
                               isEnabled: widget.isEnabled,
                             );

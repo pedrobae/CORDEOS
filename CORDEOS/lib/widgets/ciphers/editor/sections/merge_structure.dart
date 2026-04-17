@@ -86,7 +86,7 @@ class _MergeStructureState extends State<MergeStructure> {
           // STRUCTURE
           Container(
             padding: EdgeInsets.all(8),
-            height: 64,
+            height: 48,
             decoration: BoxDecoration(
               border: Border.all(color: colorScheme.surfaceContainerLowest),
               borderRadius: BorderRadius.circular(0),
@@ -97,7 +97,7 @@ class _MergeStructureState extends State<MergeStructure> {
                   SectionProvider,
                   ({
                     List<int> uniqueStructure,
-                    List<SectionBadgeData> badgeData,
+                    Map<int, SectionBadgeData> badgesData,
                   })
                 >(
                   selector: (context, localVer, sect) {
@@ -106,22 +106,22 @@ class _MergeStructureState extends State<MergeStructure> {
                         .toSet()
                         .toList();
 
-                    final sectionTypes = <SectionType>[];
+                    final sectionTypes = <int, SectionType>{};
                     for (var key in uniqueStruct) {
                       final section = sect.getSection(
                         versionKey: widget.versionID,
                         sectionKey: key,
                       );
                       if (section != null) {
-                        sectionTypes.add(section.sectionType);
+                        sectionTypes[key] = section.sectionType;
                       } else {
-                        sectionTypes.add(SectionType.unknown);
+                        sectionTypes[key] = SectionType.unknown;
                       }
                     }
 
                     return (
                       uniqueStructure: uniqueStruct,
-                      badgeData: getSectionBadges(sectionTypes),
+                      badgesData: getSectionBadges(sectionTypes),
                     );
                   },
                   builder: (context, s, child) {
@@ -142,7 +142,7 @@ class _MergeStructureState extends State<MergeStructure> {
                               return _buildItem(
                                 index,
                                 s.uniqueStructure,
-                                s.badgeData,
+                                s.badgesData,
                               );
                             },
                           );
@@ -190,10 +190,10 @@ class _MergeStructureState extends State<MergeStructure> {
   Widget _buildItem(
     int index,
     List<int> uniqueStructure,
-    List<SectionBadgeData> badgesData,
+    Map<int, SectionBadgeData> badgesData,
   ) {
     final sectionKey = uniqueStructure[index];
-    final badgeData = badgesData[index];
+    final badgeData = badgesData[sectionKey]!;
     return Selector<
       EditSectionsStateProvider,
       ({bool isTarget, bool isSelected})
@@ -205,13 +205,20 @@ class _MergeStructureState extends State<MergeStructure> {
         );
       },
       builder: (context, s, child) {
-        return GestureDetector(
-          onTap: () {
-            context.read<EditSectionsStateProvider>().toggleMergeSection(
-              sectionKey,
-            );
-          },
-          child: SectionBadge(sectionBadgeData: badgeData),
+        return Padding(
+          padding: const EdgeInsets.only(right: 4.0),
+          child: GestureDetector(
+            onTap: () {
+              context.read<EditSectionsStateProvider>().toggleMergeSection(
+                sectionKey,
+              );
+            },
+            child: SectionBadge(
+              sectionBadgeData: badgeData,
+              isTarget: s.isTarget,
+              isSelected: s.isSelected,
+            ),
+          ),
         );
       },
     );

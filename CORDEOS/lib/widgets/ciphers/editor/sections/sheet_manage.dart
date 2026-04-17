@@ -69,7 +69,7 @@ class _ManageSheetState extends State<ManageSheet> {
       LocalVersionProvider,
       SectionProvider,
       ({
-        List<SectionBadgeData> uniqueBadgeData,
+        Map<int, SectionBadgeData> badgesData,
         Set<int> uniqueStruct,
         Duration? duration,
       })
@@ -77,24 +77,26 @@ class _ManageSheetState extends State<ManageSheet> {
       selector: (context, localVer, sect) {
         final version = localVer.getVersion(widget.versionID);
         final uniqueStruct = (version?.songStructure ?? []).toSet();
-        final sectionTypes = <SectionType>[];
+        final sectionTypes = <int, SectionType>{};
         for (var sectionKey in uniqueStruct) {
           final section = sect.getSection(
             versionKey: widget.versionID,
             sectionKey: sectionKey,
           );
           if (section != null) {
-            sectionTypes.add(section.sectionType);
+            sectionTypes[sectionKey] = section.sectionType;
+          } else {
+            sectionTypes[sectionKey] = SectionType.unknown;
           }
         }
         return (
-          uniqueBadgeData: getSectionBadges(sectionTypes),
+          badgesData: getSectionBadges(sectionTypes),
           uniqueStruct: uniqueStruct,
           duration: version?.duration,
         );
       },
       builder: (context, s, child) {
-        if (s.uniqueBadgeData.isEmpty || s.duration == null) {
+        if (s.badgesData.isEmpty || s.duration == null) {
           return Center(child: CircularProgressIndicator());
         }
 
@@ -172,17 +174,17 @@ class _ManageSheetState extends State<ManageSheet> {
                 child: ListView(
                   children: [
                     _buildAnnotationSection(),
-                    for (int i = 0; i < s.uniqueBadgeData.length; i++)
+                    for (int i = 0; i < s.uniqueStruct.length; i++)
                       Builder(
                         builder: (context) {
-                          final badgeData = s.uniqueBadgeData[i];
-                          final sectionKey = s.uniqueStruct.elementAt(i);
+                          final key = s.uniqueStruct.elementAt(i);
+                          final badgeData = s.badgesData[key]!;
 
                           return GestureDetector(
                             onTap: () {
                               localVer.addSectionToStruct(
                                 widget.versionID,
-                                sectionKey,
+                                key,
                               );
                               if (_scrollToEnd != null) {
                                 WidgetsBinding.instance.addPostFrameCallback((

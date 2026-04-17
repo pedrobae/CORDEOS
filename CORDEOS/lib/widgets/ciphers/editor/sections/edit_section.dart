@@ -3,6 +3,7 @@ import 'package:cordeos/models/domain/cipher/section.dart';
 import 'package:cordeos/providers/navigation_provider.dart';
 import 'package:cordeos/providers/section/section_provider.dart';
 import 'package:cordeos/providers/version/local_version_provider.dart';
+import 'package:cordeos/utils/section_constants.dart';
 import 'package:cordeos/widgets/ciphers/editor/sections/select_type.dart';
 import 'package:cordeos/widgets/common/delete_confirmation.dart';
 import 'package:cordeos/widgets/common/filled_text_button.dart';
@@ -51,8 +52,8 @@ class _EditSectionScreenState extends State<EditSectionScreen> {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
-    return LayoutBuilder(
-      builder: (context, constraints) {
+    return Builder(
+      builder: (context) {
         final media = MediaQuery.of(context);
         double keyboardInset = media.viewInsets.bottom;
         final screenHeight = media.size.height;
@@ -129,7 +130,10 @@ class _EditSectionScreenState extends State<EditSectionScreen> {
                               );
                             },
                             child: Container(
-                              padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                              padding: EdgeInsets.symmetric(
+                                vertical: 12,
+                                horizontal: 16,
+                              ),
                               decoration: BoxDecoration(
                                 border: BoxBorder.all(
                                   color: colorScheme.surfaceContainerLowest,
@@ -148,11 +152,25 @@ class _EditSectionScreenState extends State<EditSectionScreen> {
                                       color: contentColor,
                                     ),
                                   ),
-                                  Expanded(
-                                    child: Text(
-                                      contentTypeController.text,
-                                      style: textTheme.bodyLarge,
-                                    ),
+                                  Selector<SectionProvider, String>(
+                                    selector: (context, sect) {
+                                      final section = sect.getSection(
+                                        versionKey: widget.versionID,
+                                        sectionKey: widget.sectionKey,
+                                      );
+                                      return section?.sectionType
+                                              .localizedLabel(context) ??
+                                          '';
+                                    },
+                                    builder:
+                                        (context, sectionTypeLabel, child) {
+                                          return Expanded(
+                                            child: Text(
+                                              sectionTypeLabel,
+                                              style: textTheme.bodyLarge,
+                                            ),
+                                          );
+                                        },
                                   ),
                                   Icon(
                                     Icons.chevron_right,
@@ -169,6 +187,7 @@ class _EditSectionScreenState extends State<EditSectionScreen> {
                           label: AppLocalizations.of(context)!.sectionType,
                           hint: AppLocalizations.of(context)!.sectionTypeHint,
                           controller: contentTypeController,
+                          textCapitalization: TextCapitalization.words,
                         ),
 
                         // SECTION TEXT
@@ -178,6 +197,7 @@ class _EditSectionScreenState extends State<EditSectionScreen> {
                           controller: contentTextController,
                           lineCount: 8,
                           keyboardType: TextInputType.multiline,
+                          textCapitalization: TextCapitalization.sentences,
                         ),
 
                         // DELETE BUTTON
@@ -223,7 +243,6 @@ class _EditSectionScreenState extends State<EditSectionScreen> {
       newContentType: contentTypeController.text,
       newContentText: contentTextController.text,
     );
-
   }
 
   void _deleteSection() {
