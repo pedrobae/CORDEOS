@@ -36,8 +36,11 @@ if ($versionMatch) {
             $patch++
             $buildNumber++
         }
-        default {
+        'build' {
             $buildNumber++
+        }
+        default {
+            
         }
     }
 

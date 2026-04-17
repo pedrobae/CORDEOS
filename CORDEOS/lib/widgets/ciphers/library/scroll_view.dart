@@ -116,7 +116,9 @@ class _CipherScrollViewState extends State<CipherScrollView> {
                   padding: const EdgeInsets.only(right: 38),
                   indexBarOptions: IndexBarOptions(
                     decoration: BoxDecoration(
-                      border: Border.all(color: colorScheme.surfaceContainerLowest),
+                      border: Border.all(
+                        color: colorScheme.surfaceContainerLowest,
+                      ),
                     ),
                     needRebuild: false,
                     indexHintAlignment: Alignment.centerRight,
@@ -138,16 +140,22 @@ class _CipherScrollViewState extends State<CipherScrollView> {
                       );
                     }
 
-                    if (item.id == null) {
-                      return const Center(child: CircularProgressIndicator());
+                    if (item.id is! int) {
+                      throw Exception(
+                        'Invalid item ID type: ${item.id.runtimeType}',
+                      );
                     }
 
                     final versionID = context
                         .read<LocalVersionProvider>()
                         .getIdOfOldestVersionOfCipher(item.id);
+
                     if (versionID == null) {
-                      return const Center(child: CircularProgressIndicator());
+                      throw Exception(
+                        'No versions found for cipher ID: ${item.id}',
+                      );
                     }
+
                     return Padding(
                       padding: itemPadding,
                       child: CipherCard(versionID: versionID),
