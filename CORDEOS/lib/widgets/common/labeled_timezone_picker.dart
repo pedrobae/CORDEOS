@@ -139,7 +139,7 @@ class _TimezoneSheetState extends State<TimezoneSheet> {
           ),
 
           // TIMEZONE OPTIONS
-          Flexible(
+          Expanded(
             child: Container(
               decoration: BoxDecoration(
                 border: Border.symmetric(
