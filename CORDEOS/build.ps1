@@ -56,10 +56,10 @@ if ($versionMatch) {
         $infoPlist = Get-Content $infoPlistPath -Raw
         
         # Update CFBundleShortVersionString (version name: X.Y.Z)
-        $infoPlist = $infoPlist -replace '(<key>CFBundleShortVersionString</key>\s*<string>)[^<]+(</string>)', "`$1$versionName`$2"
+        $infoPlist = $infoPlist -replace '<key>CFBundleShortVersionString</key>\s*<string>[^<]+</string>', "<key>CFBundleShortVersionString</key>`n`t<string>$versionName</string>"
         
         # Update CFBundleVersion (build number)
-        $infoPlist = $infoPlist -replace '(<key>CFBundleVersion</key>\s*<string>)[^<]+(</string>)', "`$1$buildNumber`$2"
+        $infoPlist = $infoPlist -replace '<key>CFBundleVersion</key>\s*<string>[^<]+</string>', "<key>CFBundleVersion</key>`n`t<string>$buildNumber</string>"
         
         Set-Content $infoPlistPath $infoPlist
         Write-Host "Updated iOS Info.plist (version: $versionName, build: $buildNumber)" -ForegroundColor Green

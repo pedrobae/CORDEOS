@@ -18,10 +18,12 @@
 	<string>CORDEOS</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
-	$11.7.3</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.7.4</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
-	$154</string>
+	<key>CFBundleVersion</key>
+	<string>54</string>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.music</string>
 	<key>LSRequiresIPhoneOS</key>
