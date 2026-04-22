@@ -82,10 +82,10 @@ class CloudScheduleCard extends StatelessWidget {
                       children: [
                         Container(
                           decoration: BoxDecoration(
-                            color: colorScheme.surface.withAlpha(192),
+                            color: colorScheme.surface.withAlpha(128),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          padding: EdgeInsets.only(right: 4),
+                          padding: EdgeInsets.only(right: 8),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
