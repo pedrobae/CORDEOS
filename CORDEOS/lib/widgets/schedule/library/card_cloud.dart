@@ -146,7 +146,7 @@ class CloudScheduleCard extends StatelessWidget {
                         Spacer(),
                         if (s.isSyncing) const CloudDownloadIndicator(),
                         IconButton(
-                          onPressed: () => _openScheduleActionsSheet(context),
+                          onPressed: () => _openScheduleActionsSheet(context, s.schedule?.ownerFirebaseId),
                           icon: Icon(Icons.more_vert),
                         ),
                       ],
@@ -185,8 +185,9 @@ class CloudScheduleCard extends StatelessWidget {
     );
   }
 
-  void _openScheduleActionsSheet(BuildContext context) {
+  void _openScheduleActionsSheet(BuildContext context, String? ownerID) {
     final cloudSch = context.read<CloudScheduleProvider>();
+    final auth = context.read<MyAuthProvider>();
 
     showModalBottomSheet(
       context: context,
@@ -227,31 +228,32 @@ class CloudScheduleCard extends StatelessWidget {
                 trailingIcon: Icons.chevron_right,
                 isDiscrete: true,
               ),
-              // delete
-              FilledTextButton(
-                text: AppLocalizations.of(context)!.delete,
-                tooltip: AppLocalizations.of(context)!.deleteScheduleTooltip,
-                onPressed: () {
-                  showModalBottomSheet(
-                    context: context,
-                    builder: (context) {
-                      return DeleteConfirmationSheet(
-                        itemType: AppLocalizations.of(context)!.schedule,
-                        onConfirm: () {
-                          Navigator.of(context).pop();
-                          cloudSch.deleteSchedule(
-                            context.read<MyAuthProvider>().id!,
-                            scheduleId,
-                          );
-                        },
-                      );
-                    },
-                  );
-                },
-                trailingIcon: Icons.chevron_right,
-                isDangerous: true,
-                isDiscrete: true,
-              ),
+              // unpublish
+              if (auth.id! == ownerID)
+                FilledTextButton(
+                  text: AppLocalizations.of(context)!.delete,
+                  tooltip: AppLocalizations.of(context)!.deleteScheduleTooltip,
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      builder: (context) {
+                        return DeleteConfirmationSheet(
+                          itemType: AppLocalizations.of(context)!.schedule,
+                          onConfirm: () {
+                            Navigator.of(context).pop();
+                            cloudSch.deleteSchedule(
+                              context.read<MyAuthProvider>().id!,
+                              scheduleId,
+                            );
+                          },
+                        );
+                      },
+                    );
+                  },
+                  trailingIcon: Icons.chevron_right,
+                  isDangerous: true,
+                  isDiscrete: true,
+                ),
 
               SizedBox(height: 16),
             ],
