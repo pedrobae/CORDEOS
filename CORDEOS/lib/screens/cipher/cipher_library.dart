@@ -23,10 +23,7 @@ class _CipherLibraryScreenState extends State<CipherLibraryScreen> {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
 
-    final sel = Provider.of<SelectionProvider>(
-      context,
-      listen: false,
-    );
+    final sel = Provider.of<SelectionProvider>(context, listen: false);
 
     return Scaffold(
       appBar: sel.isSelectionMode
@@ -39,10 +36,10 @@ class _CipherLibraryScreenState extends State<CipherLibraryScreen> {
             )
           : null,
       body: Padding(
-        padding: const EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0),
+        padding: const EdgeInsets.only(top: 8, left: 16.0, right: 16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
-          spacing: 16,
+          spacing: 8,
           children: [
             _buildSearchBar(context),
             Expanded(child: CipherScrollView()),

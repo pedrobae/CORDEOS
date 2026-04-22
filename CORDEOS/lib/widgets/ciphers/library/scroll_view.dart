@@ -116,8 +116,16 @@ class _CipherScrollViewState extends State<CipherScrollView> {
                   padding: const EdgeInsets.only(right: 38),
                   indexBarOptions: IndexBarOptions(
                     decoration: BoxDecoration(
-                      border: Border.all(
-                        color: colorScheme.surfaceContainerLowest,
+                      border: Border(
+                        left: BorderSide(
+                          color: colorScheme.surfaceContainerLowest,
+                        ),
+                        right: BorderSide(
+                          color: colorScheme.surfaceContainerLowest,
+                        ),
+                        top: BorderSide(
+                          color: colorScheme.surfaceContainerLowest,
+                        ),
                       ),
                     ),
                     needRebuild: false,

@@ -78,8 +78,17 @@ class _PlaylistScrollViewState extends State<PlaylistScrollView> {
                   indexBarData: SuspensionUtil.getTagIndexList(items),
                   indexBarOptions: IndexBarOptions(
                     decoration: BoxDecoration(
-                      border: Border.all(
-                          color: colorScheme.surfaceContainerLowest),
+                      border: Border(
+                        right: BorderSide(
+                          color: colorScheme.surfaceContainerLowest,
+                        ),
+                        left: BorderSide(
+                          color: colorScheme.surfaceContainerLowest,
+                        ),
+                        top: BorderSide(
+                          color: colorScheme.surfaceContainerLowest,
+                        ),
+                      ),
                     ),
                     needRebuild: false,
                     indexHintAlignment: Alignment.centerRight,

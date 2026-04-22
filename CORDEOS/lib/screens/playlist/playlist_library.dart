@@ -34,10 +34,10 @@ class _PlaylistLibraryScreenState extends State<PlaylistLibraryScreen> {
         return Padding(
           padding: sel.isSelectionMode
               ? EdgeInsets.zero
-              : const EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0),
+              : const EdgeInsets.only(top: 8.0, left: 16.0, right: 16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            spacing: 16.0,
+            spacing: 8.0,
             children: [
               _buildSearchBar(play),
               const Expanded(child: PlaylistScrollView()),
