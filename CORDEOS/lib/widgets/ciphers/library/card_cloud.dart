@@ -80,7 +80,7 @@ class CloudCipherCard extends StatelessWidget {
                         color: colorScheme.surface.withAlpha(192),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      padding: EdgeInsets.symmetric(horizontal: 4),
+                      padding: EdgeInsets.only(right: 4),
                       child: Column(
                         spacing: 2.0,
                         crossAxisAlignment: CrossAxisAlignment.start,

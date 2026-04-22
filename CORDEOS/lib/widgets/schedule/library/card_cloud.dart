@@ -75,13 +75,19 @@ class CloudScheduleCard extends StatelessWidget {
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
+                  spacing: 8,
                   children: [
                     Row(
                       mainAxisSize: MainAxisSize.max,
                       children: [
-                        Expanded(
+                        Container(
+                          decoration: BoxDecoration(
+                            color: colorScheme.surface.withAlpha(192),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          padding: EdgeInsets.only(right: 4),
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               // SCHEDULE NAME
                               Wrap(
@@ -99,7 +105,7 @@ class CloudScheduleCard extends StatelessWidget {
                                   ),
                                 ],
                               ),
-                          
+
                               // WHEN & WHERE
                               Wrap(
                                 spacing: 16.0,
@@ -122,13 +128,13 @@ class CloudScheduleCard extends StatelessWidget {
                                   ),
                                 ],
                               ),
-                          
+
                               // PLAYLIST INFO
                               Text(
                                 '${AppLocalizations.of(context)!.playlist}: ${s.schedule!.playlist.name}',
                                 style: theme.textTheme.bodyMedium,
                               ),
-                          
+
                               // YOUR ROLE INFO
                               Text(
                                 '${AppLocalizations.of(context)!.role}: $userRole',
@@ -137,6 +143,7 @@ class CloudScheduleCard extends StatelessWidget {
                             ],
                           ),
                         ),
+                        Spacer(),
                         if (s.isSyncing) const CloudDownloadIndicator(),
                         IconButton(
                           onPressed: () => _openScheduleActionsSheet(context),
@@ -144,7 +151,7 @@ class CloudScheduleCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    
+
                     // BOTTOM BUTTONS
                     FilledTextButton(
                       isDark: true,
