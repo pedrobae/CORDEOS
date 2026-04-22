@@ -1,12 +1,4 @@
-import 'package:cordeos/providers/play/auto_scroll_provider.dart';
-import 'package:cordeos/providers/bug_report_provider.dart';
-import 'package:cordeos/providers/cipher/edit_sections_state_provider.dart';
-import 'package:cordeos/providers/token_cache_provider.dart';
-import 'package:cordeos/providers/settings/secret_settings_provider.dart';
-import 'package:cordeos/providers/transposition_provider.dart';
-import 'package:cordeos/screens/splash_screen.dart';
 import 'package:flutter/material.dart';
-
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:cordeos/l10n/app_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -16,27 +8,35 @@ import 'package:provider/provider.dart';
 import 'package:cordeos/providers/user/admin_provider.dart';
 import 'package:cordeos/providers/user/my_auth_provider.dart';
 import 'package:cordeos/providers/user/email_provider.dart';
+import 'package:cordeos/providers/user/user_provider.dart';
 import 'package:cordeos/providers/cipher/cipher_provider.dart';
 import 'package:cordeos/providers/cipher/import_provider.dart';
-import 'package:cordeos/providers/settings/layout_settings_provider.dart';
-import 'package:cordeos/providers/navigation_provider.dart';
 import 'package:cordeos/providers/cipher/parser_provider.dart';
+import 'package:cordeos/providers/navigation_provider.dart';
 import 'package:cordeos/providers/playlist/playlist_provider.dart';
 import 'package:cordeos/providers/section/section_provider.dart';
 import 'package:cordeos/providers/selection_provider.dart';
+import 'package:cordeos/providers/settings/app_info_provider.dart';
 import 'package:cordeos/providers/settings/settings_provider.dart';
+import 'package:cordeos/providers/settings/layout_settings_provider.dart';
+import 'package:cordeos/providers/settings/secret_settings_provider.dart';
 import 'package:cordeos/providers/schedule/local_schedule_provider.dart';
 import 'package:cordeos/providers/schedule/cloud_schedule_provider.dart';
 import 'package:cordeos/providers/playlist/flow_item_provider.dart';
-import 'package:cordeos/providers/user/user_provider.dart';
 import 'package:cordeos/providers/version/local_version_provider.dart';
 import 'package:cordeos/providers/version/cloud_version_provider.dart';
-import 'package:cordeos/providers/settings/app_info_provider.dart';
 import 'package:cordeos/providers/play/play_state_provider.dart';
+import 'package:cordeos/providers/play/auto_scroll_provider.dart';
+import 'package:cordeos/providers/bug_report_provider.dart';
+import 'package:cordeos/providers/cipher/edit_sections_state_provider.dart';
+import 'package:cordeos/providers/token_cache_provider.dart';
+import 'package:cordeos/providers/transposition_provider.dart';
 
 import 'package:cordeos/services/firebase/firebase_service.dart';
 import 'package:cordeos/services/firebase/remote_config_service.dart';
 import 'package:cordeos/services/settings_service.dart';
+
+import 'package:cordeos/screens/splash_screen.dart';
 
 void main() async {
   // Ensure Flutter is initialized before database operations

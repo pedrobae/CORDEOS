@@ -1,4 +1,5 @@
 import 'package:cordeos/models/dtos/song_pdf_dto.dart';
+import 'package:cordeos/utils/section_type.dart';
 import 'package:cordeos/widgets/ciphers/print/page_preview_painter.dart';
 import 'package:cordeos/repositories/local/cipher_repository.dart';
 import 'package:cordeos/repositories/local/section_repository.dart';
@@ -35,38 +36,38 @@ class PrintingProvider {
     }
 
     final sections = await _sect.getSections(versionID);
-    final uniqueCodes = version.songStructure.toSet();
-    if (sections.length < uniqueCodes.length) {
-      throw Exception(
-        "Structure has more sections than found sections for version ID: $versionID",
-      );
+    final types = <int, SectionType>{};
+    for (var section in sections.values) {
+      types[section.key] = section.sectionType;
     }
+    final badgesData = getSectionBadges(types);
 
     // Measure sample text once — shared across all sections.
     final lyricStyle = options.lyricStyle;
     final chordStyle = options.chordStyle;
-    final lyricHeight = _builder.measureText(style: lyricStyle, text: 'Sample Text').height;
-    final chordHeight = _builder.measureText(style: chordStyle, text: 'C').height;
-    final double effectiveLayoutWidth = options.layoutWidth ?? options.pageContentWidth;
+    final lyricHeight = _builder
+        .measureText(style: lyricStyle, text: 'Sample Text')
+        .height;
+    final chordHeight = _builder
+        .measureText(style: chordStyle, text: 'C')
+        .height;
+    final double effectiveLayoutWidth =
+        options.layoutWidth ?? options.pageContentWidth;
 
     // Shared measurement map — accumulated across sections so identical
     // glyphs are only measured once. This map is stored in the DTO and acts
     // as the cache for the downstream PDF renderer.
     final Map<String, Measurements> tokenMeasurements = {};
-    // Global-coordinate positions keyed by section code.
-    final Map<String, TokenPositionMap> content = {};
+    // Global-coordinate positions keyed by section key.
+    final Map<int, TokenPositionMap> content = {};
     // Global Y start of each section (for rendering labels and repeat placements).
-    final Map<String, double> sectionOffsets = {};
+    final Map<int, double> sectionOffsets = {};
 
-    // Iterate in songStructure first-seen order so global Y matches render order.
-    final orderedUnique = version.songStructure
-        .fold<List<String>>([], (acc, c) => acc.contains(c) ? acc : (acc..add(c)));
-
-    for (final code in orderedUnique) {
-      final section = sections[code];
+    for (final key in version.songStructure) {
+      final section = sections[key];
       if (section == null) {
         throw Exception(
-          'Section with code $code not found for version ID: $versionID',
+          'Section with key $key not found for version ID: $versionID',
         );
       }
 
@@ -91,7 +92,7 @@ class PrintingProvider {
       );
 
       // Phase 4: Position (local coordinates, using layoutWidth for column support)
-      content[code] = _positioner.calculateTokenPositions(
+      content[key] = _positioner.calculateTokenPositions(
         organizedTokens: organized,
         measurements: tokenMeasurements,
         maxWidth: effectiveLayoutWidth,
@@ -107,7 +108,7 @@ class PrintingProvider {
         chordHeight: chordHeight,
       );
     }
-    
+
     return SongPdfDto(
       title: cipher.title,
       author: cipher.author,
@@ -124,6 +125,8 @@ class PrintingProvider {
       lyricsStyle: options.lyricStyle,
       chordsStyle: options.chordStyle,
       metadataStyle: options.metadataStyle,
+      sectionLabelStyle: options.sectionLabelStyle,
+      badgesData: badgesData
     );
   }
 
@@ -140,16 +143,7 @@ class PrintingProvider {
     return PagePreviewSnapshot.build(
       dto: dto,
       builder: _builder,
-      chordColor: displayOptions.chordColor,
-      lyricColor: displayOptions.lyricColor,
-      showSongMap: displayOptions.showSongMap,
-      showBpm: displayOptions.showBpm,
-      showDuration: displayOptions.showDuration,
-      songMapLabel: displayOptions.songMapLabel,
-      bpmLabel: displayOptions.bpmLabel,
-      durationLabel: displayOptions.durationLabel,
-      sectionLabelStyle: displayOptions.sectionLabelStyle,
-      sectionLabels: displayOptions.sectionLabels,
+      opt: displayOptions,
     );
   }
 

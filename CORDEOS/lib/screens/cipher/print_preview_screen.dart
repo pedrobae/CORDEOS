@@ -1,7 +1,7 @@
 import 'package:cordeos/l10n/app_localizations.dart';
 import 'package:cordeos/models/dtos/song_pdf_dto.dart';
 import 'package:cordeos/providers/printing_provider.dart';
-import 'package:cordeos/utils/section_constants.dart';
+import 'package:cordeos/utils/section_type.dart';
 import 'package:cordeos/widgets/ciphers/print/page_preview_painter.dart';
 import 'package:flutter/material.dart';
 
@@ -72,12 +72,20 @@ class _PrintPreviewScreenState extends State<PrintPreviewScreen> {
     color: Colors.black,
   );
 
+  TextStyle get _labelStyle => const TextStyle(
+    fontFamily: 'OpenSans',
+    fontSize: 10,
+    fontWeight: FontWeight.w600,
+    color: Colors.blueGrey,
+  );
+
   SongPdfBuildOptions get _buildOptions => SongPdfBuildOptions(
     pageContentWidth: _kContentWidth,
     layoutWidth: _layoutWidth,
     lyricStyle: _lyricStyle,
     chordStyle: _chordStyle,
     metadataStyle: _metadataStyle,
+    sectionLabelStyle: _labelStyle,
     lineBreakSpacing: 0,
     chordLyricSpacing: 0,
     minChordSpacing: 5,
@@ -92,11 +100,7 @@ class _PrintPreviewScreenState extends State<PrintPreviewScreen> {
       songMapLabel: l10n.songStructure,
       bpmLabel: l10n.bpm,
       durationLabel: l10n.duration,
-      sectionLabelStyle: _metadataStyle.copyWith(
-        fontWeight: FontWeight.w700,
-        fontSize: 10,
-      ),
-      sectionLabels: _buildSectionLabels(dto),
+      labelData: _buildSectionLabels(dto),
     );
   }
 
@@ -394,21 +398,20 @@ class _PrintPreviewScreenState extends State<PrintPreviewScreen> {
     );
   }
 
-  Map<String, String> _buildSectionLabels(SongPdfDto dto) {
-    return {
-      for (final code in dto.content.keys) code: _resolveSectionLabel(code),
-    };
-  }
+  Map<int, SectionLabelData> _buildSectionLabels(SongPdfDto dto) {
+    final labelsData = <int, SectionLabelData>{};
+    for (final entry in dto.badgesData.entries) {
+      final key = entry.key;
+      final badgeData = entry.value;
 
-  String _resolveSectionLabel(String code) {
-    final trimmedCode = code.replaceAll(RegExp(r'\d+$'), '');
-    final match = commonSectionLabels.values.where(
-      (label) => label.code == trimmedCode,
-    );
-    if (match.isNotEmpty) {
-      return '${match.first.localizedLabel(context)} $code';
+      labelsData[key] = SectionLabelData(
+        type: badgeData.type,
+        code: badgeData.code,
+        localizedLabel: badgeData.type.localizedLabel(context),
+      );
     }
-    return code;
+
+    return labelsData;
   }
 }
 

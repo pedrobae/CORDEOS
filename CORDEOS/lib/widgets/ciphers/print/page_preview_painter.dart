@@ -1,7 +1,7 @@
 import 'package:cordeos/models/dtos/song_pdf_dto.dart';
 import 'package:cordeos/services/tokenization/build_service.dart';
 import 'package:cordeos/services/tokenization/helper_classes.dart';
-import 'package:cordeos/utils/section_constants.dart';
+import 'package:cordeos/utils/section_type.dart';
 import 'package:cordeos/utils/date_utils.dart';
 import 'package:flutter/material.dart';
 
@@ -10,13 +10,15 @@ import 'package:flutter/material.dart';
 /// Constructing this object is the only place where TextPainters are built,
 /// keeping [PagePreviewPainter.paint] allocation-free.
 class PagePreviewSnapshot {
-  final Map<String, SectionPaintModel> sectionModels;
-  final Map<String, TextPainter> sectionLabelPainters;
+  final Map<int, SectionType> types;
+  final Map<int, SectionPaintModel> sectionModels;
+  final Map<int, TextPainter> sectionLabelPainters;
   final List<TextPaintInstruction> metadataInstructions;
   final double metadataBlockHeight;
   final double sectionLabelHeight;
 
   const PagePreviewSnapshot({
+    required this.types,
     required this.sectionModels,
     required this.sectionLabelPainters,
     required this.metadataInstructions,
@@ -30,56 +32,50 @@ class PagePreviewSnapshot {
   static PagePreviewSnapshot build({
     required SongPdfDto dto,
     required TokenizationBuilder builder,
-    required Color chordColor,
-    required Color lyricColor,
-    required bool showSongMap,
-    required bool showBpm,
-    required bool showDuration,
-    required String songMapLabel,
-    required String bpmLabel,
-    required String durationLabel,
-    required TextStyle sectionLabelStyle,
-    required Map<String, String> sectionLabels,
+    required SongPreviewDisplayOptions opt,
   }) {
     // Build per-section paint models
-    final models = <String, SectionPaintModel>{};
-    final sectionLabelPainters = <String, TextPainter>{};
-    for (final code in dto.content.keys) {
+    final models = <int, SectionPaintModel>{};
+    final sectionLabelPainters = <int, TextPainter>{};
+    for (final key in dto.content.keys) {
       final localPositions = _toLocalPositionMap(
-        dto.content[code]!,
-        dto.sectionOffsets[code] ?? 0,
+        dto.content[key]!,
+        dto.sectionOffsets[key] ?? 0,
       );
 
-      final lyricStyle = isAnnotation(code)
+      final lyricStyle = (dto.badgesData[key]!.type == SectionType.annotation)
           ? dto.lyricsStyle.copyWith(fontStyle: FontStyle.italic)
           : dto.lyricsStyle;
 
-      models[code] = builder.buildPaintModel(
+      models[key] = builder.buildPaintModel(
         measurements: dto.tokenMeasurements,
         positions: localPositions,
         chordStyle: dto.chordsStyle,
         lyricStyle: lyricStyle,
-        chordColor: chordColor,
-        lyricColor: lyricColor,
+        chordColor: dto.chordsStyle.color!,
+        lyricColor: lyricStyle.color!,
       );
 
       final labelPainter = TextPainter(
-        text: TextSpan(text: sectionLabels[code] ?? code, style: sectionLabelStyle),
+        text: TextSpan(
+          text: opt.labelData[key]!.label,
+          style: dto.sectionLabelStyle,
+        ),
         textDirection: TextDirection.ltr,
         maxLines: 1,
       )..layout(maxWidth: dto.layoutWidth);
-      sectionLabelPainters[code] = labelPainter;
+      sectionLabelPainters[key] = labelPainter;
     }
 
     // Build metadata header instructions
     final metaLines = _buildMetadataLines(
       dto,
-      showSongMap: showSongMap,
-      showBpm: showBpm,
-      showDuration: showDuration,
-      songMapLabel: songMapLabel,
-      bpmLabel: bpmLabel,
-      durationLabel: durationLabel,
+      showSongMap: opt.showSongMap,
+      showBpm: opt.showBpm,
+      showDuration: opt.showDuration,
+      songMapLabel: opt.songMapLabel,
+      bpmLabel: opt.bpmLabel,
+      durationLabel: opt.durationLabel,
     );
     final instructions = <TextPaintInstruction>[];
     double y = 0;
@@ -90,11 +86,14 @@ class PagePreviewSnapshot {
         textDirection: TextDirection.ltr,
         maxLines: 1,
       )..layout(maxWidth: dto.pageContentWidth);
-      instructions.add(TextPaintInstruction(painter: painter, offset: Offset(0, y)));
+      instructions.add(
+        TextPaintInstruction(painter: painter, offset: Offset(0, y)),
+      );
       y += painter.height + 2;
     }
 
     return PagePreviewSnapshot(
+      types: dto.badgesData.map((key, value) => MapEntry(key, value.type)),
       sectionModels: models,
       sectionLabelPainters: sectionLabelPainters,
       metadataInstructions: instructions,
@@ -139,16 +138,27 @@ class PagePreviewSnapshot {
     }
 
     return [
-      (dto.title, dto.metadataStyle.copyWith(fontWeight: FontWeight.bold, fontSize: (dto.metadataStyle.fontSize ?? 12) + 2)),
+      (
+        dto.title,
+        dto.metadataStyle.copyWith(
+          fontWeight: FontWeight.bold,
+          fontSize: (dto.metadataStyle.fontSize ?? 12) + 2,
+        ),
+      ),
       (detailParts.join('  •  '), dto.metadataStyle),
       if (showSongMap)
-        ('$songMapLabel: ${dto.songStructure.join(' • ')}', dto.metadataStyle.copyWith(fontSize: (dto.metadataStyle.fontSize ?? 11) - 1)),
+        (
+          '$songMapLabel: ${dto.songStructure.join(' • ')}',
+          dto.metadataStyle.copyWith(
+            fontSize: (dto.metadataStyle.fontSize ?? 11) - 1,
+          ),
+        ),
     ];
   }
 }
 
 class PageSlicePlacement {
-  final String code;
+  final int key;
   final int pageIndex;
   final int columnIndex;
   final double x;
@@ -159,7 +169,7 @@ class PageSlicePlacement {
   final double localBottom;
 
   const PageSlicePlacement({
-    required this.code,
+    required this.key,
     required this.pageIndex,
     required this.columnIndex,
     required this.x,
@@ -179,8 +189,9 @@ class PagePreviewLayout {
 
   const PagePreviewLayout({required this.placements, required this.pageCount});
 
-  List<PageSlicePlacement> placementsForPage(int pageIndex) =>
-      placements.where((placement) => placement.pageIndex == pageIndex).toList();
+  List<PageSlicePlacement> placementsForPage(int pageIndex) => placements
+      .where((placement) => placement.pageIndex == pageIndex)
+      .toList();
 
   static PagePreviewLayout build({
     required SongPdfDto dto,
@@ -197,28 +208,30 @@ class PagePreviewLayout {
     required double metadataGap,
   }) {
     final placements = <PageSlicePlacement>[];
-    final visibleCodes = <String>[];
-    final rendered = <String>{};
+    final visibleKeys = <int>[];
+    final rendered = <int>{};
 
-    for (final code in dto.songStructure) {
-      final isRepeat = rendered.contains(code);
+    for (final key in dto.songStructure) {
+      final isRepeat = rendered.contains(key);
+      final type = snapshot.types[key];
       if (isRepeat && !showRepeatSections) {
         continue;
       }
-      if (isAnnotation(code) && !showAnnotations) {
+      if (type == SectionType.annotation && !showAnnotations) {
         continue;
       }
-      rendered.add(code);
-      visibleCodes.add(code);
+      rendered.add(key);
+      visibleKeys.add(key);
     }
 
-    if (visibleCodes.isEmpty) {
+    if (visibleKeys.isEmpty) {
       return const PagePreviewLayout(placements: [], pageCount: 1);
     }
 
     final defaultColumnHeight = pageHeight - 2 * topMargin;
     final firstPageColumnHeight =
-        defaultColumnHeight - (showMetadata ? snapshot.metadataBlockHeight + metadataGap : 0);
+        defaultColumnHeight -
+        (showMetadata ? snapshot.metadataBlockHeight + metadataGap : 0);
     final columnWidth = dto.layoutWidth;
 
     int pageIndex = 0;
@@ -238,8 +251,8 @@ class PagePreviewLayout {
       cursorY = 0;
     }
 
-    for (final code in visibleCodes) {
-      final model = snapshot.sectionModels[code];
+    for (final key in visibleKeys) {
+      final model = snapshot.sectionModels[key];
       if (model == null) {
         continue;
       }
@@ -281,7 +294,7 @@ class PagePreviewLayout {
 
         placements.add(
           PageSlicePlacement(
-            code: code,
+            key: key,
             pageIndex: pageIndex,
             columnIndex: columnIndex,
             x: columnIndex * (columnWidth + columnGap),
@@ -304,10 +317,7 @@ class PagePreviewLayout {
       }
     }
 
-    return PagePreviewLayout(
-      placements: placements,
-      pageCount: pageIndex + 1,
-    );
+    return PagePreviewLayout(placements: placements, pageCount: pageIndex + 1);
   }
 }
 
@@ -372,10 +382,7 @@ class PagePreviewPainter extends CustomPainter {
     final shadowPaint = Paint()
       ..color = shadowColor
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
-    canvas.drawRect(
-      Rect.fromLTWH(2, 2, pageWidth, pageHeight),
-      shadowPaint,
-    );
+    canvas.drawRect(Rect.fromLTWH(2, 2, pageWidth, pageHeight), shadowPaint);
 
     // Page background
     canvas.drawRect(
@@ -415,7 +422,7 @@ class PagePreviewPainter extends CustomPainter {
     canvas.translate(0, contentY);
 
     for (final placement in layout.placementsForPage(pageIndex)) {
-      final model = snapshot.sectionModels[placement.code];
+      final model = snapshot.sectionModels[placement.key];
       if (model == null) {
         continue;
       }
@@ -442,7 +449,7 @@ class PagePreviewPainter extends CustomPainter {
     );
 
     if (placement.showLabel) {
-      final painter = snapshot.sectionLabelPainters[placement.code];
+      final painter = snapshot.sectionLabelPainters[placement.key];
       painter?.paint(canvas, Offset(placement.x, placement.y));
     }
 
@@ -451,7 +458,10 @@ class PagePreviewPainter extends CustomPainter {
         canvas,
         Offset(
           placement.x + instruction.offset.dx,
-          placement.y + placement.labelHeight + instruction.offset.dy - placement.localTop,
+          placement.y +
+              placement.labelHeight +
+              instruction.offset.dy -
+              placement.localTop,
         ),
       );
     }
@@ -459,11 +469,17 @@ class PagePreviewPainter extends CustomPainter {
       canvas.drawLine(
         Offset(
           placement.x + underline.offset.dx,
-          placement.y + placement.labelHeight + underline.offset.dy - placement.localTop,
+          placement.y +
+              placement.labelHeight +
+              underline.offset.dy -
+              placement.localTop,
         ),
         Offset(
           placement.x + underline.offset.dx + underline.width,
-          placement.y + placement.labelHeight + underline.offset.dy - placement.localTop,
+          placement.y +
+              placement.labelHeight +
+              underline.offset.dy -
+              placement.localTop,
         ),
         Paint()
           ..color = model.underlineColor
