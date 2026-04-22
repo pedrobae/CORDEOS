@@ -86,6 +86,9 @@ class _CipherScrollViewState extends State<CipherScrollView> {
             .map((entry) => CipherListItem(id: entry.key, title: entry.value))
             .toList();
 
+        // Remove -1 (unsaved new song)
+        items.removeWhere((item) => item.id == -1);
+
         // Sort and set suspension status for AzListView
         SuspensionUtil.sortListBySuspensionTag(items);
         SuspensionUtil.setShowSuspensionStatus(items);

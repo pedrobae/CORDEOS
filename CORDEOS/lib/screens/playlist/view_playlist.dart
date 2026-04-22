@@ -184,17 +184,17 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
     final sel = context.read<SelectionProvider>();
     final flow = context.read<FlowItemProvider>();
 
-    localVer.persistCachedDeletions();
-    flow.persistDeletions();
+    await localVer.persistCachedDeletions();
+    await flow.persistDeletions();
 
-    play.saveFromCache(playlist.id);
+    await play.saveFromCache(playlist.id);
 
     final schedule = await localSch.getScheduleWithPlaylistId(
       widget.playlistId,
     );
 
     if (schedule != null && schedule.scheduleState == ScheduleState.published) {
-      ScheduleSyncService().upsertScheduleToCloud(schedule, auth.id!);
+      await ScheduleSyncService().upsertScheduleToCloud(schedule, auth.id!);
     }
 
     sel.clearNewlyAddedVersionIds();
