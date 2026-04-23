@@ -65,8 +65,8 @@ class _CipherCardState extends State<CipherCard> {
       SectionProvider,
       ({
         int? cipherID,
-        String title,
-        String key,
+        String? title,
+        String? key,
         String? duration,
         String? bpm,
         String? link,
@@ -168,7 +168,7 @@ class _CipherCardState extends State<CipherCard> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // TITLE
-                        Text(s.title, style: textTheme.titleMedium),
+                        Text(s.title!, style: textTheme.titleMedium),
 
                         // INFO
                         Row(
@@ -185,7 +185,7 @@ class _CipherCardState extends State<CipherCard> {
                                 )!.bpmWithPlaceholder(s.bpm!),
                                 style: textTheme.bodyMedium,
                               ),
-                            if (s.bpm != null)
+                            if (s.duration != null && s.duration!.isNotEmpty)
                               Text(
                                 AppLocalizations.of(
                                   context,
