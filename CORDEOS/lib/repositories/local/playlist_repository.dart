@@ -161,19 +161,25 @@ class PlaylistRepository {
 
   /// Saves playlist items order,
   /// sets positions at negative then to the correct sequence to not trip unique constraints
-  Future<void> saveItemOrder(List<PlaylistItem> items) async {
+  Future<void> saveItemOrder(List<PlaylistItem> items, int playlistID) async {
     final db = await _databaseHelper.database;
 
     await db.transaction((txn) async {
       // Clear position indexes
       int pos = -1;
       for (final item in items) {
-        _updateItemPosition(txn, item, pos);
+        if (item.id != null && item.id! != -1) {
+          _updateItemPosition(txn, item, pos);
+        }
         pos--;
       }
       pos = 0;
       for (final item in items) {
-        _updateItemPosition(txn, item, pos);
+        if (item.id != null && item.id! != -1) {
+          _updateItemPosition(txn, item, pos);
+        } else {
+          _createItem(txn, playlistID, item, pos);
+        }
         pos++;
       }
     });
@@ -242,6 +248,27 @@ class PlaylistRepository {
           whereArgs: [item.id!],
         );
         break;
+    }
+  }
+
+  Future<void> _createItem(
+    Transaction txn,
+    int playlistID,
+    PlaylistItem item,
+    int position,
+  ) async {
+    switch (item.type) {
+      case PlaylistItemType.version:
+        await txn.insert('playlist_version', {
+          'version_id': item.contentId!,
+          'playlist_id': playlistID,
+          'position': position,
+        });
+        break;
+      case PlaylistItemType.flowItem:
+        throw Exception(
+          'PLAYLIST REPO - when upserting items tried to create flow, should already be created',
+        );
     }
   }
 

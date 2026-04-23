@@ -132,7 +132,7 @@ class PlaylistProvider extends ChangeNotifier {
 
   // ===== UPDATE =====
   /// Update a playlist with data currently on the cache (name/description/items)
-  Future<void> saveFromCache(int playlistID) async {
+  Future<void> savePlaylistItems(int playlistID) async {
     _error = null;
     notifyListeners();
 
@@ -140,8 +140,7 @@ class PlaylistProvider extends ChangeNotifier {
       final playlist = _playlists[playlistID];
       if (playlist == null) throw Exception('Could not find playlist in cache');
 
-      await _playlistRepository.upsertPlaylistMetadata(playlist);
-      await _playlistRepository.saveItemOrder(playlist.items);
+      await _playlistRepository.saveItemOrder(playlist.items, playlistID);
       await loadPlaylist(playlistID);
 
     } catch (e) {

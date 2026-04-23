@@ -187,7 +187,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
     await localVer.persistCachedDeletions();
     await flow.persistDeletions();
 
-    await play.saveFromCache(playlist.id);
+    await play.savePlaylistItems(playlist.id);
 
     final schedule = await localSch.getScheduleWithPlaylistId(
       widget.playlistId,

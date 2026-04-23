@@ -257,14 +257,14 @@ class _CipherCardState extends State<CipherCard> {
     final sect = context.read<SectionProvider>();
     final sel = context.read<SelectionProvider>();
 
-    final playlistName = AppLocalizations.of(
+    final playVersionName = AppLocalizations.of(
       context,
     )!.playlistVersionName(play.getPlaylist(sel.targetId!)!.name);
 
     final version = localVer.getVersion(widget.versionID)!;
 
     final newVersion = version.copyWith(
-      versionName: playlistName,
+      versionName: playVersionName,
       firebaseID: '',
     );
 
