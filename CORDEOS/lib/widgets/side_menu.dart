@@ -4,7 +4,7 @@ import 'package:cordeos/screens/admin/admin_screen.dart';
 import 'package:cordeos/screens/settings/report_bug_screen.dart';
 import 'package:cordeos/screens/settings/settings_screen.dart';
 import 'package:cordeos/screens/user/login_screen.dart';
-import 'package:cordeos/screens/web_view_screen.dart';
+import 'package:cordeos/screens/about_screen.dart';
 import 'package:cordeos/widgets/user_card.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -84,7 +84,7 @@ class SideMenu extends StatelessWidget {
                         /// WEBSITE WEBVIEW
                         Navigator.of(context).pop(); // Close the drawer first
                         nav.push(
-                          () => const WebViewScreen(),
+                          () => const AboutScreen(),
                           showBottomNavBar: true,
                           showAppBar: true,
                           showDrawerIcon: true,
