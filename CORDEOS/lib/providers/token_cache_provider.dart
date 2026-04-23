@@ -296,16 +296,6 @@ class TokenProvider extends ChangeNotifier {
     TextStyle lyricStyle,
     TextStyle chordStyle,
   ) {
-    // DEBUG - print caches size
-    debugPrint(
-      "TOKEN PROVIDER - cache sizes"
-      "\n\ttokens:${_tokenCache.length} | "
-      "\n\torganized:${_organizedCache.length} | "
-      "\n\tmeasurements:${_measurementCache.length} | "
-      "\n\tpositions:${_positionCache.length} | "
-      "\n\tpaint:${_paintCache.length}",
-    );
-
     final cacheKey = paintCacheKey(key, chordStyle, lyricStyle);
     if (_paintCache.containsKey(cacheKey)) {
       return;
