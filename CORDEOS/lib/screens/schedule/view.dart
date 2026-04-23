@@ -428,7 +428,7 @@ class _ViewScheduleScreenState extends State<ViewScheduleScreen> {
   int _getMemberCount(Schedule schedule) {
     int count = 0;
     final roles = schedule.roles;
-    for (var role in roles) {
+    for (var role in roles.values) {
       final userCount = role.users.length;
       count += userCount;
     }

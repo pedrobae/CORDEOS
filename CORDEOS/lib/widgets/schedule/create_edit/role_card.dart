@@ -1,4 +1,5 @@
 import 'package:cordeos/l10n/app_localizations.dart';
+import 'package:cordeos/models/domain/schedule.dart';
 import 'package:cordeos/providers/schedule/local_schedule_provider.dart';
 import 'package:cordeos/widgets/common/delete_confirmation.dart';
 import 'package:cordeos/widgets/common/filled_text_button.dart';
@@ -8,20 +9,25 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class RoleCard extends StatelessWidget {
-  final dynamic scheduleId;
-  final dynamic role; // Role or RoleDTO object
+  final int scheduleID;
+  final int roleID; // Role or RoleDTO object
 
-  const RoleCard({super.key, required this.scheduleId, required this.role});
+  const RoleCard({super.key, required this.scheduleID, required this.roleID});
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Consumer<LocalScheduleProvider>(
-      builder: (context, scheduleProvider, child) => SizedBox(
-        width: double.infinity,
-        child: Container(
+    return Selector<LocalScheduleProvider, Role?>(
+      selector: (context, localSch) =>
+          localSch.getSchedule(scheduleID)?.roles[roleID],
+      builder: (context, role, child) {
+        if (role == null) {
+          return Center(child: CircularProgressIndicator());
+        }
+
+        return Container(
           padding: const EdgeInsets.all(8.0),
           decoration: BoxDecoration(
             border: Border.all(color: colorScheme.surfaceContainerLowest),
@@ -56,18 +62,18 @@ class RoleCard extends StatelessWidget {
                 text: AppLocalizations.of(context)!.assign,
                 isDense: true,
                 isDark: true,
-                onPressed: () => _openAssignMemberSheet(context, role),
+                onPressed: () => _openAssignMemberSheet(context),
               ),
               FilledTextButton(
                 text: AppLocalizations.of(context)!.editPlaceholder(''),
                 isDense: true,
-                onPressed: () => _openEditRoleSheet(context, role),
+                onPressed: () => _openEditRoleSheet(context),
               ),
               FilledTextButton(
                 text: AppLocalizations.of(context)!.delete,
                 isDense: true,
                 onPressed: () {
-                  if (scheduleId is String) {
+                  if (scheduleID is String) {
                     return; // Prevent deletion of cloud schedule roles
                   }
                   showModalBottomSheet(
@@ -77,9 +83,9 @@ class RoleCard extends StatelessWidget {
                       return DeleteConfirmationSheet(
                         itemType: AppLocalizations.of(context)!.role,
                         onConfirm: () {
-                          scheduleProvider.deleteRole(
-                            scheduleId,
-                            role.id,
+                          context.read<LocalScheduleProvider>().deleteRole(
+                            scheduleID,
+                            roleID,
                           );
                         },
                       );
@@ -89,27 +95,12 @@ class RoleCard extends StatelessWidget {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  void _openAssignMemberSheet(BuildContext context, dynamic role) {
-    showModalBottomSheet(
-      isScrollControlled: true,
-      context: context,
-      builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
-          child: UsersBottomSheet(scheduleId: scheduleId, role: role),
         );
       },
     );
   }
 
-  void _openEditRoleSheet(BuildContext context, dynamic role) {
+  void _openAssignMemberSheet(BuildContext context) {
     showModalBottomSheet(
       isScrollControlled: true,
       context: context,
@@ -118,7 +109,22 @@ class RoleCard extends StatelessWidget {
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(context).viewInsets.bottom,
           ),
-          child: EditRoleSheet(scheduleId: scheduleId, role: role),
+          child: UsersBottomSheet(scheduleId: scheduleID, roleID: roleID),
+        );
+      },
+    );
+  }
+
+  void _openEditRoleSheet(BuildContext context) {
+    showModalBottomSheet(
+      isScrollControlled: true,
+      context: context,
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: EditRoleSheet(scheduleID: scheduleID, roleID: roleID),
         );
       },
     );

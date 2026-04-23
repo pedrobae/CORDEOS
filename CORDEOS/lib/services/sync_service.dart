@@ -303,9 +303,7 @@ class ScheduleSyncService {
     Schedule schedule,
     String ownerFirebaseID,
   ) async {
-    debugPrint(
-      'Syncing schedule ${schedule.id} to cloud for owner $ownerFirebaseID',
-    );
+    debugPrint("SYNC SERVICE - starting schedule to cloud");
 
     final domainPlaylist = (await _playlistRepo.getPlaylistById(
       schedule.playlistId,
@@ -352,13 +350,13 @@ class ScheduleSyncService {
         versions: versions,
       ),
     );
-    debugPrint("Built scheduleDto");
+    debugPrint("\tBuilt scheduleDto");
 
     try {
       if (schedule.firebaseId == null || schedule.firebaseId!.isEmpty) {
         final newID = await _cloudRepo.publishSchedule(scheduleDto);
         debugPrint(
-          'Schedule was created, updating local schedule with firebase ID $newID',
+          '\tSchedule published, updating local schedule with firebase ID $newID',
         );
         await _localRepo.updateSchedule(
           schedule.copyWith(firebaseId: newID, isPublic: true),
@@ -367,7 +365,9 @@ class ScheduleSyncService {
         await _cloudRepo.update(ownerFirebaseID, scheduleDto);
       }
 
-      debugPrint('Finished syncing schedule ${schedule.id} to cloud');
+      debugPrint(
+        "SYNC SERVICE - finished schedule to cloud with firestoreID ${schedule.id}",
+      );
     } catch (e) {
       debugPrint('Error syncing schedule ${schedule.id} to cloud: $e');
     }

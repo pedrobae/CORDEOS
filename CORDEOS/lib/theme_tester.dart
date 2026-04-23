@@ -343,7 +343,7 @@ class ThemeTesterScreen extends StatelessWidget {
                                         date: DateTime.now(),
                                         location: '',
                                         playlistId: -1,
-                                        roles: [],
+                                        roles: {},
                                         shareCode: '',
                                       ),
                                     ),

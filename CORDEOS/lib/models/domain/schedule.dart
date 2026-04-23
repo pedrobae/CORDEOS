@@ -16,7 +16,7 @@ class Schedule {
   final String? roomVenue;
   final String? annotations;
   final int playlistId;
-  final List<Role> roles;
+  final Map<int, Role> roles;
   final String shareCode;
   bool isPublic;
 
@@ -62,7 +62,7 @@ class Schedule {
       location: map['location'] as String,
       roomVenue: map['room_venue'] as String?,
       playlistId: map['playlist_id'] as int,
-      roles: roles,
+      roles: Map.fromEntries(roles.map((r) => MapEntry(r.id, r))),
       annotations: map['annotations'] as String?,
       shareCode: map['share_code'] as String? ?? generateShareCode(),
       isPublic: (map['is_public'] as int?) == 1,
@@ -93,7 +93,7 @@ class Schedule {
     String? location,
     String? roomVenue,
     int? playlistId,
-    List<Role>? roles,
+    Map<int, Role>? roles,
     String? annotations,
     String? shareCode,
     bool? isPublic,
@@ -124,7 +124,7 @@ class Schedule {
       roomVenue: roomVenue,
       shareCode: shareCode,
       playlist: playlist,
-      roles: roles.map((role) => role.toDto()).toList(),
+      roles: roles.values.map((role) => role.toDto()).toList(),
     );
   }
 

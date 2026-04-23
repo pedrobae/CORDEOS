@@ -65,7 +65,7 @@ class LocalScheduleProvider extends ChangeNotifier {
     final schedule = getSchedule(scheduleID);
     if (schedule == null) return null;
 
-    for (var role in schedule.roles) {
+    for (var role in schedule.roles.values) {
       if (role.users.any((user) => user.id == localUserId)) {
         return role.name;
       }
@@ -96,7 +96,7 @@ class LocalScheduleProvider extends ChangeNotifier {
       date: DateTime.now(),
       location: '',
       playlistId: playlistId,
-      roles: [],
+      roles: {},
       shareCode: generateShareCode(),
     );
     _hasUnsavedChanges = true;
@@ -262,18 +262,18 @@ class LocalScheduleProvider extends ChangeNotifier {
     if (schedule == null) return;
 
     final newRole = Role(id: -1, name: roleName, users: []);
-    (_schedules[scheduleID] as Schedule).roles.add(newRole);
+    (_schedules[scheduleID] as Schedule).roles[-1] = newRole;
 
     _hasUnsavedChanges = true;
 
     notifyListeners();
   }
 
-  void updateRoleName(int scheduleID, String oldName, String newName) {
+  void updateRoleName(int scheduleID, int roleID, String newName) {
     final schedule = _schedules[scheduleID];
     if (schedule == null) return;
 
-    final role = schedule.roles.firstWhere((role) => role.name == oldName);
+    final role = schedule.roles[roleID]!;
     role.name = newName;
 
     _hasUnsavedChanges = true;
@@ -299,7 +299,7 @@ class LocalScheduleProvider extends ChangeNotifier {
     if (schedule == null) return;
 
     _schedules[scheduleID] = schedule.copyWith(isPublic: true);
-    saveSchedule(scheduleID);
+    saveDetails(scheduleID);
     notifyListeners();
   }
 
@@ -361,7 +361,7 @@ class LocalScheduleProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> saveSchedule(int scheduleID) async {
+  Future<void> saveDetails(int scheduleID) async {
     if (_isSaving) return;
 
     _isSaving = true;
@@ -386,7 +386,7 @@ class LocalScheduleProvider extends ChangeNotifier {
     final schedule = _schedules[scheduleID];
     if (schedule == null) return;
 
-    final role = schedule.roles.firstWhere((role) => role.id == roleId);
+    final role = schedule.roles.values.firstWhere((role) => role.id == roleId);
 
     role.users.add(user);
 
@@ -399,7 +399,7 @@ class LocalScheduleProvider extends ChangeNotifier {
     final schedule = _schedules[scheduleID];
     if (schedule == null) return;
 
-    final role = schedule.roles.firstWhere((role) => role.id == roleId);
+    final role = schedule.roles.values.firstWhere((role) => role.id == roleId);
 
     role.users.removeWhere((user) => user.id == userId);
 
@@ -412,13 +412,35 @@ class LocalScheduleProvider extends ChangeNotifier {
     final schedule = _schedules[scheduleID];
     if (schedule == null) return;
 
-    final role = schedule.roles.firstWhere((role) => role.id == roleId);
+    final role = schedule.roles.values.firstWhere((role) => role.id == roleId);
 
     role.users.clear();
 
     _hasUnsavedChanges = true;
 
     notifyListeners();
+  }
+
+  Future<void> saveUserRoles(int scheduleID) async {
+    if (_isSaving) return;
+
+    _isSaving = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final schedule = _schedules[scheduleID];
+
+      for (Role role in schedule?.roles.values ?? []) {
+        await _repo.upsertRole(scheduleID, role);
+      }
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _isSaving = false;
+      _hasUnsavedChanges = false;
+      notifyListeners();
+    }
   }
 
   // ===== DELETE =====
@@ -433,7 +455,7 @@ class LocalScheduleProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      schedule.roles.removeWhere((role) => role.id == roleId);
+      schedule.roles.remove(roleId);
 
       if (roleId != -1) _repo.deleteRole(roleId);
     } catch (e) {

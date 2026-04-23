@@ -133,15 +133,17 @@ class ScheduleDto {
       location: location,
       roomVenue: roomVenue,
       playlistId: playlistLocalId,
-      roles: [],
+      roles: {},
       shareCode: shareCode,
       isPublic:
           true, // All schedules on firestore are considered published, access is controlled by share code and collaborators list
     );
 
+    int i = -1;
     for (var roleDto in roles) {
-      final role = roleDto.toDomain();
-      schedule.roles.add(role);
+      final role = roleDto.toDomain(i);
+      schedule.roles[i] = role;
+      i--;
     }
 
     return schedule;
@@ -194,9 +196,9 @@ class RoleDto {
     };
   }
 
-  Role toDomain() {
+  Role toDomain(int id) {
     final role = Role(
-      id: -1,
+      id: id,
       name: name,
       users: users.map((user) => user.toDomain()).toList(),
     );

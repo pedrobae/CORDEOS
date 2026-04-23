@@ -37,10 +37,10 @@ class EditRoles extends StatelessWidget {
             ),
             actions: [
               IconButton(
-                icon: Icon(Icons.save, size: 30,),
-                onPressed: () {
-                  localSch.saveSchedule(scheduleId);
-                  localSch.uploadChangesToCloud(scheduleId, auth.id!);
+                icon: Icon(Icons.save, size: 30),
+                onPressed: () async {
+                  await localSch.saveUserRoles(scheduleId);
+                  await localSch.uploadChangesToCloud(scheduleId, auth.id!);
                   nav.pop();
                 },
               ),
@@ -90,10 +90,10 @@ class EditRoles extends StatelessWidget {
               }
               return SingleChildScrollView(
                 child: Column(
-                  children: schedule.roles.map((role) {
+                  children: schedule.roles.keys.map((roleID) {
                     return Container(
                       margin: const EdgeInsets.only(bottom: 16.0),
-                      child: RoleCard(scheduleId: scheduleId, role: role),
+                      child: RoleCard(scheduleID: scheduleId, roleID: roleID),
                     );
                   }).toList(),
                 ),
@@ -114,7 +114,7 @@ class EditRoles extends StatelessWidget {
                 padding: EdgeInsets.only(
                   bottom: MediaQuery.of(context).viewInsets.bottom,
                 ),
-                child: EditRoleSheet(scheduleId: scheduleId, role: null),
+                child: EditRoleSheet(scheduleID: scheduleId, roleID: -1),
               );
             },
           ),
