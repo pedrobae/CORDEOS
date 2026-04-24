@@ -132,44 +132,20 @@ class PlaylistProvider extends ChangeNotifier {
 
   // ===== UPDATE =====
   /// Update a playlist with data currently on the cache (name/description/items)
-  Future<void> saveFromCache(int playlistID) async {
+  Future<void> savePlaylistItems(int playlistID) async {
     _error = null;
     notifyListeners();
 
     try {
       final playlist = _playlists[playlistID];
-      if (playlist != null) {
-        await _playlistRepository.upsertPlaylistMetadata(playlist);
-      }
-      int position = 0;
-      for (var item in playlist!.items) {
-        switch (item.type) {
-          case PlaylistItemType.version:
-            if (item.id == null) {
-              await _playlistRepository.addVersionToPlaylist(
-                playlistID,
-                item.contentId!,
-              );
-            } else {
-              await _playlistRepository.updatePlaylistVersionPosition(
-                item.id!,
-                position,
-              );
-            }
-            break;
-          case PlaylistItemType.flowItem:
-            await _playlistRepository.updateFlowItemPosition(
-              item.contentId!,
-              position,
-            );
-            break;
-        }
-        position++;
-      }
+      if (playlist == null) throw Exception('Could not find playlist in cache');
 
+      await _playlistRepository.saveItemOrder(playlist.items, playlistID);
       await loadPlaylist(playlistID);
+
     } catch (e) {
       _error = e.toString();
+      debugPrint(_error);
     } finally {
       notifyListeners();
     }
@@ -191,6 +167,7 @@ class PlaylistProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+
   // ===== CACHE =====
   /// Update a Playlist with new data (name/description)
   void cacheName(int id, String name) {

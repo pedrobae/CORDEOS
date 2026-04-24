@@ -162,32 +162,32 @@ class _MetadataTabState extends State<MetadataTab> {
   }
 
   String _getLabel(InfoField field) {
+    final l10n = AppLocalizations.of(context)!;
     return switch (field) {
-      InfoField.title => AppLocalizations.of(context)!.title,
-      InfoField.author => AppLocalizations.of(context)!.author,
-      InfoField.versionName => AppLocalizations.of(context)!.versionName,
-      InfoField.bpm => AppLocalizations.of(context)!.bpm,
-      InfoField.duration => AppLocalizations.of(context)!.duration,
-      InfoField.key => AppLocalizations.of(context)!.musicKey,
-      InfoField.language => AppLocalizations.of(context)!.language,
-      InfoField.tags => AppLocalizations.of(
-        context,
-      )!.pluralPlaceholder(AppLocalizations.of(context)!.tag),
-      InfoField.link => AppLocalizations.of(context)!.link,
+      InfoField.title => l10n.title,
+      InfoField.author => l10n.author,
+      InfoField.versionName => l10n.versionName,
+      InfoField.bpm => l10n.bpm,
+      InfoField.duration => l10n.duration,
+      InfoField.key => l10n.musicKey,
+      InfoField.language => l10n.language,
+      InfoField.tags => l10n.pluralPlaceholder(l10n.tag),
+      InfoField.link => l10n.link,
     };
   }
 
   String _getHint(InfoField field) {
+    final l10n = AppLocalizations.of(context)!;
     return switch (field) {
-      InfoField.title => AppLocalizations.of(context)!.titleHint,
-      InfoField.author => AppLocalizations.of(context)!.authorHint,
-      InfoField.versionName => AppLocalizations.of(context)!.versionNameHint,
-      InfoField.bpm => AppLocalizations.of(context)!.bpmHint,
-      InfoField.duration => AppLocalizations.of(context)!.durationHint,
-      InfoField.key => AppLocalizations.of(context)!.keyHint,
-      InfoField.language => AppLocalizations.of(context)!.languageHint,
-      InfoField.tags => AppLocalizations.of(context)!.tagHint,
-      InfoField.link => AppLocalizations.of(context)!.linkHint,
+      InfoField.title => l10n.titleHint,
+      InfoField.author => l10n.authorHint,
+      InfoField.versionName => l10n.versionNameHint,
+      InfoField.bpm => l10n.bpmHint,
+      InfoField.duration => l10n.durationHint,
+      InfoField.key => l10n.keyHint,
+      InfoField.language => l10n.languageHint,
+      InfoField.tags => l10n.tagHint,
+      InfoField.link => l10n.linkHint,
     };
   }
 
@@ -199,16 +199,19 @@ class _MetadataTabState extends State<MetadataTab> {
       children: [
         for (var field in InfoField.values)
           switch (field) {
+            InfoField.key => _buildKeySelector(),
+            InfoField.language => _buildLanguagePicker(),
+            InfoField.tags => _buildTags(),
             InfoField.duration => DurationPickerField(
               controller: _getController(field),
               label: _getLabel(field),
             ),
-            InfoField.tags => _buildTags(context: context, field: field),
             InfoField.bpm => LabeledTextField(
               label: _getLabel(field),
               hint: _getHint(field),
               controller: _getController(field),
               isEnabled: widget.isEnabled,
+              keyboardType: TextInputType.number,
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return null;
@@ -218,24 +221,6 @@ class _MetadataTabState extends State<MetadataTab> {
                   return AppLocalizations.of(context)!.intValidationError;
                 }
                 return null;
-              },
-            ),
-            InfoField.key => _buildKeySelector(context: context, field: field),
-            InfoField.language => Selector<CipherProvider, String>(
-              selector: (context, ciph) {
-                final cipher = ciph.getCipher(widget.cipherID);
-                return cipher?.language ?? '';
-              },
-              builder: (context, language, child) {
-                return LabeledLanguagePicker(
-                  language: language,
-                  onLanguageChanged: (value) {
-                    context.read<CipherProvider>().cacheUpdates(
-                      widget.cipherID,
-                      language: value,
-                    );
-                  },
-                );
               },
             ),
             _ => LabeledTextField(
@@ -249,18 +234,16 @@ class _MetadataTabState extends State<MetadataTab> {
     );
   }
 
-  Widget _buildKeySelector({
-    required BuildContext context,
-    required InfoField field,
-  }) {
+  Widget _buildKeySelector() {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context)!;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: 8,
       children: [
-        Text(_getLabel(field), style: theme.textTheme.labelMedium),
+        Text(l10n.musicKey, style: theme.textTheme.labelMedium),
         Selector<CipherProvider, String?>(
           selector: (context, ciph) {
             final cipher = ciph.getCipher(widget.cipherID);
@@ -299,7 +282,7 @@ class _MetadataTabState extends State<MetadataTab> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      originalKey ?? AppLocalizations.of(context)!.keyHint,
+                      originalKey ?? l10n.keyHint,
                       style: TextStyle(
                         color: colorScheme.onSurface,
                         fontSize: 16,
@@ -316,9 +299,30 @@ class _MetadataTabState extends State<MetadataTab> {
     );
   }
 
-  Widget _buildTags({required BuildContext context, required InfoField field}) {
+  Widget _buildLanguagePicker() {
+    return Selector<CipherProvider, String>(
+      selector: (context, ciph) {
+        final cipher = ciph.getCipher(widget.cipherID);
+        return cipher?.language ?? '';
+      },
+      builder: (context, language, child) {
+        return LabeledLanguagePicker(
+          language: language,
+          onLanguageChanged: (value) {
+            context.read<CipherProvider>().cacheUpdates(
+              widget.cipherID,
+              language: value,
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildTags() {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
 
     return Consumer<CipherProvider>(
       builder: (context, ciph, child) {
@@ -328,7 +332,10 @@ class _MetadataTabState extends State<MetadataTab> {
           spacing: 4,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(_getLabel(field), style: textTheme.labelMedium),
+            Text(
+              l10n.pluralPlaceholder(l10n.tag),
+              style: textTheme.labelMedium,
+            ),
             Wrap(
               spacing: 8,
               runSpacing: 8,
@@ -361,9 +368,7 @@ class _MetadataTabState extends State<MetadataTab> {
               ],
             ),
             FilledTextButton(
-              text: AppLocalizations.of(
-                context,
-              )!.addPlaceholder(AppLocalizations.of(context)!.tag),
+              text: l10n.addPlaceholder(l10n.tag),
               icon: Icons.add,
               isDense: true,
               onPressed: () => showModalBottomSheet(

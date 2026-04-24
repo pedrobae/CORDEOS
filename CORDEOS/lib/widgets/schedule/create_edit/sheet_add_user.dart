@@ -1,6 +1,5 @@
 import 'package:collection/collection.dart';
 import 'package:cordeos/l10n/app_localizations.dart';
-import 'package:cordeos/models/domain/schedule.dart';
 import 'package:cordeos/models/domain/user.dart';
 import 'package:cordeos/providers/schedule/local_schedule_provider.dart';
 import 'package:cordeos/providers/user/user_provider.dart';
@@ -10,10 +9,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class AddUserSheet extends StatefulWidget {
-  final dynamic scheduleId;
-  final dynamic role; // Role or RoleDTO object
+  final int scheduleId;
+  final int roleID;
 
-  const AddUserSheet({super.key, required this.scheduleId, required this.role});
+  const AddUserSheet({
+    super.key,
+    required this.scheduleId,
+    required this.roleID,
+  });
 
   @override
   State<AddUserSheet> createState() => _AddUserSheetState();
@@ -46,9 +49,6 @@ class _AddUserSheetState extends State<AddUserSheet> {
   void _onUsernameChanged() {
     if (!mounted) return;
     final userProvider = context.read<UserProvider>();
-    final List<User> members = (widget.role is Role)
-        ? widget.role.users
-        : widget.role.users.map((user) => user.toDomain()).toList();
 
     final query = _usernameController.text.toLowerCase();
     setState(() {
@@ -60,8 +60,7 @@ class _AddUserSheetState extends State<AddUserSheet> {
             .where(
               (user) =>
                   user.username.toLowerCase().contains(query) &&
-                  user.username.toLowerCase() != query &&
-                  !members.any((member) => member.id == user.id),
+                  user.username.toLowerCase() != query,
             )
             .toList();
         _showUsernameDropdown = _usernameFilteredUsers.isNotEmpty;
@@ -72,9 +71,6 @@ class _AddUserSheetState extends State<AddUserSheet> {
   void _onEmailChanged() {
     if (!mounted) return;
     final userProvider = context.read<UserProvider>();
-    final List<User> members = (widget.role is Role)
-        ? widget.role.users
-        : widget.role.users.map((user) => user.toDomain()).toList();
 
     final query = _emailController.text.toLowerCase();
     setState(() {
@@ -86,8 +82,7 @@ class _AddUserSheetState extends State<AddUserSheet> {
             .where(
               (user) =>
                   user.email.toLowerCase().contains(query) &&
-                  user.email.toLowerCase() != query &&
-                  !members.any((member) => member.id == user.id),
+                  user.email.toLowerCase() != query,
             )
             .toList();
         _showEmailDropdown = _emailFilteredUsers.isNotEmpty;
@@ -134,21 +129,18 @@ class _AddUserSheetState extends State<AddUserSheet> {
       (user) => user.email.toLowerCase() == email.toLowerCase(),
     );
 
-    if (widget.role is Role) {
-      if (user == null || user.firebaseId == null || user.firebaseId!.isEmpty) {
-        user = (await userProvider.fetchUserDtoByEmail(email))?.toDomain();
+    if (user == null || user.firebaseId == null || user.firebaseId!.isEmpty) {
+      user = (await userProvider.fetchUserDtoByEmail(email))?.toDomain();
 
-        if (user != null) {
-          // Upsert to local db if found in cloud
-          await userProvider.upsertUser(user);
-        }
+      if (user != null) {
+        // Upsert to local db if found in cloud
+        await userProvider.upsertUser(user);
       }
-      user ??= await userProvider.createLocalUnknownUser(username, email);
-
-      scheduleProvider.addUserToRole(widget.scheduleId, widget.role.id, user);
-    } else {
-      debugPrint('Adding user to RoleDTO is not implemented yet');
     }
+    user ??= await userProvider.createLocalUnknownUser(username, email);
+
+    scheduleProvider.addUserToRole(widget.scheduleId, widget.roleID, user);
+
     if (context.mounted) {
       Navigator.of(context).pop();
     }

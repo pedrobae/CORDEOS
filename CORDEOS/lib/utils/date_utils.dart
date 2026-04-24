@@ -29,6 +29,10 @@ class DateTimeUtils {
 
   /// Formats a Duration into a human-readable string like "HH:MM:SS"
   static String formatDuration(Duration duration) {
+    if (duration == Duration.zero) {
+      return '';
+    }
+
     final hours = duration.inHours;
     final minutes = duration.inMinutes.remainder(60);
     final seconds = duration.inSeconds.remainder(60);

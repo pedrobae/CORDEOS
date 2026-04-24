@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cordeos/models/domain/cipher/section.dart';
 import 'package:cordeos/models/domain/cipher/version.dart';
 import 'package:cordeos/utils/color.dart';
+import 'package:cordeos/utils/section_type.dart';
 
 /// DTO para metadados de version (camada de separação entre a nuvem e o armazenamento local).
 class VersionDto {
@@ -114,8 +115,9 @@ class VersionDto {
     required dynamic rawSections,
   }) {
     final sectionsMap = rawSections is Map ? rawSections : <dynamic, dynamic>{};
-    final structureList =
-        rawSongStructure is List ? rawSongStructure : <dynamic>[];
+    final structureList = rawSongStructure is List
+        ? rawSongStructure
+        : <dynamic>[];
 
     final legacyToInt = <String, int>{};
     final usedIds = <int>{};
@@ -168,8 +170,9 @@ class VersionDto {
       parsedSections[sectionId] = SectionDto.fromFirestore(sectionData);
     }
 
-    final parsedSongStructure =
-        structureList.map((item) => mapId(item)).toList(growable: false);
+    final parsedSongStructure = structureList
+        .map((item) => mapId(item))
+        .toList(growable: false);
 
     return _ParsedStructure(
       songStructure: parsedSongStructure,
@@ -266,6 +269,10 @@ class SectionDto {
   final String contentText;
   final String color;
 
+  SectionType get sectionType {
+    return identifySectionType(colorFromHex(color));
+  }
+
   SectionDto({
     required this.key,
     required this.contentType,
@@ -308,8 +315,5 @@ class _ParsedStructure {
   final List<int> songStructure;
   final Map<int, SectionDto> sections;
 
-  const _ParsedStructure({
-    required this.songStructure,
-    required this.sections,
-  });
+  const _ParsedStructure({required this.songStructure, required this.sections});
 }

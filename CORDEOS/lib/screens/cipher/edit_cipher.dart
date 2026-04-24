@@ -364,12 +364,14 @@ class _EditCipherScreenState extends State<EditCipherScreen>
 
     final version = localVer.getVersion(widget.versionID);
     if (version == null) return;
-
     final cipher = ciph.getCipher(widget.cipherID);
     if (cipher == null) return;
-
     final sections = sect.getSections(widget.versionID);
+    final versionDTO = version.toDto(cipher, sections);
 
-    await cloudVer.saveVersion(version.toDto(cipher, sections));
+    final firebaseID = await cloudVer.saveVersion(versionDTO);
+    if (firebaseID != null && firebaseID.isEmpty) {
+      localVer.updateVersion(version.copyWith(firebaseID: firebaseID));
+    }
   }
 }

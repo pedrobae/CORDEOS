@@ -176,13 +176,13 @@ class _TokenContentCardState extends State<TokenContentCard> {
                                         return Icon(
                                           Icons.delete,
                                           color: Colors.red,
-                                          size: 32,
+                                          size: 28,
                                         );
                                       }
                                       return Icon(
                                         Icons.delete,
                                         color: Colors.grey,
-                                        size: 32,
+                                        size: 28,
                                       );
                                     },
                               )

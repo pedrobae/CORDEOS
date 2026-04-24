@@ -121,6 +121,7 @@ class _EditSectionScreenState extends State<EditSectionScreen> {
                       onPressed: () {
                         _upsertSection();
                         nav.pop();
+                        if (widget.isNewSection) nav.pop();
                       },
                       icon: Icon(Icons.save, size: 30),
                     ),

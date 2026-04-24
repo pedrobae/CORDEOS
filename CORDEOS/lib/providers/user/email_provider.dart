@@ -56,7 +56,7 @@ class EmailProvider extends ChangeNotifier {
       int successCount = 0;
       int failureCount = 0;
 
-      for (var role in schedule.roles) {
+      for (var role in schedule.roles.values) {
         if (selectedRoles.contains(role.name)) {
           for (var user in role.users) {
             try {

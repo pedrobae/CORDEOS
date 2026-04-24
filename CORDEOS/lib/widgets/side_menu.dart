@@ -4,7 +4,7 @@ import 'package:cordeos/screens/admin/admin_screen.dart';
 import 'package:cordeos/screens/settings/report_bug_screen.dart';
 import 'package:cordeos/screens/settings/settings_screen.dart';
 import 'package:cordeos/screens/user/login_screen.dart';
-import 'package:cordeos/screens/web_view_screen.dart';
+import 'package:cordeos/screens/about_screen.dart';
 import 'package:cordeos/widgets/user_card.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -63,71 +63,11 @@ class SideMenu extends StatelessWidget {
           ),
           // MAIN NAVIGATION ITEMS
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                UserCard(),
-                Container(
-                  decoration: BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(
-                        color: colorScheme.surfaceContainerHighest,
-                        width: 1.2,
-                      ),
-                    ),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                  child: ListTile(
-                    title: Text(AppLocalizations.of(context)!.about),
-                    onTap: () {
-                      /// WEBSITE WEBVIEW
-                      Navigator.of(context).pop(); // Close the drawer first
-                      nav.push(
-                        () => const WebViewScreen(),
-                        showBottomNavBar: true,
-                        showAppBar: true,
-                        showDrawerIcon: true,
-                        handlesSystemBack: true,
-                      );
-                    },
-                    trailing: Icon(Icons.arrow_forward_ios_rounded, size: 16),
-                  ),
-                ),
-                Container(
-                  decoration: BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(
-                        color: colorScheme.surfaceContainerHighest,
-                        width: 1.2,
-                      ),
-                    ),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                  child: ListTile(
-                    title: Text(AppLocalizations.of(context)!.settings),
-                    onLongPress: () {
-                      /// SECRET SETTINGS
-                      Navigator.of(context).pop();
-                      nav.push(
-                        () => const SettingsScreen(showSecrets: true),
-                        showBottomNavBar: true,
-                        showAppBar: true,
-                        showDrawerIcon: true,
-                      );
-                    },
-                    onTap: () {
-                      Navigator.of(context).pop();
-                      nav.push(
-                        () => const SettingsScreen(),
-                        showBottomNavBar: true,
-                        showAppBar: true,
-                        showDrawerIcon: true,
-                      );
-                    },
-                    trailing: Icon(Icons.arrow_forward_ios_rounded, size: 16),
-                  ),
-                ),
-                if (auth.isAdmin)
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  UserCard(),
                   Container(
                     decoration: BoxDecoration(
                       border: Border(
@@ -139,11 +79,47 @@ class SideMenu extends StatelessWidget {
                     ),
                     padding: const EdgeInsets.symmetric(horizontal: 4.0),
                     child: ListTile(
-                      title: Text(AppLocalizations.of(context)!.admin),
+                      title: Text(AppLocalizations.of(context)!.about),
+                      onTap: () {
+                        /// WEBSITE WEBVIEW
+                        Navigator.of(context).pop(); // Close the drawer first
+                        nav.push(
+                          () => const AboutScreen(),
+                          showBottomNavBar: true,
+                          showAppBar: true,
+                          showDrawerIcon: true,
+                          handlesSystemBack: true,
+                        );
+                      },
+                      trailing: Icon(Icons.arrow_forward_ios_rounded, size: 16),
+                    ),
+                  ),
+                  Container(
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: colorScheme.surfaceContainerHighest,
+                          width: 1.2,
+                        ),
+                      ),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                    child: ListTile(
+                      title: Text(AppLocalizations.of(context)!.settings),
+                      onLongPress: () {
+                        /// SECRET SETTINGS
+                        Navigator.of(context).pop();
+                        nav.push(
+                          () => const SettingsScreen(showSecrets: true),
+                          showBottomNavBar: true,
+                          showAppBar: true,
+                          showDrawerIcon: true,
+                        );
+                      },
                       onTap: () {
                         Navigator.of(context).pop();
                         nav.push(
-                          () => const AdminScreen(),
+                          () => const SettingsScreen(),
                           showBottomNavBar: true,
                           showAppBar: true,
                           showDrawerIcon: true,
@@ -152,7 +128,36 @@ class SideMenu extends StatelessWidget {
                       trailing: Icon(Icons.arrow_forward_ios_rounded, size: 16),
                     ),
                   ),
-              ],
+                  if (auth.isAdmin)
+                    Container(
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(
+                            color: colorScheme.surfaceContainerHighest,
+                            width: 1.2,
+                          ),
+                        ),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                      child: ListTile(
+                        title: Text(AppLocalizations.of(context)!.admin),
+                        onTap: () {
+                          Navigator.of(context).pop();
+                          nav.push(
+                            () => const AdminScreen(),
+                            showBottomNavBar: true,
+                            showAppBar: true,
+                            showDrawerIcon: true,
+                          );
+                        },
+                        trailing: Icon(
+                          Icons.arrow_forward_ios_rounded,
+                          size: 16,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
           Padding(
@@ -191,7 +196,9 @@ class SideMenu extends StatelessWidget {
                 navigator.pop();
                 await auth.signOut();
                 navigator.pushReplacement(
-                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                  MaterialPageRoute(
+                    builder: (context) => const LoginScreen(),
+                  ),
                 );
               },
               child: Row(
@@ -207,7 +214,7 @@ class SideMenu extends StatelessWidget {
               ),
             ),
           ),
-
+      
           // FOOTER
           Container(
             decoration: BoxDecoration(color: Colors.grey[800]),

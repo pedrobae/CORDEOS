@@ -1,6 +1,7 @@
 import 'package:cordeos/helpers/database.dart';
 import 'package:cordeos/models/domain/playlist/playlist.dart';
 import 'package:cordeos/models/domain/playlist/playlist_item.dart';
+import 'package:sqflite/sqflite.dart';
 
 class PlaylistRepository {
   final DatabaseHelper _databaseHelper = DatabaseHelper();
@@ -156,7 +157,34 @@ class PlaylistRepository {
     );
   }
 
-  // ===== VERSION MANAGEMENT =====
+  // ===== ITEM MANAGEMENT =====
+
+  /// Saves playlist items order,
+  /// sets positions at negative then to the correct sequence to not trip unique constraints
+  Future<void> saveItemOrder(List<PlaylistItem> items, int playlistID) async {
+    final db = await _databaseHelper.database;
+
+    await db.transaction((txn) async {
+      // Clear position indexes
+      int pos = -1;
+      for (final item in items) {
+        if (item.id != null && item.id! != -1) {
+          _updateItemPosition(txn, item, pos);
+        }
+        pos--;
+      }
+      pos = 0;
+      for (final item in items) {
+        if (item.id != null && item.id! != -1) {
+          _updateItemPosition(txn, item, pos);
+        } else {
+          _createItem(txn, playlistID, item, pos);
+        }
+        pos++;
+      }
+    });
+  }
+
   /// Adds a version to the end of the playlist
   Future<void> addVersionToPlaylist(int playlistId, int versionID) async {
     final db = await _databaseHelper.database;
@@ -198,30 +226,50 @@ class PlaylistRepository {
     });
   }
 
-  /// Upserts a version's position in a playlist
-  Future<void> updatePlaylistVersionPosition(
-    int playlistVersionId,
-    int newPosition,
+  Future<void> _updateItemPosition(
+    Transaction txn,
+    PlaylistItem item,
+    int position,
   ) async {
-    final db = await _databaseHelper.database;
-
-    await db.update(
-      'playlist_version',
-      {'position': newPosition},
-      where: 'id = ?',
-      whereArgs: [playlistVersionId],
-    );
+    switch (item.type) {
+      case PlaylistItemType.version:
+        await txn.update(
+          'playlist_version',
+          {'position': position},
+          where: 'id = ?',
+          whereArgs: [item.id!],
+        );
+        break;
+      case PlaylistItemType.flowItem:
+        await txn.update(
+          'flow_item',
+          {'position': position},
+          where: 'id = ?',
+          whereArgs: [item.id!],
+        );
+        break;
+    }
   }
 
-  Future<void> updateFlowItemPosition(int flowItemId, int newPosition) async {
-    final db = await _databaseHelper.database;
-
-    await db.update(
-      'flow_item',
-      {'position': newPosition},
-      where: 'id = ?',
-      whereArgs: [flowItemId],
-    );
+  Future<void> _createItem(
+    Transaction txn,
+    int playlistID,
+    PlaylistItem item,
+    int position,
+  ) async {
+    switch (item.type) {
+      case PlaylistItemType.version:
+        await txn.insert('playlist_version', {
+          'version_id': item.contentId!,
+          'playlist_id': playlistID,
+          'position': position,
+        });
+        break;
+      case PlaylistItemType.flowItem:
+        throw Exception(
+          'PLAYLIST REPO - when upserting items tried to create flow, should already be created',
+        );
+    }
   }
 
   /// Gets text items of a playlist

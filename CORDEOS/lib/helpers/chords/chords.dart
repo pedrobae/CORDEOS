@@ -44,6 +44,9 @@ class Chord {
 class ChordHelper {
   const ChordHelper();
 
+  static const List<String> naturalNotes = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+  static const List<String> accidents = ['b', '#'];
+
   static const List<String> keyList = [
     'C',
     'Db',
@@ -56,26 +59,6 @@ class ChordHelper {
     'Ab',
     'A',
     'Bb',
-    'B',
-  ];
-
-  static const List<String> allRoots = [
-    'C#',
-    'Db',
-    'D#',
-    'Eb',
-    'F#',
-    'Gb',
-    'G#',
-    'Ab',
-    'A#',
-    'Bb',
-    'C',
-    'D',
-    'E',
-    'F',
-    'G',
-    'A',
     'B',
   ];
 
@@ -100,7 +83,7 @@ class ChordHelper {
     return diatonics[key] ?? diatonics['C']!;
   }
 
-  List<String> getChordsForKey(String key) {
+  List<String> getMajorChordsForKey(String key) {
     Map<String, List<String>> keyChords = {
       'C': ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'G#', 'A', 'Bb', 'B'],
       'Db': ['Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B', 'C'],
@@ -120,7 +103,7 @@ class ChordHelper {
   }
 
   List<String> getChordVariationsOnKey(String key, String chord, int index) {
-    final keyChords = getChordsForKey(key);
+    final keyChords = getMajorChordsForKey(key);
     int chordIndex = keyChords.indexOf(chord);
     switch (index) {
       case 0:
@@ -164,10 +147,10 @@ class ChordHelper {
   }
 
   String transpose(String key, String chord, int value) {
-    if (key.isEmpty) {
+    if (chord.isEmpty || key.isEmpty) {
       return chord;
     }
-    final keyChords = getChordsForKey(key);
+    final keyChords = getMajorChordsForKey(key);
     int chordIndex = keyChords.indexOf(chord);
     bool weirdChord = false;
     if (chordIndex == -1) {
@@ -180,7 +163,7 @@ class ChordHelper {
 
       if (chordIndex == -1) {
         throw Exception(
-          'TRANSPOSER - could not transpose: $chord on key: $key',
+          'TRANSPOSER - could not transpose: ($chord or $alternateChord) is not a major chord of key: $key',
         );
       }
     }
@@ -191,7 +174,7 @@ class ChordHelper {
 
     int newKeyIndex = (keyIndex + value) % 12;
 
-    String transposed = getChordsForKey(keyList[newKeyIndex])[chordIndex];
+    String transposed = getMajorChordsForKey(keyList[newKeyIndex])[chordIndex];
     if (weirdChord) {
       // REPLACE THE ACCIDENTAL IN THE TRANSPOSED CHORD WITH THE ORIGINAL CHORD'S ACCIDENTAL
       transposed = toggleAccidental(transposed);

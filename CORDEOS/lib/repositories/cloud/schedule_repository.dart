@@ -60,7 +60,7 @@ class CloudScheduleRepository {
       }
 
       debugPrint(
-        'FIRESTORE - fetched ${schedules.length} schedules - USER $firebaseUserId',
+        'CLOUD SCHEDULE REPO - fetched ${schedules.length} schedules - USER $firebaseUserId',
       );
 
       // await _cacheService.saveCloudSchedules(schedules, firebaseUserId);

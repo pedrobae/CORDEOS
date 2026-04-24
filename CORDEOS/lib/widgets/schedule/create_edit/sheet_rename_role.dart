@@ -6,13 +6,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class EditRoleSheet extends StatefulWidget {
-  final dynamic scheduleId;
-  final dynamic role; // Role or RoleDTO object or Null for new role
+  final int scheduleID;
+  final int roleID;
 
   const EditRoleSheet({
     super.key,
-    required this.scheduleId,
-    required this.role,
+    required this.scheduleID,
+    required this.roleID,
   });
 
   @override
@@ -25,9 +25,17 @@ class _EditRoleSheetState extends State<EditRoleSheet> {
   @override
   void initState() {
     super.initState();
-    if (widget.role != null) {
-      _nameController.text = widget.role.name;
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final localSch = context.read<LocalScheduleProvider>();
+
+      final role = localSch
+          .getSchedule(widget.scheduleID)
+          ?.roles[widget.roleID];
+
+      if (role != null) {
+        _nameController.text = role.name;
+      }
+    });
   }
 
   @override
@@ -35,74 +43,76 @@ class _EditRoleSheetState extends State<EditRoleSheet> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return Consumer<LocalScheduleProvider>(
-      builder: (context, scheduleProvider, child) {
-        return Container(
-          decoration: BoxDecoration(
-            color: colorScheme.surface,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(0)),
-          ),
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            spacing: 16,
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(0)),
+      ),
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: 16,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    widget.role == null
-                        ? AppLocalizations.of(context)!.createPlaceholder(
-                            AppLocalizations.of(context)!.role,
-                          )
-                        : AppLocalizations.of(context)!.editPlaceholder(
-                            AppLocalizations.of(context)!.role,
-                          ),
-                    style: textTheme.titleMedium,
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.close),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                ],
+              Text(
+                widget.roleID == -1
+                    ? AppLocalizations.of(
+                        context,
+                      )!.createPlaceholder(AppLocalizations.of(context)!.role)
+                    : AppLocalizations.of(
+                        context,
+                      )!.editPlaceholder(AppLocalizations.of(context)!.role),
+                style: textTheme.titleMedium,
               ),
-              // NAME FIELD
-              LabeledTextField(
-                label: AppLocalizations.of(context)!.name,
-                controller: _nameController,
-                hint: AppLocalizations.of(context)!.roleNameHint,
+              IconButton(
+                icon: Icon(Icons.close),
+                onPressed: () => Navigator.of(context).pop(),
               ),
-              // SAVE BUTTON
-              FilledTextButton(
-                text: widget.role == null
-                    ? AppLocalizations.of(context)!.create
-                    : AppLocalizations.of(context)!.save,
-                isDark: true,
-                onPressed: () {
-                  if (widget.role == null) {
-                    // CREATE NEW ROLE
-                    scheduleProvider.addRoleToSchedule(
-                      widget.scheduleId,
-                      _nameController.text,
-                    );
-                  } else {
-                    // UPDATE EXISTING ROLE
-                    scheduleProvider.updateRoleName(
-                      widget.scheduleId,
-                      widget.role.name,
-                      _nameController.text,
-                    );
-                  }
-                  Navigator.of(context).pop();
-                },
-              ),
-
-              SizedBox(),
             ],
           ),
-        );
-      },
+          // NAME FIELD
+          LabeledTextField(
+            label: AppLocalizations.of(context)!.name,
+            controller: _nameController,
+            hint: AppLocalizations.of(context)!.roleNameHint,
+            onSubmitted: (_) {
+              final localSch = context.read<LocalScheduleProvider>();
+              _onSubmit(localSch);
+            },
+          ),
+          // SUBMIT BUTTON
+          FilledTextButton(
+            text: widget.roleID == -1
+                ? AppLocalizations.of(context)!.create
+                : AppLocalizations.of(context)!.save,
+            isDark: true,
+            onPressed: () {
+              final localSch = context.read<LocalScheduleProvider>();
+              _onSubmit(localSch);
+            },
+          ),
+
+          SizedBox(),
+        ],
+      ),
     );
+  }
+
+  void _onSubmit(LocalScheduleProvider localSch) {
+    if (widget.roleID == -1) {
+      // CREATE NEW ROLE
+      localSch.addRoleToSchedule(widget.scheduleID, _nameController.text);
+    } else {
+      // UPDATE EXISTING ROLE
+      localSch.updateRoleName(
+        widget.scheduleID,
+        widget.roleID,
+        _nameController.text,
+      );
+    }
+    Navigator.of(context).pop();
   }
 }

@@ -111,7 +111,7 @@ class _EditDetailsState extends State<EditDetails> {
               final schedule = localSch.getSchedule(widget.scheduleID);
 
               if (_scheduleIsValid(schedule)) {
-                localSch.saveSchedule(widget.scheduleID);
+                localSch.saveDetails(widget.scheduleID);
                 localSch.uploadChangesToCloud(widget.scheduleID, auth.id!);
                 nav.pop();
               } else {

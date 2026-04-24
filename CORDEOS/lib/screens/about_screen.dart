@@ -1,16 +1,18 @@
+import 'package:cordeos/l10n/app_localizations.dart';
 import 'package:cordeos/providers/navigation_provider.dart';
+import 'package:cordeos/widgets/common/filled_text_button.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
-class WebViewScreen extends StatefulWidget {
-  const WebViewScreen({super.key});
+class AboutScreen extends StatefulWidget {
+  const AboutScreen({super.key});
 
   @override
-  State<WebViewScreen> createState() => _WebViewScreenState();
+  State<AboutScreen> createState() => _AboutScreenState();
 }
 
-class _WebViewScreenState extends State<WebViewScreen> {
+class _AboutScreenState extends State<AboutScreen> {
   late WebViewController _controller;
   bool _isLoading = false;
   WebResourceError? _webResourceError;
@@ -57,12 +59,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
 
   Widget _buildWebView() {
     if (_webResourceError != null) {
-      return Center(
-        child: Text(
-          'Error: ${_webResourceError!.description}',
-          style: TextStyle(color: Colors.red),
-        ),
-      );
+      return _buildErrorState();
     }
     return Stack(
       children: [
@@ -71,9 +68,41 @@ class _WebViewScreenState extends State<WebViewScreen> {
           Positioned(
             top: 24,
             left: 24,
-            child: CircularProgressIndicator(color: Theme.of(context).colorScheme.surface),
+            child: CircularProgressIndicator(
+              color: Theme.of(context).colorScheme.surface,
+            ),
           ),
       ],
+    );
+  }
+
+  Widget _buildErrorState() {
+    final l10n = AppLocalizations.of(context)!;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        spacing: 16,
+        children: [
+          Text(l10n.error, style: textTheme.titleMedium),
+          Text(_webResourceError!.description, style: textTheme.bodyMedium),
+          FilledTextButton(
+            icon: Icons.loop,
+            text: l10n.tryAgain,
+            isDark: true,
+            isDiscrete: true,
+            onPressed: () {
+              setState(() {
+                _webResourceError = null;
+                _isLoading = false;
+              });
+              _initializeWebViewController();
+            },
+          ),
+        ],
+      ),
     );
   }
 

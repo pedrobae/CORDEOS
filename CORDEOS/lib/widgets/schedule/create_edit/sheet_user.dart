@@ -1,20 +1,19 @@
-import 'package:cordeos/l10n/app_localizations.dart';
-import 'package:cordeos/models/domain/schedule.dart';
-import 'package:cordeos/providers/schedule/local_schedule_provider.dart';
-import 'package:cordeos/providers/user/user_provider.dart';
-import 'package:cordeos/widgets/common/filled_text_button.dart';
-import 'package:cordeos/widgets/schedule/create_edit/sheet_add_user.dart';
 import 'package:flutter/material.dart';
+import 'package:cordeos/l10n/app_localizations.dart';
+import 'package:cordeos/models/domain/user.dart';
 import 'package:provider/provider.dart';
+import 'package:cordeos/providers/schedule/local_schedule_provider.dart';
+import 'package:cordeos/widgets/schedule/create_edit/sheet_add_user.dart';
+import 'package:cordeos/widgets/common/filled_text_button.dart';
 
 class UsersBottomSheet extends StatefulWidget {
-  final dynamic scheduleId;
-  final dynamic role; // Role or RoleDTO object
+  final int scheduleId;
+  final int roleID;
 
   const UsersBottomSheet({
     super.key,
     required this.scheduleId,
-    required this.role,
+    required this.roleID,
   });
 
   @override
@@ -26,13 +25,20 @@ class _UsersBottomSheetState extends State<UsersBottomSheet> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context)!;
 
-    return Consumer2<UserProvider, LocalScheduleProvider>(
-      builder: (context, userProvider, scheduleProvider, child) {
-        final users = (widget.role is Role)
-            ? widget.role.users
-            : widget.role.users.map((user) => user.toDomain()).toList();
+    return Selector<LocalScheduleProvider, ({String? name, int memberCount})>(
+      selector: (context, localSch) {
+        final role = localSch
+            .getSchedule(widget.scheduleId)!
+            .roles[widget.roleID];
 
+        return (name: role?.name, memberCount: role?.users.length ?? 0);
+      },
+      builder: (context, s, child) {
+        if (s.name == null) {
+          return Center(child: Text(l10n.error));
+        }
         return Container(
           decoration: BoxDecoration(
             color: colorScheme.surface,
@@ -48,9 +54,7 @@ class _UsersBottomSheetState extends State<UsersBottomSheet> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    AppLocalizations.of(
-                      context,
-                    )!.assignMembersToRole(widget.role.name),
+                    l10n.assignMembersToRole(s.name!),
                     style: textTheme.titleMedium,
                   ),
                   IconButton(
@@ -59,92 +63,45 @@ class _UsersBottomSheetState extends State<UsersBottomSheet> {
                   ),
                 ],
               ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                spacing: 8,
-                children: [
-                  FilledTextButton(
-                    text: AppLocalizations.of(
-                      context,
-                    )!.addPlaceholder(AppLocalizations.of(context)!.member),
-                    onPressed: () =>
-                        _openAddUserSheet(context, scheduleProvider),
-                    icon: Icons.add,
-                    isDense: true,
-                  ),
-                  FilledTextButton(
-                    text: AppLocalizations.of(context)!.clear,
-                    onPressed: () {
-                      scheduleProvider.clearUsersFromRole(
-                        widget.scheduleId,
-                        widget.role.id,
-                      );
-                    },
-                    isDense: true,
-                  ),
-                ],
-              ),
-              // MEMBERS OF ROLE LIST
-              ...users.map<Widget>((member) {
-                return Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(0),
-                    border: Border.all(
-                      color: colorScheme.surfaceContainerLowest,
-                      width: 1.2,
-                    ),
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              member.username,
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: colorScheme.onSurface,
-                              ),
-                            ),
-                            Text(
-                              member.email,
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: colorScheme.shadow,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      IconButton(
-                        onPressed: () {
-                          scheduleProvider.removeUserFromRole(
-                            widget.scheduleId,
-                            widget.role.id,
-                            member.id,
-                          );
-                        },
-                        icon: Icon(Icons.remove_circle_outline),
-                        color: colorScheme.error,
-                      ),
-                    ],
-                  ),
-                );
-              }),
-
-              // SAVE BUTTON
               FilledTextButton(
-                text: AppLocalizations.of(context)!.save,
-                isDark: true,
+                text: l10n.addPlaceholder(l10n.member),
+                onPressed: _openAddUserSheet(),
+                icon: Icons.add,
+                isDense: true,
+              ),
+              SingleChildScrollView(
+                child: Column(
+                  children: [
+                    if (s.memberCount == 0)
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(0),
+                          border: Border.all(
+                            color: colorScheme.surfaceContainerLowest,
+                            width: 1.2,
+                          ),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        child: Center(child: Text(l10n.noMembers)),
+                      ),
+                    for (int i = 0; i < s.memberCount; i++) ...[
+                      _buildMemberCard(i),
+                    ],
+                  ],
+                ),
+              ),
+              FilledTextButton(
+                text: l10n.clear,
                 onPressed: () {
-                  Navigator.of(context).pop();
+                  context.read<LocalScheduleProvider>().clearUsersFromRole(
+                    widget.scheduleId,
+                    widget.roleID,
+                  );
                 },
+                isDense: true,
               ),
               SizedBox(),
             ],
@@ -154,11 +111,71 @@ class _UsersBottomSheetState extends State<UsersBottomSheet> {
     );
   }
 
-  void _openAddUserSheet(
-    BuildContext context,
-    LocalScheduleProvider scheduleProvider,
-  ) {
-    showModalBottomSheet(
+  Widget _buildMemberCard(int index) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Selector<LocalScheduleProvider, User?>(
+      selector: (context, localSch) {
+        final schedule = localSch.getSchedule(widget.scheduleId);
+
+        return schedule?.roles[widget.roleID]?.users[index];
+      },
+      builder: (context, member, child) {
+        if (member == null) {
+          return Center(child: Text(AppLocalizations.of(context)!.error));
+        }
+        return Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(0),
+            border: Border.all(
+              color: colorScheme.surfaceContainerLowest,
+              width: 1.2,
+            ),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      member.username,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                    Text(
+                      member.email,
+                      style: TextStyle(fontSize: 14, color: colorScheme.shadow),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                onPressed: () {
+                  final localSch = context.read<LocalScheduleProvider>();
+
+                  localSch.removeUserFromRole(
+                    widget.scheduleId,
+                    widget.roleID,
+                    member.id!,
+                  );
+                },
+                icon: Icon(Icons.remove_circle_outline),
+                color: colorScheme.error,
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  VoidCallback _openAddUserSheet() {
+    return () => showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       builder: (context) {
@@ -166,7 +183,10 @@ class _UsersBottomSheetState extends State<UsersBottomSheet> {
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(context).viewInsets.bottom,
           ),
-          child: AddUserSheet(scheduleId: widget.scheduleId, role: widget.role),
+          child: AddUserSheet(
+            scheduleId: widget.scheduleId,
+            roleID: widget.roleID,
+          ),
         );
       },
     );

@@ -1,5 +1,5 @@
-import 'package:cordeos/models/dtos/version_dto.dart';
 import 'package:cordeos/providers/token_cache_provider.dart';
+import 'package:cordeos/utils/section_type.dart';
 import 'package:flutter/material.dart';
 import 'package:cordeos/models/domain/cipher/version.dart';
 
@@ -26,19 +26,45 @@ class CloudCipherCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
 
     final nav = context.read<NavigationProvider>();
 
     return Selector<
       CloudVersionProvider,
-      ({VersionDto version, bool isDownloading})
+      ({
+        String? title,
+        String? key,
+        String? duration,
+        int? bpm,
+        bool isDownloading,
+      })
     >(
-      selector: (context, cloudVer) => (
-        version: cloudVer.getVersion(versionId)!,
-        isDownloading: cloudVer.isDownloading(versionId),
-      ),
-      builder: (context, sel, child) {
-        final version = sel.version;
+      selector: (context, cloudVer) {
+        final version = cloudVer.getVersion(versionId);
+
+        final types = <int, SectionType>{};
+        for (var key in version?.songStructure ?? []) {
+          final type = version?.sections[key]?.sectionType;
+          if (type != null) {
+            types[key] = type;
+          }
+        }
+        return (
+          title: version?.title,
+          key: version?.transposedKey ?? version?.originalKey,
+          duration: DateTimeUtils.formatDuration(
+            Duration(seconds: version?.duration ?? 0),
+          ),
+          bpm: version?.bpm,
+          isDownloading: cloudVer.isDownloading(versionId),
+        );
+      },
+      builder: (context, s, child) {
+        if (s.title == null) {
+          return (Center(child: CircularProgressIndicator()));
+        }
+
         return GestureDetector(
           onTap: () {
             final token = context.read<TokenProvider>();
@@ -86,38 +112,28 @@ class CloudCipherCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // TITLE
-                          Text(version.title, style: textTheme.titleMedium),
+                          Text(s.title!, style: textTheme.titleMedium),
 
                           // INFO
                           Row(
                             spacing: 8.0,
                             children: [
                               Text(
-                                '${AppLocalizations.of(context)!.musicKey}: ${version.transposedKey ?? version.originalKey}',
+                                '${l10n.musicKey}: ${s.key}',
                                 style: textTheme.bodyMedium,
                               ),
-                              version.bpm != 0
-                                  ? Text(
-                                      AppLocalizations.of(
-                                        context,
-                                      )!.bpmWithPlaceholder(
-                                        version.bpm.toString(),
-                                      ),
-                                      style: textTheme.bodyMedium,
-                                    )
-                                  : Text('-'),
-                              version.duration > 0
-                                  ? Text(
-                                      AppLocalizations.of(
-                                        context,
-                                      )!.durationWithPlaceholder(
-                                        DateTimeUtils.formatDuration(
-                                          Duration(seconds: version.duration),
-                                        ),
-                                      ),
-                                      style: textTheme.bodyMedium,
-                                    )
-                                  : Text('-'),
+                              if (s.bpm != null && s.bpm != 0)
+                                Text(
+                                  AppLocalizations.of(
+                                    context,
+                                  )!.bpmWithPlaceholder(s.bpm!.toString()),
+                                  style: textTheme.bodyMedium,
+                                ),
+                              if (s.duration != null && s.duration!.isNotEmpty)
+                                Text(
+                                  l10n.durationWithPlaceholder(s.duration!),
+                                  style: textTheme.bodyMedium,
+                                ),
                             ],
                           ),
                         ],
@@ -126,7 +142,7 @@ class CloudCipherCard extends StatelessWidget {
                     Spacer(),
 
                     // DOWNLOAD VERSION
-                    if (sel.isDownloading == true)
+                    if (s.isDownloading == true)
                       const CloudDownloadIndicator()
                     else
                       GestureDetector(

@@ -59,6 +59,7 @@ class LabeledTextField extends StatelessWidget {
                 ? colorScheme.surface
                 : colorScheme.surfaceContainerHighest,
             hintText: hint,
+            hintStyle: textTheme.bodyLarge?.copyWith(color: colorScheme.shadow),
             prefixIcon: prefixIcon,
             suffixIcon: suffixIcon,
             enabledBorder: OutlineInputBorder(

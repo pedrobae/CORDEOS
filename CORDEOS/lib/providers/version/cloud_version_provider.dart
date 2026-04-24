@@ -94,16 +94,22 @@ class CloudVersionProvider extends ChangeNotifier {
   }
 
   // ===== CREATE =====
-  /// Persist the cache of an ID to the database
-  Future<void> saveVersion(VersionDto version) async {
-    if (_isSaving) return;
+  /// Persist the version dto object to the firestore db
+  /// Returns the firestore ID string, created or updated
+  Future<String?> saveVersion(VersionDto version) async {
+    String? firestoreID;
+    if (_isSaving) return firestoreID;
 
     _isSaving = true;
     _error = null;
     notifyListeners();
 
     try {
-      await _repo.publishPublicVersion(version);
+      if (version.firebaseId == null || version.firebaseId!.isEmpty) {
+        firestoreID = await _repo.publishPublicVersion(version);
+      } else {
+        await _repo.updatePublicVersion(version);
+      }
     } catch (e) {
       _error = e.toString();
       if (kDebugMode) {
@@ -113,6 +119,8 @@ class CloudVersionProvider extends ChangeNotifier {
       _isSaving = false;
       notifyListeners();
     }
+
+    return firestoreID;
   }
 
   void setVersion(String firebaseId, VersionDto version) {

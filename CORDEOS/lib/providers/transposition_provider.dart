@@ -61,70 +61,52 @@ class TranspositionProvider extends ChangeNotifier {
   }
 
   String transposeChord(String chord) {
-    // Parse chord root first
-    String? root;
-    String suffix = '';
-    String prefix = '';
+    final result = StringBuffer();
+    String root;
+    String prefix;
+    String suffix = chord;
 
-    String preSlash;
-    String postSlash = '';
-    if (chord.contains('/')) {
-      final parts = chord.split('/');
-      preSlash = parts[0];
-      for (int i = 1; i < parts.length; i++) {
-        postSlash = '$postSlash/${parts[i]}';
-      }
-    } else {
-      preSlash = chord;
+    while (suffix.isNotEmpty) {
+      (root, prefix, suffix) = _extractRoot(suffix);
+
+      result.write(prefix);
+      // Write transposed root
+      result.write(
+        ChordHelper().transpose(originalKey, root.toString(), transposeValue),
+      );
     }
+    return result.toString();
+  }
 
-    // Find the longest matching root (handles both C# and C correctly)
-    for (final r in ChordHelper.allRoots) {
-      if (preSlash.contains(r)) {
-        root = r;
-        final index = preSlash.indexOf(r);
-        suffix = '${preSlash.substring(index + r.length)}$postSlash';
-        prefix = preSlash.substring(0, index);
+  (String root, String prefix, String suffix) _extractRoot(String chord) {
+    final root = StringBuffer();
+    String prefix = '';
+    // Find the first natural note
+    int i = -1;
+    while (i < chord.length - 1) {
+      i++;
+      final char = chord[i];
+      if (ChordHelper.naturalNotes.contains(char)) {
+        root.write(char);
+        prefix = chord.substring(0, i);
         break;
       }
     }
-    if (root == null) return chord;
-
-    // Parse slash chord if present
-    String? bass;
-    String chordSuffix = suffix;
-
-    if (suffix.contains('/')) {
-      final slashIndex = suffix.indexOf('/');
-      chordSuffix = suffix.substring(0, slashIndex);
-      final bassPart = suffix.substring(slashIndex + 1);
-
-      // Find bass note (should match exactly or be at the start)
-      for (final r in ChordHelper.allRoots) {
-        if (bassPart == r || bassPart.startsWith(r)) {
-          bass = r;
-          break;
+    i++;
+    if (root.isNotEmpty) {
+      if (i < chord.length) {
+        final nextChar = chord[i];
+        if (ChordHelper.accidents.contains(nextChar)) {
+          root.write(nextChar);
+          i++;
         }
       }
+    } else {
+      prefix = chord;
     }
 
-    // Transpose root and bass
-    String transposedRoot = ChordHelper().transpose(
-      originalKey,
-      root,
-      transposeValue,
-    );
-    String result = prefix + transposedRoot + chordSuffix;
+    final suffix = (i < chord.length) ? chord.substring(i) : '';
 
-    if (bass != null) {
-      String transposedBass = ChordHelper().transpose(
-        originalKey,
-        bass,
-        transposeValue,
-      );
-      result += '/$transposedBass';
-    }
-
-    return result;
+    return (root.toString(), prefix, suffix);
   }
 }

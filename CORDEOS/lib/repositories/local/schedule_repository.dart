@@ -10,7 +10,7 @@ class LocalScheduleRepository {
     final db = await _databaseHelper.database;
     int scheduleId = await db.insert('schedule', schedule.toSqlite());
 
-    for (var role in schedule.roles) {
+    for (var role in schedule.roles.values) {
       await insertRole(scheduleId, role);
     }
 
