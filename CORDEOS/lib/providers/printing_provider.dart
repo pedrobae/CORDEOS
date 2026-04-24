@@ -1,9 +1,9 @@
 import 'package:cordeos/l10n/app_localizations.dart';
+import 'package:cordeos/models/domain/cipher/cipher.dart';
+import 'package:cordeos/models/domain/cipher/section.dart';
+import 'package:cordeos/models/domain/cipher/version.dart';
 import 'package:cordeos/utils/section_type.dart';
 import 'package:cordeos/widgets/ciphers/print/page_preview_painter.dart';
-import 'package:cordeos/repositories/local/cipher_repository.dart';
-import 'package:cordeos/repositories/local/section_repository.dart';
-import 'package:cordeos/repositories/local/version_repository.dart';
 import 'package:cordeos/services/tokenization/build_service.dart';
 import 'package:cordeos/services/tokenization/helper_classes.dart';
 import 'package:cordeos/services/tokenization/position_service.dart';
@@ -128,10 +128,6 @@ class HeaderData {
 }
 
 class PrintingProvider extends ChangeNotifier {
-  final _ciph = CipherRepository();
-  final _localVer = LocalVersionRepository();
-  final _sect = SectionRepository();
-
   static const _tokenizer = TokenizationService();
   static const _builder = TokenizationBuilder();
   static const _positioner = PositionService();
@@ -204,24 +200,17 @@ class PrintingProvider extends ChangeNotifier {
   double horizontalMargin = 24;
   double verticalMargin = 24;
   double sectionSpacing = 16;
-  double metadataGap = 24;
+  double metadataGap = 12;
 
-  Future<void> tokenize({
-    required int versionID,
+  void tokenize({
+    required Cipher cipher,
+    required Version version,
+    required Map<int, Section> sections,
     required String Function(String) transposeChord,
     required BuildContext context,
-  }) async {
+  }) {
+    _sectionCache.clear();
     final l10n = AppLocalizations.of(context)!;
-
-    final version = await _localVer.getVersionWithId(versionID);
-    if (version == null) {
-      throw Exception('Version not found for ID: $versionID');
-    }
-
-    final cipher = await _ciph.getCipherById(version.cipherID);
-    if (cipher == null) {
-      throw Exception('Cipher not found for ID: ${version.cipherID}');
-    }
 
     _headerData.title = cipher.title;
     _headerData.author = cipher.author;
@@ -232,7 +221,6 @@ class PrintingProvider extends ChangeNotifier {
     _headerData.songMapLabel = l10n.songStructure;
     _headerData.durationLabel = l10n.duration;
 
-    final sections = await _sect.getSections(versionID);
     final types = <int, SectionType>{};
     for (var section in sections.values) {
       types[section.key] = section.sectionType;
@@ -244,7 +232,7 @@ class PrintingProvider extends ChangeNotifier {
       final section = sections[key];
       if (section == null) {
         throw Exception(
-          'Section with key $key not found for version ID: $versionID',
+          'Section with key $key not found for version ID: ${version.id}',
         );
       }
 
@@ -366,7 +354,7 @@ class PrintingProvider extends ChangeNotifier {
         final newPage = cursor.breakColumn(columnCount);
 
         if (newPage) {
-          pages.add(PageLayout(placements: placements));
+          pages.add(PageLayout(placements: List.from(placements)));
           placements.clear();
         }
       }
@@ -382,6 +370,11 @@ class PrintingProvider extends ChangeNotifier {
       );
 
       cursor.y += sectionBlockHeight;
+    }
+
+    if (placements.isNotEmpty) {
+      pages.add(PageLayout(placements: List.from(placements)));
+      placements.clear();
     }
 
     return pages;

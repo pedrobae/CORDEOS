@@ -11,7 +11,6 @@ import 'package:flutter/material.dart';
 /// Constructing this object is the only place where TextPainters are built,
 /// keeping [PagePreviewPainter.paint] allocation-free.
 class PagePreviewSnapshot {
-  final Map<int, SectionType> types;
   final Map<int, SectionPaintModel> sectionModels;
   final Map<int, TextPainter> sectionLabelPainters;
   final List<TextPaintInstruction> metadataInstructions;
@@ -19,7 +18,6 @@ class PagePreviewSnapshot {
   final double sectionLabelHeight;
 
   const PagePreviewSnapshot({
-    required this.types,
     required this.sectionModels,
     required this.sectionLabelPainters,
     required this.metadataInstructions,
@@ -86,11 +84,10 @@ class PagePreviewSnapshot {
       instructions.add(
         TextPaintInstruction(painter: painter, offset: Offset(0, y)),
       );
-      y += painter.height + 2;
+      y += painter.height;
     }
 
     return PagePreviewSnapshot(
-      types: sections.map((key, value) => MapEntry(key, value.type)),
       sectionModels: models,
       sectionLabelPainters: sectionLabelPainters,
       metadataInstructions: instructions,
@@ -125,7 +122,7 @@ class PagePreviewSnapshot {
       (detailParts.join('  •  '), ctx.metadataStyle),
       if (ctx.showSongMap)
         (
-          '${header.songMapLabel}: ${header.codeSongMap.join(' • ')}',
+          '${header.songMapLabel}: ${header.codeSongMap.join('|')}',
           ctx.metadataStyle.copyWith(
             fontSize: (ctx.metadataStyle.fontSize ?? 11) - 1,
           ),
@@ -141,7 +138,6 @@ class PageContext {
   final double verticalMargin;
   final double columnGap;
   final double sectionSpacing;
-  final double metadataGap;
   final int columnCount;
 
   PageContext({
@@ -151,7 +147,6 @@ class PageContext {
     required this.verticalMargin,
     required this.columnGap,
     required this.sectionSpacing,
-    required this.metadataGap,
     required this.columnCount,
   });
 
@@ -235,12 +230,24 @@ class PagePreviewPainter extends CustomPainter {
     canvas.save();
     canvas.translate(ctx.horizontalMargin, ctx.verticalMargin);
 
+    if (pageIndex == 0) _paintHeader(canvas, snapshot.metadataInstructions);
+
     for (final placement in pages[pageIndex].placements) {
       final model = snapshot.sectionModels[placement.sectionKey]!;
       _paintSectionSlice(canvas, model, placement);
     }
 
     canvas.restore();
+  }
+
+  void _paintHeader(
+    Canvas canvas,
+    List<TextPaintInstruction> metadataInstructions,
+  ) {
+    // Paint all metadata text instructions at their computed positions
+    for (final instruction in metadataInstructions) {
+      instruction.painter.paint(canvas, instruction.offset);
+    }
   }
 
   void _paintSectionSlice(
@@ -266,7 +273,9 @@ class PagePreviewPainter extends CustomPainter {
         canvas,
         Offset(
           placement.xOffset + instruction.offset.dx,
-          placement.yOffset + instruction.offset.dy,
+          placement.yOffset +
+              instruction.offset.dy +
+              snapshot.sectionLabelHeight,
         ),
       );
     }
@@ -274,11 +283,11 @@ class PagePreviewPainter extends CustomPainter {
       canvas.drawLine(
         Offset(
           placement.xOffset + underline.offset.dx,
-          placement.yOffset + underline.offset.dy,
+          placement.yOffset + underline.offset.dy + snapshot.sectionLabelHeight,
         ),
         Offset(
           placement.xOffset + underline.offset.dx + underline.width,
-          placement.yOffset + underline.offset.dy,
+          placement.yOffset + underline.offset.dy + snapshot.sectionLabelHeight,
         ),
         Paint()
           ..color = model.underlineColor

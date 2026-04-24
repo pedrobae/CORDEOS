@@ -1,8 +1,14 @@
 import 'dart:math';
 
 import 'package:cordeos/l10n/app_localizations.dart';
+import 'package:cordeos/models/domain/cipher/cipher.dart';
+import 'package:cordeos/models/domain/cipher/section.dart';
+import 'package:cordeos/models/domain/cipher/version.dart';
+import 'package:cordeos/providers/cipher/cipher_provider.dart';
 import 'package:cordeos/providers/printing_provider.dart';
+import 'package:cordeos/providers/section/section_provider.dart';
 import 'package:cordeos/providers/transposition_provider.dart';
+import 'package:cordeos/providers/version/local_version_provider.dart';
 import 'package:cordeos/widgets/ciphers/print/page_preview_painter.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -97,137 +103,168 @@ class _PrintPreviewScreenState extends State<PrintPreviewScreen> {
 
     return Container(
       color: colorScheme.shadow,
-      child: Selector<TranspositionProvider, String Function(String)>(
-        selector: (context, trans) =>
-            (chord) => trans.transposeChord(chord),
-        builder: (context, transposeChord, child) {
-          print.tokenize(
-            versionID: widget.versionID,
-            transposeChord: transposeChord,
-            context: context,
-          );
-
-          return Selector<
-            PrintingProvider,
+      child:
+          Selector4<
+            TranspositionProvider,
+            CipherProvider,
+            LocalVersionProvider,
+            SectionProvider,
             ({
-              double sectionMaxWidth,
-              double lineBreakSpacing,
-              double chordLyricSpacing,
-              double minChordSpacing,
-              double lineSpacing,
-              double letterSpacing,
-              double lyricFontSize,
-              double chordFontSize,
-              String lyricFontFamily,
-              String chordFontFamily,
+              String Function(String) transpose,
+              Cipher cipher,
+              Version version,
+              Map<int, Section> sections,
             })
           >(
-            selector: (context, print) {
-              final sectionMaxWidth =
-                  pageWidth -
-                  (print.horizontalMargin * 2) -
-                  ((print.columnCount - 1) * print.columnGap);
+            selector: (context, trans, ciph, localVer, sect) {
+              final version = localVer.getVersion(widget.versionID);
+              if (version == null) {
+                throw Exception(
+                  'Version not found for ID: ${widget.versionID}',
+                );
+              }
 
+              final cipher = ciph.getCipher(version.cipherID);
+              if (cipher == null) {
+                throw Exception('Cipher not found for ID: ${version.cipherID}');
+              }
+              final sections = sect.getSections(widget.versionID);
               return (
-                sectionMaxWidth: sectionMaxWidth,
-                lineBreakSpacing: print.lineBreakSpacing,
-                chordLyricSpacing: print.chordLyricSpacing,
-                minChordSpacing: print.minChordSpacing,
-                lineSpacing: print.lineSpacing,
-                letterSpacing: print.letterSpacing,
-                lyricFontSize: print.lyricFontSize,
-                chordFontSize: print.chordFontSize,
-                lyricFontFamily: print.lyricFontFamily,
-                chordFontFamily: print.chordFontFamily,
+                transpose: trans.transposeChord,
+                cipher: cipher,
+                version: version,
+                sections: sections,
               );
             },
-            builder: (context, layoutSettings, child) {
-              print.calculatePositions(layoutSettings.sectionMaxWidth);
+            builder: (context, s, child) {
+              print.tokenize(
+                transposeChord: s.transpose,
+                context: context,
+                cipher: s.cipher,
+                version: s.version,
+                sections: s.sections,
+              );
 
               return Selector<
                 PrintingProvider,
                 ({
-                  bool showMetadata,
-                  bool showRepeatSections,
-                  bool showAnnotations,
-                  bool showSongMap,
-                  bool showSectionLabels,
-                  bool showBpm,
-                  bool showDuration,
-                  Color lyricColor,
-                  Color chordColor,
-                  Color metadataColor,
-                  Color labelColor,
+                  double sectionMaxWidth,
+                  double lineBreakSpacing,
+                  double chordLyricSpacing,
+                  double minChordSpacing,
+                  double lineSpacing,
+                  double letterSpacing,
+                  double lyricFontSize,
+                  double chordFontSize,
+                  String lyricFontFamily,
+                  String chordFontFamily,
                 })
               >(
-                selector: (context, print) => (
-                  showMetadata: print.showMetadata,
-                  showRepeatSections: print.showRepeatSections,
-                  showAnnotations: print.showAnnotations,
-                  showSongMap: print.showSongMap,
-                  showSectionLabels: print.showSectionLabels,
-                  showBpm: print.showBpm,
-                  showDuration: print.showDuration,
-                  lyricColor: print.lyricColor,
-                  chordColor: print.chordColor,
-                  metadataColor: print.metadataColor,
-                  labelColor: print.labelColor,
-                ),
-                builder: (context, buildSettings, child) {
-                  final previewSnapshot = print.buildPreviewSnapshot(
-                    layoutSettings.sectionMaxWidth,
-                  );
+                selector: (context, print) {
+                  final sectionMaxWidth =
+                      pageWidth -
+                      (print.horizontalMargin * 2) -
+                      ((print.columnCount - 1) * print.columnGap);
 
-                  final pageCtx = PageContext(
-                    pageWidth: pageWidth,
-                    pageHeight: pageHeight,
-                    horizontalMargin: print.horizontalMargin,
-                    verticalMargin: print.verticalMargin,
-                    columnGap: print.columnGap,
-                    sectionSpacing: print.sectionSpacing,
-                    metadataGap: print.metadataGap,
-                    columnCount: print.columnCount,
+                  return (
+                    sectionMaxWidth: sectionMaxWidth,
+                    lineBreakSpacing: print.lineBreakSpacing,
+                    chordLyricSpacing: print.chordLyricSpacing,
+                    minChordSpacing: print.minChordSpacing,
+                    lineSpacing: print.lineSpacing,
+                    letterSpacing: print.letterSpacing,
+                    lyricFontSize: print.lyricFontSize,
+                    chordFontSize: print.chordFontSize,
+                    lyricFontFamily: print.lyricFontFamily,
+                    chordFontFamily: print.chordFontFamily,
                   );
+                },
+                builder: (context, layoutSettings, child) {
+                  print.calculatePositions(layoutSettings.sectionMaxWidth);
 
-                  final pages = print.layoutPages(
-                    previewSnapshot,
-                    pageHeight,
-                    layoutSettings.sectionMaxWidth,
-                  );
-
-                  return SingleChildScrollView(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      spacing: 16,
-                      children: [
-                        for (
-                          int pageIndex = 0;
-                          pageIndex < pages.length;
-                          pageIndex++
-                        )
-                          SizedBox(
-                            width: availableWidth,
-                            height: pageHeight,
-                            child: CustomPaint(
-                              painter: PagePreviewPainter(
-                                snapshot: previewSnapshot,
-                                pages: pages,
-                                pageIndex: pageIndex,
-                                ctx: pageCtx,
-                                pageColor: Colors.white,
-                                shadowColor: Colors.black26,
-                              ),
-                            ),
-                          ),
-                      ],
+                  return Selector<
+                    PrintingProvider,
+                    ({
+                      bool showMetadata,
+                      bool showRepeatSections,
+                      bool showAnnotations,
+                      bool showSongMap,
+                      bool showSectionLabels,
+                      bool showBpm,
+                      bool showDuration,
+                      Color lyricColor,
+                      Color chordColor,
+                      Color metadataColor,
+                      Color labelColor,
+                    })
+                  >(
+                    selector: (context, print) => (
+                      showMetadata: print.showMetadata,
+                      showRepeatSections: print.showRepeatSections,
+                      showAnnotations: print.showAnnotations,
+                      showSongMap: print.showSongMap,
+                      showSectionLabels: print.showSectionLabels,
+                      showBpm: print.showBpm,
+                      showDuration: print.showDuration,
+                      lyricColor: print.lyricColor,
+                      chordColor: print.chordColor,
+                      metadataColor: print.metadataColor,
+                      labelColor: print.labelColor,
                     ),
+                    builder: (context, buildSettings, child) {
+                      final previewSnapshot = print.buildPreviewSnapshot(
+                        layoutSettings.sectionMaxWidth,
+                      );
+
+                      final pageCtx = PageContext(
+                        pageWidth: pageWidth,
+                        pageHeight: pageHeight,
+                        horizontalMargin: print.horizontalMargin,
+                        verticalMargin: print.verticalMargin,
+                        columnGap: print.columnGap,
+                        sectionSpacing: print.sectionSpacing,
+                        columnCount: print.columnCount,
+                      );
+
+                      final pages = print.layoutPages(
+                        previewSnapshot,
+                        pageHeight,
+                        layoutSettings.sectionMaxWidth,
+                      );
+
+                      return SingleChildScrollView(
+                        padding: const EdgeInsets.all(24),
+                        child: Column(
+                          spacing: 16,
+                          children: [
+                            for (
+                              int pageIndex = 0;
+                              pageIndex < pages.length;
+                              pageIndex++
+                            )
+                              SizedBox(
+                                width: availableWidth,
+                                height: pageHeight,
+                                child: CustomPaint(
+                                  painter: PagePreviewPainter(
+                                    snapshot: previewSnapshot,
+                                    pages: pages,
+                                    pageIndex: pageIndex,
+                                    ctx: pageCtx,
+                                    pageColor: Colors.white,
+                                    shadowColor: Colors.black26,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      );
+                    },
                   );
                 },
               );
             },
-          );
-        },
-      ),
+          ),
     );
   }
 }
