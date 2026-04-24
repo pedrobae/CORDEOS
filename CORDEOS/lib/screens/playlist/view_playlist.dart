@@ -164,6 +164,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
 
   Widget _buildPlaylistItem(int index) {
     return Selector<PlaylistProvider, PlaylistItem?>(
+      key: ValueKey('idx_$index'),
       selector: (context, play) {
         return play.getPlaylist(widget.playlistId)?.items[index];
       },
@@ -172,7 +173,6 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
         switch (item.type) {
           case PlaylistItemType.version:
             return PlaylistVersionCard(
-              key: ValueKey('ver_${item.id}_idx_$index'),
               index: index,
               versionId: item.contentId!,
               playlistId: widget.playlistId,
@@ -180,7 +180,6 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
             );
           case PlaylistItemType.flowItem:
             return FlowItemCard(
-              key: ValueKey('flow_${item.id}_idx_$index'),
               index: index,
               flowItemID: item.contentId ?? item.id!,
               playlistID: widget.playlistId,
