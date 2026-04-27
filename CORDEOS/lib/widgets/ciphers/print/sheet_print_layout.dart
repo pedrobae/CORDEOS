@@ -93,8 +93,8 @@ class _PrintLayoutState extends State<PrintLayout> {
               _buildSlider(
                 value: lineSpacing,
                 label: l10n.lineSpacing,
-                minValue: 0,
-                maxValue: 10,
+                minValue: -5,
+                maxValue: 15,
                 onChanged: (v) => setState(() => lineSpacing = v),
                 onChangeEnd: (v) async {
                   await print.setLineSpacing(v);

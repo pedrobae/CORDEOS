@@ -1,4 +1,5 @@
 import 'package:cordeos/providers/printing_provider.dart';
+import 'package:cordeos/services/print_cache.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:cordeos/l10n/app_localizations.dart';
@@ -50,6 +51,7 @@ void main() async {
   await RemoteConfigService.initializeAndFetch();
 
   await SettingsService.initialize();
+  await PrintCacheService.initialize();
 
   // Initialize date formatting for all locales
   await initializeDateFormatting();

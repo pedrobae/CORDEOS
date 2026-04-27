@@ -286,20 +286,20 @@ class PrintingProvider extends ChangeNotifier {
         tokens: tokens,
         organized: organized,
       );
-
-      _measureTokens(
-        tokens: tokens,
-        chordStyle: chordStyle,
-        lyricStyle: lyricStyle,
-        chordLyricSpacing: chordLyricSpacing,
-        measurements: _tokenMeasurements,
-      );
     }
     _headerData.codeSongMap = songMap;
   }
 
   Future<void> calculatePositions(double maxWidth) async {
     for (final cache in _sectionCache.values) {
+      _measureTokens(
+        tokens: cache.tokens,
+        chordStyle: chordStyle,
+        lyricStyle: lyricStyle,
+        chordLyricSpacing: chordLyricSpacing,
+        measurements: _tokenMeasurements,
+      );
+
       final lyricHeight = _builder
           .measureText(text: 'SampleText', style: lyricStyle)
           .height;
@@ -399,7 +399,7 @@ class PrintingProvider extends ChangeNotifier {
         ),
       );
 
-      cursor.y += sectionBlockHeight;
+      cursor.y += sectionBlockHeight + sectionSpacing;
     }
 
     if (placements.isNotEmpty) {

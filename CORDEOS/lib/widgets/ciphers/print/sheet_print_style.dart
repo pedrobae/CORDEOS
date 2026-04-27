@@ -78,6 +78,7 @@ class _PrintStyleState extends State<PrintStyle> {
                       items: [
                         for (final fontFamily in FontFamilies.values) ...[
                           DropdownMenuItem(
+                            alignment: Alignment.centerRight,
                             value: fontFamily.key,
                             child: Text(
                               fontFamily.key,
@@ -132,6 +133,7 @@ class _PrintStyleState extends State<PrintStyle> {
                       items: [
                         for (final fontFamily in FontFamilies.values) ...[
                           DropdownMenuItem(
+                            alignment: Alignment.centerRight,
                             value: fontFamily.key,
                             child: Text(
                               fontFamily.key,
@@ -186,6 +188,7 @@ class _PrintStyleState extends State<PrintStyle> {
                       items: [
                         for (final fontFamily in FontFamilies.values) ...[
                           DropdownMenuItem(
+                            alignment: Alignment.centerRight,
                             value: fontFamily.key,
                             child: Text(
                               fontFamily.key,

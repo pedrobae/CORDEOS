@@ -73,34 +73,40 @@ class _PrintPreviewScreenState extends State<PrintPreviewScreen> {
       children: [
         IconButton(
           onPressed: () {
-             showModalBottomSheet(
-        backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-        context: context,
-        isScrollControlled: true,
-        builder: (context) => PrintFilters(),
-      );
+            showModalBottomSheet(
+              backgroundColor: Theme.of(
+                context,
+              ).colorScheme.surfaceContainerHighest,
+              context: context,
+              isScrollControlled: true,
+              builder: (context) => PrintFilters(),
+            );
           },
           icon: const Icon(Icons.filter_list),
         ),
         IconButton(
           onPressed: () {
-             showModalBottomSheet(
-        backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-        context: context,
-        isScrollControlled: true,
-        builder: (context) => PrintLayout(),
-      );
+            showModalBottomSheet(
+              backgroundColor: Theme.of(
+                context,
+              ).colorScheme.surfaceContainerHighest,
+              context: context,
+              isScrollControlled: true,
+              builder: (context) => PrintLayout(),
+            );
           },
           icon: const Icon(Icons.format_paint_rounded),
         ),
         IconButton(
           onPressed: () {
             showModalBottomSheet(
-        backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-        context: context,
-        isScrollControlled: true,
-        builder: (context) => PrintStyle(),
-      );
+              backgroundColor: Theme.of(
+                context,
+              ).colorScheme.surfaceContainerHighest,
+              context: context,
+              isScrollControlled: true,
+              builder: (context) => PrintStyle(),
+            );
           },
           icon: const Icon(Icons.text_fields),
         ),
@@ -172,17 +178,24 @@ class _PrintPreviewScreenState extends State<PrintPreviewScreen> {
                   double minChordSpacing,
                   double lineSpacing,
                   double letterSpacing,
+                  double horizontalMargin,
+                  double verticalMargin,
+                  double columnGap,
+                  double sectionSpacing,
+                  double headerGap,
                   double lyricFontSize,
                   double chordFontSize,
+                  double headerFontSize,
                   String lyricFontFamily,
                   String chordFontFamily,
+                  String headerFontFamily,
                 })
               >(
                 selector: (context, print) {
                   final sectionMaxWidth =
-                      pageWidth -
+                      (pageWidth -
                       (print.horizontalMargin * 2) -
-                      ((print.columnCount - 1) * print.columnGap);
+                      ((print.columnCount - 1) * print.columnGap)) / print.columnCount;
 
                   return (
                     sectionMaxWidth: sectionMaxWidth,
@@ -193,8 +206,15 @@ class _PrintPreviewScreenState extends State<PrintPreviewScreen> {
                     letterSpacing: print.letterSpacing,
                     lyricFontSize: print.lyricFontSize,
                     chordFontSize: print.chordFontSize,
+                    headerFontSize: print.headerFontSize,
                     lyricFontFamily: print.lyricFontFamily,
                     chordFontFamily: print.chordFontFamily,
+                    headerFontFamily: print.headerFontFamily,
+                    horizontalMargin: print.horizontalMargin,
+                    verticalMargin: print.verticalMargin,
+                    columnGap: print.columnGap,
+                    sectionSpacing: print.sectionSpacing,
+                    headerGap: print.headerGap,
                   );
                 },
                 builder: (context, layoutSettings, child) {
