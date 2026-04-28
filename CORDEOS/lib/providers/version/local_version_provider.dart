@@ -338,8 +338,6 @@ class LocalVersionProvider extends ChangeNotifier {
   // ===== SAVE =====
   /// Persist the cache of an ID to the database
   Future<void> saveVersion({required int versionID}) async {
-    notifyListeners();
-
     try {
       await _repo.updateVersion(_versions[versionID]!);
     } catch (e) {
@@ -347,7 +345,6 @@ class LocalVersionProvider extends ChangeNotifier {
       debugPrint('Error updating cipher version: $e');
     } finally {
       _hasUnsavedChanges = false;
-      notifyListeners();
     }
   }
 
