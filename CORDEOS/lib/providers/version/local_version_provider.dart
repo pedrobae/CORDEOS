@@ -9,8 +9,6 @@ class LocalVersionProvider extends ChangeNotifier {
 
   final Map<int, bool> _isLoadingVersion = {}; // versionId -> isLoading
 
-  bool _isSaving = false;
-
   String? _error;
 
   bool _hasUnsavedChanges = false;
@@ -87,9 +85,6 @@ class LocalVersionProvider extends ChangeNotifier {
   /// Creates a new version from the local cache (-1) to an existing cipher
   /// If no cipherId is provided, the version will use the cached cipherID or throw an error
   Future<int> createVersion({int? cipherID}) async {
-    if (_isSaving) return -1;
-
-    _isSaving = true;
     _error = null;
     notifyListeners();
 
@@ -121,7 +116,6 @@ class LocalVersionProvider extends ChangeNotifier {
       _error = e.toString();
       debugPrint('Error creating cipher version: $e');
     } finally {
-      _isSaving = false;
       _hasUnsavedChanges = false;
       notifyListeners();
     }
@@ -215,9 +209,6 @@ class LocalVersionProvider extends ChangeNotifier {
   /// Upsert a version into local db (used when download a version from the cloud)
   Future<int> upsertVersion(Version version) async {
     int versionId = -1;
-    if (_isSaving) return versionId;
-
-    _isSaving = true;
     _error = null;
     notifyListeners();
 
@@ -241,7 +232,6 @@ class LocalVersionProvider extends ChangeNotifier {
       _error = e.toString();
       debugPrint('Error upserting cipher version: $e');
     } finally {
-      _isSaving = false;
       notifyListeners();
     }
     return versionId;
@@ -250,9 +240,6 @@ class LocalVersionProvider extends ChangeNotifier {
   // ===== UPDATE - update cipher version =====
   /// Updates a version in the local database (nothing to do with cache)
   Future<void> updateVersion(Version version) async {
-    if (_isSaving) return;
-
-    _isSaving = true;
     _error = null;
     notifyListeners();
 
@@ -265,7 +252,6 @@ class LocalVersionProvider extends ChangeNotifier {
       _error = e.toString();
       debugPrint('Error updating cipher version: $e');
     } finally {
-      _isSaving = false;
       notifyListeners();
     }
   }
@@ -327,9 +313,6 @@ class LocalVersionProvider extends ChangeNotifier {
   /// ===== DELETE - Version =====
   Future<int?> deleteVersion(int versionId) async {
     int? cipherID;
-    if (_isSaving) return cipherID;
-
-    _isSaving = true;
     _error = null;
     notifyListeners();
 
@@ -340,7 +323,6 @@ class LocalVersionProvider extends ChangeNotifier {
       _error = e.toString();
       debugPrint('Error deleting cipher version: $e');
     } finally {
-      _isSaving = false;
       notifyListeners();
     }
     return cipherID;
@@ -356,10 +338,6 @@ class LocalVersionProvider extends ChangeNotifier {
   // ===== SAVE =====
   /// Persist the cache of an ID to the database
   Future<void> saveVersion({required int versionID}) async {
-    if (_isSaving) return;
-
-    _isSaving = true;
-    _error = null;
     notifyListeners();
 
     try {
@@ -368,7 +346,6 @@ class LocalVersionProvider extends ChangeNotifier {
       _error = e.toString();
       debugPrint('Error updating cipher version: $e');
     } finally {
-      _isSaving = false;
       _hasUnsavedChanges = false;
       notifyListeners();
     }
@@ -412,7 +389,6 @@ class LocalVersionProvider extends ChangeNotifier {
   void clearCache() {
     _versions.clear();
     _isLoadingVersion.clear();
-    _isSaving = false;
     _error = null;
     _hasUnsavedChanges = false;
     notifyListeners();

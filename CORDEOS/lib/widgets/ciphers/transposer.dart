@@ -45,7 +45,6 @@ class Transposer extends StatelessWidget {
                         trans.setTransposedKey(key);
                       },
                       onSave: (key) async {
-                        if (s.versionID == -2) return; // CLOUD / TESTING CASE
                         localVer.cacheUpdates(
                           s.versionID,
                           transposedKey: key,

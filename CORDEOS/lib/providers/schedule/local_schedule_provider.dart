@@ -257,15 +257,17 @@ class LocalScheduleProvider extends ChangeNotifier {
   }
 
   // ===== UPDATE =====
-  void addRoleToSchedule(int scheduleID, String roleName) {
+  Future<void> addRoleToSchedule(int scheduleID, String roleName) async {
     final schedule = _schedules[scheduleID];
     if (schedule == null) return;
 
     final newRole = Role(id: -1, name: roleName, users: []);
-    (_schedules[scheduleID] as Schedule).roles[-1] = newRole;
 
+    final newID = await _repo.insertRole(scheduleID, newRole);
+    (_schedules[scheduleID] as Schedule).roles[newID] = newRole.copyWith(
+      id: newID,
+    );
     _hasUnsavedChanges = true;
-
     notifyListeners();
   }
 
