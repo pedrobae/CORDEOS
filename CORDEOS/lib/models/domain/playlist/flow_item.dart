@@ -62,13 +62,13 @@ class FlowItem {
     };
   }
 
-  Map<String, String> toFirestore() {
+  Map<String, dynamic> toFirestore() {
     return {
       'title': title,
       'contentText': contentText,
       'firebaseId': firebaseId,
-      'position': position.toString(),
-      'duration': duration.inSeconds.toString(),
+      'position': position,
+      'duration': duration.inSeconds,
     };
   }
 

@@ -48,7 +48,7 @@ class _UsersBottomSheetState extends State<UsersBottomSheet> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            spacing: 16,
+            spacing: 8,
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -67,7 +67,7 @@ class _UsersBottomSheetState extends State<UsersBottomSheet> {
                 text: l10n.addPlaceholder(l10n.member),
                 onPressed: _openAddUserSheet(),
                 icon: Icons.add,
-                isDense: true,
+                isDark: true,
               ),
               SingleChildScrollView(
                 child: Column(
@@ -88,8 +88,10 @@ class _UsersBottomSheetState extends State<UsersBottomSheet> {
                         child: Center(child: Text(l10n.noMembers)),
                       ),
                     for (int i = 0; i < s.memberCount; i++) ...[
+                      SizedBox(height: 8),
                       _buildMemberCard(i),
                     ],
+                    SizedBox(height: 8),
                   ],
                 ),
               ),
@@ -101,7 +103,6 @@ class _UsersBottomSheetState extends State<UsersBottomSheet> {
                     widget.roleID,
                   );
                 },
-                isDense: true,
               ),
               SizedBox(),
             ],
