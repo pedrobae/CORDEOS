@@ -325,7 +325,7 @@ class _ImportPdfScreenState extends State<ImportPdfScreen> {
       ),
       keepAlive: true,
       changeDetector: () =>
-          localVer.hasUnsavedChanges || ciph.hasUnsavedChanges,
+          localVer.hasUnsavedChanges || ciph.hasUnsavedChanges ,
       onChangeDiscarded: () {
         localVer.loadVersion(widget.versionID);
         ciph.loadCipher(widget.cipherID);

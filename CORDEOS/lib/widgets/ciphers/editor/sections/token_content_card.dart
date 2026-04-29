@@ -50,10 +50,14 @@ class _TokenContentCardState extends State<TokenContentCard> {
     _tokenProv = context.read<TokenProvider>();
   }
 
-  Function(ContentToken, ContentToken, {bool addBefore}) _addChord(
-    TokenCacheKey key,
-  ) {
-    return (draggedChord, targetToken, {bool addBefore = true}) {
+  Function(ContentToken, ContentToken, {bool addBefore, bool isChordTarget})
+  _addChord(TokenCacheKey key) {
+    return (
+      draggedChord,
+      targetToken, {
+      bool addBefore = true,
+      bool isChordTarget = false,
+    }) {
       final sect = context.read<SectionProvider>();
       final tokenProv = context.read<TokenProvider>();
 
@@ -61,9 +65,11 @@ class _TokenContentCardState extends State<TokenContentCard> {
 
       if (tokens == null) return;
 
-      final index = tokens.indexWhere((t) => t == targetToken);
+      int index = tokens.indexWhere((t) => t == targetToken);
       if (index == -1) return;
-      tokens.insert(addBefore ? index : index + 1, draggedChord);
+      if (!addBefore) index++;
+      if (isChordTarget) index++;
+      tokens.insert(index, draggedChord);
 
       final updatedContent = tokenProv.getContent(key);
 

@@ -236,7 +236,8 @@ class PositionService {
           charIndex++;
           break;
 
-        case TokenType.chordTarget:
+        case TokenType.preChordTarget:
+        case TokenType.postChordTarget:
           positions.setPosition(
             token,
             cursor.chordX -

@@ -72,7 +72,13 @@ class TokenizationService {
       } else if (char == '>' && (showLyrics || showChords)) {
         lineTokens.add(ContentToken(type: TokenType.postSeparator, text: char));
       } else if (char == '@' && (showLyrics || showChords)) {
-        lineTokens.add(ContentToken(type: TokenType.chordTarget, text: char));
+        lineTokens.add(
+          ContentToken(type: TokenType.preChordTarget, text: char),
+        );
+      } else if (char == '&' && (showLyrics || showChords)) {
+        lineTokens.add(
+          ContentToken(type: TokenType.postChordTarget, text: char),
+        );
       } else if (showLyrics) {
         lineTokens.add(ContentToken(type: TokenType.lyric, text: char));
       }
@@ -117,7 +123,7 @@ class TokenizationService {
       } else if (token.type == TokenType.chord) {
         lineTokens.insert(
           i + offset,
-          ContentToken(type: TokenType.chordTarget, text: token.text),
+          ContentToken(type: TokenType.preChordTarget, text: token.text),
         );
         offset++; // Increment the offset for each insertion
       }
@@ -145,7 +151,7 @@ class TokenizationService {
       if (token.type == TokenType.chord) {
         lineTokens.insert(
           i + offset,
-          ContentToken(type: TokenType.chordTarget, text: token.text),
+          ContentToken(type: TokenType.postChordTarget, text: token.text),
         );
         offset++; // Increment the offset for each insertion
       }
@@ -216,7 +222,8 @@ class TokenizationService {
         case TokenType.postSeparator:
           return '>';
         case TokenType.underline:
-        case TokenType.chordTarget:
+        case TokenType.preChordTarget:
+        case TokenType.postChordTarget:
           return ''; // Purely visual tokens - return empty string
       }
     }).join();
@@ -258,7 +265,8 @@ class TokenizationService {
           break;
         case TokenType.preSeparator:
         case TokenType.postSeparator:
-        case TokenType.chordTarget:
+        case TokenType.preChordTarget:
+        case TokenType.postChordTarget:
           if (currentWord.isNotEmpty) {
             currentLine.add(TokenWord(List.from(currentWord)));
             currentWord.clear();

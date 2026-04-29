@@ -120,7 +120,10 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
       originalKey = cipher!.musicKey;
       transposedKey = version?.transposedKey;
     }
-    _trans.setOriginalKey(originalKey, (widget.versionID is int) ? widget.versionID : -2);
+    _trans.setOriginalKey(
+      originalKey,
+      (widget.versionID is int) ? widget.versionID : -2,
+    );
     _trans.setTransposedKey(transposedKey);
   }
 
@@ -242,6 +245,7 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
     return () {
       final localVer = context.read<LocalVersionProvider>();
       final ciph = context.read<CipherProvider>();
+      final sect = context.read<SectionProvider>();
       context.read<NavigationProvider>().push(
         () => EditCipherScreen(
           cipherID: widget.cipherID!,
@@ -250,11 +254,14 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
         ),
         keepAlive: true,
         changeDetector: () {
-          return localVer.hasUnsavedChanges || ciph.hasUnsavedChanges;
+          return localVer.hasUnsavedChanges ||
+              ciph.hasUnsavedChanges ||
+              sect.hasUnsavedChanges;
         },
         onChangeDiscarded: () {
           localVer.loadVersion(widget.versionID);
           ciph.loadCipher(widget.cipherID ?? -1);
+          sect.loadSectionsOfVersion(widget.versionID);
         },
       );
     };

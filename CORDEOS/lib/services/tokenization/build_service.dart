@@ -111,7 +111,8 @@ class TokenizationBuilder {
         case TokenType.newline:
         case TokenType.preSeparator:
         case TokenType.postSeparator:
-        case TokenType.chordTarget:
+        case TokenType.preChordTarget:
+        case TokenType.postChordTarget:
           break;
       }
     }
@@ -148,7 +149,13 @@ class TokenizationBuilder {
     required Color contentColor,
     required Color onContentColor,
     required bool isEnabled,
-    required Function(ContentToken, ContentToken, {bool addBefore}) onAddChord,
+    required Function(
+      ContentToken,
+      ContentToken, {
+      bool addBefore,
+      bool isChordTarget,
+    })
+    onAddChord,
     required Function(ContentToken) onRemoveChord,
     required Function() toggleDrag,
   }) {
@@ -184,7 +191,8 @@ class TokenizationBuilder {
                 ),
               );
               break;
-            case TokenType.chordTarget:
+            case TokenType.postChordTarget:
+            case TokenType.preChordTarget:
               wordWidgets.add(
                 TokenWidget(
                   widget: _buildChordTarget(
@@ -383,10 +391,18 @@ class TokenizationBuilder {
     required Color surfaceColor,
     required Color onSurfaceColor,
     required bool isEnabled,
-    required Function(ContentToken, ContentToken, {bool addBefore}) onAddChord,
+    required Function(
+      ContentToken,
+      ContentToken, {
+      bool addBefore,
+      bool isChordTarget,
+    })
+    onAddChord,
     required Function(ContentToken) onRemoveChord,
   }) {
-    final msr = token.type == TokenType.chordTarget
+    final msr =
+        (token.type == TokenType.preChordTarget ||
+            token.type == TokenType.postChordTarget)
         ? tokenMeasurements[chordTargetKey(token.text, chordStyle, lyricStyle)]!
         : tokenMeasurements[separatorKey(chordStyle, lyricStyle)]!;
 
@@ -435,7 +451,13 @@ class TokenizationBuilder {
     required Color surfaceColor,
     required Color onSurfaceColor,
     required bool isEnabled,
-    required Function(ContentToken, ContentToken, {bool addBefore}) onAddChord,
+    required Function(
+      ContentToken,
+      ContentToken, {
+      bool addBefore,
+      bool isChordTarget,
+    })
+    onAddChord,
     required Function(ContentToken) onRemoveChord,
   }) {
     final dragTargetChild = SizedBox(
@@ -475,7 +497,13 @@ class TokenizationBuilder {
     required Color surfaceColor,
     required Color onSurfaceColor,
     required bool isEnabled,
-    required Function(ContentToken, ContentToken, {bool addBefore}) onAddChord,
+    required Function(
+      ContentToken,
+      ContentToken, {
+      bool addBefore,
+      bool isChordTarget,
+    })
+    onAddChord,
     required Function(ContentToken) onRemoveChord,
   }) {
     final dragTargetChild = SizedBox(
@@ -514,7 +542,13 @@ class TokenizationBuilder {
     required Color surfaceColor,
     required Color onSurfaceColor,
     required bool isEnabled,
-    required Function(ContentToken, ContentToken, {bool addBefore}) onAddChord,
+    required Function(
+      ContentToken,
+      ContentToken, {
+      bool addBefore,
+      bool isChordTarget,
+    })
+    onAddChord,
     required Function(ContentToken) onRemoveChord,
     bool isChordTarget = false,
   }) {
@@ -525,9 +559,14 @@ class TokenizationBuilder {
               onAddChord(
                 details.data,
                 token,
-                addBefore: (token.type == TokenType.postSeparator)
+                addBefore:
+                    (token.type == TokenType.postSeparator ||
+                        token.type == TokenType.postChordTarget)
                     ? false
                     : true,
+                isChordTarget:
+                    (token.type == TokenType.postChordTarget ||
+                    token.type == TokenType.preChordTarget),
               );
             },
             builder: (context, candidateData, rejectedData) {

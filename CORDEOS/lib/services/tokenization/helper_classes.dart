@@ -107,7 +107,8 @@ enum TokenType {
   newline, // Used to render a line break - '\n'
   preSeparator, // Used to separate preceding chords - '<'
   postSeparator, // Used to separate following chords - '>'
-  chordTarget, // Used to render a drag Target below chord - '@'
+  preChordTarget, // Used to render a drag Target below chord - '@'
+postChordTarget, // Variation due to on dragged to differences - &
   underline, // Underscore widget used to stretch a word when a chord cant fit - N/A
 }
 

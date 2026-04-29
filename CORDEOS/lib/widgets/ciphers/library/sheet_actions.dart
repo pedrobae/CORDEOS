@@ -1,3 +1,4 @@
+import 'package:cordeos/providers/section/section_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:cordeos/l10n/app_localizations.dart';
 
@@ -32,6 +33,7 @@ class CipherCardActionsSheet extends StatelessWidget {
 
     final nav = context.read<NavigationProvider>();
     final ciph = context.read<CipherProvider>();
+    final sect = context.read<SectionProvider>();
     final localVer = context.read<LocalVersionProvider>();
     final cloudVer = context.read<CloudVersionProvider>();
 
@@ -94,10 +96,13 @@ class CipherCardActionsSheet extends StatelessWidget {
                 ),
                 keepAlive: true,
                 changeDetector: () =>
-                    localVer.hasUnsavedChanges || ciph.hasUnsavedChanges,
+                    localVer.hasUnsavedChanges ||
+                    ciph.hasUnsavedChanges ||
+                    sect.hasUnsavedChanges,
                 onChangeDiscarded: () {
                   localVer.loadVersion(versionID);
                   ciph.loadCipher(cipherId);
+                  sect.loadSectionsOfVersion(versionID);
                 },
               );
             },

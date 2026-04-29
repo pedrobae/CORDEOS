@@ -162,13 +162,35 @@ class TokenProvider extends ChangeNotifier {
           );
           break;
 
-        case TokenType.chordTarget:
+        case TokenType.preChordTarget:
           final msrKey = chordTargetKey(token.text, chordStyle, lyricStyle);
           if (_measurementCache.containsKey(msrKey)) {
             break;
           }
           final msr = _builder.measureText(
             text: '@',
+            style: lyricStyle,
+            isChordToken: false,
+          );
+          final chordMsr = _builder.measureText(
+            text: token.text,
+            style: chordStyle,
+            isChordToken: true,
+          );
+          _measurementCache[msrKey] = Measurements(
+            width: chordMsr.width,
+            height: msr.height,
+            baseline: msr.baseline,
+            size: msr.size,
+          );
+          break;
+        case TokenType.postChordTarget:
+          final msrKey = chordTargetKey(token.text, chordStyle, lyricStyle);
+          if (_measurementCache.containsKey(msrKey)) {
+            break;
+          }
+          final msr = _builder.measureText(
+            text: '&',
             style: lyricStyle,
             isChordToken: false,
           );
@@ -251,7 +273,7 @@ class TokenProvider extends ChangeNotifier {
     required Color contentColor,
     required Color onContentColor,
     required bool isEnabled,
-    required Function(ContentToken, ContentToken, {bool addBefore}) onAddChord,
+    required Function(ContentToken, ContentToken, {bool addBefore, bool isChordTarget}) onAddChord,
     required Function(ContentToken) onRemoveChord,
   }) {
     final chordHeight = _builder
@@ -342,12 +364,8 @@ class TokenProvider extends ChangeNotifier {
   }
 
   void clearSectionKey(TokenCacheKey key) {
-    debugPrint(
-      "TOKEN PROVIDER - clearing cache of section ${key.sectionKey}",
-    );
-    _tokenCache.removeWhere(
-      (k, v) => k.startsWith(key.sectionKey.toString()),
-    );
+    debugPrint("TOKEN PROVIDER - clearing cache of section ${key.sectionKey}");
+    _tokenCache.removeWhere((k, v) => k.startsWith(key.sectionKey.toString()));
     _organizedCache.removeWhere(
       (k, v) => k.startsWith(key.sectionKey.toString()),
     );
@@ -357,9 +375,7 @@ class TokenProvider extends ChangeNotifier {
     _positionCache.removeWhere(
       (k, v) => k.startsWith(key.sectionKey.toString()),
     );
-    _paintCache.removeWhere(
-      (k, v) => k.startsWith(key.sectionKey.toString()),
-    );
+    _paintCache.removeWhere((k, v) => k.startsWith(key.sectionKey.toString()));
   }
 
   void invalidatePaintCache(TokenCacheKey key) {

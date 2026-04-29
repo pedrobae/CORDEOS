@@ -137,7 +137,7 @@ class _CipherCardState extends State<CipherCard> {
           onLongPress: () async {
             final localVer = context.read<LocalVersionProvider>();
             final ciph = context.read<CipherProvider>();
-
+            final sect = context.read<SectionProvider>();
             nav.push(
               () => EditCipherScreen(
                 cipherID: s.cipherID!,
@@ -146,11 +146,14 @@ class _CipherCardState extends State<CipherCard> {
               ),
               keepAlive: true,
               changeDetector: () {
-                return localVer.hasUnsavedChanges || ciph.hasUnsavedChanges;
+                return localVer.hasUnsavedChanges ||
+                    ciph.hasUnsavedChanges ||
+                    sect.hasUnsavedChanges;
               },
               onChangeDiscarded: () {
                 localVer.loadVersion(widget.versionID);
                 ciph.loadCipher(s.cipherID!);
+                sect.loadSectionsOfVersion(widget.versionID);
               },
             );
           },
