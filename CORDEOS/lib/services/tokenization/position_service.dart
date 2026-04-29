@@ -33,6 +33,7 @@ class PositionService {
     required double chordHeight,
     required double lyricHeight,
     required bool isEditMode,
+    required bool showChords,
   }) {
     final precedingOffset = _calculatePrecedingChordOffset(
       organizedTokens,
@@ -42,7 +43,8 @@ class PositionService {
       isEditMode,
     );
 
-    final lineHeight = lyricHeight + chordLyricSpacing + chordHeight;
+    final lineHeight =
+        lyricHeight + (showChords ? (chordLyricSpacing + chordHeight) : 0);
 
     final ctx = _LayoutCtx(
       chordHeight: chordHeight,

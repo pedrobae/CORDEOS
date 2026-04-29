@@ -252,6 +252,7 @@ class TokenProvider extends ChangeNotifier {
       chordStyle: chordStyle,
       lyricHeight: lyricHeight,
       chordHeight: chordHeight,
+      showChords: key.showChords!,
     );
 
     // Cache results
@@ -273,7 +274,13 @@ class TokenProvider extends ChangeNotifier {
     required Color contentColor,
     required Color onContentColor,
     required bool isEnabled,
-    required Function(ContentToken, ContentToken, {bool addBefore, bool isChordTarget}) onAddChord,
+    required Function(
+      ContentToken,
+      ContentToken, {
+      bool addBefore,
+      bool isChordTarget,
+    })
+    onAddChord,
     required Function(ContentToken) onRemoveChord,
   }) {
     final chordHeight = _builder
