@@ -252,7 +252,7 @@ class TokenProvider extends ChangeNotifier {
       chordStyle: chordStyle,
       lyricHeight: lyricHeight,
       chordHeight: chordHeight,
-      showChords: key.showChords!,
+      showChords: key.showChords ?? true,
     );
 
     // Cache results
