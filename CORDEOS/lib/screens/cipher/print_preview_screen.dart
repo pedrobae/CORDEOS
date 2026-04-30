@@ -79,9 +79,7 @@ class _PrintPreviewScreenState extends State<PrintPreviewScreen> {
                   final pdfBytes = await context
                       .read<PrintingProvider>()
                       .generatePDF(pages, snapshot!, pageWidth);
-                  // TODO - open print confirmation screen, copies, color, portrait, and so on
-                  // Save pdf
-                  
+
                   // Save PDF to documents directory
                   final dir = await getApplicationDocumentsDirectory();
                   final fileName = '${snapshot!.filename}.pdf';
