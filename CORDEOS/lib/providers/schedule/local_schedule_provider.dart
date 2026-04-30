@@ -98,6 +98,7 @@ class LocalScheduleProvider extends ChangeNotifier {
       playlistId: playlistId,
       roles: {},
       shareCode: generateShareCode(),
+      collaborators: []
     );
     _hasUnsavedChanges = true;
     notifyListeners();

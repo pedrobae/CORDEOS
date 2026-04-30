@@ -22,7 +22,7 @@ class DatabaseHelper {
 
       final db = await openDatabase(
         path,
-        version: 21,
+        version: 22,
         onCreate: _onCreate,
         onUpgrade: _onUpgrade, // Handle migrations
       );
@@ -186,6 +186,7 @@ class DatabaseHelper {
         annotations TEXT,
         firebase_id TEXT UNIQUE,
         owner_firebase_id TEXT NOT NULL,
+        collaborators TEXT,
         share_code TEXT,
         is_public BOOLEAN DEFAULT 0,
         FOREIGN KEY (playlist_id) REFERENCES playlist (id) ON DELETE CASCADE
@@ -350,6 +351,9 @@ class DatabaseHelper {
     if (oldVersion < 21) {
       // RENAME LINK TO LINKS BEGIN USING A COLON SEPARATED STRING
       await db.execute('ALTER TABLE cipher RENAME COLUMN link TO links');
+    }
+    if (oldVersion < 22) {
+      await db.execute('ALTER TABLE schedule ADD COLUMN collaborators TEXT \'\'');
     }
   }
 

@@ -17,6 +17,7 @@ class Schedule {
   final String? annotations;
   final int playlistId;
   final Map<int, Role> roles;
+  final List<String> collaborators;
   final String shareCode;
   bool isPublic;
 
@@ -30,6 +31,7 @@ class Schedule {
     this.roomVenue,
     required this.playlistId,
     required this.roles,
+    required this.collaborators,
     this.annotations,
     required this.shareCode,
     this.isPublic = false,
@@ -63,6 +65,9 @@ class Schedule {
       roomVenue: map['room_venue'] as String?,
       playlistId: map['playlist_id'] as int,
       roles: Map.fromEntries(roles.map((r) => MapEntry(r.id, r))),
+      collaborators: (map['collaborators'] is String?)
+          ? (map['collaborators'] as String).split(',')
+          : [],
       annotations: map['annotations'] as String?,
       shareCode: map['share_code'] as String? ?? generateShareCode(),
       isPublic: (map['is_public'] as int?) == 1,
@@ -81,6 +86,7 @@ class Schedule {
       'annotations': annotations,
       'share_code': shareCode,
       'is_public': isPublic ? 1 : 0,
+      'collaborators': collaborators.join(','),
     };
   }
 
@@ -97,6 +103,7 @@ class Schedule {
     String? annotations,
     String? shareCode,
     bool? isPublic,
+    List<String>? collaborators,
   }) {
     return Schedule(
       id: id ?? this.id,
@@ -111,6 +118,7 @@ class Schedule {
       annotations: annotations ?? this.annotations,
       shareCode: shareCode ?? this.shareCode,
       isPublic: isPublic ?? this.isPublic,
+      collaborators: collaborators ?? this.collaborators,
     );
   }
 
@@ -125,6 +133,7 @@ class Schedule {
       shareCode: shareCode,
       playlist: playlist,
       roles: roles.values.map((role) => role.toDto()).toList(),
+      collaborators: collaborators,
     );
   }
 
@@ -133,6 +142,9 @@ class Schedule {
 
     final Schedule source = localIsNewer ? this : other;
     final Schedule target = localIsNewer ? other : this;
+
+    final collab = source.collaborators.toSet();
+    collab.addAll(target.collaborators);
 
     return Schedule(
       id: id,
@@ -148,6 +160,7 @@ class Schedule {
       roles: source.roles.isNotEmpty ? source.roles : target.roles,
       shareCode: source.shareCode,
       isPublic: true,
+      collaborators: collab.toList(),
     );
   }
 }

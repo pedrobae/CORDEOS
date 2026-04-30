@@ -345,6 +345,7 @@ class ThemeTesterScreen extends StatelessWidget {
                                         playlistId: -1,
                                         roles: {},
                                         shareCode: '',
+                                        collaborators: [],
                                       ),
                                     ),
                                   ],

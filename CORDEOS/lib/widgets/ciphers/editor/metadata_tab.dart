@@ -146,7 +146,10 @@ class _MetadataTabState extends State<MetadataTab> {
           break;
         case InfoField.link:
           controller.addListener(
-            () => ciph.cacheUpdates(widget.cipherID, links: controller.text.split(',')),
+            () => ciph.cacheUpdates(
+              widget.cipherID,
+              links: controller.text.split(','),
+            ),
           );
         case InfoField.language:
         case InfoField.tags:
@@ -172,7 +175,7 @@ class _MetadataTabState extends State<MetadataTab> {
       InfoField.key => l10n.musicKey,
       InfoField.language => l10n.language,
       InfoField.tags => l10n.pluralPlaceholder(l10n.tag),
-      InfoField.link => l10n.link,
+      InfoField.link => l10n.pluralPlaceholder(l10n.link),
     };
   }
 

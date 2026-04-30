@@ -15,6 +15,7 @@ class ScheduleDto {
   final PlaylistDto playlist;
   final List<RoleDto> roles;
   final String shareCode;
+  final List<String> collaborators;
 
   ScheduleDto({
     this.firebaseId,
@@ -26,6 +27,7 @@ class ScheduleDto {
     required this.playlist,
     required this.roles,
     required this.shareCode,
+    required this.collaborators,
   });
 
   List<PlaylistItem> get items {
@@ -81,19 +83,21 @@ class ScheduleDto {
           .map((role) => RoleDto.fromFirestore(role as Map<String, dynamic>))
           .toList(),
       shareCode: json['shareCode'] as String? ?? generateShareCode(),
+      collaborators: (json['collaborators'] as List<dynamic>? ?? [])
+          .map((collab) => collab as String)
+          .toList(),
     );
   }
 
   Map<String, dynamic> toFirestore() {
-    List<String> collaborators = roles
+    final collab = <String>{};
+    List<String> roleUserIDs = roles
         .expand((role) => role.users.expand((user) => [user.firebaseId ?? '']))
         .toList();
 
-    collaborators.add(
-      ownerFirebaseId,
-    ); // Ensure owner is included as a collaborator
-    collaborators = collaborators.toSet().toList(); // Remove duplicates
-    collaborators.remove(''); // Remove any empty IDs
+    collab.addAll(roleUserIDs);
+    collab.add(ownerFirebaseId); // Ensure owner is included as a collaborator
+    collab.remove(''); // Remove any empty IDs
 
     return {
       'ownerId': ownerFirebaseId,
@@ -104,11 +108,20 @@ class ScheduleDto {
       'playlist': playlist.toFirestore(),
       'roles': roles.map((role) => role.toFirestore()).toList(),
       'shareCode': shareCode,
-      'collaborators': collaborators,
+      'collaborators': collab.toList(),
     };
   }
 
   Map<String, dynamic> toCache() {
+    final collab = <String>{};
+    List<String> roleUserIDs = roles
+        .expand((role) => role.users.expand((user) => [user.firebaseId ?? '']))
+        .toList();
+
+    collab.addAll(roleUserIDs);
+    collab.add(ownerFirebaseId); // Ensure owner is included as a collaborator
+    collab.remove(''); // Remove any empty IDs
+
     return {
       'firebaseId': firebaseId,
       'ownerId': ownerFirebaseId,
@@ -119,6 +132,7 @@ class ScheduleDto {
       'playlist': playlist.toCache(),
       'roles': roles.map((role) => role.toFirestore()).toList(),
       'shareCode': shareCode,
+      'collaborators': collab.toList(),
     };
   }
 
@@ -135,6 +149,7 @@ class ScheduleDto {
       playlistId: playlistLocalId,
       roles: {},
       shareCode: shareCode,
+      collaborators: collaborators,
       isPublic:
           true, // All schedules on firestore are considered published, access is controlled by share code and collaborators list
     );
@@ -159,6 +174,7 @@ class ScheduleDto {
     PlaylistDto? playlist,
     List<RoleDto>? roles,
     String? shareCode,
+    List<String>? collaborators,
   }) {
     return ScheduleDto(
       firebaseId: firebaseId ?? this.firebaseId,
@@ -170,6 +186,7 @@ class ScheduleDto {
       playlist: playlist ?? this.playlist,
       roles: roles ?? this.roles,
       shareCode: shareCode ?? this.shareCode,
+      collaborators: collaborators ?? this.collaborators,
     );
   }
 }

@@ -175,7 +175,8 @@ class PlaylistRepository {
       }
       pos = 0;
       for (final item in items) {
-        if ((item.type == PlaylistItemType.version && item.id != null ||
+        if ((item.type == PlaylistItemType.version &&
+                item.id != null &&
                 item.id != -1) ||
             (item.type == PlaylistItemType.flowItem &&
                 item.contentId != null &&

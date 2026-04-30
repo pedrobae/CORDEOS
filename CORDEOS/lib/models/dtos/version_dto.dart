@@ -102,13 +102,15 @@ class VersionDto {
       versionName: map['versionName'] as String,
       originalKey: map['originalKey'] as String,
       transposedKey: map['transposedKey'] as String?,
-      tags: map['tags'] as List<String>,
       songStructure: parsedStructure.songStructure,
       updatedAt: map['updatedAt'] != null
           ? (Timestamp.fromMillisecondsSinceEpoch(map['updatedAt'] as int))
           : Timestamp.now(),
       sections: parsedStructure.sections,
-      links: map['links'] as List<String>,
+      tags: (map['tags'] as List<dynamic>).map((tag) => tag as String).toList(),
+      links: (map['links'] as List<dynamic>)
+          .map((link) => link as String)
+          .toList(),
     );
   }
 
