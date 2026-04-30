@@ -97,7 +97,7 @@ class _MetadataTabState extends State<MetadataTab> {
           controllers[InfoField.duration]!.text = DateTimeUtils.formatDuration(
             version.duration,
           );
-          controllers[InfoField.link]!.text = cipher.link ?? '';
+          controllers[InfoField.link]!.text = (cipher.links).join(',');
           break;
         case VersionType.brandNew:
           // Empty controllers for brand new versions
@@ -146,7 +146,7 @@ class _MetadataTabState extends State<MetadataTab> {
           break;
         case InfoField.link:
           controller.addListener(
-            () => ciph.cacheUpdates(widget.cipherID, link: controller.text),
+            () => ciph.cacheUpdates(widget.cipherID, links: controller.text.split(',')),
           );
         case InfoField.language:
         case InfoField.tags:

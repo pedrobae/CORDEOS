@@ -22,7 +22,7 @@ class DatabaseHelper {
 
       final db = await openDatabase(
         path,
-        version: 20,
+        version: 21,
         onCreate: _onCreate,
         onUpgrade: _onUpgrade, // Handle migrations
       );
@@ -53,7 +53,7 @@ class DatabaseHelper {
         author TEXT,
         music_key TEXT,
         language TEXT DEFAULT 'por',
-        link TEXT,
+        links TEXT,
         firebase_id TEXT,
         is_deleted BOOLEAN DEFAULT 0,
         updated_at INTEGER DEFAULT (strftime('%s','now')),
@@ -346,6 +346,10 @@ class DatabaseHelper {
           );
         }
       });
+    }
+    if (oldVersion < 21) {
+      // RENAME LINK TO LINKS BEGIN USING A COLON SEPARATED STRING
+      await db.execute('ALTER TABLE cipher RENAME COLUMN link TO links');
     }
   }
 

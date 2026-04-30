@@ -1,5 +1,6 @@
 import 'package:cordeos/providers/token_cache_provider.dart';
 import 'package:cordeos/utils/section_type.dart';
+import 'package:cordeos/widgets/ciphers/library/sheet_links.dart';
 import 'package:cordeos/widgets/ciphers/section_badge.dart';
 import 'package:flutter/material.dart';
 import 'package:cordeos/l10n/app_localizations.dart';
@@ -69,7 +70,7 @@ class _CipherCardState extends State<CipherCard> {
         String? key,
         String? duration,
         String? bpm,
-        String? link,
+        List<String>? links,
         Map<int, SectionBadgeData> sectionBadges,
         List<int> songStructure,
       })
@@ -102,7 +103,7 @@ class _CipherCardState extends State<CipherCard> {
           bpm: version != null && version.bpm != 0
               ? version.bpm.toString()
               : null,
-          link: cipher?.link,
+          links: cipher?.links,
           sectionBadges: getSectionBadges(sectionTypes),
           songStructure: version?.songStructure ?? [],
         );
@@ -224,12 +225,9 @@ class _CipherCardState extends State<CipherCard> {
                     ),
                   ),
 
-                  if (s.link != null && s.link!.isNotEmpty)
+                  if (s.links!.isNotEmpty)
                     GestureDetector(
-                      onTap: () async {
-                        final url = s.link!;
-                        await nav.launchURL(url);
-                      },
+                      onTap: _openLinksSheet(s.links!),
                       child: Padding(
                         padding: const EdgeInsets.only(right: 4.0),
                         child: Icon(Icons.link, size: 20),
@@ -286,6 +284,24 @@ class _CipherCardState extends State<CipherCard> {
     play.cacheAddVersion(sel.targetId!, newVersionID);
   }
 
+  VoidCallback _openLinksSheet(List<String> links) {
+    return () {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        builder: (context) {
+          return BottomSheet(
+            shape: LinearBorder(),
+            onClosing: () {},
+            builder: (context) {
+              return LinksSheet(links: links);
+            },
+          );
+        },
+      );
+    };
+  }
+
   VoidCallback _openCipherActionsSheet(int cipherID) {
     return () {
       final sel = context.read<SelectionProvider>();
@@ -298,7 +314,7 @@ class _CipherCardState extends State<CipherCard> {
             onClosing: () {},
             builder: (context) {
               return CipherCardActionsSheet(
-                cipherId: cipherID,
+                cipherID: cipherID,
                 versionType: sel.isSelectionMode
                     ? VersionType.playlist
                     : VersionType.local,

@@ -1,5 +1,6 @@
 import 'package:cordeos/screens/cipher/print_preview_screen.dart';
 import 'package:cordeos/providers/section/section_provider.dart';
+import 'package:cordeos/widgets/ciphers/library/sheet_links.dart';
 import 'package:flutter/material.dart';
 import 'package:cordeos/l10n/app_localizations.dart';
 
@@ -18,12 +19,12 @@ import 'package:cordeos/widgets/common/delete_confirmation.dart';
 import 'package:cordeos/widgets/common/filled_text_button.dart';
 
 class CipherCardActionsSheet extends StatelessWidget {
-  final int cipherId;
+  final int cipherID;
   final VersionType versionType;
 
   const CipherCardActionsSheet({
     super.key,
-    required this.cipherId,
+    required this.cipherID,
     required this.versionType,
   });
 
@@ -39,9 +40,9 @@ class CipherCardActionsSheet extends StatelessWidget {
     final localVer = context.read<LocalVersionProvider>();
     final cloudVer = context.read<CloudVersionProvider>();
 
-    final link = ciph.ciphers[cipherId]?.link;
+    final links = ciph.ciphers[cipherID]?.links;
 
-    final versionID = localVer.getIdOfOldestVersionOfCipher(cipherId);
+    final versionID = localVer.getIdOfOldestVersionOfCipher(cipherID);
 
     if (versionID == null) {
       // This should never happen, but just in case
@@ -91,7 +92,7 @@ class CipherCardActionsSheet extends StatelessWidget {
                 () => EditCipherScreen(
                   versionID: versionID,
                   versionType: versionType,
-                  cipherID: cipherId,
+                  cipherID: cipherID,
                   isEnabled: versionType == VersionType.local,
                 ),
                 keepAlive: true,
@@ -101,7 +102,7 @@ class CipherCardActionsSheet extends StatelessWidget {
                     sect.hasUnsavedChanges,
                 onChangeDiscarded: () {
                   localVer.loadVersion(versionID);
-                  ciph.loadCipher(cipherId);
+                  ciph.loadCipher(cipherID);
                   sect.loadSectionsOfVersion(versionID);
                 },
               );
@@ -119,21 +120,16 @@ class CipherCardActionsSheet extends StatelessWidget {
             trailingIcon: Icons.chevron_right,
             isDiscrete: true,
           ),
-          if (link != null && link.isNotEmpty)
+          if (links != null && links.isNotEmpty)
             FilledTextButton(
               text: l10n.openLink,
-              tooltip: link,
-              trailingIcon: Icons.open_in_new,
+              trailingIcon: Icons.chevron_right,
               isDiscrete: true,
-              onPressed: () async {
-                // Open the cipher's link in the default browser
-                final url = ciph.ciphers[cipherId]!.link!;
-                await nav.launchURL(url);
-              },
+              onPressed: _openLinksSheet(links, context),
             ),
           // SELECT VERSION
           // Only show if there are multiple versions available
-          if (localVer.getVersionsByCipherId(cipherId).length > 1)
+          if (localVer.getVersionsByCipherId(cipherID).length > 1)
             FilledTextButton(
               text: AppLocalizations.of(
                 context,
@@ -149,7 +145,7 @@ class CipherCardActionsSheet extends StatelessWidget {
                       shape: LinearBorder(),
                       onClosing: () {},
                       builder: (context) {
-                        return SelectVersionSheet(cipherId: cipherId);
+                        return SelectVersionSheet(cipherId: cipherID);
                       },
                     );
                   },
@@ -184,7 +180,7 @@ class CipherCardActionsSheet extends StatelessWidget {
                             );
                           }
 
-                          await ciph.deleteCipher(cipherId);
+                          await ciph.deleteCipher(cipherID);
                         },
                       );
                     },
@@ -197,5 +193,23 @@ class CipherCardActionsSheet extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  VoidCallback _openLinksSheet(List<String> links, context) {
+    return () {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        builder: (context) {
+          return BottomSheet(
+            shape: LinearBorder(),
+            onClosing: () {},
+            builder: (context) {
+              return LinksSheet(links: links);
+            },
+          );
+        },
+      );
+    };
   }
 }

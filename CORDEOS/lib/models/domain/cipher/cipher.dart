@@ -11,7 +11,7 @@ class Cipher {
   final DateTime? updatedAt;
   final bool isLocal;
   final List<String> tags;
-  final String? link;
+  final List<String> links;
 
   const Cipher({
     required this.id,
@@ -23,7 +23,7 @@ class Cipher {
     required this.createdAt,
     this.updatedAt,
     required this.isLocal,
-    this.link,
+    this.links = const [],
   });
 
   // From JSON constructor for database
@@ -41,7 +41,7 @@ class Cipher {
           ? DateTime.fromMillisecondsSinceEpoch(json['updated_at'] as int)
           : null,
       isLocal: true,
-      link: json['link'] as String?,
+      links: (json['links'] is String) ? json['links'].split(',') : [],
     );
   }
 
@@ -55,7 +55,7 @@ class Cipher {
       createdAt: version.updatedAt?.toDate() ?? DateTime.now(),
       isLocal: false,
       tags: version.tags,
-      link: version.link,
+      links: version.links,
     );
   }
 
@@ -72,6 +72,7 @@ class Cipher {
       isLocal: true,
       tags: [],
       createdAt: DateTime.now(),
+      links: [],
     );
   }
 
@@ -85,7 +86,7 @@ class Cipher {
       'language': language,
       'created_at': createdAt.millisecondsSinceEpoch,
       'updated_at': updatedAt?.millisecondsSinceEpoch,
-      'link': link,
+      'links': links.join(','),
     };
   }
 
@@ -101,19 +102,7 @@ class Cipher {
       'updated_at': updatedAt?.millisecondsSinceEpoch,
       'isLocal': false,
       'tags': tags,
-      'link': link,
-    };
-  }
-
-  Map<String, dynamic> toMetadata() {
-    return {
-      'title': title,
-      'author': author,
-      'originalKey': musicKey,
-      'language': language,
-      'updatedAt': updatedAt?.millisecondsSinceEpoch,
-      'tags': tags,
-      'link': link,
+      'link': links,
     };
   }
 
@@ -130,7 +119,7 @@ class Cipher {
     bool? isLocal,
     List<Version>? versions,
     String? duration,
-    String? link,
+    List<String>? links,
   }) {
     return Cipher(
       id: id ?? this.id,
@@ -142,7 +131,7 @@ class Cipher {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       isLocal: isLocal ?? this.isLocal,
-      link: link ?? this.link,
+      links: links ?? this.links,
     );
   }
 
@@ -157,7 +146,7 @@ class Cipher {
       createdAt: createdAt,
       updatedAt: updatedAt ?? other.updatedAt,
       isLocal: isLocal,
-      link: link ?? other.link,
+      links: links.isEmpty ? other.links : links,
     );
   }
 }

@@ -65,6 +65,7 @@ class Version {
 
   VersionDto toDto(Cipher cipher, Map<int, Section> sections) {
     return VersionDto(
+      links: cipher.links,
       firebaseId: firebaseID,
       versionName: versionName,
       transposedKey: transposedKey,

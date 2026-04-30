@@ -19,7 +19,7 @@ class VersionDto {
   final List<int> songStructure;
   final Timestamp? updatedAt;
   final Map<int, SectionDto> sections;
-  final String? link;
+  final List<String> links;
 
   VersionDto({
     this.firebaseId,
@@ -35,7 +35,7 @@ class VersionDto {
     this.tags = const [],
     required this.originalKey,
     this.transposedKey,
-    this.link,
+    this.links = const [],
   });
 
   factory VersionDto.fromFirestore(Map<String, dynamic> map, String id) {
@@ -54,8 +54,12 @@ class VersionDto {
       versionName: map['versionName'] as String,
       originalKey: map['originalKey'] as String,
       transposedKey: map['transposedKey'] as String?,
-      link: map['link'] as String?,
-      tags: (map['tags'] as List<dynamic>).map((e) => e.toString()).toList(),
+      links: ((map['link'] as List<dynamic>?) ?? [])
+          .map((link) => link as String)
+          .toList(),
+      tags: ((map['tags'] as List<dynamic>?) ?? [])
+          .map((tag) => tag as String)
+          .toList(),
       songStructure: parsedStructure.songStructure,
       updatedAt: map['updatedAt'] as Timestamp?,
       sections: parsedStructure.sections,
@@ -78,7 +82,7 @@ class VersionDto {
       'sections': sections.map(
         (key, value) => MapEntry(key.toString(), value.toFirestore()),
       ),
-      'link': link,
+      'links': links,
     };
   }
 
@@ -98,13 +102,13 @@ class VersionDto {
       versionName: map['versionName'] as String,
       originalKey: map['originalKey'] as String,
       transposedKey: map['transposedKey'] as String?,
-      tags: (map['tags'] as List<dynamic>).map((e) => e.toString()).toList(),
+      tags: map['tags'] as List<String>,
       songStructure: parsedStructure.songStructure,
       updatedAt: map['updatedAt'] != null
           ? (Timestamp.fromMillisecondsSinceEpoch(map['updatedAt'] as int))
           : Timestamp.now(),
       sections: parsedStructure.sections,
-      link: map['link'] as String?,
+      links: map['links'] as List<String>,
     );
   }
 
@@ -211,7 +215,7 @@ class VersionDto {
       'sections': sections.map(
         (key, value) => MapEntry(key.toString(), value.toCache()),
       ),
-      'link': link,
+      'links': links,
     };
   }
 
@@ -242,7 +246,7 @@ class VersionDto {
     List<int>? songStructure,
     Timestamp? updatedAt,
     Map<int, SectionDto>? sections,
-    String? link,
+    List<String>? links,
   }) {
     return VersionDto(
       firebaseId: firebaseId ?? this.firebaseId,
@@ -258,7 +262,7 @@ class VersionDto {
       songStructure: songStructure ?? this.songStructure,
       updatedAt: updatedAt ?? this.updatedAt,
       sections: sections ?? this.sections,
-      link: link ?? this.link,
+      links: links ?? this.links,
     );
   }
 }
