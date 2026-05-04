@@ -1,5 +1,4 @@
 import 'package:cordeos/l10n/app_localizations.dart';
-import 'package:cordeos/models/domain/schedule.dart';
 import 'package:cordeos/providers/schedule/cloud_schedule_provider.dart';
 import 'package:cordeos/providers/schedule/local_schedule_provider.dart';
 import 'package:cordeos/providers/user/user_provider.dart';
@@ -19,6 +18,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final _scrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
@@ -54,43 +55,26 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: SingleChildScrollView(child: _buildContent()),
-    );
-  }
-
-  dynamic _getNextSchedule(
-    LocalScheduleProvider localSch,
-    CloudScheduleProvider cloudSch,
-  ) {
-    final nextLocal = localSch.getNextSchedule();
-    final nextCloud = cloudSch.getNextSchedule();
-
-    if (nextLocal != null && nextCloud != null) {
-      return nextLocal.date.isBefore(nextCloud.datetime.toDate())
-          ? nextLocal
-          : nextCloud;
-    }
-
-    return nextLocal ?? nextCloud;
-  }
-
-  Widget _buildContent() {
     final textTheme = Theme.of(context).textTheme;
     final locale = Localizations.localeOf(context);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      spacing: 24,
-      children: [
-        Text(
-          DateFormat('EEEE, MMM d', locale.languageCode).format(DateTime.now()),
-          style: textTheme.bodyLarge,
-        ),
-        _buildWelcomeMessage(),
-        _buildNextSchedule(),
-      ],
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: 24,
+        children: [
+          Text(
+            DateFormat(
+              'EEEE, MMM d',
+              locale.languageCode,
+            ).format(DateTime.now()),
+            style: textTheme.bodyLarge,
+          ),
+          _buildWelcomeMessage(),
+          Expanded(child: _buildSchedules()),
+        ],
+      ),
     );
   }
 
@@ -110,18 +94,29 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildNextSchedule() {
+  Widget _buildSchedules() {
     final textTheme = Theme.of(context).textTheme;
 
     return Selector2<
       LocalScheduleProvider,
       CloudScheduleProvider,
-      ({dynamic nextSchedule})
+      ({List<dynamic> futureScheduleIDs, String? error})
     >(
-      selector: (context, localSch, cloudSch) =>
-          (nextSchedule: _getNextSchedule(localSch, cloudSch)),
+      selector: (context, localSch, cloudSch) {
+        final localFuture = localSch.futureScheduleIDs;
+        final cloudFuture = cloudSch.futureScheduleIDs;
+
+        return (
+          futureScheduleIDs: [...localFuture, ...cloudFuture],
+          error: (localSch.error != null && localSch.error!.isNotEmpty)
+              ? localSch.error
+              : (cloudSch.error != null && cloudSch.error!.isNotEmpty)
+              ? cloudSch.error
+              : null,
+        );
+      },
       builder: (context, s, child) {
-        if (s.nextSchedule == null) {
+        if (s.futureScheduleIDs.isEmpty) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             spacing: 16,
@@ -139,20 +134,53 @@ class _HomeScreenState extends State<HomeScreen> {
           );
         }
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 16,
-          children: [
-            Text(
-              AppLocalizations.of(context)!.nextUp,
-              style: textTheme.titleMedium,
-            ),
-            (s.nextSchedule is Schedule)
-                ? ScheduleCard(scheduleId: s.nextSchedule.id)
-                : CloudScheduleCard(scheduleId: s.nextSchedule.firebaseId),
-          ],
-        );
+        return _buildScheduleList(s.futureScheduleIDs);
       },
+    );
+  }
+
+  Widget _buildScheduleList(List<dynamic> futureScheduleIDs) {
+    final textTheme = Theme.of(context).textTheme;
+
+    final localSch = context.read<LocalScheduleProvider>();
+    final cloudSch = context.read<CloudScheduleProvider>();
+    final auth = context.read<MyAuthProvider>();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // HEADER
+        Text(
+          AppLocalizations.of(context)!.futureSchedules,
+          style: textTheme.titleMedium,
+        ),
+
+        // SCHEDULES LIST
+        Expanded(
+          child: RefreshIndicator(
+            onRefresh: () async {
+              await cloudSch.loadSchedules(context, auth.id!, forceFetch: true);
+              await localSch.loadSchedules();
+            },
+            child: SingleChildScrollView(
+              controller: _scrollController,
+              physics: AlwaysScrollableScrollPhysics(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: 8.0),
+                  ...futureScheduleIDs.map((scheduleId) {
+                    if (scheduleId is String) {
+                      return CloudScheduleCard(scheduleId: scheduleId);
+                    }
+                    return ScheduleCard(scheduleId: scheduleId);
+                  }),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

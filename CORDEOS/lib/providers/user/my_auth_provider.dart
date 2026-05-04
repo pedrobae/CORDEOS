@@ -11,14 +11,14 @@ class MyAuthProvider extends ChangeNotifier {
   bool _isAdmin = false;
   bool _isLoading = false;
   bool _hasInitialized = false;
-  String? _error;
+  dynamic _error;
 
   bool get isAuthenticated => _authUser != null;
   String? get id => _authUser?.uid;
   bool get isAdmin => _isAdmin;
   bool get isLoading => _isLoading;
   bool get hasInitialized => _hasInitialized;
-  String? get error => _error;
+  dynamic get error => _error;
   int? get userLocalId => _userData?.id;
   String? get userName => _userData?.username;
   String? get userEmail => _userData?.email;
@@ -61,7 +61,7 @@ class MyAuthProvider extends ChangeNotifier {
       await _authService.signInWithEmailAndPassword(email, password);
       // Auth state change will be handled by listener
     } catch (e) {
-      _error = 'Erro ao entrar: $e';
+      _error = e;
       if (kDebugMode) {
         print('Erro ao logar com email: $e');
       }
@@ -81,7 +81,7 @@ class MyAuthProvider extends ChangeNotifier {
       await _authService.signUpWithEmailAndPassword(email, password);
       // Auth state change will be handled by listener
     } catch (e) {
-      _error = 'Erro ao criar conta: $e';
+      _error = e;
       if (kDebugMode) {
         print('Erro ao criar conta com email: $e');
       }
@@ -101,7 +101,7 @@ class MyAuthProvider extends ChangeNotifier {
       await _authService.signInAnonimously();
       // Auth state change will be handled by listener
     } catch (e) {
-      _error = 'Erro ao entrar anonimamente: $e';
+      _error = e;
       if (kDebugMode) {
         print('Erro ao logar anonimamente: $e');
       }
@@ -121,7 +121,7 @@ class MyAuthProvider extends ChangeNotifier {
       await _authService.signInWithGoogle();
       // Auth state change will be handled by listener
     } catch (e) {
-      _error = 'Erro ao entrar com Google: $e';
+      _error = e;
       if (kDebugMode) {
         print('Erro ao logar com Google: $e');
       }
@@ -141,7 +141,7 @@ class MyAuthProvider extends ChangeNotifier {
     try {
       await _authService.sendPasswordResetEmail(email);
     } catch (e) {
-      _error = 'Erro ao enviar email de recuperação: $e';
+      _error = e;
       if (kDebugMode) {
         print('Erro ao enviar email de recuperação: $e');
       }
@@ -161,7 +161,7 @@ class MyAuthProvider extends ChangeNotifier {
       await _authService.signOut();
       // Auth state change will be handled by listener
     } catch (e) {
-      _error = 'Erro ao sair: $e';
+      _error = e;
       if (kDebugMode) {
         print('Erro ao deslogar: $e');
       }
@@ -180,7 +180,7 @@ class MyAuthProvider extends ChangeNotifier {
     try {
       await _authService.reauthenticate(email, password);
     } catch (e) {
-      _error = 'Erro ao reautenticar: $e';
+      _error = e;
       if (kDebugMode) {
         print('Erro ao reautenticar: $e');
       }
@@ -199,7 +199,7 @@ class MyAuthProvider extends ChangeNotifier {
     try {
       await _authService.deleteAccount();
     } catch (e) {
-      _error = 'Erro ao solicitar exclusão de conta: $e';
+      _error = e;
       if (kDebugMode) {
         print('Erro ao solicitar exclusão de conta: $e');
       }
@@ -218,7 +218,7 @@ class MyAuthProvider extends ChangeNotifier {
     try {
       await _authService.updatePassword(newPassword);
     } catch (e) {
-      _error = 'Erro ao atualizar senha: $e';
+      _error = e;
       if (kDebugMode) {
         print('Erro ao atualizar senha: $e');
       }

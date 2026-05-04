@@ -69,20 +69,6 @@ class CloudScheduleProvider extends ChangeNotifier {
     return _schedules[scheduleId];
   }
 
-  ScheduleDto? getNextSchedule() {
-    final now = Timestamp.now();
-    ScheduleDto? nextSchedule;
-    for (var schedule in _schedules.values) {
-      if (schedule.datetime.compareTo(now) >= 0) {
-        if (nextSchedule == null ||
-            schedule.datetime.compareTo(nextSchedule.datetime) < 0) {
-          nextSchedule = schedule;
-        }
-      }
-    }
-    return nextSchedule;
-  }
-
   // ===== READ =====
   /// Fetches all schedules from the cloud repository (user has to be a collaborator)
   Future<void> loadSchedules(

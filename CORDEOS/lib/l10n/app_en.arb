@@ -178,6 +178,42 @@
   "@login": {
     "description": "Login button label"
   },
+  "invalidEmail": "Invalid Email, check if the email is typed correctly",
+  "@invalidEmail": {
+    "description": "Error message for invalid-email, thrown if the email address is not valid."
+  },
+  "userDisabled": "This user account has been disabled.",
+  "@userDisabled": {
+    "description": "Error message for user-disabled, thrown when the user account is disabled."
+  },
+  "userNotFound": "No account found for that email.",
+  "@userNotFound": {
+    "description": "Error message for user-not-found, thrown when there is no user for the provided email."
+  },
+  "wrongPassword": "Incorrect password for this account.",
+  "@wrongPassword": {
+    "description": "Error message for wrong-password, thrown when the password is invalid."
+  },
+  "tooManyRequests": "Too many login attempts. Please wait and try again.",
+  "@tooManyRequests": {
+    "description": "Error message for too-many-requests, thrown when too many requests are made in a short time."
+  },
+  "userTokenExpired": "Your session has expired. Please sign in again.",
+  "@userTokenExpired": {
+    "description": "Error message for user-token-expired, thrown when the user's refresh token has expired."
+  },
+  "networkRequestFailed": "Network request failed. Check your internet connection.",
+  "@networkRequestFailed": {
+    "description": "Error message for network-request-failed, thrown when a network request could not be completed."
+  },
+  "invalidCredential": "Invalid login credentials. Please verify your email and password.",
+  "@invalidCredential": {
+    "description": "Error message for invalid-credential or INVALID_LOGIN_CREDENTIALS when the password or credentials are invalid."
+  },
+  "operationNotAllowed": "Email/password sign-in is disabled for this app.",
+  "@operationNotAllowed": {
+    "description": "Error message for operation-not-allowed, thrown when email/password sign-in is not enabled."
+  },
   "signInTitle": "Sign in to CORDEOS",
   "@signInTitle": {
     "description": "Title for sign in screen"

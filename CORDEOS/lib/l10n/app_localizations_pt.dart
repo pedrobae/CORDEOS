@@ -145,6 +145,38 @@ class AppLocalizationsPt extends AppLocalizations {
   String get login => 'Entrar';
 
   @override
+  String get invalidEmail =>
+      'Email Inválido - verifique se o email foi digitado corretamente';
+
+  @override
+  String get userDisabled => 'Este usuário foi desabilitado.';
+
+  @override
+  String get userNotFound => 'Nenhuma conta encontrada com este email.';
+
+  @override
+  String get wrongPassword => 'Senha Incorreta.';
+
+  @override
+  String get tooManyRequests =>
+      'Muitas tentativas de Login, espere um pouco e tente novamente.';
+
+  @override
+  String get userTokenExpired =>
+      'Sua sessão expirou, re-entre e tente novamente';
+
+  @override
+  String get networkRequestFailed =>
+      'Falha de conexão - Cheque a sua conexão com a internet';
+
+  @override
+  String get invalidCredential =>
+      'Credenciais Invalidos. - Verifique seu email e senha.';
+
+  @override
+  String get operationNotAllowed => 'Login por EMAIL/SENHA desabilitados.';
+
+  @override
   String get signInTitle => 'Login no CORDEOS';
 
   @override

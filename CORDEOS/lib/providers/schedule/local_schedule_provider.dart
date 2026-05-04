@@ -53,26 +53,6 @@ class LocalScheduleProvider extends ChangeNotifier {
     return _schedules[id];
   }
 
-  Schedule? getNextSchedule() {
-    return _schedules.values.firstWhereOrNull(
-      (schedule) => schedule.date.isAfter(DateTime.now()),
-    );
-  }
-
-  String? getUserRoleInSchedule(int scheduleID, int? localUserId) {
-    if (localUserId == null) return null;
-
-    final schedule = getSchedule(scheduleID);
-    if (schedule == null) return null;
-
-    for (var role in schedule.roles.values) {
-      if (role.users.any((user) => user.id == localUserId)) {
-        return role.name;
-      }
-    }
-    return null;
-  }
-
   bool isLive(int scheduleID) {
     final schedule = _schedules[scheduleID];
     if (schedule == null) return false;

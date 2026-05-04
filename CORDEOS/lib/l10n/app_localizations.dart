@@ -344,6 +344,60 @@ abstract class AppLocalizations {
   /// **'Entrar'**
   String get login;
 
+  /// Error message for invalid-email, thrown if the email address is not valid.
+  ///
+  /// In pt, this message translates to:
+  /// **'Email Inválido - verifique se o email foi digitado corretamente'**
+  String get invalidEmail;
+
+  /// Error message for user-disabled, thrown when the user account is disabled.
+  ///
+  /// In pt, this message translates to:
+  /// **'Este usuário foi desabilitado.'**
+  String get userDisabled;
+
+  /// Error message for user-not-found, thrown when there is no user for the provided email.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nenhuma conta encontrada com este email.'**
+  String get userNotFound;
+
+  /// Error message for wrong-password, thrown when the password is invalid.
+  ///
+  /// In pt, this message translates to:
+  /// **'Senha Incorreta.'**
+  String get wrongPassword;
+
+  /// Error message for too-many-requests, thrown when too many requests are made in a short time.
+  ///
+  /// In pt, this message translates to:
+  /// **'Muitas tentativas de Login, espere um pouco e tente novamente.'**
+  String get tooManyRequests;
+
+  /// Error message for user-token-expired, thrown when the user's refresh token has expired.
+  ///
+  /// In pt, this message translates to:
+  /// **'Sua sessão expirou, re-entre e tente novamente'**
+  String get userTokenExpired;
+
+  /// Error message for network-request-failed, thrown when a network request could not be completed.
+  ///
+  /// In pt, this message translates to:
+  /// **'Falha de conexão - Cheque a sua conexão com a internet'**
+  String get networkRequestFailed;
+
+  /// Error message for invalid-credential or INVALID_LOGIN_CREDENTIALS when the password or credentials are invalid.
+  ///
+  /// In pt, this message translates to:
+  /// **'Credenciais Invalidos. - Verifique seu email e senha.'**
+  String get invalidCredential;
+
+  /// Error message for operation-not-allowed, thrown when email/password sign-in is not enabled.
+  ///
+  /// In pt, this message translates to:
+  /// **'Login por EMAIL/SENHA desabilitados.'**
+  String get operationNotAllowed;
+
   /// Title for sign in screen
   ///
   /// In pt, this message translates to:

@@ -178,6 +178,42 @@
   "@login": {
     "description": "Login button label"
   },
+  "invalidEmail": "Email Inválido - verifique se o email foi digitado corretamente",
+  "@invalidEmail": {
+    "description": "Error message for invalid-email, thrown if the email address is not valid."
+  },
+  "userDisabled": "Este usuário foi desabilitado.",
+  "@userDisabled": {
+    "description": "Error message for user-disabled, thrown when the user account is disabled."
+  },
+  "userNotFound": "Nenhuma conta encontrada com este email.",
+  "@userNotFound": {
+    "description": "Error message for user-not-found, thrown when there is no user for the provided email."
+  },
+  "wrongPassword": "Senha Incorreta.",
+  "@wrongPassword": {
+    "description": "Error message for wrong-password, thrown when the password is invalid."
+  },
+  "tooManyRequests": "Muitas tentativas de Login, espere um pouco e tente novamente.",
+  "@tooManyRequests": {
+    "description": "Error message for too-many-requests, thrown when too many requests are made in a short time."
+  },
+  "userTokenExpired": "Sua sessão expirou, re-entre e tente novamente",
+  "@userTokenExpired": {
+    "description": "Error message for user-token-expired, thrown when the user's refresh token has expired."
+  },
+  "networkRequestFailed": "Falha de conexão - Cheque a sua conexão com a internet",
+  "@networkRequestFailed": {
+    "description": "Error message for network-request-failed, thrown when a network request could not be completed."
+  },
+  "invalidCredential": "Credenciais Invalidas. - Verifique seu email e senha.",
+  "@invalidCredential": {
+    "description": "Error message for invalid-credential or INVALID_LOGIN_CREDENTIALS when the password or credentials are invalid."
+  },
+  "operationNotAllowed": "Login por EMAIL/SENHA desabilitados.",
+  "@operationNotAllowed": {
+    "description": "Error message for operation-not-allowed, thrown when email/password sign-in is not enabled."
+  },
   "signInTitle": "Login no CORDEOS",
   "@signInTitle": {
     "description": "Title for sign in screen"

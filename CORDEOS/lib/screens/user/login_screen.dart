@@ -13,6 +13,7 @@ import 'package:cordeos/widgets/common/labeled_text_field.dart';
 
 import 'package:cordeos/providers/user/my_auth_provider.dart';
 import 'package:cordeos/providers/user/user_provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -179,7 +180,7 @@ class _LoginScreenState extends State<LoginScreen> {
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: Text(
-              auth.error!,
+              _getErrorMessage(auth.error!),
               style: TextStyle(
                 color: colorScheme.error,
                 fontWeight: FontWeight.w600,
@@ -189,6 +190,49 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
       ],
     );
+  }
+
+  String _getErrorMessage(dynamic error) {
+    /// A [FirebaseAuthException] maybe thrown with the following error code:
+    /// - **operation-not-allowed**:
+    ///  - Thrown if email/password accounts are not enabled. Enable
+    ///    email/password accounts in the Firebase Console, under the Auth tab.
+
+    try {
+      final castError = error as FirebaseAuthException;
+      final l10n = AppLocalizations.of(context)!;
+
+      if (castError.code == 'invalid-email') {
+        return l10n.invalidEmail;
+      }
+      if (castError.code == 'user-disabled') {
+        return l10n.userDisabled;
+      }
+      if (castError.code == 'user-not-found') {
+        return l10n.userNotFound;
+      }
+      if (castError.code == 'wrong-password') {
+        return l10n.wrongPassword;
+      }
+      if (castError.code == 'too-many-requests') {
+        return l10n.tooManyRequests;
+      }
+      if (castError.code == 'network-request-failed') {
+        return l10n.networkRequestFailed;
+      }
+      if (castError.code == 'INVALID_LOGIN_CREDENTIALS' ||
+          castError.code == 'invalid-credential') {
+        return l10n.invalidCredential;
+      }
+      if (castError.code == '*operation-not-allowed') {
+        return l10n.operationNotAllowed;
+      } else {
+        return castError.message ?? castError.toString();
+      }
+    } catch (e) {
+      debugPrint(e.toString());
+      return error.toString();
+    }
   }
 
   Widget _buildActionButtons(MyAuthProvider auth) {

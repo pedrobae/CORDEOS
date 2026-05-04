@@ -52,7 +52,7 @@ class AuthService {
       );
       return userCredential.user;
     } catch (e) {
-      throw Exception('Failed to log in with email and password: $e');
+      throw e;
     }
   }
 
@@ -67,7 +67,7 @@ class AuthService {
       );
       return userCredential.user;
     } catch (e) {
-      throw Exception('Failed to sign up with email and password: $e');
+      throw e;
     }
   }
 
@@ -95,7 +95,7 @@ class AuthService {
       final userCredential = await _auth.signInWithCredential(credential);
       return userCredential.user;
     } catch (e) {
-      throw Exception('Failed to sign in with Google: $e');
+      throw e;
     }
   }
 
@@ -103,7 +103,7 @@ class AuthService {
     try {
       await _auth.sendPasswordResetEmail(email: email);
     } catch (e) {
-      throw Exception('Failed to send password reset email: $e');
+      throw e;
     }
   }
 
@@ -116,7 +116,7 @@ class AuthService {
         throw Exception('No user currently signed in');
       }
     } catch (e) {
-      throw Exception('Failed to update password: $e');
+      throw e;
     }
   }
 
@@ -124,7 +124,7 @@ class AuthService {
     try {
       await _auth.signOut();
     } catch (e) {
-      throw Exception('Failed to sign out: $e');
+      throw e;
     }
   }
 
@@ -140,7 +140,7 @@ class AuthService {
 
       await user.reauthenticateWithCredential(credential);
     } catch (e) {
-      throw Exception('Failed to re-authenticate: $e');
+      throw e;
     }
   }
 

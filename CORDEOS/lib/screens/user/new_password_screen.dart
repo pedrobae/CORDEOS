@@ -6,6 +6,7 @@ import 'package:cordeos/providers/navigation_provider.dart';
 import 'package:cordeos/widgets/common/filled_text_button.dart';
 import 'package:cordeos/widgets/common/labeled_text_field.dart';
 import 'package:cordeos/widgets/sheet_reauthenticate.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -53,7 +54,11 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
   }
 
   void _handleReauthIfNeeded(MyAuthProvider auth) {
-    if (auth.error != null && auth.error!.contains('requires-recent-login')) {
+    if (auth.error != null &&
+        auth.error is FirebaseAuthException &&
+        (auth.error as FirebaseAuthException).message!.contains(
+          'requires-recent-login',
+        )) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         showModalBottomSheet(
           context: context,
@@ -146,7 +151,7 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: Text(
-              auth.error!,
+              auth.error!.message,
               style: TextStyle(
                 color: colorScheme.error,
                 fontWeight: FontWeight.w600,

@@ -143,6 +143,39 @@ class AppLocalizationsEn extends AppLocalizations {
   String get login => 'Log In';
 
   @override
+  String get invalidEmail =>
+      'Invalid Email, check if the email is typed correctly';
+
+  @override
+  String get userDisabled => 'This user account has been disabled.';
+
+  @override
+  String get userNotFound => 'No account found for that email.';
+
+  @override
+  String get wrongPassword => 'Incorrect password for this account.';
+
+  @override
+  String get tooManyRequests =>
+      'Too many login attempts. Please wait and try again.';
+
+  @override
+  String get userTokenExpired =>
+      'Your session has expired. Please sign in again.';
+
+  @override
+  String get networkRequestFailed =>
+      'Network request failed. Check your internet connection.';
+
+  @override
+  String get invalidCredential =>
+      'Invalid login credentials. Please verify your email and password.';
+
+  @override
+  String get operationNotAllowed =>
+      'Email/password sign-in is disabled for this app.';
+
+  @override
   String get signInTitle => 'Sign in to CORDEOS';
 
   @override
