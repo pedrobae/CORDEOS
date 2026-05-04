@@ -389,7 +389,7 @@ abstract class AppLocalizations {
   /// Error message for invalid-credential or INVALID_LOGIN_CREDENTIALS when the password or credentials are invalid.
   ///
   /// In pt, this message translates to:
-  /// **'Credenciais Invalidos. - Verifique seu email e senha.'**
+  /// **'Credenciais Invalidas. - Verifique seu email e senha.'**
   String get invalidCredential;
 
   /// Error message for operation-not-allowed, thrown when email/password sign-in is not enabled.

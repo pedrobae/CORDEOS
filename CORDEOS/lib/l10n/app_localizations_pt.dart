@@ -171,7 +171,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get invalidCredential =>
-      'Credenciais Invalidos. - Verifique seu email e senha.';
+      'Credenciais Invalidas. - Verifique seu email e senha.';
 
   @override
   String get operationNotAllowed => 'Login por EMAIL/SENHA desabilitados.';
