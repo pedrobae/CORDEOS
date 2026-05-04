@@ -1352,6 +1352,17 @@
   "@copy": {
     "description": "Label for copy action"
   },
+  "copied": "Copied",
+  "@copied": {
+    "description": "Confirmation message when code is copied to clipboard"
+  },
+  "placeholderCopy": "{object} (Copy)",
+  "@placeholderCopy": {
+    "description": "Copy suffix for object",
+    "placeholders": {
+      "object": {}
+    }
+  },
   "copyCode": "Copy Code",
   "@copyCode": {
     "description": "Copy to clipboard button label"

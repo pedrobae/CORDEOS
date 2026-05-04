@@ -1042,7 +1042,15 @@ class AppLocalizationsPt extends AppLocalizations {
   String get quickAction => 'Ação Rápida';
 
   @override
-  String get copy => 'Cópia';
+  String get copy => 'Copiar';
+
+  @override
+  String get copied => 'Copiado';
+
+  @override
+  String placeholderCopy(Object object) {
+    return '$object (Cópia)';
+  }
 
   @override
   String get copyCode => 'Copiar Código';

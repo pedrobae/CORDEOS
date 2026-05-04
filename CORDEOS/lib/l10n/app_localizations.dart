@@ -1973,8 +1973,20 @@ abstract class AppLocalizations {
   /// Label for copy action
   ///
   /// In pt, this message translates to:
-  /// **'Cópia'**
+  /// **'Copiar'**
   String get copy;
+
+  /// Confirmation message when code is copied to clipboard
+  ///
+  /// In pt, this message translates to:
+  /// **'Copiado'**
+  String get copied;
+
+  /// Copy suffix for object
+  ///
+  /// In pt, this message translates to:
+  /// **'{object} (Cópia)'**
+  String placeholderCopy(Object object);
 
   /// Copy to clipboard button label
   ///

@@ -37,7 +37,7 @@ class LinksSheet extends StatelessWidget {
             ],
           ),
           // VERSIONS
-          for (final link in links) ...[_buildLinkOption(context, link)],
+          for (final link in links) ...[_buildLinkOption(context, link.trim())],
           SizedBox(),
         ],
       ),

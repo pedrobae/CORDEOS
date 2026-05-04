@@ -152,7 +152,7 @@ class PlaylistCardActionsSheet extends StatelessWidget {
     await play.createPlaylistFromDomain(
       Playlist(
         id: -1,
-        name: '${playlist!.name} (${AppLocalizations.of(context)!.copy})',
+        name: AppLocalizations.of(context)!.placeholderCopy(playlist!.name),
         createdBy: userID,
       ),
     );
@@ -171,8 +171,9 @@ class PlaylistCardActionsSheet extends StatelessWidget {
             version.copyWith(
               id: -1,
               firebaseID: '',
-              versionName:
-                  '${version.versionName} (${AppLocalizations.of(context)!.copy})',
+              versionName: AppLocalizations.of(
+                context,
+              )!.placeholderCopy(version.versionName),
             ),
           );
           final newId = await localVer.createVersion();
@@ -189,8 +190,9 @@ class PlaylistCardActionsSheet extends StatelessWidget {
           await flow.create(
             flowItem.copyWith(
               firebaseId: '',
-              title:
-                  "${flowItem.title} (${AppLocalizations.of(context)!.copy})",
+              title: AppLocalizations.of(
+                context,
+              )!.placeholderCopy(flowItem.title),
             ),
           );
           break;

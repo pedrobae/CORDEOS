@@ -6,6 +6,7 @@ import 'package:cordeos/models/domain/cipher/cipher.dart';
 import 'package:cordeos/models/domain/cipher/section.dart';
 import 'package:cordeos/models/domain/cipher/version.dart';
 import 'package:cordeos/providers/cipher/cipher_provider.dart';
+import 'package:cordeos/providers/navigation_provider.dart';
 import 'package:cordeos/providers/printing_provider.dart';
 import 'package:cordeos/providers/section/section_provider.dart';
 import 'package:cordeos/providers/transposition_provider.dart';
@@ -57,11 +58,13 @@ class _PrintPreviewScreenState extends State<PrintPreviewScreen> {
     final l10n = AppLocalizations.of(context)!;
     final textTheme = Theme.of(context).textTheme;
 
+    final nav = context.read<NavigationProvider>();
+
     return Row(
       children: [
         IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => nav.pop(),
         ),
         const Spacer(),
         Text(l10n.printPreview, style: textTheme.titleMedium),

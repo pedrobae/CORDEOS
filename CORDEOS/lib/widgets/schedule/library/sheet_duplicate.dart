@@ -45,15 +45,17 @@ class _DuplicateScheduleSheetState extends State<DuplicateScheduleSheet> {
 
       if (widget.scheduleId is int) {
         final schedule = localScheduleProvider.getSchedule(widget.scheduleId)!;
-        nameController.text =
-            '${schedule.name} (${AppLocalizations.of(context)!.copy})';
+        nameController.text = AppLocalizations.of(
+          context,
+        )!.placeholderCopy(schedule.name);
         dateController.text = DateTimeUtils.formatDate(schedule.date);
         startTimeController.text = DateTimeUtils.formatTime(schedule.date);
         locationController.text = schedule.location;
       } else {
         final schedule = cloudScheduleProvider.getSchedule(widget.scheduleId)!;
-        nameController.text =
-            '${schedule.name} (${AppLocalizations.of(context)!.copy})';
+        nameController.text = AppLocalizations.of(
+          context,
+        )!.placeholderCopy(schedule.name);
         dateController.text = DateTimeUtils.formatDate(
           schedule.datetime.toDate(),
         );

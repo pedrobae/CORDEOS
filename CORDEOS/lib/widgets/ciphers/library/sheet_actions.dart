@@ -1,5 +1,5 @@
-import 'package:cordeos/screens/cipher/print_preview_screen.dart';
 import 'package:cordeos/providers/section/section_provider.dart';
+import 'package:cordeos/widgets/ciphers/library/sheet_export.dart';
 import 'package:cordeos/widgets/ciphers/library/sheet_links.dart';
 import 'package:flutter/material.dart';
 import 'package:cordeos/l10n/app_localizations.dart';
@@ -111,16 +111,16 @@ class CipherCardActionsSheet extends StatelessWidget {
           FilledTextButton(
             text: l10n.export,
             onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => PrintPreviewScreen(versionID: versionID),
-                ),
-              );
+              Navigator.of(context).pop();
+              _openExportSheet(context, versionID);
             },
             trailingIcon: Icons.chevron_right,
             isDiscrete: true,
           ),
-          if (links != null && links.isNotEmpty)
+          if (links != null &&
+              links.any((link) {
+                return link.isNotEmpty;
+              }))
             FilledTextButton(
               text: l10n.openLink,
               trailingIcon: Icons.chevron_right,
@@ -211,5 +211,21 @@ class CipherCardActionsSheet extends StatelessWidget {
         },
       );
     };
+  }
+
+  void _openExportSheet(context, int versionID) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return BottomSheet(
+          shape: LinearBorder(),
+          onClosing: () {},
+          builder: (context) {
+            return ExportSheet(versionID: versionID);
+          },
+        );
+      },
+    );
   }
 }

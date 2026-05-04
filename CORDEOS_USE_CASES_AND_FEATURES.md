@@ -1,20 +1,5 @@
 # CORDEOS - Use Cases, Functionalities & Features Documentation
 
-**Version:** 1.7.4  
-**Last Updated:** April 2026  
-**Purpose:** Comprehensive guide for creating tutorial videos and onboarding new users
-
----
-
-## Table of Contents
-
-1. [Overview](#overview)
-2. [Primary Use Cases](#primary-use-cases)
-3. [Core Modules](#core-modules)
-4. [Key Features by Functionality](#key-features-by-functionality)
-5. [User Workflows](#user-workflows)
-6. [Video Tutorial Suggestions](#video-tutorial-suggestions)
-
 ---
 
 ## Overview
@@ -65,10 +50,8 @@
 **Key Tasks:**
 - Access song charts in full-screen mode
 - Auto-scroll through sections at adjustable speeds
-- Transpose to different musical keys on the fly
 - Navigate between songs in a playlist/schedule
 - Apply visual filters and styling for readability
-- Control scroll direction (horizontal/vertical)
 
 ---
 

@@ -1040,6 +1040,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get copy => 'Copy';
 
   @override
+  String get copied => 'Copied';
+
+  @override
+  String placeholderCopy(Object object) {
+    return '$object (Copy)';
+  }
+
+  @override
   String get copyCode => 'Copy Code';
 
   @override

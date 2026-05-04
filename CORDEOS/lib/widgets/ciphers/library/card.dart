@@ -225,7 +225,9 @@ class _CipherCardState extends State<CipherCard> {
                     ),
                   ),
 
-                  if (s.links!.isNotEmpty)
+                  if (s.links!.any((link) {
+                    return link.isNotEmpty;
+                  }))
                     GestureDetector(
                       onTap: _openLinksSheet(s.links!),
                       child: Padding(

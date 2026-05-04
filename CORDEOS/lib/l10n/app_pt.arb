@@ -1340,9 +1340,20 @@
   "@quickAction": {
     "description": "Label for quick action button"
   },
-  "copy": "Cópia",
+  "copy": "Copiar",
   "@copy": {
     "description": "Label for copy action"
+  },
+  "copied": "Copiado",
+  "@copied": {
+    "description": "Confirmation message when code is copied to clipboard"
+  },
+  "placeholderCopy": "{object} (Cópia)",
+  "@placeholderCopy": {
+    "description": "Copy suffix for object",
+    "placeholders": {
+      "object": {}
+    }
   },
   "copyCode": "Copiar Código",
   "@copyCode": {
