@@ -1,4 +1,4 @@
-import 'package:cordeos/helpers/chords/chords.dart';
+import 'package:cordeos/helpers/chords.dart';
 import 'package:cordeos/l10n/app_localizations.dart';
 import 'package:cordeos/providers/version/local_version_provider.dart';
 import 'package:cordeos/widgets/common/filled_text_button.dart';

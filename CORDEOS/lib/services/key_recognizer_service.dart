@@ -1,6 +1,6 @@
 import 'package:cordeos/models/domain/cipher/section.dart';
 import 'package:cordeos/models/dtos/version_dto.dart';
-import 'package:cordeos/helpers/chords/chords.dart';
+import 'package:cordeos/helpers/chords.dart';
 
 import 'package:cordeos/repositories/local/version_repository.dart';
 import 'package:cordeos/repositories/local/section_repository.dart';

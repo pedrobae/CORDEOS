@@ -94,10 +94,13 @@ class _TextExportScreenState extends State<TextExportScreen>
               cipher,
               version,
               sections,
-              context,
             );
 
-            final holyrics = SongHelper.convertToRegularText(chordPro);
+            final holyrics = SongHelper.convertToRegularText(
+              cipher,
+              version,
+              sections,
+            );
 
             _chordPro = chordPro;
             _holyrics = holyrics;

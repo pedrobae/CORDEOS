@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:cordeos/helpers/chords/chords.dart';
+import 'package:cordeos/helpers/chords.dart';
 
 class TranspositionProvider extends ChangeNotifier {
   String _originalKey = '';
@@ -61,52 +61,10 @@ class TranspositionProvider extends ChangeNotifier {
   }
 
   String transposeChord(String chord) {
-    final result = StringBuffer();
-    String root;
-    String prefix;
-    String suffix = chord;
-
-    while (suffix.isNotEmpty) {
-      (root, prefix, suffix) = _extractRoot(suffix);
-
-      result.write(prefix);
-      // Write transposed root
-      result.write(
-        ChordHelper().transpose(originalKey, root.toString(), transposeValue),
-      );
-    }
-    return result.toString();
-  }
-
-  (String root, String prefix, String suffix) _extractRoot(String chord) {
-    final root = StringBuffer();
-    String prefix = '';
-    // Find the first natural note
-    int i = -1;
-    while (i < chord.length - 1) {
-      i++;
-      final char = chord[i];
-      if (ChordHelper.naturalNotes.contains(char)) {
-        root.write(char);
-        prefix = chord.substring(0, i);
-        break;
-      }
-    }
-    i++;
-    if (root.isNotEmpty) {
-      if (i < chord.length) {
-        final nextChar = chord[i];
-        if (ChordHelper.accidents.contains(nextChar)) {
-          root.write(nextChar);
-          i++;
-        }
-      }
-    } else {
-      prefix = chord;
-    }
-
-    final suffix = (i < chord.length) ? chord.substring(i) : '';
-
-    return (root.toString(), prefix, suffix);
+    return ChordHelper().transposeChord(
+      chord: chord,
+      originalKey: originalKey,
+      newKey: transposedKey,
+    );
   }
 }

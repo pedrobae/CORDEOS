@@ -146,11 +146,11 @@ class ChordHelper {
     }
   }
 
-  String transpose(String key, String chord, int value) {
-    if (chord.isEmpty || key.isEmpty) {
+  String transpose(String originalKey, String? newKey, String chord) {
+    if (chord.isEmpty || originalKey.isEmpty) {
       return chord;
     }
-    final keyChords = getMajorChordsForKey(key);
+    final keyChords = getMajorChordsForKey(originalKey);
     int chordIndex = keyChords.indexOf(chord);
     bool weirdChord = false;
     if (chordIndex == -1) {
@@ -163,16 +163,14 @@ class ChordHelper {
 
       if (chordIndex == -1) {
         throw Exception(
-          'TRANSPOSER - could not transpose: ($chord or $alternateChord) is not a major chord of key: $key',
+          'TRANSPOSER - could not transpose: ($chord or $alternateChord) is not a major chord of key: $originalKey',
         );
       }
     }
-    final keyIndex = keyList.indexOf(key);
-    if (keyIndex == -1) {
-      throw Exception('TRANSPOSER - invalid key: $key');
+    final newKeyIndex = keyList.indexOf(newKey ?? originalKey);
+    if (newKeyIndex == -1) {
+      throw Exception('TRANSPOSER - invalid key: $newKeyIndex');
     }
-
-    int newKeyIndex = (keyIndex + value) % 12;
 
     String transposed = getMajorChordsForKey(keyList[newKeyIndex])[chordIndex];
     if (weirdChord) {
@@ -212,5 +210,59 @@ class ChordHelper {
       'Bb': 'A#',
     };
     return accidents[chord] ?? chord;
+  }
+
+  String transposeChord({
+    required String chord,
+    required String originalKey,
+    required String? newKey,
+  }) {
+    final result = StringBuffer();
+    String root;
+    String prefix;
+    String suffix = chord;
+
+    while (suffix.isNotEmpty) {
+      (root, prefix, suffix) = _extractRoot(suffix);
+
+      result.write(prefix);
+      // Write transposed root
+      result.write(
+        ChordHelper().transpose(originalKey, newKey, root.toString()),
+      );
+    }
+    return result.toString();
+  }
+
+  (String root, String prefix, String suffix) _extractRoot(String chord) {
+    final root = StringBuffer();
+    String prefix = '';
+    // Find the first natural note
+    int i = -1;
+    while (i < chord.length - 1) {
+      i++;
+      final char = chord[i];
+      if (ChordHelper.naturalNotes.contains(char)) {
+        root.write(char);
+        prefix = chord.substring(0, i);
+        break;
+      }
+    }
+    i++;
+    if (root.isNotEmpty) {
+      if (i < chord.length) {
+        final nextChar = chord[i];
+        if (ChordHelper.accidents.contains(nextChar)) {
+          root.write(nextChar);
+          i++;
+        }
+      }
+    } else {
+      prefix = chord;
+    }
+
+    final suffix = (i < chord.length) ? chord.substring(i) : '';
+
+    return (root.toString(), prefix, suffix);
   }
 }

@@ -5,7 +5,7 @@ import 'package:cordeos/providers/version/local_version_provider.dart';
 import 'package:cordeos/services/tokenization/helper_classes.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:cordeos/helpers/chords/chords.dart';
+import 'package:cordeos/helpers/chords.dart';
 import 'package:cordeos/widgets/ciphers/editor/sections/chord_token.dart';
 
 class ChordPalette extends StatefulWidget {
