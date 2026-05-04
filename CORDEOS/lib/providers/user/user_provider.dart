@@ -150,11 +150,13 @@ class UserProvider extends ChangeNotifier {
 
     try {
       userDto = await _cloudUserRepository.fetchUserByEmail(email);
-    } catch (e) {
-      if (kDebugMode) {
-        print('User with Email $email not found on firestore.');
+      if (userDto == null) {
+        debugPrint('User with Email $email not found on firestore.');
       }
+    } catch (e) {
+      
       _error = e.toString();
+      debugPrint(_error);
     } finally {
       _isLoading = false;
       notifyListeners();

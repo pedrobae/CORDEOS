@@ -25,22 +25,22 @@ class AddUserSheet extends StatefulWidget {
 class _AddUserSheetState extends State<AddUserSheet> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
-  List<dynamic> _usernameFilteredUsers = [];
-  List<dynamic> _emailFilteredUsers = [];
-  bool _showUsernameDropdown = false;
-  bool _showEmailDropdown = false;
+  List<User> _usernameFilteredUsers = [];
+  List<User> _emailFilteredUsers = [];
+  bool _showDropdown = false;
+  int _resetDropdownOnNextChange = 0;
 
   @override
   void initState() {
     super.initState();
     _usernameController.addListener(_onUsernameChanged);
-    _emailController.addListener(_onEmailChanged);
+    _emailController.addListener(_onEmailChanged());
   }
 
   @override
   void dispose() {
     _usernameController.removeListener(_onUsernameChanged);
-    _emailController.removeListener(_onEmailChanged);
+    _emailController.removeListener(_onEmailChanged());
     _usernameController.dispose();
     _emailController.dispose();
     super.dispose();
@@ -48,13 +48,21 @@ class _AddUserSheetState extends State<AddUserSheet> {
 
   void _onUsernameChanged() {
     if (!mounted) return;
+    if (_resetDropdownOnNextChange > 0) {
+      debugPrint(_resetDropdownOnNextChange.toString());
+      setState(() {
+        _resetDropdownOnNextChange--;
+      });
+      return;
+    }
+
     final userProvider = context.read<UserProvider>();
 
     final query = _usernameController.text.toLowerCase();
     setState(() {
       if (query.isEmpty) {
         _usernameFilteredUsers = [];
-        _showUsernameDropdown = false;
+        _showDropdown = false;
       } else {
         _usernameFilteredUsers = userProvider.knownUsers
             .where(
@@ -63,48 +71,62 @@ class _AddUserSheetState extends State<AddUserSheet> {
                   user.username.toLowerCase() != query,
             )
             .toList();
-        _showUsernameDropdown = _usernameFilteredUsers.isNotEmpty;
+        _showDropdown = _usernameFilteredUsers.isNotEmpty;
       }
     });
   }
 
-  void _onEmailChanged() {
-    if (!mounted) return;
-    final userProvider = context.read<UserProvider>();
-
-    final query = _emailController.text.toLowerCase();
-    setState(() {
-      if (query.isEmpty) {
-        _emailFilteredUsers = [];
-        _showEmailDropdown = false;
-      } else {
-        _emailFilteredUsers = userProvider.knownUsers
-            .where(
-              (user) =>
-                  user.email.toLowerCase().contains(query) &&
-                  user.email.toLowerCase() != query,
-            )
-            .toList();
-        _showEmailDropdown = _emailFilteredUsers.isNotEmpty;
+  VoidCallback _onEmailChanged() {
+    return () async {
+      if (_resetDropdownOnNextChange > 0) {
+        debugPrint(_resetDropdownOnNextChange.toString());
+        setState(() {
+          _resetDropdownOnNextChange--;
+        });
+        return;
       }
-    });
+      if (!mounted) return;
+      final userProvider = context.read<UserProvider>();
+
+      User? firestoreUser;
+      if (_validateEmail(_emailController.text) == null) {
+        final cloudUser = await userProvider.fetchUserDtoByEmail(
+          _emailController.text,
+        );
+        if (cloudUser != null) {
+          firestoreUser = cloudUser.toDomain();
+        }
+      }
+
+      final query = _emailController.text.toLowerCase();
+      setState(() {
+        if (query.isEmpty) {
+          _emailFilteredUsers = [];
+          _showDropdown = false;
+        } else {
+          _emailFilteredUsers = userProvider.knownUsers
+              .where(
+                (user) =>
+                    user.email.toLowerCase().contains(query) &&
+                    user.email.toLowerCase() != query,
+              )
+              .toList();
+          if (firestoreUser != null) {
+            _emailFilteredUsers.add(firestoreUser);
+          }
+          _showDropdown = _emailFilteredUsers.isNotEmpty;
+        }
+      });
+    };
   }
 
-  void _selectUserByUsername(User user) {
+  void _selectUser(User user) {
     setState(() {
+      _resetDropdownOnNextChange = 3;
       _usernameController.text = user.username;
       _emailController.text = user.email;
-      _showUsernameDropdown = false;
+      _showDropdown = false;
       _usernameFilteredUsers = [];
-    });
-  }
-
-  void _selectUserByEmail(User user) {
-    setState(() {
-      _emailController.text = user.email;
-      _usernameController.text = user.username;
-      _showEmailDropdown = false;
-      _emailFilteredUsers = [];
     });
   }
 
@@ -146,6 +168,16 @@ class _AddUserSheetState extends State<AddUserSheet> {
     }
   }
 
+  String? _validateEmail(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Informe o e-mail';
+    }
+    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+      return 'E-mail inválido';
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -180,41 +212,6 @@ class _AddUserSheetState extends State<AddUserSheet> {
                   spacing: 16,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      spacing: 8,
-                      children: [
-                        LabeledTextField(
-                          label: AppLocalizations.of(context)!.name,
-                          controller: _usernameController,
-                          hint: AppLocalizations.of(context)!.enterNameHint,
-                        ),
-                        if (_showUsernameDropdown &&
-                            _usernameFilteredUsers.isNotEmpty)
-                          Container(
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: colorScheme.surfaceContainerLowest,
-                              ),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            constraints: BoxConstraints(maxHeight: 200),
-                            child: ListView.builder(
-                              shrinkWrap: true,
-                              itemCount: _usernameFilteredUsers.length,
-                              itemBuilder: (context, index) {
-                                final user = _usernameFilteredUsers[index];
-                                return ListTile(
-                                  title: Text(user.username),
-                                  subtitle: Text(user.email),
-                                  onTap: () => _selectUserByUsername(user),
-                                );
-                              },
-                            ),
-                          ),
-                      ],
-                    ),
-
                     // EMAIL INPUT WITH DROPDOWN
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -225,8 +222,7 @@ class _AddUserSheetState extends State<AddUserSheet> {
                           controller: _emailController,
                           hint: AppLocalizations.of(context)!.enterEmailHint,
                         ),
-                        if (_showEmailDropdown &&
-                            _emailFilteredUsers.isNotEmpty)
+                        if (_showDropdown && _emailFilteredUsers.isNotEmpty)
                           Container(
                             decoration: BoxDecoration(
                               border: Border.all(
@@ -243,7 +239,41 @@ class _AddUserSheetState extends State<AddUserSheet> {
                                 return ListTile(
                                   title: Text(user.email),
                                   subtitle: Text(user.username),
-                                  onTap: () => _selectUserByEmail(user),
+                                  onTap: () => _selectUser(user),
+                                );
+                              },
+                            ),
+                          ),
+                      ],
+                    ),
+
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      spacing: 8,
+                      children: [
+                        LabeledTextField(
+                          label: AppLocalizations.of(context)!.name,
+                          controller: _usernameController,
+                          hint: AppLocalizations.of(context)!.enterNameHint,
+                        ),
+                        if (_showDropdown && _usernameFilteredUsers.isNotEmpty)
+                          Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: colorScheme.surfaceContainerLowest,
+                              ),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            constraints: BoxConstraints(maxHeight: 200),
+                            child: ListView.builder(
+                              shrinkWrap: true,
+                              itemCount: _usernameFilteredUsers.length,
+                              itemBuilder: (context, index) {
+                                final user = _usernameFilteredUsers[index];
+                                return ListTile(
+                                  title: Text(user.username),
+                                  subtitle: Text(user.email),
+                                  onTap: () => _selectUser(user),
                                 );
                               },
                             ),
