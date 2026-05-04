@@ -264,6 +264,7 @@ class LocalVersionProvider extends ChangeNotifier {
     List<int>? songStructure,
     Duration? duration,
     int? bpm,
+    String? notes,
   }) {
     debugPrint(
       'LOCAL VERSION PROVIDER - Caching - ${ //
@@ -271,7 +272,7 @@ class LocalVersionProvider extends ChangeNotifier {
       transposedKey != null ? 'Transposed Key - $transposedKey' : ''}${ //
       songStructure != null ? 'Song Structure - $songStructure' : ''}${ //
       duration != null ? 'Duration - $duration' : ''}${ //
-      bpm != null ? 'BPM - $bpm' : ''}',
+      bpm != null ? 'BPM - $bpm' : ''}${notes != null ? 'Notes - $notes' : ''}',
     );
 
     _versions[versionId] = _versions[versionId]!.copyWith(
@@ -280,6 +281,7 @@ class LocalVersionProvider extends ChangeNotifier {
       songStructure: songStructure,
       duration: duration,
       bpm: bpm,
+      notes: notes,
     );
     _hasUnsavedChanges = true;
     notifyListeners();

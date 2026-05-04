@@ -535,6 +535,10 @@
   "@notes": {
     "description": "Notes field label"
   },
+  "notesHint": "Insira Anotações (Optional)",
+  "@notesHint": {
+    "description": "Hint for notes field"
+  },
   "sections": "Seções",
   "@sections": {
     "description": "Sections field label"

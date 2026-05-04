@@ -866,6 +866,12 @@ abstract class AppLocalizations {
   /// **'Anotações'**
   String get notes;
 
+  /// Hint for notes field
+  ///
+  /// In pt, this message translates to:
+  /// **'Insira Anotações (Optional)'**
+  String get notesHint;
+
   /// Sections field label
   ///
   /// In pt, this message translates to:

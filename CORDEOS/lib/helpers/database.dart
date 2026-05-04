@@ -22,7 +22,7 @@ class DatabaseHelper {
 
       final db = await openDatabase(
         path,
-        version: 22,
+        version: 23,
         onCreate: _onCreate,
         onUpgrade: _onUpgrade, // Handle migrations
       );
@@ -85,6 +85,7 @@ class DatabaseHelper {
         version_name TEXT,
         firebase_cipher_id TEXT,
         firebase_id TEXT,
+        notes TEXT
         created_at INTEGER DEFAULT (strftime('%s','now')),
         FOREIGN KEY (cipher_id) REFERENCES cipher (id) ON DELETE CASCADE
       )
@@ -353,7 +354,12 @@ class DatabaseHelper {
       await db.execute('ALTER TABLE cipher RENAME COLUMN link TO links');
     }
     if (oldVersion < 22) {
-      await db.execute('ALTER TABLE schedule ADD COLUMN collaborators TEXT \'\'');
+      await db.execute(
+        'ALTER TABLE schedule ADD COLUMN collaborators TEXT \'\'',
+      );
+    }
+    if (oldVersion < 23) {
+      await db.execute('ALTER TABLE version ADD COLUMN notes TEXT \'\'');
     }
   }
 

@@ -511,6 +511,10 @@
   "@linkHint": {
     "description": "Hint for link field"
   },
+  "notesHint": "Enter Notes (Optional)",
+  "@notesHint": {
+    "description": "Hint for notes field"
+  },
   "openLink": "Open Link",
   "@openLink": {
     "description": "Button label for opening the song's link"

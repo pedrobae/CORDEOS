@@ -414,6 +414,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notes => 'Notes';
 
   @override
+  String get notesHint => 'Enter Notes (Optional)';
+
+  @override
   String get sections => 'Sections';
 
   @override

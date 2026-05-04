@@ -222,7 +222,6 @@ Organize and collaborate on upcoming musical events
 - **Permissions**: Control what each role can do
 - **Invitations**: Send email invites to team members
 - **Share Codes**: Quick access via share code for joining
-- **Real-time Sync**: Changes sync across all team members
 
 #### Schedule Workflow:
 
@@ -238,7 +237,6 @@ Organize and collaborate on upcoming musical events
 
 3. **Publish Schedule**
    - Makes accessible to team
-   - Enables real-time sync
    - Cannot be undone (but can edit afterward)
 
 4. **Execute Service**
@@ -394,7 +392,6 @@ System management and oversight
 | **Team Roles** | Define responsibilities | Clear task assignment |
 | **Email Invitations** | Invite via email | Remote team coordination |
 | **Share Codes** | Quick join via code | Easy onboarding |
-| **Real-time Sync** | Live updates across devices | Seamless collaboration |
 | **Permissions** | Role-based access control | Security and organization |
 | **Audit Logging** | Track all changes | Accountability and recovery |
 
@@ -586,19 +583,11 @@ System management and oversight
    - Different arrangements
    - Switching between versions
 
-7. **"Transposing Songs in Real-Time"** (2-3 min)
-   - Why transpose?
-   - Opening transposer
-   - Changing key
-   - Auto-chord adjustment
-   - Practical example
-
 8. **"Customizing Your Display"** (3-4 min)
    - Layout settings (scroll direction, card width)
    - Spacing adjustments
    - Theme/color options
    - Filter options
-   - Practical setup demo
 
 9. **"Planning a Service Schedule"** (4-5 min)
    - Create new schedule
@@ -612,7 +601,6 @@ System management and oversight
     - Send email invitations
     - Invite multiple people
     - Share code alternative
-    - Demonstrate real-time sync
 
 11. **"Importing Chord Charts from PDF"** (3-4 min)
     - Open import screen
@@ -625,7 +613,6 @@ System management and oversight
     - Print to PDF
     - Share options
     - Export formats
-    - Download backups
 
 ---
 

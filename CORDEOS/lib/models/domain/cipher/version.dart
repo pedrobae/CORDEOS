@@ -14,6 +14,7 @@ class Version {
   final int bpm;
   final Duration duration;
   final DateTime createdAt;
+  final String? notes;
 
   const Version({
     this.id,
@@ -25,6 +26,7 @@ class Version {
     required this.bpm,
     required this.duration,
     required this.createdAt,
+    this.notes,
   });
 
   factory Version.fromSqLite(Map<String, dynamic> row) {
@@ -44,6 +46,7 @@ class Version {
       createdAt: row['created_at'] != null
           ? DateTime.fromMillisecondsSinceEpoch(row['created_at'])
           : DateTime.now(),
+      notes: row['notes'],
     );
   }
   // To JSON for database (without content - sections handled separately)
@@ -56,6 +59,7 @@ class Version {
       'transposed_key': transposedKey,
       'version_name': versionName,
       'created_at': createdAt.millisecondsSinceEpoch.toString(),
+      'notes': notes,
     };
     if (firebaseID != null && firebaseID!.isNotEmpty) {
       row['firebase_id'] = firebaseID;
@@ -80,6 +84,7 @@ class Version {
       bpm: bpm,
       duration: duration.inSeconds,
       tags: cipher.tags,
+      notes: notes,
     );
   }
 
@@ -93,6 +98,7 @@ class Version {
     String? transposedKey,
     String? versionName,
     DateTime? createdAt,
+    String? notes,
   }) {
     return Version(
       id: id ?? this.id,
@@ -104,6 +110,7 @@ class Version {
       bpm: bpm ?? this.bpm,
       versionName: versionName ?? this.versionName,
       createdAt: createdAt ?? this.createdAt,
+      notes: notes ?? this.notes,
     );
   }
 
@@ -122,6 +129,7 @@ class Version {
       createdAt: createdAt.isBefore(other.createdAt)
           ? createdAt
           : other.createdAt,
+      notes: notes ?? other.notes,
     );
   }
 

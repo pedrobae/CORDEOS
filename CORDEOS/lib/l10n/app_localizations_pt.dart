@@ -417,6 +417,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get notes => 'Anotações';
 
   @override
+  String get notesHint => 'Insira Anotações (Optional)';
+
+  @override
   String get sections => 'Seções';
 
   @override

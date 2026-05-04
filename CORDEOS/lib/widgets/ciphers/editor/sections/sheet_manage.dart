@@ -9,12 +9,14 @@ import "package:cordeos/widgets/ciphers/editor/metadata.dart/select_key_sheet.da
 import "package:cordeos/widgets/ciphers/editor/sections/edit_section.dart";
 import "package:cordeos/widgets/ciphers/editor/sections/reorderable_structure.dart";
 import "package:cordeos/widgets/common/labeled_duration_picker.dart";
+import "package:cordeos/widgets/common/labeled_text_field.dart";
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
 
 class ManageSheet extends StatefulWidget {
   final int versionID;
   final bool playlistMode;
+
   const ManageSheet({
     super.key,
     required this.versionID,
@@ -28,6 +30,7 @@ class ManageSheet extends StatefulWidget {
 class _ManageSheetState extends State<ManageSheet> {
   void Function()? _scrollToEnd;
   final _durationController = TextEditingController();
+  final _notesController = TextEditingController();
 
   @override
   void initState() {
@@ -36,6 +39,7 @@ class _ManageSheetState extends State<ManageSheet> {
     final version = localVer.getVersion(widget.versionID);
     if (version != null) {
       _durationController.text = DateTimeUtils.formatDuration(version.duration);
+      _notesController.text = version.notes ?? '';
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _addListeners();
@@ -56,6 +60,12 @@ class _ManageSheetState extends State<ManageSheet> {
         duration: duration,
       );
     });
+    _notesController.addListener(() {
+      context.read<LocalVersionProvider>().cacheUpdates(
+        widget.versionID,
+        notes: _notesController.text,
+      );
+    });
   }
 
   @override
@@ -71,11 +81,9 @@ class _ManageSheetState extends State<ManageSheet> {
       ({
         Map<int, SectionBadgeData> badgesData,
         List<int> sectionIDs,
-        Duration? duration,
       })
     >(
       selector: (context, localVer, sect) {
-        final version = localVer.getVersion(widget.versionID);
         final sections = sect.getSections(widget.versionID);
 
         final sectionIDs = <int>[];
@@ -87,11 +95,10 @@ class _ManageSheetState extends State<ManageSheet> {
         return (
           badgesData: getSectionBadges(sectionTypes),
           sectionIDs: sectionIDs,
-          duration: version?.duration,
         );
       },
       builder: (context, s, child) {
-        if (s.badgesData.isEmpty || s.duration == null) {
+        if (s.badgesData.isEmpty) {
           return Center(child: CircularProgressIndicator());
         }
 
@@ -154,6 +161,13 @@ class _ManageSheetState extends State<ManageSheet> {
                     ),
                     Expanded(child: _buildKeySelector()),
                   ],
+                ),
+
+              if (widget.playlistMode)
+                LabeledTextField(
+                  label: '',
+                  hint: AppLocalizations.of(context)!.notesHint,
+                  controller: _notesController,
                 ),
 
               // REORDERABLE STRUCTURE

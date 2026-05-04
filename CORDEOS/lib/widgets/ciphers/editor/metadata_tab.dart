@@ -22,6 +22,7 @@ enum InfoField {
   language,
   tags,
   link,
+  notes,
 }
 
 class MetadataTab extends StatefulWidget {
@@ -98,6 +99,7 @@ class _MetadataTabState extends State<MetadataTab> {
             version.duration,
           );
           controllers[InfoField.link]!.text = (cipher.links).join(',');
+          controllers[InfoField.notes]!.text = version.notes ?? '';
           break;
         case VersionType.brandNew:
           // Empty controllers for brand new versions
@@ -132,6 +134,11 @@ class _MetadataTabState extends State<MetadataTab> {
             ),
           );
           break;
+        case InfoField.notes:
+          controller.addListener(
+            () =>
+                localVer.cacheUpdates(widget.cipherID, notes: controller.text),
+          );
         case InfoField.bpm:
           controller.addListener(() {
             final bpm = int.tryParse(controller.text) ?? 0;
@@ -151,6 +158,7 @@ class _MetadataTabState extends State<MetadataTab> {
               links: controller.text.split(','),
             ),
           );
+
         case InfoField.language:
         case InfoField.tags:
         case InfoField.key:
@@ -176,6 +184,7 @@ class _MetadataTabState extends State<MetadataTab> {
       InfoField.language => l10n.language,
       InfoField.tags => l10n.pluralPlaceholder(l10n.tag),
       InfoField.link => l10n.pluralPlaceholder(l10n.link),
+      InfoField.notes => l10n.notes,
     };
   }
 
@@ -191,6 +200,7 @@ class _MetadataTabState extends State<MetadataTab> {
       InfoField.language => l10n.languageHint,
       InfoField.tags => l10n.tagHint,
       InfoField.link => l10n.linkHint,
+      InfoField.notes => l10n.notesHint,
     };
   }
 

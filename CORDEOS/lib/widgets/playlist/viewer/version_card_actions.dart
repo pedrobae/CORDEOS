@@ -2,13 +2,11 @@ import 'package:cordeos/widgets/ciphers/editor/sections/sheet_manage.dart';
 import 'package:flutter/material.dart';
 import 'package:cordeos/l10n/app_localizations.dart';
 
-
 import 'package:provider/provider.dart';
 import 'package:cordeos/providers/user/my_auth_provider.dart';
 import 'package:cordeos/providers/user/user_provider.dart';
 import 'package:cordeos/providers/version/local_version_provider.dart';
 import 'package:cordeos/providers/playlist/playlist_provider.dart';
-
 
 import 'package:cordeos/widgets/common/delete_confirmation.dart';
 import 'package:cordeos/widgets/common/filled_text_button.dart';
@@ -62,6 +60,17 @@ class VersionCardActionsSheet extends StatelessWidget {
               ),
             ],
           ),
+
+          // Version Notes
+          Selector<LocalVersionProvider, String?>(
+            selector: (context, localVer) =>
+                localVer.getVersion(versionID)?.notes,
+            builder: (context, notes, child) {
+              if (notes == null) return SizedBox();
+              return Text(notes, style: textTheme.bodyMedium);
+            },
+          ),
+
           // ACTIONS
           // edit
           FilledTextButton(
@@ -127,7 +136,7 @@ class VersionCardActionsSheet extends StatelessWidget {
         maxHeight: MediaQuery.of(context).size.height * 0.75,
       ),
       builder: (context) {
-        return ManageSheet(versionID: versionID, playlistMode: true,);
+        return ManageSheet(versionID: versionID, playlistMode: true);
       },
     );
   }

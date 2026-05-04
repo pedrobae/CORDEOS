@@ -46,10 +46,11 @@ class LabeledTextField extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       spacing: isDense ? 4 : 8,
       children: [
-        Text(
-          label,
-          style: isDense ? textTheme.labelSmall : textTheme.labelMedium,
-        ),
+        if (label.isNotEmpty)
+          Text(
+            label,
+            style: isDense ? textTheme.labelSmall : textTheme.labelMedium,
+          ),
         TextFormField(
           validator: validator,
           controller: controller,
