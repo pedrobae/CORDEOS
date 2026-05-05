@@ -973,6 +973,14 @@
   "@export": {
     "description": "Export button label"
   },
+  "textExport": "Text Export",
+  "@textExport": {
+    "description": "Text Export button Label"
+  },
+  "pdfExport": "PDF Export",
+  "@pdfExport": {
+    "description": "Pdf Export button Label"
+  },
   "share": "Share",
   "@share": {
     "description": "Share button label"

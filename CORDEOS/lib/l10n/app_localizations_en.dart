@@ -750,6 +750,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get export => 'Export';
 
   @override
+  String get textExport => 'Text Export';
+
+  @override
+  String get pdfExport => 'PDF Export';
+
+  @override
   String get share => 'Share';
 
   @override

@@ -969,6 +969,14 @@
   "@export": {
     "description": "Export button label"
   },
+  "textExport": "Exportar por Texto",
+  "@textExport": {
+    "description": "Text Export button Label"
+  },
+  "pdfExport": "Exportar por PDF",
+  "@pdfExport": {
+    "description": "Pdf Export button Label"
+  },
   "share": "Compartilhar",
   "@share": {
     "description": "Share button label"

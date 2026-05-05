@@ -2,6 +2,7 @@ import 'package:cordeos/l10n/app_localizations.dart';
 import 'package:cordeos/providers/navigation_provider.dart';
 import 'package:cordeos/screens/cipher/print_preview_screen.dart';
 import 'package:cordeos/screens/cipher/text_export.dart';
+import 'package:cordeos/widgets/common/filled_text_button.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -14,7 +15,7 @@ class ExportSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(16.0),
       color: colorScheme.surface,
@@ -27,10 +28,7 @@ class ExportSheet extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                AppLocalizations.of(context)!.export,
-                style: textTheme.titleMedium,
-              ),
+              Text(l10n.export, style: textTheme.titleMedium),
               IconButton(
                 icon: Icon(Icons.close, color: colorScheme.onSurface, size: 32),
                 onPressed: () => Navigator.of(context).pop(),
@@ -38,40 +36,30 @@ class ExportSheet extends StatelessWidget {
             ],
           ),
           // OPTIONS
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              GestureDetector(
-                onTap: () {
-                  Navigator.of(context).pop();
-                  context.read<NavigationProvider>().push(
-                    () => TextExportScreen(versionID: versionID),
-                  );
-                },
-                child: Container(
-                  color: Colors.transparent,
-                  width: 40,
-                  height: 40,
-                  child: Icon(Icons.text_fields),
-                ),
-              ),
-              GestureDetector(
-                onTap: () {
-                  Navigator.of(context).pop();
-                  context.read<NavigationProvider>().push(
-                    () => PrintPreviewScreen(versionID: versionID),
-                  );
-                },
-                child: Container(
-                  color: Colors.transparent,
-                  width: 40,
-                  height: 40,
-                  child: Icon(Icons.picture_as_pdf),
-                ),
-              ),
-            ],
+          FilledTextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              context.read<NavigationProvider>().push(
+                () => TextExportScreen(versionID: versionID),
+              );
+            },
+            text: l10n.textExport,
+            icon: Icons.text_fields,
+            trailingIcon: Icons.chevron_right,
+            isDiscrete: true,
           ),
-
+          FilledTextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              context.read<NavigationProvider>().push(
+                () => PrintPreviewScreen(versionID: versionID),
+              );
+            },
+            text: l10n.pdfExport,
+            icon: Icons.picture_as_pdf,
+            isDiscrete: true,
+            trailingIcon: Icons.chevron_right,
+          ),
           SizedBox(),
         ],
       ),

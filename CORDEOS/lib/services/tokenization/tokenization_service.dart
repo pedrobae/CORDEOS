@@ -218,9 +218,7 @@ class TokenizationService {
         case TokenType.newline:
           return token.text;
         case TokenType.preSeparator:
-          return '<';
         case TokenType.postSeparator:
-          return '>';
         case TokenType.underline:
         case TokenType.preChordTarget:
         case TokenType.postChordTarget:

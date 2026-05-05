@@ -752,6 +752,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get export => 'Exportar';
 
   @override
+  String get textExport => 'Exportar por Texto';
+
+  @override
+  String get pdfExport => 'Exportar por PDF';
+
+  @override
   String get share => 'Compartilhar';
 
   @override

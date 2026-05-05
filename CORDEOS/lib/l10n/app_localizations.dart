@@ -1436,6 +1436,18 @@ abstract class AppLocalizations {
   /// **'Exportar'**
   String get export;
 
+  /// Text Export button Label
+  ///
+  /// In pt, this message translates to:
+  /// **'Exportar por Texto'**
+  String get textExport;
+
+  /// Pdf Export button Label
+  ///
+  /// In pt, this message translates to:
+  /// **'Exportar por PDF'**
+  String get pdfExport;
+
   /// Share button label
   ///
   /// In pt, this message translates to:
