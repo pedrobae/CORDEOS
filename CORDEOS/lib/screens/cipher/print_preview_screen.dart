@@ -174,19 +174,21 @@ class _PrintPreviewScreenState extends State<PrintPreviewScreen> {
     return Container(
       color: colorScheme.shadow,
       child:
-          Selector4<
+          Selector5<
             TranspositionProvider,
             CipherProvider,
             LocalVersionProvider,
             SectionProvider,
+            PrintingProvider,
             ({
               String Function(String) transpose,
               Cipher cipher,
               Version version,
               Map<int, Section> sections,
+              bool showChords,
             })
           >(
-            selector: (context, trans, ciph, localVer, sect) {
+            selector: (context, trans, ciph, localVer, sect, print) {
               final version = localVer.getVersion(widget.versionID);
               if (version == null) {
                 throw Exception(
@@ -204,6 +206,7 @@ class _PrintPreviewScreenState extends State<PrintPreviewScreen> {
                 cipher: cipher,
                 version: version,
                 sections: sections,
+                showChords: print.showChords,
               );
             },
             builder: (context, s, child) {

@@ -134,6 +134,12 @@ class _TextExportScreenState extends State<TextExportScreen>
                         copied ? () {} : _copy();
                       },
                     ),
+                    FilledTextButton(
+                      text: l10n.share,
+                      icon: Icons.edit_document,
+                      isDark: true,
+                      onPressed: _shareAsDoc(),
+                    ),
                   ],
                 ),
               ),
@@ -164,5 +170,11 @@ class _TextExportScreenState extends State<TextExportScreen>
         });
       }
     });
+  }
+
+  VoidCallback _shareAsDoc() {
+    return () {
+      final textToShare = _tabController.index == 0 ? _holyrics : _chordPro;
+    };
   }
 }

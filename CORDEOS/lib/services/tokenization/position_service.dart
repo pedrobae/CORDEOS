@@ -42,7 +42,10 @@ class PositionService {
       isEditMode,
     );
 
-    final lineHeight = lyricHeight + heightSpacing + chordHeight;
+    final lineHeight =
+        (showLyrics ? lyricHeight : 0.0) +
+        (showChords ? chordHeight : 0.0) +
+        (showChords && showLyrics ? heightSpacing : 0.0);
 
     final ctx = _LayoutCtx(
       chordHeight: chordHeight,
