@@ -359,7 +359,9 @@ class DatabaseHelper {
       );
     }
     if (oldVersion < 23) {
-      await db.execute('ALTER TABLE version DROP COLUMN notes');
+      try {
+        await db.execute('ALTER TABLE version DROP COLUMN notes');
+      } catch (e) {}
       await db.execute('ALTER TABLE version ADD COLUMN notes TEXT \'\'');
     }
   }
