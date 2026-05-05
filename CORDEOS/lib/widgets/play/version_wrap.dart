@@ -3,6 +3,7 @@ import 'package:cordeos/providers/play/auto_scroll_provider.dart';
 import 'package:cordeos/providers/cipher/cipher_provider.dart';
 import 'package:cordeos/providers/settings/layout_settings_provider.dart';
 import 'package:cordeos/providers/section/section_provider.dart';
+import 'package:cordeos/providers/transposition_provider.dart';
 import 'package:cordeos/providers/version/cloud_version_provider.dart';
 import 'package:cordeos/providers/version/local_version_provider.dart';
 import 'package:cordeos/utils/date_utils.dart';
@@ -24,8 +25,10 @@ class VersionWrap extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Selector4<
+    return Selector6<
       LayoutSetProvider,
+      TranspositionProvider,
+      CipherProvider,
       LocalVersionProvider,
       CloudVersionProvider,
       SectionProvider,
@@ -33,9 +36,24 @@ class VersionWrap extends StatelessWidget {
         Axis wrapDirection,
         List<int> filteredStructure,
         Map<int, SectionBadgeData> badgesData,
+        String originalKey,
+        String? newKey,
       })
     >(
-      selector: (context, laySet, localVer, cloudVer, sect) {
+      selector: (context, laySet, trans, ciph, localVer, cloudVer, sect) {
+        String originalKey = versionID is String
+            ? cloudVer.getVersion(versionID)!.originalKey
+            : () {
+                final version = localVer.getVersion(versionID)!;
+                return ciph.getCipher(version.cipherID)!.musicKey;
+              }();
+
+        String? newKey =
+            trans.transposedKey ??
+            (versionID is String
+                ? cloudVer.getVersion(versionID)!.transposedKey
+                : localVer.getVersion(versionID)!.transposedKey);
+
         final songStructure = versionID is String
             ? cloudVer.getVersion(versionID)!.songStructure
             : localVer.getSongStructure(versionID);
@@ -76,6 +94,8 @@ class VersionWrap extends StatelessWidget {
           wrapDirection: laySet.wrapDirection,
           filteredStructure: filteredStructure,
           badgesData: getSectionBadges(sectionTypes),
+          originalKey: originalKey,
+          newKey: newKey,
         );
       },
       builder: (context, s, child) {
@@ -96,6 +116,8 @@ class VersionWrap extends StatelessWidget {
                   context,
                   s.filteredStructure,
                   s.badgesData,
+                  s.originalKey,
+                  s.newKey,
                 ),
               ),
             ),
@@ -176,11 +198,14 @@ class VersionWrap extends StatelessWidget {
     BuildContext context,
     List<int> filteredStructure,
     Map<int, SectionBadgeData> badgesData,
+    String originalKey,
+    String? newKey,
   ) {
     if (versionID == null) return [const SizedBox.shrink()];
 
     final scroll = context.read<ScrollProvider>();
     final sect = context.read<SectionProvider>();
+    final trans = context.read<TranspositionProvider>();
 
     final sectionWidgets = <Widget>[];
 
@@ -223,12 +248,14 @@ class VersionWrap extends StatelessWidget {
         RepaintBoundary(
           child: SectionCard(
             key: key,
-            index: i, 
+            index: i,
             itemIndex: itemIndex,
             sectionType: section.contentType,
             sectionKey: sectionKey,
             sectionText: section.contentText,
             sectionBadge: badgesData[sectionKey]!,
+            transposeChord: (chord) =>
+                trans.transposeChord(chord, originalKey, newKey),
           ),
         ),
       );

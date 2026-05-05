@@ -16,6 +16,7 @@ class SectionCard extends StatelessWidget {
   final String sectionType;
   final String sectionText;
   final SectionBadgeData sectionBadge;
+  final String Function(String) transposeChord;
 
   const SectionCard({
     super.key,
@@ -25,6 +26,7 @@ class SectionCard extends StatelessWidget {
     required this.sectionKey,
     required this.sectionText,
     required this.sectionBadge,
+    required this.transposeChord,
   });
 
   @override
@@ -33,7 +35,6 @@ class SectionCard extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     final tokenProv = context.read<TokenProvider>();
-    final trans = context.read<TranspositionProvider>();
     final width = MediaQuery.sizeOf(context).width;
 
     final layoutKey = TokenCacheKey(
@@ -57,15 +58,11 @@ class SectionCard extends StatelessWidget {
         layoutKey.showLyrics = filter.showLyrics;
         layoutKey.transposeValue = filter.transposeValue;
 
-        tokenProv.tokenize(layoutKey, transposeChord: trans.transposeChord);
+        tokenProv.tokenize(layoutKey, transposeChord: transposeChord);
         tokenProv.organize(layoutKey);
         return Selector<
           LayoutSetProvider,
-          ({
-            TextStyle lyricStyle,
-            TextStyle chordStyle,
-            double heightSpacing,
-          })
+          ({TextStyle lyricStyle, TextStyle chordStyle, double heightSpacing})
         >(
           selector: (context, laySet) => (
             lyricStyle: laySet.lyricStyle,

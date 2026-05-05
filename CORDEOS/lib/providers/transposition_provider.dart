@@ -60,11 +60,11 @@ class TranspositionProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  String transposeChord(String chord) {
+  String transposeChord(String chord, String originalKey, String? newKey) {
     return ChordHelper().transposeChord(
       chord: chord,
       originalKey: originalKey,
-      newKey: transposedKey,
+      newKey: newKey,
     );
   }
 }

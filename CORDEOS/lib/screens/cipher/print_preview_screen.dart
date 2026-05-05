@@ -201,8 +201,13 @@ class _PrintPreviewScreenState extends State<PrintPreviewScreen> {
                 throw Exception('Cipher not found for ID: ${version.cipherID}');
               }
               final sections = sect.getSections(widget.versionID);
+              final transposeChord = (String chord) => trans.transposeChord(
+                chord,
+                cipher.musicKey,
+                version.transposedKey,
+              );
               return (
-                transpose: trans.transposeChord,
+                transpose: transposeChord,
                 cipher: cipher,
                 version: version,
                 sections: sections,

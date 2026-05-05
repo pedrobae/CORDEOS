@@ -93,7 +93,7 @@ class SongHelper {
         buffer,
         sections[key]!,
         cipher.musicKey,
-        version.transposedKey,
+        version.transposedKey ?? cipher.musicKey,
       );
       buffer.writeln();
     }
@@ -132,7 +132,7 @@ class SongHelper {
     StringBuffer buffer,
     Section section,
     String originalKey,
-    String? transposedKey,
+    String transposedKey,
   ) {
     final lines = section.contentText.split('\n');
 

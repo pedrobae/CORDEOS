@@ -1,15 +1,23 @@
 import 'dart:async';
+import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:cordeos/helpers/song.dart';
+
 import 'package:cordeos/l10n/app_localizations.dart';
+
+import 'package:cordeos/models/domain/cipher/cipher.dart';
+
+import 'package:provider/provider.dart';
 import 'package:cordeos/providers/cipher/cipher_provider.dart';
 import 'package:cordeos/providers/navigation_provider.dart';
 import 'package:cordeos/providers/section/section_provider.dart';
 import 'package:cordeos/providers/version/local_version_provider.dart';
 import 'package:cordeos/widgets/common/filled_text_button.dart';
-import 'package:flutter/material.dart';
+
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 class TextExportScreen extends StatefulWidget {
   final int versionID;
@@ -77,7 +85,7 @@ class _TextExportScreenState extends State<TextExportScreen>
           LocalVersionProvider,
           CipherProvider,
           SectionProvider,
-          ({String chordPro, String songText})
+          ({String chordPro, String songText, Cipher cipher})
         >(
           selector: (context, localVer, ciph, sect) {
             final version = localVer.getVersion(widget.versionID);
@@ -105,13 +113,14 @@ class _TextExportScreenState extends State<TextExportScreen>
             _chordPro = chordPro;
             _holyrics = holyrics;
 
-            return (chordPro: chordPro, songText: holyrics);
+            return (chordPro: chordPro, songText: holyrics, cipher: cipher);
           },
           builder: (context, s, child) {
             return Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
                 child: Column(
+                  spacing: 8,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Expanded(
@@ -137,8 +146,7 @@ class _TextExportScreenState extends State<TextExportScreen>
                     FilledTextButton(
                       text: l10n.share,
                       icon: Icons.edit_document,
-                      isDark: true,
-                      onPressed: _shareAsDoc(),
+                      onPressed: _shareAsDoc(s.cipher),
                     ),
                   ],
                 ),
@@ -172,9 +180,22 @@ class _TextExportScreenState extends State<TextExportScreen>
     });
   }
 
-  VoidCallback _shareAsDoc() {
-    return () {
+  VoidCallback _shareAsDoc(Cipher cipher) {
+    return () async {
       final textToShare = _tabController.index == 0 ? _holyrics : _chordPro;
+      final fileName = "${cipher.title}.txt";
+
+      try {
+        final dir = await getTemporaryDirectory();
+        final filePath = "${dir.path}/$fileName";
+        final file = File(filePath);
+
+        await file.writeAsString(textToShare);
+
+        await SharePlus.instance.share(ShareParams(files: [XFile(filePath)]));
+      } catch (e) {
+        debugPrint(e.toString());
+      }
     };
   }
 }
