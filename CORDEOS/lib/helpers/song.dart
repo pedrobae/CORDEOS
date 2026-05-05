@@ -69,6 +69,7 @@ class SongHelper {
     Cipher cipher,
     Version version,
     Map<int, Section> sections,
+    String Function(String) transposeChord,
   ) {
     final buffer = StringBuffer();
 
@@ -94,6 +95,7 @@ class SongHelper {
         sections[key]!,
         cipher.musicKey,
         version.transposedKey ?? cipher.musicKey,
+        transposeChord,
       );
       buffer.writeln();
     }
@@ -133,6 +135,7 @@ class SongHelper {
     Section section,
     String originalKey,
     String transposedKey,
+    String Function(String) transposeChord,
   ) {
     final lines = section.contentText.split('\n');
 
@@ -155,7 +158,7 @@ class SongHelper {
             ChordHelper().transposeChord(
               originalKey: originalKey,
               newKey: transposedKey,
-              chord: chord.toString(),
+              chord: transposeChord(chord.toString()),
             ),
           );
           if (i < line.length && line[i] != ']') lyricLine.write(line[i]);

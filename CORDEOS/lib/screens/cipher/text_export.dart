@@ -1,12 +1,13 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:cordeos/models/domain/playlist/playlist_item.dart';
+import 'package:cordeos/providers/playlist/playlist_provider.dart';
+import 'package:cordeos/providers/transposition_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:cordeos/helpers/song.dart';
 
 import 'package:cordeos/l10n/app_localizations.dart';
-
-import 'package:cordeos/models/domain/cipher/cipher.dart';
 
 import 'package:provider/provider.dart';
 import 'package:cordeos/providers/cipher/cipher_provider.dart';
@@ -20,9 +21,12 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 class TextExportScreen extends StatefulWidget {
-  final int versionID;
+  final int? versionID;
+  final int? playlistID;
 
-  const TextExportScreen({super.key, required this.versionID});
+  TextExportScreen({super.key, this.versionID, this.playlistID}) {
+    assert((versionID != null || playlistID != null));
+  }
 
   @override
   State<TextExportScreen> createState() => _TextExportScreenState();
@@ -81,39 +85,80 @@ class _TextExportScreenState extends State<TextExportScreen>
             Tab(text: 'ChordPro'),
           ],
         ),
-        Selector3<
+        Selector5<
+          TranspositionProvider,
+          PlaylistProvider,
           LocalVersionProvider,
           CipherProvider,
           SectionProvider,
-          ({String chordPro, String songText, Cipher cipher})
+          ({String chordPro, String songText, String fileName})
         >(
-          selector: (context, localVer, ciph, sect) {
-            final version = localVer.getVersion(widget.versionID);
-            if (version == null) {
-              throw Exception('Couldnt find version ${widget.versionID}');
+          selector: (context, trans, play, localVer, ciph, sect) {
+            String fileName = '';
+            final versionIDs = <int>[];
+            if (widget.versionID != null) {
+              versionIDs.add(widget.versionID!);
             }
-            final cipher = ciph.getCipher(version.cipherID);
-            if (cipher == null) {
-              throw Exception('Couldnt find cipher ${version.cipherID}');
+
+            if (widget.playlistID != null) {
+              final playlist = play.getPlaylist(widget.playlistID!);
+
+              if (playlist == null) {
+                throw Exception(
+                  'Playlist not found for ID: ${widget.playlistID}',
+                );
+              }
+              fileName = playlist.name;
+
+              for (final item in playlist.items) {
+                switch (item.type) {
+                  case PlaylistItemType.version:
+                    versionIDs.add(item.contentId!);
+                    break;
+                  case PlaylistItemType.flowItem:
+                    //TODO-EXPORT FLOW ITEM
+                    break;
+                }
+              }
             }
-            final sections = sect.getSections(widget.versionID);
 
-            final chordPro = SongHelper.convertToChordPro(
-              cipher,
-              version,
-              sections,
-            );
+            final chordPros = <String>[];
+            final holyricss = <String>[];
 
-            final holyrics = SongHelper.convertToRegularText(
-              cipher,
-              version,
-              sections,
-            );
+            for (final versionID in versionIDs) {
+              final version = localVer.getVersion(versionID);
+              if (version == null) {
+                debugPrint('Version not found for ID: $versionID');
+                continue;
+              }
+              final cipher = ciph.getCipher(version.cipherID);
+              if (cipher == null) {
+                debugPrint('Cipher not found for ID: $versionID');
+                continue;
+              }
+              final sections = sect.getSections(versionID);
+              final transposeChord = (String chord) => trans.transposeChord(
+                chord,
+                cipher.musicKey,
+                version.transposedKey,
+              );
+              chordPros.add(
+                SongHelper.convertToChordPro(cipher, version, sections),
+              );
+              holyricss.add(
+                SongHelper.convertToRegularText(
+                  cipher,
+                  version,
+                  sections,
+                  transposeChord,
+                ),
+              );
+            }
 
-            _chordPro = chordPro;
-            _holyrics = holyrics;
+            final chordPro = chordPros.join('\f');
+            final holyrics = holyricss.join('\f');
 
-            return (chordPro: chordPro, songText: holyrics, cipher: cipher);
+            return (chordPro: chordPro, songText: holyrics, fileName: fileName);
           },
           builder: (context, s, child) {
             return Expanded(
@@ -146,7 +191,7 @@ class _TextExportScreenState extends State<TextExportScreen>
                     FilledTextButton(
                       text: l10n.share,
                       icon: Icons.edit_document,
-                      onPressed: _shareAsDoc(s.cipher),
+                      onPressed: _shareAsDoc(s.fileName),
                     ),
                   ],
                 ),
@@ -180,10 +225,10 @@ class _TextExportScreenState extends State<TextExportScreen>
     });
   }
 
-  VoidCallback _shareAsDoc(Cipher cipher) {
+  VoidCallback _shareAsDoc(String name) {
     return () async {
       final textToShare = _tabController.index == 0 ? _holyrics : _chordPro;
-      final fileName = "${cipher.title}.txt";
+      final fileName = "${name}.txt";
 
       try {
         final dir = await getTemporaryDirectory();

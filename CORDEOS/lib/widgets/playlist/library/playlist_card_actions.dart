@@ -9,6 +9,7 @@ import 'package:cordeos/providers/playlist/playlist_provider.dart';
 import 'package:cordeos/providers/user/user_provider.dart';
 import 'package:cordeos/providers/version/local_version_provider.dart';
 import 'package:cordeos/screens/playlist/edit_playlist.dart';
+import 'package:cordeos/widgets/ciphers/library/sheet_export.dart';
 import 'package:cordeos/widgets/common/delete_confirmation.dart';
 import 'package:cordeos/widgets/common/filled_text_button.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +24,7 @@ class PlaylistCardActionsSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
 
     final nav = context.read<NavigationProvider>();
 
@@ -40,9 +42,7 @@ class PlaylistCardActionsSheet extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                AppLocalizations.of(
-                  context,
-                )!.optionsPlaceholder(AppLocalizations.of(context)!.playlist),
+                l10n.optionsPlaceholder(AppLocalizations.of(context)!.playlist),
                 style: textTheme.titleMedium,
               ),
               IconButton(
@@ -53,6 +53,17 @@ class PlaylistCardActionsSheet extends StatelessWidget {
           ),
 
           /// ACTIONS
+          // export
+          FilledTextButton(
+            text: l10n.export,
+            onPressed: () {
+              Navigator.of(context).pop();
+              _openExportSheet(context, playlistID);
+            },
+            trailingIcon: Icons.chevron_right,
+            isDiscrete: true,
+          ),
+
           // rename
           FilledTextButton(
             text: AppLocalizations.of(context)!.renamePlaceholder(''),
@@ -198,5 +209,21 @@ class PlaylistCardActionsSheet extends StatelessWidget {
           break;
       }
     }
+  }
+
+  void _openExportSheet(context, int playlistID) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return BottomSheet(
+          shape: LinearBorder(),
+          onClosing: () {},
+          builder: (context) {
+            return ExportSheet(playlistID: playlistID);
+          },
+        );
+      },
+    );
   }
 }

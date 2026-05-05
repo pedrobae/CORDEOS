@@ -210,15 +210,21 @@ class SectionPlacement {
 
 class PageLayout {
   final List<SectionPlacement> placements;
+  final int snapshotIndex;
+  final bool showHeader;
 
-  const PageLayout({required this.placements});
+  const PageLayout({
+    required this.placements,
+    required this.snapshotIndex,
+    this.showHeader = false,
+  });
 }
 
 /// [CustomPainter] that renders a page preview using pre-computed
 /// [PagePreviewSnapshot] data. Pixel-perfect scaling is handled by
 /// the caller via [LayoutBuilder] — this painter works in logical page units.
 class PagePreviewPainter extends CustomPainter {
-  final PrintPreviewSnapshot snapshot;
+  final List<PrintPreviewSnapshot> snapshots;
   final List<PageLayout> pages;
   final int pageIndex;
 
@@ -229,7 +235,7 @@ class PagePreviewPainter extends CustomPainter {
   final Color shadowColor;
 
   const PagePreviewPainter({
-    required this.snapshot,
+    required this.snapshots,
     required this.pages,
     required this.pageIndex,
     required this.ctx,
@@ -267,16 +273,14 @@ class PagePreviewPainter extends CustomPainter {
     canvas.save();
     canvas.translate(ctx.margin, ctx.margin);
 
-    if (pageIndex == 0) _paintHeader(canvas, snapshot.headerInstructions);
+    final layout = pages[pageIndex];
+    final snapshot = snapshots[layout.snapshotIndex];
 
-    for (final placement in pages[pageIndex].placements) {
+    if (layout.showHeader) _paintHeader(canvas, snapshot.headerInstructions);
+
+    for (final placement in layout.placements) {
       final model = snapshot.sectionModels[placement.sectionKey]!;
-      _paintSectionSlice(
-        canvas,
-        model,
-        placement,
-        snapshot.sectionLabelHeight > 0,
-      );
+      _paintSectionSlice(canvas, model, placement, snapshot);
     }
 
     canvas.restore();
@@ -296,7 +300,7 @@ class PagePreviewPainter extends CustomPainter {
     Canvas canvas,
     SectionPaintModel model,
     SectionPlacement placement,
-    bool showLabel,
+    PrintPreviewSnapshot snapshot,
   ) {
     canvas.save();
     canvas.clipRect(
@@ -310,7 +314,7 @@ class PagePreviewPainter extends CustomPainter {
 
     final label = snapshot.sectionLabelPainters[placement.sectionKey];
     final badge = snapshot.badgeModels[placement.sectionKey];
-    if (showLabel && badge != null && label != null) {
+    if ((snapshot.sectionLabelHeight > 0) && badge != null && label != null) {
       canvas.drawRRect(
         badge.rRect.shift(Offset(placement.xOffset, placement.yOffset)),
         Paint()..color = badge.color,
@@ -360,8 +364,6 @@ class PagePreviewPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(PagePreviewPainter oldDelegate) {
-    return oldDelegate.snapshot != snapshot ||
-        oldDelegate.pages != pages ||
-        oldDelegate.pageIndex != pageIndex;
+    return true;
   }
 }

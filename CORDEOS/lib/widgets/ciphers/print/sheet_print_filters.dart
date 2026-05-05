@@ -88,6 +88,22 @@ class _PrintFiltersState extends State<PrintFilters> {
                         ),
                         _buildFilterToggle(
                           context,
+                          label: l10n.chords,
+                          value: s.showChords,
+                          onChanged: (_) async {
+                            await print.toggleChords();
+                          },
+                        ),
+                        _buildFilterToggle(
+                          context,
+                          label: l10n.lyrics,
+                          value: s.showLyrics,
+                          onChanged: (_) async {
+                            await print.toggleLyrics();
+                          },
+                        ),
+                        _buildFilterToggle(
+                          context,
                           label: l10n.songStructure,
                           value: s.showSongMap,
                           onChanged: (_) async {
@@ -134,22 +150,7 @@ class _PrintFiltersState extends State<PrintFilters> {
                             await print.toggleAnnotations();
                           },
                         ),
-                        _buildFilterToggle(
-                          context,
-                          label: l10n.chords,
-                          value: s.showChords,
-                          onChanged: (_) async {
-                            await print.toggleChords();
-                          },
-                        ),
-                        _buildFilterToggle(
-                          context,
-                          label: l10n.annotations,
-                          value: s.showLyrics,
-                          onChanged: (_) async {
-                            await print.toggleLyrics();
-                          },
-                        ),
+                        
                       ],
                     ),
                   ),

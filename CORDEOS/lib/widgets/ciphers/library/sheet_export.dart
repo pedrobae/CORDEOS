@@ -7,9 +7,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class ExportSheet extends StatelessWidget {
-  final int versionID;
+  final int? versionID;
+  final int? playlistID;
 
-  const ExportSheet({super.key, required this.versionID});
+  ExportSheet({super.key, this.versionID, this.playlistID}) {
+    assert((versionID != null || playlistID != null));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +43,10 @@ class ExportSheet extends StatelessWidget {
             onPressed: () {
               Navigator.of(context).pop();
               context.read<NavigationProvider>().push(
-                () => TextExportScreen(versionID: versionID),
+                () => TextExportScreen(
+                  versionID: versionID,
+                  playlistID: playlistID,
+                ),
               );
             },
             text: l10n.textExport,
@@ -52,7 +58,10 @@ class ExportSheet extends StatelessWidget {
             onPressed: () {
               Navigator.of(context).pop();
               context.read<NavigationProvider>().push(
-                () => PrintPreviewScreen(versionID: versionID),
+                () => PrintPreviewScreen(
+                  versionID: versionID,
+                  playlistID: playlistID,
+                ),
               );
             },
             text: l10n.pdfExport,

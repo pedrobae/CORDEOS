@@ -68,7 +68,7 @@ class PositionService {
     );
 
     final positionMap = TokenPositionMap(
-      lineHeight: ctx.lineHeight,
+      lineHeight: lineHeight,
       contentWidth: ctx.maxWidth,
     );
 

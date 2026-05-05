@@ -109,16 +109,15 @@ class SectionPrintCache {
 }
 
 class HeaderData {
-  String title;
-  String author;
-  String musicKey;
-  int? bpm;
-  Duration duration;
-  List<String> codeSongMap;
-
-  String bpmLabel;
-  String songMapLabel;
-  String durationLabel;
+  final String title;
+  final String author;
+  final String musicKey;
+  final int? bpm;
+  final Duration duration;
+  final String bpmLabel;
+  final String songMapLabel;
+  final String durationLabel;
+  final List<String> codeSongMap;
 
   HeaderData({
     this.bpmLabel = 'BPM',
@@ -138,11 +137,15 @@ class PrintingProvider extends ChangeNotifier {
   static const _builder = TokenizationBuilder();
   static const _positioner = PositionService();
 
-  /// ===== DATA CACHES =====
+  /// ===== VERSION DATA CACHES =====
+  // String -> measurement
   final Map<String, Measurements> _tokenMeasurements = {};
-  final Map<int, SectionPrintCache> _sectionCache = {};
-  final List<int> _songMap = [];
-  final HeaderData _headerData = HeaderData();
+  // versionID -> sectionID -> cache
+  final Map<int, Map<int, SectionPrintCache>> _versionsSectionCache = {};
+  // versionID -> songMap
+  final Map<int, List<int>> _songMaps = {};
+  // versionID -> headerData
+  final Map<int, HeaderData> _headersData = {};
 
   /// ===== STATE SETTINGS =====
   // Filter Settings
@@ -233,189 +236,225 @@ class PrintingProvider extends ChangeNotifier {
   }
 
   void tokenize({
-    required Cipher cipher,
-    required Version version,
-    required Map<int, Section> sections,
-    required String Function(String) transposeChord,
+    required Map<int, Cipher> ciphers,
+    required List<Version> versions,
+    required Map<int, Map<int, Section>> versionsSections,
+    required Map<int, String Function(String)> versionsTransposeChords,
     required BuildContext context,
   }) {
-    _sectionCache.clear();
+    clearCache();
+
     final l10n = AppLocalizations.of(context)!;
 
-    _headerData.title = cipher.title;
-    _headerData.author = cipher.author;
-    _headerData.musicKey = version.transposedKey ?? cipher.musicKey;
-    _headerData.bpm = version.bpm;
-    _headerData.duration = version.duration;
-    _headerData.bpmLabel = l10n.bpm;
-    _headerData.songMapLabel = l10n.songStructure;
-    _headerData.durationLabel = l10n.duration;
+    for (final version in versions) {
+      final cipher = ciphers[version.id];
+      final sections = versionsSections[version.id];
+      final transposeChord = versionsTransposeChords[version.id];
 
-    _songMap.clear();
-    _songMap.addAll(version.songStructure);
-
-    final types = <int, SectionType>{};
-    for (var section in sections.values) {
-      types[section.key] = section.sectionType;
-    }
-    final songMap = <String>[];
-    final badgesData = getSectionBadges(types);
-    for (final key in version.songStructure) {
-      songMap.add(badgesData[key]!.code);
-      final section = sections[key];
-      if (section == null) {
-        throw Exception(
-          'Section with key $key not found for version ID: ${version.id}',
+      if (cipher == null || sections == null || transposeChord == null) {
+        debugPrint(
+          "Couldnt find cipher, or section or transposeCHord for version ${version.id}",
         );
+        continue;
       }
 
-      final tokens = _tokenizer.tokenize(
-        section.contentText,
-        showLyrics: showLyrics,
-        showChords: showChords,
-        transposeChord: transposeChord,
+      _headersData[version.id!] = HeaderData(
+        title: cipher.title,
+        author: cipher.author,
+        musicKey: version.transposedKey ?? cipher.musicKey,
+        bpm: version.bpm,
+        duration: version.duration,
+        songMapLabel: l10n.songStructure,
+        bpmLabel: l10n.bpm,
+        durationLabel: l10n.duration,
       );
 
-      final organized = _tokenizer.organize(tokens);
+      _songMaps[version.id!] = version.songStructure;
 
-      if (!context.mounted) throw Exception('Context is not mounted');
+      _versionsSectionCache[version.id!] = {};
 
-      _sectionCache[key] = SectionPrintCache(
-        key: key,
-        code: badgesData[key]!.code,
-        color: badgesData[key]!.color,
-        label: section.sectionType.localizedLabel(context),
-        type: section.sectionType,
-        tokens: tokens,
-        organized: organized,
-      );
+      final types = <int, SectionType>{};
+      for (var section in sections.values) {
+        types[section.key] = section.sectionType;
+      }
+      final badgesData = getSectionBadges(types);
+      for (final sectionKey in version.songStructure) {
+        final section = sections[sectionKey];
+        if (section == null) {
+          throw Exception(
+            'Section with key $sectionKey not found for version ID: ${version.id}',
+          );
+        }
+
+        final tokens = _tokenizer.tokenize(
+          section.contentText,
+          showLyrics: showLyrics,
+          showChords: showChords,
+          transposeChord: transposeChord,
+        );
+
+        final organized = _tokenizer.organize(tokens);
+
+        if (!context.mounted) throw Exception('Context is not mounted');
+
+        _versionsSectionCache[version.id!]![sectionKey] = SectionPrintCache(
+          key: sectionKey,
+          code: badgesData[sectionKey]!.code,
+          color: badgesData[sectionKey]!.color,
+          label: section.sectionType.localizedLabel(context),
+          type: section.sectionType,
+          tokens: tokens,
+          organized: organized,
+        );
+      }
     }
-    _headerData.codeSongMap = songMap;
   }
 
   Future<void> calculatePositions(double maxWidth) async {
-    for (final cache in _sectionCache.values) {
-      _measureTokens(
-        tokens: cache.tokens,
-        chordStyle: chordStyle,
-        lyricStyle: lyricStyle,
-        measurements: _tokenMeasurements,
-      );
+    for (final sectionCache in _versionsSectionCache.values) {
+      for (final cache in sectionCache.values) {
+        _measureTokens(
+          tokens: cache.tokens,
+          chordStyle: chordStyle,
+          lyricStyle: lyricStyle,
+          measurements: _tokenMeasurements,
+        );
 
-      final lyricHeight = _builder
-          .measureText(text: 'SampleText', style: lyricStyle)
-          .height;
-      final chordHeight = _builder
-          .measureText(text: 'SampleText', style: chordStyle)
-          .height;
+        final lyricHeight = _builder
+            .measureText(text: 'SampleText', style: lyricStyle)
+            .height;
+        final chordHeight = _builder
+            .measureText(text: 'SampleText', style: chordStyle)
+            .height;
 
-      cache.positions = _positioner.calculateTokenPositions(
-        organizedTokens: cache.organized,
-        measurements: _tokenMeasurements,
-        lyricStyle: lyricStyle,
-        chordStyle: chordStyle,
-        maxWidth: maxWidth,
-        chordHeight: chordHeight,
-        lyricHeight: lyricHeight,
-        isEditMode: false,
-        heightSpacing: heightSpacing,
-        letterSpacing: letterSpacing,
-        minChordSpacing: minChordSpacing,
-        showChords: showChords,
-        showLyrics: showLyrics,
-      );
+        cache.positions = _positioner.calculateTokenPositions(
+          organizedTokens: cache.organized,
+          measurements: _tokenMeasurements,
+          lyricStyle: lyricStyle,
+          chordStyle: chordStyle,
+          maxWidth: maxWidth,
+          chordHeight: chordHeight,
+          lyricHeight: lyricHeight,
+          isEditMode: false,
+          heightSpacing: heightSpacing,
+          letterSpacing: letterSpacing,
+          minChordSpacing: minChordSpacing,
+          showChords: showChords,
+          showLyrics: showLyrics,
+        );
+      }
     }
   }
 
-  PrintPreviewSnapshot buildPreviewSnapshot(double maxWidth) {
-    return PrintPreviewSnapshot.build(
-      songMap: _songMap,
-      sections: _sectionCache,
-      builder: _builder,
-      tokenMeasurements: _tokenMeasurements,
-      headerData: _headerData,
-      ctx: PrintingContext(
-        showHeader: showHeader,
-        showRepeatSections: showRepeatSections,
-        showAnnotations: showAnnotations,
-        showSongMap: showSongMap,
-        showSectionLabels: showSectionLabels,
-        showBpm: showBpm,
-        showDuration: showDuration,
-        showChords: showChords,
-        showLyrics: showLyrics,
-        lyricStyle: lyricStyle,
-        chordStyle: chordStyle,
-        headerStyle: headerSyle,
-        labelStyle: labelStyle,
-        chordLyricSpacing: heightSpacing,
-        heightSpacing: heightSpacing,
-        maxWidth: maxWidth,
-        contentWidth:
-            (maxWidth * columnCount) + ((columnCount - 1) * columnGap),
-      ),
-    );
+  List<PrintPreviewSnapshot> buildPreviewSnapshot(double maxWidth) {
+    final snapshots = <PrintPreviewSnapshot>[];
+    for (final versionKey in _versionsSectionCache.keys) {
+      snapshots.add(
+        PrintPreviewSnapshot.build(
+          songMap: _songMaps[versionKey]!,
+          sections: _versionsSectionCache[versionKey]!,
+          builder: _builder,
+          tokenMeasurements: _tokenMeasurements,
+          headerData: _headersData[versionKey]!,
+          ctx: PrintingContext(
+            showHeader: showHeader,
+            showRepeatSections: showRepeatSections,
+            showAnnotations: showAnnotations,
+            showSongMap: showSongMap,
+            showSectionLabels: showSectionLabels,
+            showBpm: showBpm,
+            showDuration: showDuration,
+            showChords: showChords,
+            showLyrics: showLyrics,
+            lyricStyle: lyricStyle,
+            chordStyle: chordStyle,
+            headerStyle: headerSyle,
+            labelStyle: labelStyle,
+            chordLyricSpacing: heightSpacing,
+            heightSpacing: heightSpacing,
+            maxWidth: maxWidth,
+            contentWidth:
+                (maxWidth * columnCount) + ((columnCount - 1) * columnGap),
+          ),
+        ),
+      );
+    }
+    return snapshots;
   }
 
   /// Calculate the offsets of each section and in which page it sits, as well as the number of pages
   List<PageLayout> layoutPages(
-    PrintPreviewSnapshot snapshot,
+    List<PrintPreviewSnapshot> snapshots,
     double pageHeight,
     double sectionWidth,
   ) {
     final pages = <PageLayout>[];
-    final cursor = _LayoutCursor(
-      headerHeight: showHeader ? snapshot.headerBlockHeight + headerGap : 0,
-      columnWidth: sectionWidth + columnGap,
-    );
-
-    final contentHeight = pageHeight - 2 * margin;
-
-    final placements = <SectionPlacement>[];
-
-    final seenKeys = <int>{};
-    for (final key in snapshot.songMap) {
-      if (seenKeys.contains(key) && !showRepeatSections) {
-        continue;
-      }
-      seenKeys.add(key);
-
-      final model = snapshot.sectionModels[key]!;
-      final sectionBlockHeight =
-          model.size.height +
-          (showSectionLabels ? snapshot.sectionLabelHeight : 0);
-
-      if (sectionBlockHeight > contentHeight) {
-        // TODO-Break sections bigger than space
-        // for now skip
-        debugPrint("PRINTING PROVIDER - failed to layout big section");
-      }
-
-      if (cursor.y + sectionBlockHeight > contentHeight) {
-        final newPage = cursor.breakColumn(columnCount);
-
-        if (newPage) {
-          pages.add(PageLayout(placements: List.from(placements)));
-          placements.clear();
-        }
-      }
-
-      placements.add(
-        SectionPlacement(
-          sectionKey: model.key,
-          pageIndex: cursor.pageIndex,
-          columnIndex: cursor.columnIndex,
-          xOffset: cursor.x,
-          yOffset: cursor.y,
-        ),
+    int snapIdx = 0;
+    for (final snapshot in snapshots) {
+      final cursor = _LayoutCursor(
+        headerHeight: showHeader ? snapshot.headerBlockHeight + headerGap : 0,
+        columnWidth: sectionWidth + columnGap,
       );
 
-      cursor.y += sectionBlockHeight + sectionSpacing;
-    }
+      final contentHeight = pageHeight - 2 * margin;
 
-    if (placements.isNotEmpty) {
-      pages.add(PageLayout(placements: List.from(placements)));
-      placements.clear();
+      final placements = <SectionPlacement>[];
+
+      final seenKeys = <int>{};
+      bool firstPage = true;
+      for (final key in snapshot.songMap) {
+        if (seenKeys.contains(key) && !showRepeatSections) {
+          continue;
+        }
+        seenKeys.add(key);
+
+        final model = snapshot.sectionModels[key]!;
+        final sectionBlockHeight =
+            model.size.height +
+            (showSectionLabels ? snapshot.sectionLabelHeight : 0);
+
+        if (sectionBlockHeight > contentHeight) {
+          // TODO-Break sections bigger than space
+          // for now skip
+          debugPrint("PRINTING PROVIDER - failed to layout big section");
+        }
+
+        if (cursor.y + sectionBlockHeight > contentHeight) {
+          final newPage = cursor.breakColumn(columnCount);
+
+          if (newPage) {
+            pages.add(
+              PageLayout(
+                placements: List.from(placements),
+                snapshotIndex: snapIdx,
+                showHeader: firstPage,
+              ),
+            );
+            placements.clear();
+            firstPage = false;
+          }
+        }
+
+        placements.add(
+          SectionPlacement(
+            sectionKey: model.key,
+            pageIndex: cursor.pageIndex,
+            columnIndex: cursor.columnIndex,
+            xOffset: cursor.x,
+            yOffset: cursor.y,
+          ),
+        );
+
+        cursor.y += sectionBlockHeight + sectionSpacing;
+      }
+
+      if (placements.isNotEmpty) {
+        pages.add(
+          PageLayout(placements: List.from(placements), snapshotIndex: snapIdx),
+        );
+        placements.clear();
+      }
+      snapIdx++;
     }
 
     return pages;
@@ -580,7 +619,7 @@ class PrintingProvider extends ChangeNotifier {
 
   Future<Uint8List> generatePDF(
     List<PageLayout> pages,
-    PrintPreviewSnapshot snapshot,
+    List<PrintPreviewSnapshot> snapshots,
     double pageWidth,
   ) async {
     final document = PdfDocument();
@@ -592,17 +631,18 @@ class PrintingProvider extends ChangeNotifier {
 
     // Pre-load all fonts needed for this PDF
     final fontCache = <String, PdfFont>{};
-    await _preloadFonts(snapshot, fontCache, ratio);
+    await _preloadFonts(snapshots, fontCache, ratio);
 
     for (int pageIdx = 0; pageIdx < pages.length; pageIdx++) {
       final pageLayout = pages[pageIdx];
+      final snapshot = snapshots[pageLayout.snapshotIndex];
       final page = document.pages.add();
 
       // Start drawing at top-left with margins
       double currentY = 0;
 
       // DRAW HEADER (only on first page)
-      if (pageIdx == 0 && snapshot.headerBlockHeight > 0) {
+      if (pageLayout.showHeader && snapshot.headerBlockHeight > 0) {
         for (final instruction in snapshot.headerInstructions) {
           final scaledX = instruction.offset.dx * ratio;
           final scaledY = currentY + (instruction.offset.dy * ratio);
@@ -661,63 +701,64 @@ class PrintingProvider extends ChangeNotifier {
 
   /// Pre-load all fonts used in the snapshot to cache them
   Future<void> _preloadFonts(
-    PrintPreviewSnapshot snapshot,
+    List<PrintPreviewSnapshot> snapshots,
     Map<String, PdfFont> fontCache,
     double ratio,
   ) async {
     final fontKeys = <String>{};
-
-    // Collect fonts from header
-    for (final instruction in snapshot.headerInstructions) {
-      final fontName = instruction.style.fontFamily ?? 'OpenSans';
-      final isBold = instruction.style.fontWeight == FontWeight.bold;
-      final isItalic = instruction.style.fontStyle == FontStyle.italic;
-      final size = instruction.style.fontSize! * ratio;
-      fontKeys.add('${fontName}_${isBold}_${isItalic}_${size}');
-    }
-
-    // Collect fonts from sections
-    for (final model in snapshot.sectionModels.values) {
-      for (final instruction in model.textInstructions) {
+    for (final snapshot in snapshots) {
+      // Collect fonts from header
+      for (final instruction in snapshot.headerInstructions) {
         final fontName = instruction.style.fontFamily ?? 'OpenSans';
         final isBold = instruction.style.fontWeight == FontWeight.bold;
         final isItalic = instruction.style.fontStyle == FontStyle.italic;
         final size = instruction.style.fontSize! * ratio;
+        fontKeys.add('${fontName}_${isBold}_${isItalic}_${size}');
+      }
+
+      // Collect fonts from sections
+      for (final model in snapshot.sectionModels.values) {
+        for (final instruction in model.textInstructions) {
+          final fontName = instruction.style.fontFamily ?? 'OpenSans';
+          final isBold = instruction.style.fontWeight == FontWeight.bold;
+          final isItalic = instruction.style.fontStyle == FontStyle.italic;
+          final size = instruction.style.fontSize! * ratio;
+          fontKeys.add('${fontName}_${isBold}_${isItalic}_$size');
+        }
+      }
+
+      for (final model in snapshot.badgeModels.values) {
+        final style = model.style;
+        final fontName = style.fontFamily ?? 'OpenSans';
+        final isBold = style.fontWeight == FontWeight.bold;
+        final isItalic = style.fontStyle == FontStyle.italic;
+        final size = style.fontSize! * ratio;
         fontKeys.add('${fontName}_${isBold}_${isItalic}_$size');
       }
-    }
 
-    for (final model in snapshot.badgeModels.values) {
-      final style = model.style;
-      final fontName = style.fontFamily ?? 'OpenSans';
-      final isBold = style.fontWeight == FontWeight.bold;
-      final isItalic = style.fontStyle == FontStyle.italic;
-      final size = style.fontSize! * ratio;
-      fontKeys.add('${fontName}_${isBold}_${isItalic}_$size');
-    }
+      for (final model in snapshot.sectionLabelPainters.values) {
+        final style = model.style;
+        final fontName = style.fontFamily ?? 'OpenSans';
+        final isBold = style.fontWeight == FontWeight.bold;
+        final isItalic = style.fontStyle == FontStyle.italic;
+        final size = style.fontSize! * ratio;
+        fontKeys.add('${fontName}_${isBold}_${isItalic}_$size');
+      }
 
-    for (final model in snapshot.sectionLabelPainters.values) {
-      final style = model.style;
-      final fontName = style.fontFamily ?? 'OpenSans';
-      final isBold = style.fontWeight == FontWeight.bold;
-      final isItalic = style.fontStyle == FontStyle.italic;
-      final size = style.fontSize! * ratio;
-      fontKeys.add('${fontName}_${isBold}_${isItalic}_$size');
-    }
-
-    // Load all fonts
-    for (final key in fontKeys) {
-      final splitKey = key.split('_');
-      try {
-        final font = await getPdfFont(
-          splitKey[0],
-          double.tryParse(splitKey[3]) ?? 0,
-          isBold: splitKey[1] == 'true',
-          isItalic: splitKey[2] == 'true',
-        );
-        fontCache[key] = font;
-      } catch (e) {
-        debugPrint('Failed to preload font ${splitKey[0]}: $e');
+      // Load all fonts
+      for (final key in fontKeys) {
+        final splitKey = key.split('_');
+        try {
+          final font = await getPdfFont(
+            splitKey[0],
+            double.tryParse(splitKey[3]) ?? 0,
+            isBold: splitKey[1] == 'true',
+            isItalic: splitKey[2] == 'true',
+          );
+          fontCache[key] = font;
+        } catch (e) {
+          debugPrint('Failed to preload font ${splitKey[0]}: $e');
+        }
       }
     }
   }
@@ -924,5 +965,11 @@ class PrintingProvider extends ChangeNotifier {
       (color.g * 255).round(),
       (color.b * 255).round(),
     );
+  }
+
+  void clearCache() {
+    _versionsSectionCache.clear();
+    _songMaps.clear();
+    _headersData.clear();
   }
 }
