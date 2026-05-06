@@ -241,6 +241,7 @@ class _MetadataTabState extends State<MetadataTab> {
               hint: _getHint(field),
               controller: _getController(field),
               isEnabled: widget.isEnabled,
+              textCapitalization: TextCapitalization.words,
             ),
           },
       ],

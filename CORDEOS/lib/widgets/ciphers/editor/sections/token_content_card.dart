@@ -154,46 +154,60 @@ class _TokenContentCardState extends State<TokenContentCard> {
                     SectionBadge(sectionBadgeData: widget.sectionBadgeData),
 
                     /// Section Type label
-                    Expanded(
-                      child: Text(
-                        s.section!.contentType,
-                        style: textTheme.bodyLarge,
-                      ),
-                    ),
+                    Text(s.section!.contentType, style: textTheme.bodyLarge),
 
                     /// Delete icon (only visible when dragging)
-                    Selector<
-                      TokenProvider,
-                      ({bool isDragging, Function(ContentToken) removeChord})
-                    >(
-                      selector: (context, tokenProv) => (
-                        isDragging: tokenProv.isDragging,
-                        removeChord: _removeChord(_tokensKey!),
-                      ),
-                      builder: (context, s, child) {
-                        return s.isDragging
-                            ? DragTarget<ContentToken>(
-                                onAcceptWithDetails: (details) => {
-                                  s.removeChord(details.data),
-                                },
-                                builder:
-                                    (context, candidateData, rejectedData) {
-                                      if (candidateData.isNotEmpty) {
-                                        return Icon(
-                                          Icons.delete,
-                                          color: Colors.red,
-                                          size: 28,
-                                        );
-                                      }
-                                      return Icon(
-                                        Icons.delete,
-                                        color: Colors.grey,
-                                        size: 28,
-                                      );
-                                    },
-                              )
-                            : SizedBox(width: 28);
-                      },
+                    Expanded(
+                      child:
+                          Selector<
+                            TokenProvider,
+                            ({
+                              bool isDragging,
+                              Function(ContentToken) removeChord,
+                            })
+                          >(
+                            selector: (context, tokenProv) => (
+                              isDragging: tokenProv.isDragging,
+                              removeChord: _removeChord(_tokensKey!),
+                            ),
+                            builder: (context, s, child) {
+                              return s.isDragging
+                                  ? DragTarget<ContentToken>(
+                                      onAcceptWithDetails: (details) => {
+                                        s.removeChord(details.data),
+                                      },
+                                      builder:
+                                          (
+                                            context,
+                                            candidateData,
+                                            rejectedData,
+                                          ) {
+                                            if (candidateData.isNotEmpty) {
+                                              return Align(
+                                                alignment: AlignmentGeometry
+                                                    .centerRight,
+                                                child: Icon(
+                                                  Icons.delete,
+                                                  color: Colors.red,
+                                                  size: 28,
+                                                ),
+                                              );
+                                            }
+                                            return Align(
+                                              alignment:
+                                                  AlignmentGeometry.centerRight,
+
+                                              child: Icon(
+                                                Icons.delete,
+                                                color: Colors.grey,
+                                                size: 28,
+                                              ),
+                                            );
+                                          },
+                                    )
+                                  : SizedBox(width: 28);
+                            },
+                          ),
                     ),
 
                     /// Edit Section button

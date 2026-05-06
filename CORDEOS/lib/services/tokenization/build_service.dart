@@ -147,6 +147,7 @@ class TokenizationBuilder {
     required double maxWidth,
     required double lineHeight,
     required double chordHeight,
+    required double lyricHeight,
     required Color chordTargetColor,
     required Color surfaceColor,
     required Color onSurfaceColor,
@@ -248,6 +249,7 @@ class TokenizationBuilder {
               wordWidgets.add(
                 TokenWidget(
                   widget: buildDraggableChord(
+                    lyricsHeight: lyricHeight,
                     token: token,
                     contentColor: contentColor,
                     onContentColor: onContentColor,
@@ -348,6 +350,7 @@ class TokenizationBuilder {
     required Color onContentColor,
     required TextStyle chordStyle,
     required bool isEnabled,
+    required double lyricsHeight,
     required Function() toggleDrag,
   }) {
     // ChordTokens
@@ -358,11 +361,13 @@ class TokenizationBuilder {
       chordStyle: chordStyle,
     );
 
-    final dimChordWidget = ChordToken(
-      token: token,
-      sectionColor: contentColor.withValues(alpha: .5),
-      chordStyle: chordStyle,
-      textColor: onContentColor,
+    final feedback = Container(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: contentColor.withValues(alpha: .5),
+      ),
+      width: 10,
+      height: 10,
     );
 
     // GestureDetector to handle long press to drag transition
@@ -371,12 +376,12 @@ class TokenizationBuilder {
             data: token,
             onDragStarted: toggleDrag,
             onDragEnd: (details) => toggleDrag(),
-            feedback: Material(
-              color: Colors.transparent,
-              child: dimChordWidget,
-            ),
+            feedback: Material(color: Colors.transparent, child: feedback),
             childWhenDragging: SizedBox.shrink(),
             child: chordWidget,
+            dragAnchorStrategy: (draggable, context, position) =>
+                Offset(5, lyricsHeight),
+            feedbackOffset: Offset(0, -lyricsHeight),
           )
         : chordWidget;
   }
