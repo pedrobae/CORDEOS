@@ -2,6 +2,7 @@ import 'package:cordeos/l10n/app_localizations.dart';
 import 'package:cordeos/models/domain/playlist/playlist.dart';
 import 'package:cordeos/models/domain/playlist/playlist_item.dart';
 import 'package:cordeos/providers/cipher/cipher_provider.dart';
+import 'package:cordeos/providers/section/section_provider.dart';
 import 'package:cordeos/providers/user/my_auth_provider.dart';
 import 'package:cordeos/providers/playlist/flow_item_provider.dart';
 import 'package:cordeos/providers/navigation_provider.dart';
@@ -56,9 +57,23 @@ class PlaylistCardActionsSheet extends StatelessWidget {
           // export
           FilledTextButton(
             text: l10n.export,
-            onPressed: () {
+            onPressed: () async {
               Navigator.of(context).pop();
-              _openExportSheet(context, playlistID);
+              final play = context.read<PlaylistProvider>();
+              final sect = context.read<SectionProvider>();
+              final localVer = context.read<LocalVersionProvider>();
+
+              final playlist = play.getPlaylist(playlistID);
+              if (playlist == null)
+                throw Exception("Couldnt get playlist $playlistID");
+              for (final item in playlist.items) {
+                if (item.type == PlaylistItemType.version) {
+                  await localVer.loadVersion(item.contentId!);
+                  await sect.loadSectionsOfVersion(item.contentId!);
+                }
+              }
+
+              if (context.mounted) _openExportSheet(context, playlistID);
             },
             trailingIcon: Icons.chevron_right,
             isDiscrete: true,

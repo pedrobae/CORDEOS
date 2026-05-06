@@ -78,7 +78,7 @@ class LocalScheduleProvider extends ChangeNotifier {
       playlistId: playlistId,
       roles: {},
       shareCode: generateShareCode(),
-      collaborators: []
+      collaborators: [],
     );
     _hasUnsavedChanges = true;
     notifyListeners();
@@ -244,10 +244,13 @@ class LocalScheduleProvider extends ChangeNotifier {
 
     final newRole = Role(id: -1, name: roleName, users: []);
 
-    final newID = await _repo.insertRole(scheduleID, newRole);
-    (_schedules[scheduleID] as Schedule).roles[newID] = newRole.copyWith(
-      id: newID,
-    );
+    if (scheduleID == -1) {
+      // CACHE ONLY
+      schedule.addRole(newRole);
+    } else {
+      final newID = await _repo.insertRole(scheduleID, newRole);
+      schedule.roles[newID] = newRole.copyWith(id: newID);
+    }
     _hasUnsavedChanges = true;
     notifyListeners();
   }

@@ -163,6 +163,19 @@ class Schedule {
       collaborators: collab.toList(),
     );
   }
+
+  void addRole(Role role) {
+    int id = -1;
+    bool foundValidID = false;
+    while (!foundValidID) {
+      if (!roles.keys.contains(-1)) {
+        foundValidID = true;
+      } else {
+        id--;
+      }
+    }
+    roles[id] = role.copyWith(id: id);
+  }
 }
 
 class Role {
