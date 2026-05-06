@@ -245,26 +245,38 @@ class _ChordPaletteState extends State<ChordPalette> {
     final token = ContentToken(text: chord, type: TokenType.chord);
     final colorScheme = Theme.of(context).colorScheme;
 
+    final painter = TextPainter(
+      text: TextSpan(text: chord, style: laySet.lyricStyle),
+      maxLines: 1,
+      textDirection: TextDirection.ltr,
+    )..layout();
+    final textHeight = painter.size.height;
+
     return Draggable<ContentToken>(
       data: token,
       feedback: Material(
         color: Colors.transparent,
-        child: ChordToken(
-          token: token,
-          sectionColor: colorScheme.onSurface.withValues(alpha: .7),
-          chordStyle: laySet.chordStyle,
-          textColor: colorScheme.surface,
+        child: Container(
+          decoration: BoxDecoration(
+            color: colorScheme.onSurface.withValues(alpha: .5),
+            shape: BoxShape.circle,
+          ),
+          width: 10,
+          height: 10,
         ),
       ),
       childWhenDragging: Opacity(
         opacity: 0.3,
         child: ChordToken(
           token: token,
-          sectionColor: colorScheme.onSurface.withValues(alpha: .4),
+          sectionColor: colorScheme.onSurface.withValues(alpha: .5),
           chordStyle: laySet.chordStyle,
           textColor: colorScheme.surface,
         ),
       ),
+      feedbackOffset: Offset(0, -textHeight),
+      dragAnchorStrategy: (draggable, context, position) =>
+          Offset(5, textHeight),
       child: ChordToken(
         token: token,
         sectionColor: colorScheme.onSurface,
