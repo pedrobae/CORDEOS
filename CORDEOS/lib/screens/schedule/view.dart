@@ -1,4 +1,6 @@
+import 'package:cordeos/models/domain/playlist/playlist.dart';
 import 'package:cordeos/providers/playlist/flow_item_provider.dart';
+import 'package:cordeos/providers/schedule/cloud_schedule_provider.dart';
 import 'package:cordeos/providers/section/section_provider.dart';
 import 'package:cordeos/providers/selection_provider.dart';
 import 'package:cordeos/providers/user/my_auth_provider.dart';
@@ -29,27 +31,34 @@ import 'package:cordeos/widgets/schedule/create_edit/edit_roles.dart';
 import 'package:cordeos/widgets/schedule/status_chip.dart';
 
 class ViewScheduleScreen extends StatefulWidget {
-  final int scheduleId;
+  final dynamic scheduleID;
 
-  const ViewScheduleScreen({super.key, required this.scheduleId});
+  ViewScheduleScreen({super.key, required this.scheduleID}) {
+    assert(scheduleID is String || scheduleID is int);
+  }
 
   @override
   State<ViewScheduleScreen> createState() => _ViewScheduleScreenState();
 }
 
 class _ViewScheduleScreenState extends State<ViewScheduleScreen> {
+  late bool _isCloud;
   bool _isPublishing = false;
 
   @override
   void initState() {
     super.initState();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final localScheduleProvider = context.read<LocalScheduleProvider>();
-      final playlistProvider = context.read<PlaylistProvider>();
+    _isCloud = widget.scheduleID is String;
 
-      final schedule = localScheduleProvider.getSchedule(widget.scheduleId)!;
-      playlistProvider.loadPlaylist(schedule.playlistId);
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!_isCloud) {
+        final localSch = context.read<LocalScheduleProvider>();
+        final play = context.read<PlaylistProvider>();
+
+        final schedule = localSch.getSchedule(widget.scheduleID)!;
+        play.loadPlaylist(schedule.playlistId);
+      }
     });
   }
 
@@ -58,115 +67,146 @@ class _ViewScheduleScreenState extends State<ViewScheduleScreen> {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
-    final nav = Provider.of<NavigationProvider>(context, listen: false);
+    final nav = context.read<NavigationProvider>();
+    final localSch = context.read<LocalScheduleProvider>();
 
-    return Consumer2<LocalScheduleProvider, PlaylistProvider>(
-      builder: (context, localSch, play, child) {
-        final schedule = localSch.getSchedule(widget.scheduleId);
-
-        return Scaffold(
-          appBar: AppBar(
-            title: Text(
-              AppLocalizations.of(
-                context,
-              )!.viewPlaceholder(AppLocalizations.of(context)!.schedule),
-              style: textTheme.titleMedium,
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          AppLocalizations.of(
+            context,
+          )!.viewPlaceholder(AppLocalizations.of(context)!.schedule),
+          style: textTheme.titleMedium,
+        ),
+        leading: BackButton(onPressed: () => nav.attemptPop(context)),
+        actions: [
+          if (!_isCloud)
+            IconButton(
+              icon: const Icon(Icons.edit),
+              onPressed: () {
+                nav.push(
+                  () => EditDetails(scheduleID: widget.scheduleID),
+                  changeDetector: () => localSch.hasUnsavedChanges,
+                  onChangeDiscarded: () =>
+                      localSch.loadSchedule(widget.scheduleID),
+                  showBottomNavBar: true,
+                );
+              },
             ),
-            leading: BackButton(onPressed: () => nav.attemptPop(context)),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.edit),
-                onPressed: () {
-                  nav.push(
-                    () => EditDetails(scheduleID: widget.scheduleId),
-                    changeDetector: () => localSch.hasUnsavedChanges,
-                    onChangeDiscarded: () =>
-                        localSch.loadSchedule(widget.scheduleId),
-                    showBottomNavBar: true,
-                  );
-                },
-              ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        child: Container(
+          decoration: BoxDecoration(
+            border: Border(
+              top: BorderSide(color: colorScheme.surfaceContainerLowest),
+            ),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+          child: Column(
+            spacing: 28,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildScheduleDetails(),
+              _buildPlaylistSection(),
+              _buildMembersSection(),
+              if (!_isCloud) _buildPublishButton(),
+              if (_isPublishing) ...[
+                Center(child: CloudDownloadIndicator(isUpload: true)),
+              ],
             ],
           ),
-          body: SingleChildScrollView(
-            child: Container(
-              decoration: BoxDecoration(
-                border: Border(
-                  top: BorderSide(color: colorScheme.surfaceContainerLowest),
-                ),
-              ),
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16.0,
-                vertical: 24.0,
-              ),
-              child: Builder(
-                builder: (context) {
-                  if (schedule == null) {
-                    return Center(child: CircularProgressIndicator());
-                  }
-                  return Column(
-                    spacing: 28,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      _buildScheduleDetails(nav, localSch, schedule),
-                      _buildPlaylistSection(nav, play, schedule),
-                      _buildMembersSection(nav, localSch, schedule),
-                      _buildPublishButton(schedule),
-                      if (_isPublishing) ...[
-                        Center(child: CloudDownloadIndicator(isUpload: true)),
-                      ],
-                    ],
-                  );
-                },
-              ),
-            ),
-          ),
-        );
-      },
+        ),
+      ),
     );
   }
 
-  Widget _buildScheduleDetails(
-    NavigationProvider nav,
-    LocalScheduleProvider localSch,
-    Schedule schedule,
-  ) {
+  Widget _buildScheduleDetails() {
     final textTheme = Theme.of(context).textTheme;
+
+    final nav = context.read<NavigationProvider>();
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.center,
       spacing: 4,
       children: [
-        Expanded(
-          child: Wrap(
-            crossAxisAlignment: WrapCrossAlignment.center,
-            spacing: 16,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+        Selector2<
+          LocalScheduleProvider,
+          CloudScheduleProvider,
+          ({
+            String name,
+            String date,
+            String time,
+            String location,
+            ScheduleState status,
+          })
+        >(
+          selector: (context, localSch, cloudSch) {
+            String name;
+            String date;
+            String time;
+            String location;
+            ScheduleState status;
+
+            if (_isCloud) {
+              final schedule = cloudSch.getSchedule(widget.scheduleID);
+              if (schedule == null)
+                throw Exception(
+                  "Couldnt get cloud schedule ${widget.scheduleID}",
+                );
+              name = schedule.name;
+              date = DateTimeUtils.formatDate(schedule.datetime.toDate());
+              time = DateTimeUtils.formatTime(schedule.datetime.toDate());
+              location = schedule.location;
+              status = schedule.scheduleState;
+            } else {
+              final schedule = localSch.getSchedule(widget.scheduleID);
+              if (schedule == null)
+                throw Exception(
+                  "Couldnt get local schedule ${widget.scheduleID}",
+                );
+              name = schedule.name;
+              date = DateTimeUtils.formatDate(schedule.date);
+              time = DateTimeUtils.formatTime(schedule.date);
+              location = schedule.location;
+              status = schedule.scheduleState;
+            }
+
+            return (
+              name: name,
+              date: date,
+              time: time,
+              location: location,
+              status: status,
+            );
+          },
+          builder: (context, s, child) {
+            return Expanded(
+              child: Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 16,
                 children: [
-                  Text(schedule.name, style: textTheme.titleLarge),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    spacing: 16,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        DateTimeUtils.formatDate(schedule.date),
-                        style: textTheme.bodyMedium,
+                      Text(s.name, style: textTheme.titleLarge),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        spacing: 16,
+                        children: [
+                          Text(s.date, style: textTheme.bodyMedium),
+                          Text(s.time, style: textTheme.bodyMedium),
+                          Text(s.location, style: textTheme.bodyMedium),
+                        ],
                       ),
-                      Text(
-                        DateTimeUtils.formatTime(schedule.date),
-                        style: textTheme.bodyMedium,
-                      ),
-                      Text(schedule.location, style: textTheme.bodyMedium),
                     ],
                   ),
+                  StatusChip(status: s.status),
                 ],
               ),
-              StatusChip(schedule: schedule),
-            ],
-          ),
+            );
+          },
         ),
         IconButton(
           icon: Icon(Icons.play_circle, size: 32),
@@ -176,7 +216,7 @@ class _ViewScheduleScreenState extends State<ViewScheduleScreen> {
               SystemUiMode.immersiveSticky,
             );
             nav.push(
-              () => PlaySchedule(scheduleId: widget.scheduleId),
+              () => PlaySchedule(scheduleId: widget.scheduleID),
               onPopCallback: () async {
                 scroll.clearCache();
                 await SystemChrome.setEnabledSystemUIMode(
@@ -190,18 +230,36 @@ class _ViewScheduleScreenState extends State<ViewScheduleScreen> {
     );
   }
 
-  Widget _buildPlaylistSection(
-    NavigationProvider nav,
-    PlaylistProvider play,
-    Schedule schedule,
-  ) {
+  Widget _buildPlaylistSection() {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Builder(
-      builder: (context) {
-        final playlist = play.getPlaylist(schedule.playlistId);
+    final nav = context.read<NavigationProvider>();
 
+    return Selector3<
+      PlaylistProvider,
+      LocalScheduleProvider,
+      CloudScheduleProvider,
+      Playlist?
+    >(
+      selector: (context, play, localSch, cloudSch) {
+        Playlist? playlist;
+        if (_isCloud) {
+          final schedule = cloudSch.getSchedule(widget.scheduleID);
+          if (schedule == null)
+            throw Exception("Couldnt get cloud schedule ${widget.scheduleID}");
+
+          playlist = schedule.playlist.toDomain(-1);
+        } else {
+          final schedule = localSch.getSchedule(widget.scheduleID);
+          if (schedule == null)
+            throw Exception("Couldnt get local schedule ${widget.scheduleID}");
+
+          playlist = play.getPlaylist(schedule.playlistId);
+        }
+        return playlist;
+      },
+      builder: (context, playlist, child) {
         if (playlist == null) {
           return Center(child: CircularProgressIndicator());
         }
@@ -244,40 +302,43 @@ class _ViewScheduleScreenState extends State<ViewScheduleScreen> {
                   ],
                 ),
               ),
-              SizedBox(
-                width: 75,
-                child: FilledTextButton(
-                  text: AppLocalizations.of(context)!.editPlaceholder(''),
-                  onPressed: () {
-                    final sel = context.read<SelectionProvider>();
-                    final localVer = context.read<LocalVersionProvider>();
-                    final sect = context.read<SectionProvider>();
-                    final flow = context.read<FlowItemProvider>();
+              if (!_isCloud)
+                SizedBox(
+                  width: 75,
+                  child: FilledTextButton(
+                    text: AppLocalizations.of(context)!.editPlaceholder(''),
+                    onPressed: () {
+                      final sel = context.read<SelectionProvider>();
+                      final localVer = context.read<LocalVersionProvider>();
+                      final sect = context.read<SectionProvider>();
+                      final flow = context.read<FlowItemProvider>();
+                      final play = context.read<PlaylistProvider>();
 
-                    nav.push(
-                      () => ViewPlaylistScreen(playlistId: playlist.id),
-                      changeDetector: () {
-                        return play.hasUnsavedChanges || flow.hasUnsavedChanges;
-                      },
-                      onChangeDiscarded: () async {
-                        debugPrint('PLAYLIST VIEW - discarding Changes');
-                        play.loadPlaylist(playlist.id);
-                        for (var id in sel.newlyAddedVersionIds) {
-                          debugPrint('\t - deleting version with id $id');
-                          await localVer.deleteVersion(id);
-                          await sect.deleteSectionsOfVersion(id);
-                        }
-                        sel.clearNewlyAddedVersionIds();
-                        play.clearUnsavedChanges();
-                        flow.deleteCachedCreations();
-                      },
-                      showBottomNavBar: true,
-                    );
-                  },
-                  isDark: true,
-                  isDense: true,
+                      nav.push(
+                        () => ViewPlaylistScreen(playlistId: playlist.id),
+                        changeDetector: () {
+                          return play.hasUnsavedChanges ||
+                              flow.hasUnsavedChanges;
+                        },
+                        onChangeDiscarded: () async {
+                          debugPrint('PLAYLIST VIEW - discarding Changes');
+                          play.loadPlaylist(playlist.id);
+                          for (var id in sel.newlyAddedVersionIds) {
+                            debugPrint('\t - deleting version with id $id');
+                            await localVer.deleteVersion(id);
+                            await sect.deleteSectionsOfVersion(id);
+                          }
+                          sel.clearNewlyAddedVersionIds();
+                          play.clearUnsavedChanges();
+                          flow.deleteCachedCreations();
+                        },
+                        showBottomNavBar: true,
+                      );
+                    },
+                    isDark: true,
+                    isDense: true,
+                  ),
                 ),
-              ),
             ],
           ),
         );
@@ -285,139 +346,167 @@ class _ViewScheduleScreenState extends State<ViewScheduleScreen> {
     );
   }
 
-  Widget _buildMembersSection(
-    NavigationProvider nav,
-    LocalScheduleProvider localSch,
-    Schedule schedule,
-  ) {
-    final textTheme = Theme.of(context).textTheme;
-    final colorScheme = Theme.of(context).colorScheme;
-    final memberCount = _getMemberCount(schedule);
-
-    return Container(
-      padding: const EdgeInsets.all(8.0),
-      decoration: BoxDecoration(
-        border: Border.all(color: colorScheme.surfaceContainerLowest),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${AppLocalizations.of(context)!.roles} & ${AppLocalizations.of(context)!.pluralPlaceholder(AppLocalizations.of(context)!.member)}',
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.primary,
-                  ),
-                ),
-                if (schedule.roles.isEmpty)
-                  Text(
-                    AppLocalizations.of(context)!.noRoles,
-                    style: textTheme.titleMedium,
-                  )
-                else ...[
-                  Text(
-                    (schedule.roles.length == 1)
-                        ? '1 ${AppLocalizations.of(context)!.role}'
-                        : '${schedule.roles.length} ${AppLocalizations.of(context)!.roles}',
-                    style: textTheme.titleMedium,
-                  ),
-                  Text(
-                    (memberCount == 1)
-                        ? '1 ${AppLocalizations.of(context)!.member}'
-                        : '$memberCount ${AppLocalizations.of(context)!.pluralPlaceholder(AppLocalizations.of(context)!.member)}',
-                    style: textTheme.bodyMedium,
-                  ),
-                ],
-              ],
-            ),
-          ),
-          SizedBox(
-            width: 75,
-            child: FilledTextButton(
-              text: AppLocalizations.of(context)!.editPlaceholder(''),
-              onPressed: () {
-                nav.push(
-                  () => EditRoles(scheduleId: widget.scheduleId),
-                  changeDetector: () => localSch.hasUnsavedChanges,
-                  onChangeDiscarded: () =>
-                      localSch.loadSchedule(widget.scheduleId),
-                  showBottomNavBar: true,
-                );
-              },
-              isDark: true,
-              isDense: true,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPublishButton(Schedule schedule) {
-    if (schedule.isPublic == true) {
-      return const SizedBox.shrink();
-    }
-
+  Widget _buildMembersSection() {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
-    return FilledTextButton(
-      isDark: true,
-      text: AppLocalizations.of(context)!.publishPlaceholder(''),
-      onPressed: () {
-        showDialog(
-          context: context,
-          builder: (context) {
-            return Dialog(
-              child: Container(
-                padding: const EdgeInsets.all(16.0),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(0),
-                  color: colorScheme.surface,
-                ),
+    final nav = context.read<NavigationProvider>();
+
+    return Selector2<LocalScheduleProvider, CloudScheduleProvider, List<Role>>(
+      selector: (context, localSch, cloudSch) {
+        List<Role> roles = [];
+        if (_isCloud) {
+          final schedule = cloudSch.getSchedule(widget.scheduleID);
+          if (schedule == null)
+            throw Exception("Couldnt get cloud schedule ${widget.scheduleID}");
+
+          roles = schedule.roles.map((e) => e.toDomain(-1)).toList();
+        } else {
+          final schedule = localSch.getSchedule(widget.scheduleID);
+          if (schedule == null)
+            throw Exception("Couldnt get local schedule ${widget.scheduleID}");
+
+          roles = schedule.roles.values.toList();
+        }
+        return roles;
+      },
+      builder: (context, roles, child) {
+        final memberCount = _getMemberCount(roles);
+        return Container(
+          padding: const EdgeInsets.all(8.0),
+          decoration: BoxDecoration(
+            border: Border.all(color: colorScheme.surfaceContainerLowest),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
                 child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  spacing: 8,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      AppLocalizations.of(context)!.publishPlaceholder(
-                        AppLocalizations.of(context)!.schedule,
-                      ),
-                      style: textTheme.headlineSmall,
-                      textAlign: TextAlign.center,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 28),
-                      child: Text(
-                        AppLocalizations.of(context)!.publishScheduleWarning,
-                        style: textTheme.bodySmall,
-                        textAlign: TextAlign.center,
+                      '${AppLocalizations.of(context)!.roles} & ${AppLocalizations.of(context)!.pluralPlaceholder(AppLocalizations.of(context)!.member)}',
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.primary,
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    FilledTextButton(
-                      text: AppLocalizations.of(
-                        context,
-                      )!.publishPlaceholder(''),
-                      isDark: true,
-                      onPressed: () async {
-                        final nav = context.read<NavigationProvider>();
-                        Navigator.of(context).pop();
-                        await _publishSchedule();
-                        nav.pop();
-                      },
-                    ),
-                    FilledTextButton(
-                      text: AppLocalizations.of(context)!.cancel,
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
+                    if (roles.isEmpty)
+                      Text(
+                        AppLocalizations.of(context)!.noRoles,
+                        style: textTheme.titleMedium,
+                      )
+                    else ...[
+                      Text(
+                        (roles.length == 1)
+                            ? '1 ${AppLocalizations.of(context)!.role}'
+                            : '${roles.length} ${AppLocalizations.of(context)!.roles}',
+                        style: textTheme.titleMedium,
+                      ),
+                      Text(
+                        (memberCount == 1)
+                            ? '1 ${AppLocalizations.of(context)!.member}'
+                            : '$memberCount ${AppLocalizations.of(context)!.pluralPlaceholder(AppLocalizations.of(context)!.member)}',
+                        style: textTheme.bodyMedium,
+                      ),
+                    ],
                   ],
                 ),
               ),
+              if (!_isCloud)
+                SizedBox(
+                  width: 75,
+                  child: FilledTextButton(
+                    text: AppLocalizations.of(context)!.editPlaceholder(''),
+                    onPressed: () {
+                      final localSch = context.read<LocalScheduleProvider>();
+                      nav.push(
+                        () => EditRoles(scheduleId: widget.scheduleID),
+                        changeDetector: () => localSch.hasUnsavedChanges,
+                        onChangeDiscarded: () =>
+                            localSch.loadSchedule(widget.scheduleID),
+                        showBottomNavBar: true,
+                      );
+                    },
+                    isDark: true,
+                    isDense: true,
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildPublishButton() {
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+    return Selector<LocalScheduleProvider, bool>(
+      selector: (context, localSch) =>
+          localSch.getSchedule(widget.scheduleID)!.isPublic,
+      builder: (context, isPublic, child) {
+        if (isPublic) {
+          return const SizedBox.shrink();
+        }
+
+        return FilledTextButton(
+          isDark: true,
+          text: AppLocalizations.of(context)!.publishPlaceholder(''),
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder: (context) {
+                return Dialog(
+                  child: Container(
+                    padding: const EdgeInsets.all(16.0),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(0),
+                      color: colorScheme.surface,
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      spacing: 8,
+                      children: [
+                        Text(
+                          AppLocalizations.of(context)!.publishPlaceholder(
+                            AppLocalizations.of(context)!.schedule,
+                          ),
+                          style: textTheme.headlineSmall,
+                          textAlign: TextAlign.center,
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 28),
+                          child: Text(
+                            AppLocalizations.of(
+                              context,
+                            )!.publishScheduleWarning,
+                            style: textTheme.bodySmall,
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        FilledTextButton(
+                          text: AppLocalizations.of(
+                            context,
+                          )!.publishPlaceholder(''),
+                          isDark: true,
+                          onPressed: () async {
+                            final nav = context.read<NavigationProvider>();
+                            Navigator.of(context).pop();
+                            await _publishSchedule();
+                            nav.pop();
+                          },
+                        ),
+                        FilledTextButton(
+                          text: AppLocalizations.of(context)!.cancel,
+                          onPressed: () => Navigator.of(context).pop(),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
             );
           },
         );
@@ -425,10 +514,9 @@ class _ViewScheduleScreenState extends State<ViewScheduleScreen> {
     );
   }
 
-  int _getMemberCount(Schedule schedule) {
+  int _getMemberCount(List<Role> roles) {
     int count = 0;
-    final roles = schedule.roles;
-    for (var role in roles.values) {
+    for (var role in roles) {
       final userCount = role.users.length;
       count += userCount;
     }
@@ -444,7 +532,7 @@ class _ViewScheduleScreenState extends State<ViewScheduleScreen> {
     final localSch = context.read<LocalScheduleProvider>();
     final auth = context.read<MyAuthProvider>();
 
-    final schedule = localSch.getSchedule(widget.scheduleId);
+    final schedule = localSch.getSchedule(widget.scheduleID);
 
     if (schedule == null) {
       debugPrint('Error: Schedule not found for publishing');
@@ -452,7 +540,7 @@ class _ViewScheduleScreenState extends State<ViewScheduleScreen> {
     }
 
     await syncService.upsertScheduleToCloud(schedule, auth.id!);
-    await localSch.loadSchedule(widget.scheduleId);
+    await localSch.loadSchedule(widget.scheduleID);
 
     setState(() {
       _isPublishing = false;

@@ -2,6 +2,7 @@ import 'package:cordeos/l10n/app_localizations.dart';
 import 'package:cordeos/models/dtos/schedule_dto.dart';
 import 'package:cordeos/providers/play/auto_scroll_provider.dart';
 import 'package:cordeos/screens/schedule/play.dart';
+import 'package:cordeos/screens/schedule/view.dart';
 import 'package:cordeos/widgets/common/cloud_download_indicator.dart';
 import 'package:cordeos/widgets/schedule/status_chip.dart';
 import 'package:flutter/services.dart';
@@ -50,135 +51,144 @@ class CloudScheduleCard extends StatelessWidget {
           }
         }
 
-        return Container(
-          margin: const EdgeInsets.symmetric(vertical: 4.0),
-          child: Stack(
-            children: [
-              // CLOUD WATERMARK
-              Positioned(
-                right: -20,
-                bottom: -50,
-                child: Icon(
-                  Icons.cloud,
-                  size: 250,
-                  color: colorScheme.surfaceTint,
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.all(8.0),
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: colorScheme.surfaceContainerLowest,
-                    width: 1,
+        return GestureDetector(
+          onTap: () {
+            nav.push(
+              () => ViewScheduleScreen(scheduleID: scheduleId),
+              showBottomNavBar: true,
+            );
+          },
+          child: Container(
+            margin: const EdgeInsets.symmetric(vertical: 4.0),
+            child: Stack(
+              children: [
+                // CLOUD WATERMARK
+                Positioned(
+                  right: -20,
+                  bottom: -50,
+                  child: Icon(
+                    Icons.cloud,
+                    size: 250,
+                    color: colorScheme.surfaceTint,
                   ),
-                  borderRadius: BorderRadius.circular(0),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  spacing: 8,
-                  children: [
-                    Row(
-                      mainAxisSize: MainAxisSize.max,
-                      children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            color: colorScheme.surface.withAlpha(128),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          padding: EdgeInsets.only(right: 8),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // SCHEDULE NAME
-                              Wrap(
-                                spacing: 8,
-                                children: [
-                                  Text(
-                                    s.schedule!.name,
-                                    style: theme.textTheme.titleMedium,
-                                    softWrap: true,
-                                  ),
-                                  StatusChip(
-                                    schedule: s.schedule!.toDomain(
-                                      playlistLocalId: -1,
-                                    ),
-                                  ),
-                                ],
-                              ),
-
-                              // WHEN & WHERE
-                              Wrap(
-                                spacing: 16.0,
-                                children: [
-                                  Text(
-                                    DateTimeUtils.formatDate(
-                                      s.schedule!.datetime.toDate(),
-                                    ),
-                                    style: theme.textTheme.bodyMedium,
-                                  ),
-                                  Text(
-                                    DateTimeUtils.formatTime(
-                                      s.schedule!.datetime.toDate(),
-                                    ),
-                                    style: theme.textTheme.bodyMedium,
-                                  ),
-                                  Text(
-                                    s.schedule!.location,
-                                    style: theme.textTheme.bodyMedium,
-                                  ),
-                                ],
-                              ),
-
-                              // PLAYLIST INFO
-                              Text(
-                                '${AppLocalizations.of(context)!.playlist}: ${s.schedule!.playlist.name}',
-                                style: theme.textTheme.bodyMedium,
-                              ),
-
-                              // YOUR ROLE INFO
-                              Text(
-                                '${AppLocalizations.of(context)!.role}: $userRole',
-                                style: theme.textTheme.bodyMedium,
-                              ),
-                            ],
-                          ),
-                        ),
-                        Spacer(),
-                        if (s.isSyncing) const CloudDownloadIndicator(),
-                        IconButton(
-                          onPressed: () => _openScheduleActionsSheet(context, s.schedule?.ownerFirebaseId),
-                          icon: Icon(Icons.more_vert),
-                        ),
-                      ],
+                Container(
+                  padding: const EdgeInsets.all(8.0),
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: colorScheme.surfaceContainerLowest,
+                      width: 1,
                     ),
+                    borderRadius: BorderRadius.circular(0),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    spacing: 8,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.max,
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              color: colorScheme.surface.withAlpha(128),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            padding: EdgeInsets.only(right: 8),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // SCHEDULE NAME
+                                Wrap(
+                                  spacing: 8,
+                                  children: [
+                                    Text(
+                                      s.schedule!.name,
+                                      style: theme.textTheme.titleMedium,
+                                      softWrap: true,
+                                    ),
+                                    StatusChip(
+                                      status: s.schedule!.scheduleState,
+                                    ),
+                                  ],
+                                ),
 
-                    // BOTTOM BUTTONS
-                    FilledTextButton(
-                      isDark: true,
-                      isDense: true,
-                      onPressed: () async {
-                        final scroll = context.read<ScrollProvider>();
+                                // WHEN & WHERE
+                                Wrap(
+                                  spacing: 16.0,
+                                  children: [
+                                    Text(
+                                      DateTimeUtils.formatDate(
+                                        s.schedule!.datetime.toDate(),
+                                      ),
+                                      style: theme.textTheme.bodyMedium,
+                                    ),
+                                    Text(
+                                      DateTimeUtils.formatTime(
+                                        s.schedule!.datetime.toDate(),
+                                      ),
+                                      style: theme.textTheme.bodyMedium,
+                                    ),
+                                    Text(
+                                      s.schedule!.location,
+                                      style: theme.textTheme.bodyMedium,
+                                    ),
+                                  ],
+                                ),
 
-                        await SystemChrome.setEnabledSystemUIMode(
-                          SystemUiMode.immersiveSticky,
-                        );
+                                // PLAYLIST INFO
+                                Text(
+                                  '${AppLocalizations.of(context)!.playlist}: ${s.schedule!.playlist.name}',
+                                  style: theme.textTheme.bodyMedium,
+                                ),
 
-                        nav.push(
-                          () => PlaySchedule(scheduleId: scheduleId),
-                          onPopCallback: () async {
-                            await SystemChrome.setEnabledSystemUIMode(
-                              SystemUiMode.edgeToEdge,
-                            );
-                            scroll.clearCache();
-                          },
-                        );
-                      },
-                      text: AppLocalizations.of(context)!.play,
-                    ),
-                  ],
+                                // YOUR ROLE INFO
+                                Text(
+                                  '${AppLocalizations.of(context)!.role}: $userRole',
+                                  style: theme.textTheme.bodyMedium,
+                                ),
+                              ],
+                            ),
+                          ),
+                          Spacer(),
+                          if (s.isSyncing) const CloudDownloadIndicator(),
+                          IconButton(
+                            onPressed: () => _openScheduleActionsSheet(
+                              context,
+                              s.schedule?.ownerFirebaseId,
+                            ),
+                            icon: Icon(Icons.more_vert),
+                          ),
+                        ],
+                      ),
+
+                      // BOTTOM BUTTONS
+                      FilledTextButton(
+                        isDark: true,
+                        isDense: true,
+                        onPressed: () async {
+                          final scroll = context.read<ScrollProvider>();
+
+                          await SystemChrome.setEnabledSystemUIMode(
+                            SystemUiMode.immersiveSticky,
+                          );
+
+                          nav.push(
+                            () => PlaySchedule(scheduleId: scheduleId),
+                            onPopCallback: () async {
+                              await SystemChrome.setEnabledSystemUIMode(
+                                SystemUiMode.edgeToEdge,
+                              );
+                              scroll.clearCache();
+                            },
+                          );
+                        },
+                        text: AppLocalizations.of(context)!.play,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },

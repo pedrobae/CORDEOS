@@ -73,7 +73,7 @@ class ScheduleCard extends StatelessWidget {
         return GestureDetector(
           onTap: () {
             nav.push(
-              () => ViewScheduleScreen(scheduleId: scheduleId),
+              () => ViewScheduleScreen(scheduleID: scheduleId),
               showBottomNavBar: true,
             );
           },
@@ -107,7 +107,9 @@ class ScheduleCard extends StatelessWidget {
                                   style: theme.textTheme.titleMedium,
                                   softWrap: true,
                                 ),
-                                StatusChip(schedule: selection.schedule!),
+                                StatusChip(
+                                  status: selection.schedule!.scheduleState,
+                                ),
                               ],
                             ),
 
@@ -236,7 +238,7 @@ class ScheduleCard extends StatelessWidget {
                   final nav = context.read<NavigationProvider>();
                   Navigator.of(context).pop(); // Close the sheet
                   nav.push(
-                    () => ViewScheduleScreen(scheduleId: scheduleId),
+                    () => ViewScheduleScreen(scheduleID: scheduleId),
                     showBottomNavBar: true,
                   );
                 },

@@ -30,6 +30,20 @@ class ScheduleDto {
     required this.collaborators,
   });
 
+  ScheduleState get scheduleState {
+    final date = datetime.toDate();
+    if (DateTime.now().year > date.year ||
+        (DateTime.now().year == date.year &&
+            DateTime.now().month > date.month) ||
+        (DateTime.now().year == date.year &&
+            DateTime.now().month == date.month &&
+            DateTime.now().day > date.day)) {
+      return ScheduleState.completed;
+    } else {
+      return ScheduleState.published;
+    }
+  }
+
   List<PlaylistItem> get items {
     List<PlaylistItem> items = [];
     int position = 0;

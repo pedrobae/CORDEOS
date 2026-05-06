@@ -335,19 +335,7 @@ class ThemeTesterScreen extends StatelessWidget {
                                       'Schedule Name',
                                       style: theme.textTheme.titleMedium,
                                     ),
-                                    StatusChip(
-                                      schedule: Schedule(
-                                        id: -1,
-                                        ownerFirebaseId: '',
-                                        name: '',
-                                        date: DateTime.now(),
-                                        location: '',
-                                        playlistId: -1,
-                                        roles: {},
-                                        shareCode: '',
-                                        collaborators: [],
-                                      ),
-                                    ),
+                                    StatusChip(status: ScheduleState.draft),
                                   ],
                                 ),
 
