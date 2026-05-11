@@ -1,4 +1,5 @@
 import 'package:cordeos/helpers/codes.dart';
+import 'package:cordeos/utils/date_utils.dart';
 
 class FlowItem {
   final int? id;
@@ -18,6 +19,14 @@ class FlowItem {
     required this.duration,
     required this.position,
   });
+
+  String get chordPro {
+    return '{comment: $title - ${DateTimeUtils.formatDuration(duration)}\n{comment: $contentText}\n';
+  }
+
+  String get holyrics {
+    return '//$title - ${DateTimeUtils.formatDuration(duration)}\n//$contentText\n';
+  }
 
   factory FlowItem.fromSqlite(Map<String, dynamic> row) {
     return FlowItem(

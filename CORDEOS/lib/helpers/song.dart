@@ -43,7 +43,8 @@ class SongHelper {
     }
 
     // links
-    if (cipher.links.isNotEmpty ||
+    if ((cipher.links.isNotEmpty &&
+            cipher.links.any((link) => link.trim().isNotEmpty)) ||
         (version.notes != null && version.notes!.isNotEmpty)) {
       buffer.writeln('{comment: ');
       for (final link in cipher.links) {
@@ -65,7 +66,7 @@ class SongHelper {
     return buffer.toString();
   }
 
-  static String convertToRegularText(
+  static String convertToHolyricsText(
     Cipher cipher,
     Version version,
     Map<int, Section> sections,

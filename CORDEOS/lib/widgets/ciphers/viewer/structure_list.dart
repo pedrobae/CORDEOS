@@ -62,46 +62,19 @@ class _StructureListState extends State<StructureList> {
       LocalVersionProvider,
       CloudVersionProvider,
       SectionProvider,
-      ({
-        List<int> filteredStructure,
-        Map<int, SectionBadgeData> badgesData,
-        bool tapEnabled,
-      })
+      ({List<int> songStructure, Map<int, SectionBadgeData> badgesData})
     >(
       selector: (context, laySet, localVer, cloudVer, sect) {
-        final tapEnabled = laySet.showRepeatSections == true;
-
         if (widget.versionID == null) {
-          return (
-            filteredStructure: [],
-            badgesData: {},
-            tapEnabled: tapEnabled,
-          );
+          return (songStructure: [], badgesData: {});
         }
 
         final songStructure = widget.versionID is String
             ? cloudVer.getVersion(widget.versionID)!.songStructure
             : localVer.getSongStructure(widget.versionID);
 
-        final filteredStructure = <int>[];
-        for (var key in songStructure) {
-          final section = sect.getSection(
-            versionKey: widget.versionID,
-            sectionKey: key,
-          );
-          if (laySet.showAnnotations == false &&
-              section?.sectionType == SectionType.annotation) {
-            continue;
-          }
-          if (laySet.showTransitions == false &&
-              isTransition(section?.sectionType)) {
-            continue;
-          }
-          filteredStructure.add(key);
-        }
-
         final sectionTypes = <int, SectionType>{};
-        for (var key in filteredStructure) {
+        for (var key in songStructure) {
           final type = sect
               .getSection(versionKey: widget.versionID, sectionKey: key)
               ?.sectionType;
@@ -113,9 +86,8 @@ class _StructureListState extends State<StructureList> {
         }
 
         return (
-          filteredStructure: filteredStructure,
+          songStructure: songStructure,
           badgesData: getSectionBadges(sectionTypes),
-          tapEnabled: tapEnabled,
         );
       },
       builder: (context, s, child) {
@@ -123,7 +95,7 @@ class _StructureListState extends State<StructureList> {
           padding: const EdgeInsets.symmetric(horizontal: 8.0),
           child: SizedBox(
             width: double.infinity,
-            child: s.filteredStructure.isEmpty
+            child: s.songStructure.isEmpty
                 ? Center(
                     child: Text(
                       AppLocalizations.of(context)!.emptyStructure,
@@ -141,7 +113,7 @@ class _StructureListState extends State<StructureList> {
                         spacing: StructureList.spacing,
                         children: [
                           const SizedBox(),
-                          ...s.filteredStructure.asMap().entries.map((entry) {
+                          ...s.songStructure.asMap().entries.map((entry) {
                             final index = entry.key;
                             final sectionKey = entry.value;
 
@@ -149,14 +121,10 @@ class _StructureListState extends State<StructureList> {
                               index: index,
                               badgeData: s.badgesData[sectionKey]!,
                               onTap: () {
-                                if (s.tapEnabled) {
-                                  scroll.probeScrollToItem(
-                                    state.currentItemIndex,
-                                    index,
-                                  );
-                                } else {
-                                  scroll.currentSectionIndex = index;
-                                }
+                                scroll.probeScrollToItem(
+                                  state.currentItemIndex,
+                                  index,
+                                );
                               },
                             );
                           }),

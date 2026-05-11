@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:cordeos/models/domain/playlist/playlist_item.dart';
+import 'package:cordeos/providers/playlist/flow_item_provider.dart';
 import 'package:cordeos/providers/playlist/playlist_provider.dart';
 import 'package:cordeos/providers/transposition_provider.dart';
 import 'package:flutter/material.dart';
@@ -85,21 +86,31 @@ class _TextExportScreenState extends State<TextExportScreen>
             Tab(text: 'ChordPro'),
           ],
         ),
-        Selector5<
+        Selector6<
           TranspositionProvider,
           PlaylistProvider,
           LocalVersionProvider,
           CipherProvider,
           SectionProvider,
+          FlowItemProvider,
           ({String chordPro, String songText, String fileName})
         >(
-          selector: (context, trans, play, localVer, ciph, sect) {
+          selector: (context, trans, play, localVer, ciph, sect, flow) {
             String fileName = '';
-            final versionIDs = <int>[];
-            if (widget.versionID != null) {
-              versionIDs.add(widget.versionID!);
-            }
+            final chordPros = <String>[];
+            final holyricss = <String>[];
 
+            if (widget.versionID != null) {
+              _extractChordProHolyrics(
+                chordPros,
+                holyricss,
+                widget.versionID!,
+                trans,
+                localVer,
+                ciph,
+                sect,
+              );
+            }
             if (widget.playlistID != null) {
               final playlist = play.getPlaylist(widget.playlistID!);
 
@@ -111,48 +122,36 @@ class _TextExportScreenState extends State<TextExportScreen>
               fileName = playlist.name;
 
               for (final item in playlist.items) {
+                if (item.contentId == null) {
+                  debugPrint('Item has no contentID');
+                  continue;
+                }
+
                 switch (item.type) {
                   case PlaylistItemType.version:
-                    versionIDs.add(item.contentId!);
+                    _extractChordProHolyrics(
+                      chordPros,
+                      holyricss,
+                      item.contentId!,
+                      trans,
+                      localVer,
+                      ciph,
+                      sect,
+                    );
                     break;
                   case PlaylistItemType.flowItem:
-                    //TODO-EXPORT FLOW ITEM
+                    final flowItem = flow.getFlowItem(item.contentId!);
+                    if (flowItem == null) {
+                      debugPrint(
+                        'FlowItem not found for ID: ${item.contentId!}',
+                      );
+                      continue;
+                    }
+                    chordPros.add(flowItem.chordPro);
+                    holyricss.add(flowItem.holyrics);
                     break;
                 }
               }
-            }
-
-            final chordPros = <String>[];
-            final holyricss = <String>[];
-
-            for (final versionID in versionIDs) {
-              final version = localVer.getVersion(versionID);
-              if (version == null) {
-                debugPrint('Version not found for ID: $versionID');
-                continue;
-              }
-              final cipher = ciph.getCipher(version.cipherID);
-              if (cipher == null) {
-                debugPrint('Cipher not found for ID: $versionID');
-                continue;
-              }
-              final sections = sect.getSections(versionID);
-              final transposeChord = (String chord) => trans.transposeChord(
-                chord,
-                cipher.musicKey,
-                version.transposedKey,
-              );
-              chordPros.add(
-                SongHelper.convertToChordPro(cipher, version, sections),
-              );
-              holyricss.add(
-                SongHelper.convertToRegularText(
-                  cipher,
-                  version,
-                  sections,
-                  transposeChord,
-                ),
-              );
             }
 
             final chordPro = chordPros.join('\f');
@@ -200,6 +199,39 @@ class _TextExportScreenState extends State<TextExportScreen>
           },
         ),
       ],
+    );
+  }
+
+  void _extractChordProHolyrics(
+    List<String> chordPros,
+    List<String> holyricss,
+    int versionID,
+    TranspositionProvider trans,
+    LocalVersionProvider localVer,
+    CipherProvider ciph,
+    SectionProvider sect,
+  ) {
+    final version = localVer.getVersion(versionID);
+    if (version == null) {
+      debugPrint('Version not found for ID: ${versionID}');
+      return;
+    }
+    final cipher = ciph.getCipher(version.cipherID);
+    if (cipher == null) {
+      debugPrint('Cipher not found for ID: ${versionID}');
+      return;
+    }
+    final sections = sect.getSections(versionID);
+    final transposeChord = (String chord) =>
+        trans.transposeChord(chord, cipher.musicKey, version.transposedKey);
+    chordPros.add(SongHelper.convertToChordPro(cipher, version, sections));
+    holyricss.add(
+      SongHelper.convertToHolyricsText(
+        cipher,
+        version,
+        sections,
+        transposeChord,
+      ),
     );
   }
 

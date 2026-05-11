@@ -122,7 +122,7 @@ class Version {
       songStructure: songStructure.isNotEmpty
           ? songStructure
           : other.songStructure,
-      transposedKey: transposedKey ?? other.transposedKey,
+      transposedKey: other.transposedKey ?? transposedKey,
       duration: duration != Duration.zero ? duration : other.duration,
       bpm: bpm != 0 ? bpm : other.bpm,
       versionName: versionName.isNotEmpty ? versionName : other.versionName,
