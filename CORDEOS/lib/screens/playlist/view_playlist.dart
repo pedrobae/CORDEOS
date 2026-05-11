@@ -27,8 +27,13 @@ import 'package:provider/provider.dart';
 
 class ViewPlaylistScreen extends StatefulWidget {
   final int playlistId; // Receive the playlist ID from the parent
+  final bool canEdit; // Cannot edit a playlist without ownership
 
-  const ViewPlaylistScreen({super.key, required this.playlistId});
+  const ViewPlaylistScreen({
+    super.key,
+    required this.playlistId,
+    this.canEdit = true,
+  });
 
   @override
   State<ViewPlaylistScreen> createState() => _ViewPlaylistScreenState();
@@ -58,53 +63,61 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
             title: Text(playlist.name, style: textTheme.titleMedium),
             actions: [
               // Play
-              IconButton(
-                icon: Icon(
-                  Icons.play_circle_fill_rounded,
-                  color: colorScheme.onSurface,
-                  size: 30,
-                ),
-                onPressed: () {
-                  final localVer = context.read<LocalVersionProvider>();
-                  final sect = context.read<SectionProvider>();
-                  final state = context.read<PlayStateProvider>();
-                  final scroll = context.read<ScrollProvider>();
+              if (widget.canEdit)
+                IconButton(
+                  icon: Icon(
+                    Icons.play_circle_fill_rounded,
+                    color: colorScheme.onSurface,
+                    size: 30,
+                  ),
+                  onPressed: () {
+                    final localVer = context.read<LocalVersionProvider>();
+                    final sect = context.read<SectionProvider>();
+                    final state = context.read<PlayStateProvider>();
+                    final scroll = context.read<ScrollProvider>();
 
-                  scroll.disableAutoScrollMode();
-                  state.setItemCount(playlist.items.length);
-                  for (var item in playlist.items) {
-                    state.appendItem(item);
-                  }
+                    scroll.disableAutoScrollMode();
+                    state.setItemCount(playlist.items.length);
+                    for (var item in playlist.items) {
+                      state.appendItem(item);
+                    }
 
-                  nav.push(
-                    () => PlayPlaylist(canEdit: true),
-                    changeDetector: () {
-                      return localVer.hasUnsavedChanges ||
-                          sect.hasUnsavedChanges;
-                    },
-                    onChangeDiscarded: () {
-                      for (var item in playlist.items) {
-                        if (item.type == PlaylistItemType.version) {
-                          localVer.loadVersion(item.contentId!);
+                    nav.push(
+                      () => PlayPlaylist(canEdit: true),
+                      changeDetector: () {
+                        return localVer.hasUnsavedChanges ||
+                            sect.hasUnsavedChanges;
+                      },
+                      onChangeDiscarded: () {
+                        for (var item in playlist.items) {
+                          if (item.type == PlaylistItemType.version) {
+                            localVer.loadVersion(item.contentId!);
+                          }
                         }
-                      }
-                    },
-                  );
-                },
-              ),
+                      },
+                    );
+                  },
+                ),
               // Save
-              IconButton(
-                icon: Icon(Icons.save, color: colorScheme.onSurface, size: 30),
-                onPressed: () => _handleSave(playlist, nav),
-              ),
+              if (widget.canEdit)
+                IconButton(
+                  icon: Icon(
+                    Icons.save,
+                    color: colorScheme.onSurface,
+                    size: 30,
+                  ),
+                  onPressed: () => _handleSave(playlist, nav),
+                ),
             ],
           ),
-          floatingActionButton: FloatingActionButton(
-            onPressed: () => _openPlaylistEditSheet(),
-            backgroundColor: colorScheme.onSurface,
-            shape: const CircleBorder(),
-            child: Icon(Icons.add, color: colorScheme.onPrimary),
-          ),
+          floatingActionButton: widget.canEdit
+              ? FloatingActionButton(
+                  onPressed: () => _openPlaylistEditSheet(),
+                  backgroundColor: colorScheme.onSurface,
+                  shape: const CircleBorder(),
+                  child: Icon(Icons.add, color: colorScheme.onPrimary),
+                )
+              : null,
           body: Padding(
             padding: const EdgeInsets.all(16),
             child: playlist.items.isEmpty
@@ -145,19 +158,20 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
         return playlist?.items.length ?? 0;
       },
       builder: (context, itemCount, child) {
-        return ReorderableListView.builder(
-          shrinkWrap: true,
-          proxyDecorator: (child, index, animation) =>
-              Material(type: MaterialType.transparency, child: child),
-          buildDefaultDragHandles: false,
-          physics: const ClampingScrollPhysics(),
-          scrollDirection: Axis.vertical,
-          onReorder: (oldIndex, newIndex) => _onReorder(oldIndex, newIndex),
-          itemCount: itemCount,
-          itemBuilder: (BuildContext context, int index) {
-            return _buildPlaylistItem(index);
-          },
-        );
+        return widget.canEdit
+            ? ReorderableListView.builder(
+                proxyDecorator: (child, index, animation) =>
+                    Material(type: MaterialType.transparency, child: child),
+                buildDefaultDragHandles: false,
+                onReorder: (oldIndex, newIndex) =>
+                    _onReorder(oldIndex, newIndex),
+                itemCount: itemCount,
+                itemBuilder: (_, index) => _buildPlaylistItem(index),
+              )
+            : ListView.builder(
+                itemCount: itemCount,
+                itemBuilder: (_, index) => _buildPlaylistItem(index),
+              );
       },
     );
   }
@@ -174,6 +188,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
           case PlaylistItemType.version:
             return PlaylistVersionCard(
               index: index,
+              canEdit: widget.canEdit,
               versionId: item.contentId!,
               playlistId: widget.playlistId,
               itemId: item.id ?? -1,
@@ -183,6 +198,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
               index: index,
               flowItemID: item.contentId ?? item.id!,
               playlistID: widget.playlistId,
+              canEdit: widget.canEdit,
             );
         }
       },

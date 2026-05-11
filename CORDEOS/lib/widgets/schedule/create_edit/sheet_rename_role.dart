@@ -78,6 +78,7 @@ class _EditRoleSheetState extends State<EditRoleSheet> {
             label: AppLocalizations.of(context)!.name,
             controller: _nameController,
             hint: AppLocalizations.of(context)!.roleNameHint,
+            textCapitalization: TextCapitalization.words,
             onSubmitted: (_) {
               final localSch = context.read<LocalScheduleProvider>();
               _onSubmit(localSch);

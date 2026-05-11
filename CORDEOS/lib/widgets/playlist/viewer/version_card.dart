@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:cordeos/providers/token_cache_provider.dart';
 import 'package:cordeos/utils/section_type.dart';
+import 'package:cordeos/widgets/ciphers/viewer/structure_list.dart';
 import 'package:flutter/material.dart';
 import 'package:cordeos/l10n/app_localizations.dart';
 
@@ -25,6 +26,7 @@ class PlaylistVersionCard extends StatefulWidget {
   final int versionId;
   final int index;
   final int itemId;
+  final bool canEdit;
 
   const PlaylistVersionCard({
     super.key,
@@ -32,6 +34,7 @@ class PlaylistVersionCard extends StatefulWidget {
     required this.index,
     required this.versionId,
     required this.itemId,
+    required this.canEdit,
   });
 
   @override
@@ -135,16 +138,17 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard> {
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisSize: MainAxisSize.max,
             children: [
-              CustomReorderableDelayed(
-                delay: Duration(milliseconds: 100),
-                index: widget.index,
-                child: Container(
-                  // Container to paint and enable hitbox for the icon
-                  color: Colors.transparent,
-                  height: 93,
-                  child: Icon(Icons.drag_indicator, size: 30),
+              if (widget.canEdit)
+                CustomReorderableDelayed(
+                  delay: Duration(milliseconds: 100),
+                  index: widget.index,
+                  child: Container(
+                    // Container to paint and enable hitbox for the icon
+                    color: Colors.transparent,
+                    height: 93,
+                    child: Icon(Icons.drag_indicator, size: 30),
+                  ),
                 ),
-              ),
               Expanded(
                 child: GestureDetector(
                   onTap: () {
@@ -201,26 +205,29 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard> {
                           ],
                         ),
                         // REORDERABLE SECTION CHIPS
-                        _buildReorderableSectionChips(
-                          s.badgesData,
-                          s.songStructure,
-                        ),
+                        widget.canEdit
+                            ? _buildReorderableSectionChips(
+                                s.badgesData,
+                                s.songStructure,
+                              )
+                            : StructureList(versionID: widget.versionId),
                       ],
                     ),
                   ),
                 ),
               ),
-              GestureDetector(
-                onTap: () {
-                  _openVersionActions(context, s.cipherID!);
-                },
-                child: Container(
-                  // Container to paint and enable hitbox for the icon
-                  color: Colors.transparent,
-                  height: 93,
-                  child: Icon(Icons.more_vert_rounded, size: 30),
+              if (widget.canEdit)
+                GestureDetector(
+                  onTap: () {
+                    _openVersionActions(context, s.cipherID!);
+                  },
+                  child: Container(
+                    // Container to paint and enable hitbox for the icon
+                    color: Colors.transparent,
+                    height: 93,
+                    child: Icon(Icons.more_vert_rounded, size: 30),
+                  ),
                 ),
-              ),
             ],
           ),
         );

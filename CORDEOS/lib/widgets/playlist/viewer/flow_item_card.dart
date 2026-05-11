@@ -15,12 +15,14 @@ class FlowItemCard extends StatefulWidget {
   final int flowItemID;
   final int playlistID;
   final int index;
+  final bool canEdit;
 
   const FlowItemCard({
     super.key,
     required this.flowItemID,
     required this.playlistID,
     required this.index,
+    required this.canEdit,
   });
 
   @override
@@ -65,16 +67,17 @@ class _FlowItemCardState extends State<FlowItemCard> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              CustomReorderableDelayed(
-                delay: Duration(milliseconds: 100),
-                index: widget.index,
-                child: Container(
-                  // Container to paint and enable hitbox for the icon
-                  color: Colors.transparent,
-                  height: 60,
-                  child: Icon(Icons.drag_indicator, size: 30),
+              if (widget.canEdit)
+                CustomReorderableDelayed(
+                  delay: Duration(milliseconds: 100),
+                  index: widget.index,
+                  child: Container(
+                    // Container to paint and enable hitbox for the icon
+                    color: Colors.transparent,
+                    height: 60,
+                    child: Icon(Icons.drag_indicator, size: 30),
+                  ),
                 ),
-              ),
               Expanded(
                 child: GestureDetector(
                   onTap: () {
@@ -83,10 +86,14 @@ class _FlowItemCardState extends State<FlowItemCard> {
                       () => FlowItemEditor(
                         playlistID: widget.playlistID,
                         flowID: widget.flowItemID,
+                        canEdit: widget.canEdit,
                       ),
-                      changeDetector: () => flow.hasUnsavedChanges,
-                      onChangeDiscarded: () =>
-                          flow.loadFlowItem(widget.flowItemID),
+                      changeDetector: widget.canEdit
+                          ? () => flow.hasUnsavedChanges
+                          : null,
+                      onChangeDiscarded: widget.canEdit
+                          ? () => flow.loadFlowItem(widget.flowItemID)
+                          : null,
                       showBottomNavBar: true,
                     );
                   },
@@ -118,17 +125,18 @@ class _FlowItemCardState extends State<FlowItemCard> {
                   ),
                 ),
               ),
-              GestureDetector(
-                onTap: () {
-                  _openFlowActionsSheet(context);
-                },
-                child: Container(
-                  // Container to paint and enable hitbox for the icon
-                  color: Colors.transparent,
-                  height: 60,
-                  child: Icon(Icons.more_vert_rounded, size: 30),
+              if (widget.canEdit)
+                GestureDetector(
+                  onTap: () {
+                    _openFlowActionsSheet(context);
+                  },
+                  child: Container(
+                    // Container to paint and enable hitbox for the icon
+                    color: Colors.transparent,
+                    height: 60,
+                    child: Icon(Icons.more_vert_rounded, size: 30),
+                  ),
                 ),
-              ),
             ],
           ),
         );

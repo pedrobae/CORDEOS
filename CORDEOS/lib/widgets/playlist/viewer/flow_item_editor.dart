@@ -14,11 +14,13 @@ import 'package:cordeos/widgets/common/labeled_text_field.dart';
 class FlowItemEditor extends StatefulWidget {
   final int flowID;
   final int playlistID;
+  final bool canEdit;
 
   const FlowItemEditor({
     super.key,
     required this.flowID,
     required this.playlistID,
+    required this.canEdit,
   });
 
   @override
@@ -93,19 +95,18 @@ class _FlowItemEditorState extends State<FlowItemEditor> {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context)!;
 
     final nav = context.read<NavigationProvider>();
 
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          widget.flowID != -1
-              ? AppLocalizations.of(
-                  context,
-                )!.editPlaceholder(AppLocalizations.of(context)!.flowItem)
-              : AppLocalizations.of(
-                  context,
-                )!.createPlaceholder(AppLocalizations.of(context)!.flowItem),
+          widget.canEdit
+              ? widget.flowID != -1
+                    ? l10n.editPlaceholder(l10n.flowItem)
+                    : l10n.createPlaceholder(l10n.flowItem)
+              : l10n.flowItem,
           style: textTheme.titleMedium,
         ),
         leading: BackButton(
@@ -114,28 +115,29 @@ class _FlowItemEditorState extends State<FlowItemEditor> {
           },
         ),
         actions: [
-          IconButton(
-            onPressed: () async {
-              final flow = context.read<FlowItemProvider>();
-              final play = context.read<PlaylistProvider>();
+          if (widget.canEdit)
+            IconButton(
+              onPressed: () async {
+                final flow = context.read<FlowItemProvider>();
+                final play = context.read<PlaylistProvider>();
 
-              if (!_formKey.currentState!.validate()) {
-                return;
-              }
-
-              if (widget.flowID == -1) {
-                final newID = await flow.createFromCache(-1);
-                if (newID != null) {
-                  play.cacheAddFlowItem(widget.playlistID, newID);
+                if (!_formKey.currentState!.validate()) {
+                  return;
                 }
-              } else {
-                flow.save(widget.flowID);
-              }
 
-              nav.pop();
-            },
-            icon: const Icon(Icons.save),
-          ),
+                if (widget.flowID == -1) {
+                  final newID = await flow.createFromCache(-1);
+                  if (newID != null) {
+                    play.cacheAddFlowItem(widget.playlistID, newID);
+                  }
+                } else {
+                  flow.save(widget.flowID);
+                }
+
+                nav.pop();
+              },
+              icon: const Icon(Icons.save),
+            ),
         ],
       ),
       body: Form(
@@ -148,6 +150,7 @@ class _FlowItemEditorState extends State<FlowItemEditor> {
             children: [
               LabeledTextField(
                 controller: _titleController,
+                isEnabled: widget.canEdit,
                 label: AppLocalizations.of(context)!.title,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -157,10 +160,12 @@ class _FlowItemEditorState extends State<FlowItemEditor> {
                 },
               ),
               DurationPickerField(
+                isEnabled: widget.canEdit,
                 controller: _durationController,
                 label: AppLocalizations.of(context)!.estimatedTime,
               ),
               LabeledTextField(
+                isEnabled: widget.canEdit,
                 controller: _contentController,
                 label: AppLocalizations.of(context)!.optionalPlaceholder(
                   AppLocalizations.of(context)!.annotations,
