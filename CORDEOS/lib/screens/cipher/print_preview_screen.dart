@@ -39,6 +39,7 @@ class PrintPreviewScreen extends StatefulWidget {
 
 class _PrintPreviewScreenState extends State<PrintPreviewScreen> {
   bool _isGenerating = false;
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -46,6 +47,9 @@ class _PrintPreviewScreenState extends State<PrintPreviewScreen> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _ensureDataLoad();
+      setState(() {
+        _isLoading = false;
+      });
     });
   }
 
@@ -153,7 +157,6 @@ class _PrintPreviewScreenState extends State<PrintPreviewScreen> {
             SectionProvider,
             PrintingProvider,
             ({
-              bool isLoading,
               List<PlaylistItem> items,
               Map<int, Cipher> ciphers,
               Map<int, Version> versions,
@@ -197,7 +200,6 @@ class _PrintPreviewScreenState extends State<PrintPreviewScreen> {
                 } catch (e) {
                   debugPrint(e.toString());
                   return (
-                    isLoading: false,
                     versionsTransposeChords: versionsTransposeChords,
                     ciphers: ciphers,
                     versions: versions,
@@ -243,7 +245,6 @@ class _PrintPreviewScreenState extends State<PrintPreviewScreen> {
                       } catch (e) {
                         debugPrint(e.toString());
                         return (
-                          isLoading: false,
                           versionsTransposeChords: versionsTransposeChords,
                           ciphers: ciphers,
                           versions: versions,
@@ -263,7 +264,6 @@ class _PrintPreviewScreenState extends State<PrintPreviewScreen> {
                       if (flowItem == null) {
                         debugPrint("Couldnt get flow Item ${item.contentId}");
                         return (
-                          isLoading: true,
                           versionsTransposeChords: versionsTransposeChords,
                           ciphers: ciphers,
                           versions: versions,
@@ -283,7 +283,6 @@ class _PrintPreviewScreenState extends State<PrintPreviewScreen> {
               }
 
               return (
-                isLoading: false,
                 versionsTransposeChords: versionsTransposeChords,
                 ciphers: ciphers,
                 versions: versions,
@@ -296,7 +295,7 @@ class _PrintPreviewScreenState extends State<PrintPreviewScreen> {
               );
             },
             builder: (context, s, child) {
-              if (s.isLoading) {
+              if (_isLoading) {
                 return Center(child: IconLoadIndicator(size: 180));
               }
               print.tokenize(
