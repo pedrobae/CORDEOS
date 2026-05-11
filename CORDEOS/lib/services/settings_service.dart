@@ -179,7 +179,7 @@ class SettingsService {
   }
 
   // === advanced layout settings ===
-  static Future<void> setHeightSpacing(double value) async {
+  static Future<void> setHeightSpacingMult(double value) async {
     await _preferences.setDouble(_keyHeightSpacing, value);
   }
 

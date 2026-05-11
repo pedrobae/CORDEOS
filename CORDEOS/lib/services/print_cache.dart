@@ -6,7 +6,7 @@ class PrintCacheService {
   static const String _keyFontFamily = 'print_font_family';
 
   // Layout Settings Keys
-  static const String _keyHeightSpacing = 'print_height_spacing';
+  static const String _keyHeightSpacingMult = 'print_height_spacing_mult';
   static const String _keyLetterSpacing = 'print_letter_spacing';
 
   // Filter Settings Keys
@@ -25,10 +25,8 @@ class PrintCacheService {
 
   // Page Layout Settings Keys
   static const String _keyMargin = 'print_margin';
-  static const String _keySectionSpacing = 'print_section_spacing';
-  static const String _keyHeaderGap = 'print_header_gap';
-  static const String _keyColumnGap = 'print_column_gap';
   static const String _keyColumnCount = 'print_column_count';
+  static const String _keyInternalGap = 'print_internal_gap';
 
   static SharedPreferences? _prefs;
 
@@ -61,12 +59,12 @@ class PrintCacheService {
     return _preferences.getString(_keyFontFamily) ?? 'OpenSans';
   }
 
-  static Future<void> setHeightSpacing(double spacing) async {
-    await _preferences.setDouble(_keyHeightSpacing, spacing);
+  static Future<void> setHeightSpacingMult(double spacing) async {
+    await _preferences.setDouble(_keyHeightSpacingMult, spacing);
   }
 
-  static double getHeightSpacing() {
-    return _preferences.getDouble(_keyHeightSpacing) ?? 2;
+  static double getHeightSpacingMult() {
+    return _preferences.getDouble(_keyHeightSpacingMult) ?? 0.1;
   }
 
   static Future<void> setLetterSpacing(double spacing) async {
@@ -161,28 +159,12 @@ class PrintCacheService {
     return _preferences.getDouble(_keyMargin) ?? 24.0;
   }
 
-  static Future<void> setSectionSpacing(double spacing) async {
-    await _preferences.setDouble(_keySectionSpacing, spacing);
+  static Future<void> setInternalGap(double gap) async {
+    await _preferences.setDouble(_keyInternalGap, gap);
   }
 
-  static double getSectionSpacing() {
-    return _preferences.getDouble(_keySectionSpacing) ?? 16.0;
-  }
-
-  static Future<void> setHeaderGap(double gap) async {
-    await _preferences.setDouble(_keyHeaderGap, gap);
-  }
-
-  static double getHeaderGap() {
-    return _preferences.getDouble(_keyHeaderGap) ?? 12.0;
-  }
-
-  static Future<void> setColumnGap(double gap) async {
-    await _preferences.setDouble(_keyColumnGap, gap);
-  }
-
-  static double getColumnGap() {
-    return _preferences.getDouble(_keyColumnGap) ?? 16.0;
+  static double getInternalGap() {
+    return _preferences.getDouble(_keyInternalGap) ?? 16.0;
   }
 
   static Future<void> setColumnCount(int count) async {

@@ -439,17 +439,9 @@
   "@margin": {
     "description": "Label for vertical margin slider"
   },
-  "sectionSpacing": "Espaço entre Seções",
-  "@sectionSpacing": {
-    "description": "Label for Section Spacing slider"
-  },
-  "headerGap": "Espaço após Cabeçalho",
-  "@headerGap": {
-    "description": "Label for Header Gap slider"
-  },
-  "columnGap": "Espaço entre Colunas",
-  "@columnGap": {
-    "description": "Label for Column Gap slider"
+  "internalGap": "Espaços Internos",
+  "@internalGap": {
+    "description": "Label for Internal Gaps slider"
   },
   "small": "Pequeno",
   "@small": {

@@ -11,7 +11,10 @@ class LayoutSetProvider extends ChangeNotifier {
       scrollDirection == Axis.vertical ? Axis.horizontal : Axis.vertical;
   double cardWidthMult = 1.0;
 
-  double heightSpacing = 0;
+  double heightSpacingMult = 0;
+
+  double get heightSpacing => heightSpacingMult * fontSize;
+
   final double minChordSpacing = 4;
   final double letterSpacing = 0;
 
@@ -39,7 +42,7 @@ class LayoutSetProvider extends ChangeNotifier {
     _showTransitions = SettingsService.getShowTransitions();
     showSectionHeaders = SettingsService.getShowSectionHeaders();
     cardWidthMult = SettingsService.getCardWidthMult();
-    heightSpacing = SettingsService.getHeightSpacing();
+    heightSpacingMult = SettingsService.getHeightSpacing();
     // minChordSpacing = SettingsService.getMinChordSpacing();
     // letterSpacing = SettingsService.getLetterSpacing();
     notifyListeners();
@@ -72,23 +75,11 @@ class LayoutSetProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setHeightSpacing(double value) {
-    heightSpacing = value;
-    SettingsService.setHeightSpacing(value);
+  void setHeightSpacingMult(double value) {
+    heightSpacingMult = value;
+    SettingsService.setHeightSpacingMult(value);
     notifyListeners();
   }
-
-  // void setMinChordSpacing(double value) {
-  //   minChordSpacing = value;
-  //   SettingsService.setMinChordSpacing(value);
-  //   notifyListeners();
-  // }
-
-  // void setLetterSpacing(double value) {
-  //   letterSpacing = value;
-  //   SettingsService.setLetterSpacing(value);
-  //   notifyListeners();
-  // }
 
   void toggleSectionHeaders() {
     showSectionHeaders = !showSectionHeaders;

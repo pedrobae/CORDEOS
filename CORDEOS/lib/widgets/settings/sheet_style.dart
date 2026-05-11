@@ -5,9 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class StyleSettings extends StatefulWidget {
-  final bool secret;
-
-  const StyleSettings({super.key, this.secret = false});
+  const StyleSettings({super.key});
 
   @override
   State<StyleSettings> createState() => _StyleSettingsState();
@@ -15,10 +13,8 @@ class StyleSettings extends StatefulWidget {
 
 class _StyleSettingsState extends State<StyleSettings> {
   double? _cardsOnScreen;
-  late double _heightSpacing;
-  // late double _localMinChordSpacing;
-  // late double _localLetterSpacing;
   double? _screenWidth;
+  late double _heightSpacing;
 
   @override
   void initState() {
@@ -26,9 +22,7 @@ class _StyleSettingsState extends State<StyleSettings> {
 
     final set = context.read<LayoutSetProvider>();
 
-    _heightSpacing = set.heightSpacing.clamp(-5, 10);
-    // _localMinChordSpacing = set.minChordSpacing.clamp(0, 10);
-    // _localLetterSpacing = set.letterSpacing.clamp(-3, 3);
+    _heightSpacing = set.heightSpacingMult.clamp(-0.1, 0.25);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       setState(() {
@@ -212,6 +206,45 @@ class _StyleSettingsState extends State<StyleSettings> {
                     ],
                   ),
                 ),
+                // Height spacing
+                _buildOption(
+                  context,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          AppLocalizations.of(context)!.heightSpacing,
+                          style: textTheme.labelLarge,
+                        ),
+                      ),
+                      Text(
+                        (_heightSpacing * 10).toStringAsFixed(1),
+                        style: textTheme.labelMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      SizedBox(
+                        width: 150,
+                        child: Slider(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 16,
+                          ),
+                          value: _heightSpacing,
+                          divisions: 75,
+                          min: -0.1,
+                          max: 0.25,
+                          onChanged: (v) {
+                            setState(() => _heightSpacing = v);
+                          },
+                          onChangeEnd: (v) {
+                            set.setHeightSpacingMult(v);
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
 
                 // FONT SETTINGS
                 _buildOption(
@@ -260,126 +293,6 @@ class _StyleSettingsState extends State<StyleSettings> {
                   ),
                 ),
 
-                if (widget.secret) ...[
-                  // Height spacing
-                  _buildOption(
-                    context,
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            AppLocalizations.of(context)!.heightSpacing,
-                            style: textTheme.labelLarge,
-                          ),
-                        ),
-                        Text(
-                          _heightSpacing.toStringAsFixed(1),
-                          style: textTheme.labelMedium?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                        SizedBox(
-                          width: 150,
-                          child: Slider(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 16,
-                            ),
-                            value: _heightSpacing,
-                            divisions: 75,
-                            min: -5,
-                            max: 10,
-                            onChanged: (v) {
-                              setState(() => _heightSpacing = v);
-                            },
-                            onChangeEnd: (v) {
-                              set.setHeightSpacing(v);
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // min-chord spacing
-                  //   _buildOption(
-                  //     context,
-                  //     child: Row(
-                  //       children: [
-                  //         Expanded(
-                  //           child: Text(
-                  //             AppLocalizations.of(context)!.minChordSpacing,
-                  //             style: textTheme.labelLarge,
-                  //           ),
-                  //         ),
-                  //         Text(
-                  //           _localMinChordSpacing.toStringAsFixed(1),
-                  //           style: textTheme.labelMedium?.copyWith(
-                  //             color: colorScheme.onSurfaceVariant,
-                  //           ),
-                  //         ),
-                  //         SizedBox(
-                  //           width: 150,
-                  //           child: Slider(
-                  //             padding: EdgeInsets.symmetric(
-                  //               horizontal: 8,
-                  //               vertical: 16,
-                  //             ),
-                  //             value: _localMinChordSpacing,
-                  //             divisions: 50,
-                  //             min: 0,
-                  //             max: 10,
-                  //             onChanged: (v) {
-                  //               setState(() => _localMinChordSpacing = v);
-                  //             },
-                  //             onChangeEnd: (v) {
-                  //               set.setMinChordSpacing(v);
-                  //             },
-                  //           ),
-                  //         ),
-                  //       ],
-                  //     ),
-                  //   ),
-
-                  // letter spacing
-                  //   _buildOption(
-                  //     context,
-                  //     child: Row(
-                  //       children: [
-                  //         Expanded(
-                  //           child: Text(
-                  //             AppLocalizations.of(context)!.letterSpacing,
-                  //             style: textTheme.labelLarge,
-                  //           ),
-                  //         ),
-                  //         Text(
-                  //           _localLetterSpacing.toStringAsFixed(1),
-                  //           style: textTheme.labelMedium?.copyWith(
-                  //             color: colorScheme.onSurfaceVariant,
-                  //           ),
-                  //         ),
-                  //         SizedBox(
-                  //           width: 150,
-                  //           child: Slider(
-                  //             padding: EdgeInsets.symmetric(
-                  //               horizontal: 8,
-                  //               vertical: 16,
-                  //             ),
-                  //             value: _localLetterSpacing,
-                  //             divisions: 30,
-                  //             min: -3,
-                  //             max: 3,
-                  //             onChanged: (v) {
-                  //               setState(() => _localLetterSpacing = v);
-                  //             },
-                  //             onChangeEnd: (v) {
-                  //               set.setLetterSpacing(v);
-                  //             },
-                  //           ),
-                  //         ),
-                  //       ],
-                  //     ),
-                  //   ),
-                ],
                 SizedBox(),
               ],
             ),

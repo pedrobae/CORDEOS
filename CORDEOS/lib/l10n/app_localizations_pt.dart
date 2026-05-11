@@ -349,13 +349,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get margin => 'Margem';
 
   @override
-  String get sectionSpacing => 'Espaço entre Seções';
-
-  @override
-  String get headerGap => 'Espaço após Cabeçalho';
-
-  @override
-  String get columnGap => 'Espaço entre Colunas';
+  String get internalGap => 'Espaços Internos';
 
   @override
   String get small => 'Pequeno';

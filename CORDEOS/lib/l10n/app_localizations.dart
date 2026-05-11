@@ -722,23 +722,11 @@ abstract class AppLocalizations {
   /// **'Margem'**
   String get margin;
 
-  /// Label for Section Spacing slider
+  /// Label for Internal Gaps slider
   ///
   /// In pt, this message translates to:
-  /// **'Espaço entre Seções'**
-  String get sectionSpacing;
-
-  /// Label for Header Gap slider
-  ///
-  /// In pt, this message translates to:
-  /// **'Espaço após Cabeçalho'**
-  String get headerGap;
-
-  /// Label for Column Gap slider
-  ///
-  /// In pt, this message translates to:
-  /// **'Espaço entre Colunas'**
-  String get columnGap;
+  /// **'Espaços Internos'**
+  String get internalGap;
 
   /// Label for small card width
   ///

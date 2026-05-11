@@ -235,23 +235,19 @@ class PageContext {
   final double pageWidth;
   final double pageHeight;
   final double margin;
-  final double columnGap;
-  final double headerGap;
-  final double sectionSpacing;
+  final double internalGap;
   final int columnCount;
 
   PageContext({
     required this.pageWidth,
     required this.pageHeight,
     required this.margin,
-    required this.columnGap,
-    required this.headerGap,
-    required this.sectionSpacing,
+    required this.internalGap,
     required this.columnCount,
   });
 
   double get sectionWidth =>
-      (pageWidth - margin * 2 - columnGap * (columnCount - 1)) / columnCount;
+      (pageWidth - margin * 2 - internalGap * (columnCount - 1)) / columnCount;
 }
 
 class SectionPlacement {
@@ -362,7 +358,7 @@ class PagePreviewPainter extends CustomPainter {
         flowSnap.headerPainter.paint(canvas, Offset.zero);
         flowSnap.contentPainter.paint(
           canvas,
-          Offset(0, flowSnap.headerBlockHeight + ctx.headerGap),
+          Offset(0, flowSnap.headerBlockHeight + ctx.internalGap),
         );
     }
 
@@ -391,7 +387,7 @@ class PagePreviewPainter extends CustomPainter {
         placement.xOffset,
         placement.yOffset,
         ctx.sectionWidth,
-        model.size.height + snapshot.sectionLabelHeight + ctx.sectionSpacing,
+        model.size.height + snapshot.sectionLabelHeight + ctx.internalGap,
       ),
     );
 

@@ -64,7 +64,7 @@ class PrintingContext {
   final TextStyle labelStyle;
   final double chordLyricSpacing;
   final double heightSpacing;
-  static double minChordSpacing = 4;
+  final double minChordSpacing;
   final double maxWidth;
   final double contentWidth;
 
@@ -84,6 +84,7 @@ class PrintingContext {
     required this.labelStyle,
     required this.chordLyricSpacing,
     required this.heightSpacing,
+    required this.minChordSpacing,
     required this.maxWidth,
     required this.contentWidth,
   });
@@ -207,15 +208,14 @@ class PrintingProvider extends ChangeNotifier {
   );
 
   // Layout settings
-  double heightSpacing = 1;
-  double minChordSpacing = 5;
+  double heightSpacingMult = 1;
+  double get heightSpacing => heightSpacingMult * fontSize;
+  static const double minChordSpacing = 4;
   double letterSpacing = 0;
 
   // Page layout settings
   double margin = 24;
-  double sectionSpacing = 16;
-  double headerGap = 12;
-  double columnGap = 16;
+  double internalGap = 16;
   int columnCount = 1;
 
   /// Initialize with stored settings
@@ -223,9 +223,7 @@ class PrintingProvider extends ChangeNotifier {
     // Style Settings
     fontSize = PrintCacheService.getSize();
     fontFamily = PrintCacheService.getFontFamily();
-    // Layout settings
-    heightSpacing = PrintCacheService.getHeightSpacing();
-    letterSpacing = PrintCacheService.getLetterSpacing();
+    // Filter settings
     showHeader = PrintCacheService.getShowHeader();
     showRepeatSections = PrintCacheService.getShowRepeatSections();
     showAnnotations = PrintCacheService.getShowAnnotations();
@@ -235,11 +233,12 @@ class PrintingProvider extends ChangeNotifier {
     showSectionLabels = PrintCacheService.getShowLabel();
     showChords = PrintCacheService.getShowChords();
     showLyrics = PrintCacheService.getShowLyrics();
+    // Layout settings
+    heightSpacingMult = PrintCacheService.getHeightSpacingMult();
+    letterSpacing = PrintCacheService.getLetterSpacing();
     // Page layout settings
     margin = PrintCacheService.getMargin();
-    sectionSpacing = PrintCacheService.getSectionSpacing();
-    headerGap = PrintCacheService.getHeaderGap();
-    columnGap = PrintCacheService.getColumnGap();
+    internalGap = PrintCacheService.getInternalGap();
     columnCount = PrintCacheService.getColumnCount();
     notifyListeners();
   }
@@ -389,8 +388,10 @@ class PrintingProvider extends ChangeNotifier {
       labelStyle: labelStyle,
       chordLyricSpacing: heightSpacing,
       heightSpacing: heightSpacing,
+      minChordSpacing: minChordSpacing,
       maxWidth: maxWidth,
-      contentWidth: (maxWidth * columnCount) + ((columnCount - 1) * columnGap),
+      contentWidth:
+          (maxWidth * columnCount) + ((columnCount - 1) * internalGap),
     );
     for (final item in _itemsCache) {
       switch (item.type) {
@@ -439,9 +440,9 @@ class PrintingProvider extends ChangeNotifier {
           final songSnapshot = snapshot.songSnapshot!;
           final cursor = _LayoutCursor(
             headerHeight: showHeader
-                ? songSnapshot.headerBlockHeight + headerGap
+                ? songSnapshot.headerBlockHeight + internalGap
                 : 0,
-            columnWidth: sectionWidth + columnGap,
+            columnWidth: sectionWidth + internalGap,
           );
 
           final contentHeight = pageHeight - 2 * margin;
@@ -495,7 +496,7 @@ class PrintingProvider extends ChangeNotifier {
               ),
             );
 
-            cursor.y += sectionBlockHeight + sectionSpacing;
+            cursor.y += sectionBlockHeight + internalGap;
           }
 
           if (placements.isNotEmpty) {
@@ -586,9 +587,9 @@ class PrintingProvider extends ChangeNotifier {
 
   // =========== SETTERS FOR LAYOUT SETTINGS =============
 
-  Future<void> setHeightSpacing(double spacing) async {
-    heightSpacing = spacing;
-    await PrintCacheService.setHeightSpacing(spacing);
+  Future<void> setHeightSpacingMult(double spacing) async {
+    heightSpacingMult = spacing;
+    await PrintCacheService.setHeightSpacingMult(spacing);
     notifyListeners();
   }
 
@@ -662,21 +663,9 @@ class PrintingProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> setSectionSpacing(double spacing) async {
-    sectionSpacing = spacing;
-    await PrintCacheService.setSectionSpacing(spacing);
-    notifyListeners();
-  }
-
-  Future<void> setHeaderGap(double gap) async {
-    headerGap = gap;
-    await PrintCacheService.setHeaderGap(gap);
-    notifyListeners();
-  }
-
-  Future<void> setColumnGap(double gap) async {
-    columnGap = gap;
-    await PrintCacheService.setColumnGap(gap);
+  Future<void> setInternalGap(double spacing) async {
+    internalGap = spacing;
+    await PrintCacheService.setInternalGap(spacing);
     notifyListeners();
   }
 
@@ -728,7 +717,7 @@ class PrintingProvider extends ChangeNotifier {
               );
             }
             currentY +=
-                songSnapshot.headerBlockHeight * ratio + headerGap * ratio;
+                songSnapshot.headerBlockHeight * ratio + internalGap * ratio;
           }
 
           // DRAW SECTIONS

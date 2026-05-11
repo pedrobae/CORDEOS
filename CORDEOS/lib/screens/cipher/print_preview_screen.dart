@@ -17,7 +17,7 @@ import 'package:cordeos/providers/transposition_provider.dart';
 import 'package:cordeos/providers/version/local_version_provider.dart';
 import 'package:cordeos/widgets/ciphers/print/page_preview_painter.dart';
 import 'package:cordeos/widgets/ciphers/print/sheet_print_filters.dart';
-import 'package:cordeos/widgets/ciphers/print/sheet_print_layout.dart';
+import 'package:cordeos/widgets/ciphers/print/print_layout_bar.dart';
 import 'package:cordeos/widgets/ciphers/print/sheet_print_style.dart';
 import 'package:cordeos/widgets/common/icon_load_indicator.dart';
 import 'package:flutter/material.dart';
@@ -40,6 +40,7 @@ class PrintPreviewScreen extends StatefulWidget {
 class _PrintPreviewScreenState extends State<PrintPreviewScreen> {
   bool _isGenerating = false;
   bool _isLoading = true;
+  bool _showLayoutBar = false;
 
   @override
   void initState() {
@@ -312,15 +313,10 @@ class _PrintPreviewScreenState extends State<PrintPreviewScreen> {
                 PrintingProvider,
                 ({
                   double sectionMaxWidth,
-                  double lineBreakSpacing,
-                  double chordLyricSpacing,
-                  double minChordSpacing,
-                  double lineSpacing,
+                  double heightSpacing,
                   double letterSpacing,
                   double margin,
-                  double columnGap,
-                  double sectionSpacing,
-                  double headerGap,
+                  double internalGap,
                   double fontSize,
                   String fontFamily,
                 })
@@ -329,22 +325,17 @@ class _PrintPreviewScreenState extends State<PrintPreviewScreen> {
                   final sectionMaxWidth =
                       (pageWidth -
                           (print.margin * 2) -
-                          ((print.columnCount - 1) * print.columnGap)) /
+                          ((print.columnCount - 1) * print.internalGap)) /
                       print.columnCount;
 
                   return (
-                    sectionMaxWidth: sectionMaxWidth,
-                    lineBreakSpacing: print.heightSpacing * 2,
-                    chordLyricSpacing: print.heightSpacing,
-                    minChordSpacing: print.minChordSpacing,
-                    lineSpacing: print.heightSpacing,
-                    letterSpacing: print.letterSpacing,
                     fontSize: print.fontSize,
                     fontFamily: print.fontFamily,
+                    sectionMaxWidth: sectionMaxWidth,
+                    heightSpacing: print.heightSpacing,
+                    letterSpacing: print.letterSpacing,
                     margin: print.margin,
-                    columnGap: print.columnGap,
-                    sectionSpacing: print.sectionSpacing,
-                    headerGap: print.headerGap,
+                    internalGap: print.internalGap,
                   );
                 },
                 builder: (context, layoutSettings, child) {
@@ -386,9 +377,7 @@ class _PrintPreviewScreenState extends State<PrintPreviewScreen> {
                         pageWidth: pageWidth,
                         pageHeight: pageHeight,
                         margin: print.margin,
-                        columnGap: print.columnGap,
-                        headerGap: print.headerGap,
-                        sectionSpacing: print.sectionSpacing,
+                        internalGap: print.internalGap,
                         columnCount: print.columnCount,
                       );
 
@@ -485,48 +474,53 @@ class _PrintPreviewScreenState extends State<PrintPreviewScreen> {
   }
 
   Widget _buildControlBar() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Column(
       children: [
-        IconButton(
-          onPressed: () {
-            showModalBottomSheet(
-              backgroundColor: Theme.of(
-                context,
-              ).colorScheme.surfaceContainerHighest,
-              context: context,
-              isScrollControlled: true,
-              builder: (context) => PrintFilters(),
-            );
-          },
-          icon: const Icon(Icons.filter_list),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            IconButton(
+              onPressed: () {
+                setState(() => _showLayoutBar = false);
+                showModalBottomSheet(
+                  backgroundColor: Theme.of(
+                    context,
+                  ).colorScheme.surfaceContainerHighest,
+                  context: context,
+                  isScrollControlled: true,
+                  builder: (context) => PrintFilters(),
+                );
+              },
+              icon: const Icon(Icons.filter_list),
+            ),
+            IconButton(
+              onPressed: () {
+                setState(() => _showLayoutBar = !_showLayoutBar);
+              },
+              icon: Icon(
+                Icons.format_paint_rounded,
+                color: _showLayoutBar ? colorScheme.primary : null,
+              ),
+            ),
+            IconButton(
+              onPressed: () {
+                setState(() => _showLayoutBar = false);
+                showModalBottomSheet(
+                  backgroundColor: Theme.of(
+                    context,
+                  ).colorScheme.surfaceContainerHighest,
+                  context: context,
+                  isScrollControlled: true,
+                  builder: (context) => PrintStyle(),
+                );
+              },
+              icon: const Icon(Icons.text_fields),
+            ),
+          ],
         ),
-        IconButton(
-          onPressed: () {
-            showModalBottomSheet(
-              backgroundColor: Theme.of(
-                context,
-              ).colorScheme.surfaceContainerHighest,
-              context: context,
-              isScrollControlled: true,
-              builder: (context) => PrintLayout(),
-            );
-          },
-          icon: const Icon(Icons.format_paint_rounded),
-        ),
-        IconButton(
-          onPressed: () {
-            showModalBottomSheet(
-              backgroundColor: Theme.of(
-                context,
-              ).colorScheme.surfaceContainerHighest,
-              context: context,
-              isScrollControlled: true,
-              builder: (context) => PrintStyle(),
-            );
-          },
-          icon: const Icon(Icons.text_fields),
-        ),
+        if (_showLayoutBar) PrintLayout(),
       ],
     );
   }
