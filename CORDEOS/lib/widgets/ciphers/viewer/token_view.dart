@@ -27,7 +27,7 @@ class TokenView extends StatelessWidget {
     tokensKey.lyricColor = colorScheme.onSurface;
     tokensKey.chordColor = colorScheme.primary;
 
-    // PHASE 4a: Retrieve paint instructions from cache and render with CustomPainter
+    // PHASE 4: Retrieve paint instructions from cache and render with CustomPainter
     tokenProv.cachePaintInstructions(
       tokensKey,
       laySet.lyricStyle,

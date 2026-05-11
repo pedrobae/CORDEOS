@@ -77,7 +77,7 @@ enum TokenType {
   preSeparator, // Used to separate preceding chords - '<'
   postSeparator, // Used to separate following chords - '>'
   preChordTarget, // Used to render a drag Target below chord - '@'
-postChordTarget, // Variation due to on dragged to differences - &
+  postChordTarget, // Variation due to on dragged to differences - &
   underline, // Underscore widget used to stretch a word when a chord cant fit - N/A
 }
 
@@ -173,6 +173,16 @@ class OrganizedTokens {
 
   bool get isEmpty => lines.isEmpty;
   bool get isNotEmpty => lines.isNotEmpty;
+
+  List<ContentToken> get tokens {
+    final tokens = <ContentToken>[];
+    for (final line in this.lines) {
+      for (final word in line.words) {
+        tokens.addAll(word.tokens);
+      }
+    }
+    return tokens;
+  }
 }
 
 /// Hierarchical structures to organize tokens into lines and words.
@@ -212,10 +222,7 @@ class TokenPositionMap {
   double contentWidth;
   double lineHeight;
 
-  TokenPositionMap({
-    required this.lineHeight,
-    required this.contentWidth,
-  });
+  TokenPositionMap({required this.lineHeight, required this.contentWidth});
 
   /// Records the position of a token
   void setPosition(ContentToken token, double x, double y) {
