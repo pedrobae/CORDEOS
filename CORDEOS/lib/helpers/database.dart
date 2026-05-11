@@ -85,7 +85,7 @@ class DatabaseHelper {
         version_name TEXT,
         firebase_cipher_id TEXT,
         firebase_id TEXT,
-        notes TEXT
+        notes TEXT,
         created_at INTEGER DEFAULT (strftime('%s','now')),
         FOREIGN KEY (cipher_id) REFERENCES cipher (id) ON DELETE CASCADE
       )

@@ -157,6 +157,32 @@ class LocalVersionProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> ensureIsLoaded(int versionID) async {
+    if (_versions[versionID] != null) return;
+    if (_isLoadingVersion[versionID] == true) return;
+
+    _isLoadingVersion[versionID] = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final version = await _repo.getVersionWithId(versionID);
+      if (version == null) {
+        throw Exception('Version with id $versionID not found locally');
+      }
+
+      _versions[versionID] = version;
+      debugPrint('LOCAL VERSION PROVIDER - Loaded version $versionID');
+    } catch (e) {
+      _error = e.toString();
+      debugPrint('Error loading version by id: $e');
+    } finally {
+      _isLoadingVersion[versionID] = false;
+      _hasUnsavedChanges = false;
+      notifyListeners();
+    }
+  }
+
   /// Load a version into cache by its local ID
   Future<void> loadVersion(int versionId) async {
     if (_isLoadingVersion[versionId] == true) return;

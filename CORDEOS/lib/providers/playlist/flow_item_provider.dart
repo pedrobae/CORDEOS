@@ -14,18 +14,10 @@ class FlowItemProvider extends ChangeNotifier {
   final List<int> _cachedCreations = [];
 
   bool _hasUnsavedChanges = false;
-  bool _isLoading = false;
-  bool _isSaving = false;
-  bool _isDeleting = false;
-  String? _error;
 
   // Getters
   Map<int, FlowItem> get flowItems => _flowItems;
   bool get hasUnsavedChanges => _hasUnsavedChanges;
-  bool get isLoading => _isLoading;
-  bool get isSaving => _isSaving;
-  bool get isDeleting => _isDeleting;
-  String? get error => _error;
 
   // ===== READ =====
 
@@ -61,13 +53,22 @@ class FlowItemProvider extends ChangeNotifier {
     return null;
   }
 
+  Future<void> ensureIsLoaded(int flowID) async {
+    if (_flowItems[flowID] != null) return;
+    loadFlowItem(flowID);
+  }
+
   Future<void> loadFlowItem(int id) async {
     // Not in cache, query repository
-    final flowItem = await _flowItemRepo.getFlowItem(id);
-    if (flowItem != null) {
-      _flowItems[id] = flowItem;
+    try {
+      final flowItem = await _flowItemRepo.getFlowItem(id);
+      if (flowItem != null) {
+        _flowItems[id] = flowItem;
+      }
+      notifyListeners();
+    } catch (e) {
+      debugPrint("FLOW ITEM PROVIDER - ${e.toString()}");
     }
-    notifyListeners();
   }
 
   /// Fetches a flow item straight from SQLite, if exists
@@ -78,39 +79,27 @@ class FlowItemProvider extends ChangeNotifier {
   // ===== CREATE =====
   // Create a new FlowItem from scratch
   Future<void> create(FlowItem flowItem) async {
-    if (_isSaving) return;
-    _isSaving = true;
-    _error = null;
-    notifyListeners();
     try {
       final id = await _flowItemRepo.createFlowItem(flowItem);
       _cachedCreations.add(id);
       await loadFlowItem(id);
-    } catch (e) {
-      _error = e.toString();
-    } finally {
-      _isSaving = false;
       notifyListeners();
+    } catch (e) {
+      debugPrint("FLOW ITEM PROVIDER - ${e.toString()}");
     }
   }
 
   Future<int?> createFromCache(int id) async {
     int? newID;
-    if (_isSaving) return newID;
     if (!_flowItems.containsKey(id)) return newID;
-    _isSaving = true;
-    _error = null;
-    notifyListeners();
     try {
       final flowItem = _flowItems[id]!;
       newID = await _flowItemRepo.createFlowItem(flowItem);
       _cachedCreations.add(newID);
       await loadFlowItem(newID);
-    } catch (e) {
-      _error = e.toString();
-    } finally {
-      _isSaving = false;
       notifyListeners();
+    } catch (e) {
+      debugPrint("FLOW ITEM PROVIDER - ${e.toString()}");
     }
     return newID;
   }
@@ -135,12 +124,6 @@ class FlowItemProvider extends ChangeNotifier {
     String titleSuffix,
     int position,
   ) async {
-    if (_isSaving) return;
-
-    _isSaving = true;
-    _error = null;
-    notifyListeners();
-
     try {
       final original = _flowItems[id];
       if (original == null) {
@@ -159,11 +142,10 @@ class FlowItemProvider extends ChangeNotifier {
 
       int newId = await _flowItemRepo.createFlowItem(duplicate);
       await loadFlowItem(newId);
-    } catch (e) {
-      _error = e.toString();
-    } finally {
-      _isSaving = false;
+
       notifyListeners();
+    } catch (e) {
+      debugPrint("FLOW ITEM PROVIDER - ${e.toString()}");
     }
   }
 
@@ -197,13 +179,7 @@ class FlowItemProvider extends ChangeNotifier {
 
   /// Persist cached changes of a Flow Item to the database
   Future<void> save(int id) async {
-    if (_isSaving) return;
     if (!_flowItems.containsKey(id)) return;
-
-    _isSaving = true;
-    _error = null;
-    notifyListeners();
-
     try {
       final flowItem = _flowItems[id]!;
 
@@ -216,31 +192,21 @@ class FlowItemProvider extends ChangeNotifier {
       );
 
       _hasUnsavedChanges = false;
-    } catch (e) {
-      _error = e.toString();
-    } finally {
-      _isSaving = false;
       notifyListeners();
+    } catch (e) {
+      debugPrint("FLOW ITEM PROVIDER - ${e.toString()}");
     }
   }
 
   // ===== DELETE =====
   // Delete a Flow Item by ID
   Future<void> deleteFlowItem(int id) async {
-    if (_isDeleting) return;
-
-    _isDeleting = true;
-    _error = null;
-    notifyListeners();
-
     try {
       await _flowItemRepo.deleteFlowItem(id);
       _flowItems.remove(id); // Remove from local cache
-    } catch (e) {
-      _error = e.toString();
-    } finally {
-      _isDeleting = false;
       notifyListeners();
+    } catch (e) {
+      debugPrint("FLOW ITEM PROVIDER - ${e.toString()}");
     }
   }
 
@@ -252,12 +218,6 @@ class FlowItemProvider extends ChangeNotifier {
   }
 
   Future<void> persistDeletions() async {
-    if (_isDeleting) return;
-
-    _isDeleting = true;
-    _error = null;
-    notifyListeners();
-
     try {
       debugPrint("FLOW PROVIDER - persisting deletion of flow items");
       for (var id in _cachedDeletions) {
@@ -265,12 +225,9 @@ class FlowItemProvider extends ChangeNotifier {
         await _flowItemRepo.deleteFlowItem(id);
       }
       _cachedDeletions.clear();
-    } catch (e) {
-      _error = e.toString();
-      debugPrint("FLOW PROVIDER - error deleting flow - $e");
-    } finally {
-      _isDeleting = false;
       notifyListeners();
+    } catch (e) {
+      debugPrint("FLOW ITEM PROVIDER - error deleting flow - $e");
     }
   }
 
@@ -285,10 +242,6 @@ class FlowItemProvider extends ChangeNotifier {
   // Clear cached data and reset state
   void clearCache() {
     _flowItems.clear();
-    _error = null;
-    _isLoading = false;
-    _isSaving = false;
-    _isDeleting = false;
     _cachedCreations.clear();
     _cachedDeletions.clear();
     _hasUnsavedChanges = false;

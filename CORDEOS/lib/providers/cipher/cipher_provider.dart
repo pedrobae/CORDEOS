@@ -95,6 +95,23 @@ class CipherProvider extends ChangeNotifier {
   }
 
   // ===== READ =====
+  /// Ensure cipher is loaded
+  Future<void> ensureIsLoaded(int cipherID) async {
+    if (ciphers[cipherID] != null) return;
+    try {
+      Cipher loadedCipher = (await _cipherRepository.getCipherById(cipherID))!;
+      if (loadedCipher.musicKey.isEmpty) {
+        final recognizedKey = await _recognizer.recognizeKeyLocal(cipherID);
+        loadedCipher = loadedCipher.copyWith(musicKey: recognizedKey);
+        await _cipherRepository.updateCipher(loadedCipher);
+      }
+
+      _ciphers[cipherID] = loadedCipher;
+    } catch (e) {
+      debugPrint('CIPHER - Error loading cipher: $e');
+    }
+  }
+
   /// Load ciphers from local SQLite
   Future<void> loadCiphers({bool forceReload = false}) async {
     if (_hasLoadedCiphers && !forceReload) {

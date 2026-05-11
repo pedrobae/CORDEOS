@@ -119,23 +119,50 @@ class SectionProvider extends ChangeNotifier {
   }
 
   // ====== READ =====
-  /// Load sections for a given version from the database
-  Future<void> loadSectionsOfVersion(int versionId) async {
-    if (_isLoadingVersion[versionId] == true) return;
+  /// Ensures all sections of given structure and version is loaded
+  Future<void> ensureAreLoaded(
+    int versionID,
+    List<int> songStruct,
+  ) async {
+    if (_sections[versionID] != null &&
+        songStruct.every((key) => _sections[versionID]!.containsKey(key)))
+      return;
+    if (_isLoadingVersion[versionID] == true) return;
 
-    _isLoadingVersion[versionId] = true;
+    _isLoadingVersion[versionID] = true;
     notifyListeners();
 
     try {
-      _sections[versionId] = await _repo.getSections(versionId);
+      _sections[versionID] = await _repo.getSections(versionID);
       debugPrint(
-        "SECTION - Loaded version $versionId's SECTIONS - ${_sections[versionId]!.length} loaded",
+        "SECTION - Loaded version $versionID's SECTIONS - ${_sections[versionID]!.length} loaded",
       );
     } catch (e) {
       _error = e.toString();
       debugPrint('SECTION PROVIDER - Failed to load sections: $e');
     } finally {
-      _isLoadingVersion[versionId] = false;
+      _isLoadingVersion[versionID] = false;
+      notifyListeners();
+    }
+  }
+
+  /// Load sections for a given version from the database
+  Future<void> loadSectionsOfVersion(int versionID) async {
+    if (_isLoadingVersion[versionID] == true) return;
+
+    _isLoadingVersion[versionID] = true;
+    notifyListeners();
+
+    try {
+      _sections[versionID] = await _repo.getSections(versionID);
+      debugPrint(
+        "SECTION - Loaded version $versionID's SECTIONS - ${_sections[versionID]!.length} loaded",
+      );
+    } catch (e) {
+      _error = e.toString();
+      debugPrint('SECTION PROVIDER - Failed to load sections: $e');
+    } finally {
+      _isLoadingVersion[versionID] = false;
       _hasUnsavedChanges = false;
       notifyListeners();
     }

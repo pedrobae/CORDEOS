@@ -46,13 +46,10 @@ class _FlowItemCardState extends State<FlowItemCard> {
 
     final nav = context.read<NavigationProvider>();
 
-    return Selector<FlowItemProvider, ({FlowItem? flowItem, bool isLoading})>(
-      selector: (context, flow) => (
-        flowItem: flow.getFlowItem(widget.flowItemID),
-        isLoading: flow.isLoading,
-      ),
-      builder: (context, sel, child) {
-        if (sel.flowItem == null || sel.isLoading) {
+    return Selector<FlowItemProvider, FlowItem?>(
+      selector: (context, flow) => flow.getFlowItem(widget.flowItemID),
+      builder: (context, flowItem, child) {
+        if (flowItem == null) {
           return Center(
             child: CircularProgressIndicator(color: colorScheme.primary),
           );
@@ -109,14 +106,9 @@ class _FlowItemCardState extends State<FlowItemCard> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            Text(flowItem.title, style: textTheme.titleMedium),
                             Text(
-                              sel.flowItem!.title,
-                              style: textTheme.titleMedium,
-                            ),
-                            Text(
-                              DateTimeUtils.formatDuration(
-                                sel.flowItem!.duration,
-                              ),
+                              DateTimeUtils.formatDuration(flowItem.duration),
                               style: textTheme.bodyMedium,
                             ),
                           ],

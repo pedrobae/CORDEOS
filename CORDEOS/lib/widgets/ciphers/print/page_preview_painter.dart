@@ -1,3 +1,5 @@
+import 'package:cordeos/models/domain/playlist/flow_item.dart';
+import 'package:cordeos/models/domain/playlist/playlist_item.dart';
 import 'package:cordeos/models/dtos/song_pdf_dto.dart';
 import 'package:cordeos/providers/printing_provider.dart';
 import 'package:cordeos/services/tokenization/build_service.dart';
@@ -11,6 +13,18 @@ import 'package:flutter/material.dart';
 /// Constructing this object is the only place where TextPainters are built,
 /// keeping [PagePreviewPainter.paint] allocation-free.
 class PrintPreviewSnapshot {
+  final PlaylistItemType type;
+  final SongPPS? songSnapshot;
+  final FlowPPS? flowSnapshot;
+
+  const PrintPreviewSnapshot({
+    required this.type,
+    this.flowSnapshot,
+    this.songSnapshot,
+  });
+}
+
+class SongPPS {
   final List<int> songMap;
   final List<TextPaintInstruction> headerInstructions;
   final double headerBlockHeight;
@@ -18,9 +32,8 @@ class PrintPreviewSnapshot {
   final Map<int, BadgePaintModel> badgeModels;
   final Map<int, SectionPaintModel> sectionModels;
   final double sectionLabelHeight;
-  final String filename;
 
-  const PrintPreviewSnapshot({
+  const SongPPS({
     required this.songMap,
     required this.headerInstructions,
     required this.headerBlockHeight,
@@ -28,13 +41,12 @@ class PrintPreviewSnapshot {
     required this.badgeModels,
     required this.sectionModels,
     required this.sectionLabelHeight,
-    required this.filename,
   });
 
   /// Builds the snapshot from a [SongPdfDto] and style overrides.
   /// Call this outside of [paint] — typically in [State.setState] or after
   /// [PrintingProvider.buildSongPdfDto] resolves.
-  static PrintPreviewSnapshot build({
+  static SongPPS build({
     required List<int> songMap,
     required Map<int, SectionPrintCache> sections,
     required Map<String, Measurements> tokenMeasurements,
@@ -124,8 +136,7 @@ class PrintPreviewSnapshot {
       y += painter.height;
     }
 
-    return PrintPreviewSnapshot(
-      filename: headerData.title,
+    return SongPPS(
       badgeModels: badgePainters,
       songMap: songMap,
       sectionModels: models,
@@ -171,11 +182,61 @@ class PrintPreviewSnapshot {
   }
 }
 
+class FlowPPS {
+  final TextPainter headerPainter;
+  final TextStyle headerStyle;
+  final double headerBlockHeight;
+
+  final TextPainter contentPainter;
+  final TextStyle contentStyle;
+  final double contentHeight;
+
+  const FlowPPS({
+    required this.headerPainter,
+    required this.headerStyle,
+    required this.headerBlockHeight,
+    required this.contentPainter,
+    required this.contentStyle,
+    required this.contentHeight,
+  });
+
+  static FlowPPS build({required FlowItem flow, required PrintingContext ctx}) {
+    final headerPainter = TextPainter(
+      text: TextSpan(
+        text: flow.title,
+        style: ctx.headerStyle.copyWith(
+          fontWeight: FontWeight.bold,
+          fontSize: (ctx.headerStyle.fontSize ?? 12) * 1.4,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout(maxWidth: (ctx.maxWidth));
+
+    final contentPainter = TextPainter(
+      text: TextSpan(text: flow.contentText, style: ctx.lyricStyle),
+      textDirection: TextDirection.ltr,
+    )..layout(maxWidth: ctx.maxWidth);
+
+    return FlowPPS(
+      headerPainter: headerPainter,
+      headerBlockHeight: headerPainter.height,
+      contentPainter: contentPainter,
+      headerStyle: ctx.headerStyle.copyWith(
+        fontWeight: FontWeight.bold,
+        fontSize: (ctx.headerStyle.fontSize ?? 12) * 1.4,
+      ),
+      contentStyle: ctx.lyricStyle,
+      contentHeight: contentPainter.height,
+    );
+  }
+}
+
 class PageContext {
   final double pageWidth;
   final double pageHeight;
   final double margin;
   final double columnGap;
+  final double headerGap;
   final double sectionSpacing;
   final int columnCount;
 
@@ -184,6 +245,7 @@ class PageContext {
     required this.pageHeight,
     required this.margin,
     required this.columnGap,
+    required this.headerGap,
     required this.sectionSpacing,
     required this.columnCount,
   });
@@ -209,15 +271,22 @@ class SectionPlacement {
 }
 
 class PageLayout {
-  final List<SectionPlacement> placements;
+  final bool isFlow;
   final int snapshotIndex;
-  final bool showHeader;
+  final SongPageLayout? songPageLayout;
 
   const PageLayout({
-    required this.placements,
+    required this.isFlow,
     required this.snapshotIndex,
-    this.showHeader = false,
+    required this.songPageLayout,
   });
+}
+
+class SongPageLayout {
+  final List<SectionPlacement> placements;
+  final bool showHeader;
+
+  const SongPageLayout({required this.placements, this.showHeader = false});
 }
 
 /// [CustomPainter] that renders a page preview using pre-computed
@@ -275,12 +344,26 @@ class PagePreviewPainter extends CustomPainter {
 
     final layout = pages[pageIndex];
     final snapshot = snapshots[layout.snapshotIndex];
+    switch (snapshot.type) {
+      case PlaylistItemType.version:
+        final songLayout = layout.songPageLayout!;
+        final songSnap = snapshot.songSnapshot!;
+        if (songLayout.showHeader)
+          _paintHeader(canvas, songSnap.headerInstructions);
 
-    if (layout.showHeader) _paintHeader(canvas, snapshot.headerInstructions);
+        for (final placement in songLayout.placements) {
+          final model = songSnap.sectionModels[placement.sectionKey]!;
+          _paintSectionSlice(canvas, model, placement, songSnap);
+        }
+        break;
+      case PlaylistItemType.flowItem:
+        final flowSnap = snapshot.flowSnapshot!;
 
-    for (final placement in layout.placements) {
-      final model = snapshot.sectionModels[placement.sectionKey]!;
-      _paintSectionSlice(canvas, model, placement, snapshot);
+        flowSnap.headerPainter.paint(canvas, Offset.zero);
+        flowSnap.contentPainter.paint(
+          canvas,
+          Offset(0, flowSnap.headerBlockHeight + ctx.headerGap),
+        );
     }
 
     canvas.restore();
@@ -300,7 +383,7 @@ class PagePreviewPainter extends CustomPainter {
     Canvas canvas,
     SectionPaintModel model,
     SectionPlacement placement,
-    PrintPreviewSnapshot snapshot,
+    SongPPS snapshot,
   ) {
     canvas.save();
     canvas.clipRect(

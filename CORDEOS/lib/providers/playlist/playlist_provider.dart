@@ -88,6 +88,13 @@ class PlaylistProvider extends ChangeNotifier {
   }
 
   // ===== READ =====
+  /// Ensure playlist is loaded
+  Future<void> ensureIsLoaded(int playlistID) async {
+    if (_playlists[playlistID] != null) return;
+
+    await loadPlaylist(playlistID);
+  }
+
   // Load Playlists from local SQLite database
   Future<void> loadPlaylists() async {
     _error = null;

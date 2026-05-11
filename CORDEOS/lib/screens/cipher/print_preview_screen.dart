@@ -5,9 +5,11 @@ import 'package:cordeos/l10n/app_localizations.dart';
 import 'package:cordeos/models/domain/cipher/cipher.dart';
 import 'package:cordeos/models/domain/cipher/section.dart';
 import 'package:cordeos/models/domain/cipher/version.dart';
+import 'package:cordeos/models/domain/playlist/flow_item.dart';
 import 'package:cordeos/models/domain/playlist/playlist_item.dart';
 import 'package:cordeos/providers/cipher/cipher_provider.dart';
 import 'package:cordeos/providers/navigation_provider.dart';
+import 'package:cordeos/providers/playlist/flow_item_provider.dart';
 import 'package:cordeos/providers/playlist/playlist_provider.dart';
 import 'package:cordeos/providers/printing_provider.dart';
 import 'package:cordeos/providers/section/section_provider.dart';
@@ -17,6 +19,7 @@ import 'package:cordeos/widgets/ciphers/print/page_preview_painter.dart';
 import 'package:cordeos/widgets/ciphers/print/sheet_print_filters.dart';
 import 'package:cordeos/widgets/ciphers/print/sheet_print_layout.dart';
 import 'package:cordeos/widgets/ciphers/print/sheet_print_style.dart';
+import 'package:cordeos/widgets/common/icon_load_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
@@ -36,6 +39,94 @@ class PrintPreviewScreen extends StatefulWidget {
 
 class _PrintPreviewScreenState extends State<PrintPreviewScreen> {
   bool _isGenerating = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _ensureDataLoad();
+    });
+  }
+
+  Future<void> _ensureDataLoad() async {
+    final play = context.read<PlaylistProvider>();
+    final flow = context.read<FlowItemProvider>();
+
+    if (widget.versionID != null) {
+      await _ensureSongDataLoad(widget.versionID!);
+    }
+
+    if (widget.playlistID != null) {
+      await play.ensureIsLoaded(widget.playlistID!);
+      final playlist = play.getPlaylist(widget.playlistID!);
+      if (playlist == null) {
+        throw Exception('Playlist not found for ID: ${widget.playlistID}');
+      }
+
+      for (final item in playlist.items) {
+        if (item.contentId == null) {
+          throw Exception('Item has no content ID');
+        }
+
+        switch (item.type) {
+          case PlaylistItemType.version:
+            await _ensureSongDataLoad(item.contentId!);
+          case PlaylistItemType.flowItem:
+            await flow.ensureIsLoaded(item.contentId!);
+        }
+      }
+    }
+  }
+
+  Future<void> _ensureSongDataLoad(int versionID) async {
+    final localVer = context.read<LocalVersionProvider>();
+    final ciph = context.read<CipherProvider>();
+    final sect = context.read<SectionProvider>();
+
+    await localVer.ensureIsLoaded(versionID);
+    final version = localVer.getVersion(versionID);
+    if (version == null) {
+      throw Exception('Version not found for ID: ${versionID}');
+    }
+
+    await ciph.ensureIsLoaded(version.cipherID);
+
+    await sect.ensureAreLoaded(versionID, version.songStructure);
+  }
+
+  void _getSong(
+    int versionID,
+    TranspositionProvider trans,
+    CipherProvider ciph,
+    LocalVersionProvider localVer,
+    SectionProvider sect, {
+    required String fileName,
+    required Map<int, Version> versions,
+    required Map<int, Cipher> ciphers,
+    required Map<int, Map<int, Section>> versionsSections,
+    required Map<int, String Function(String)> versionsTransposeChords,
+  }) {
+    final version = localVer.getVersion(versionID);
+    if (version == null) {
+      throw Exception('Version not found for ID: $versionID');
+    }
+    final cipher = ciph.getCipher(version.cipherID);
+    if (cipher == null) {
+      throw Exception('Cipher not found for ID: $versionID');
+    }
+    if (widget.playlistID == null) {
+      fileName = cipher.title;
+    }
+    final sections = sect.getSections(versionID);
+    final transposeChord = (String chord) =>
+        trans.transposeChord(chord, cipher.musicKey, version.transposedKey);
+
+    versions[versionID] = version;
+    ciphers[versionID] = cipher;
+    versionsSections[versionID] = sections;
+    versionsTransposeChords[versionID] = transposeChord;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,8 +153,11 @@ class _PrintPreviewScreenState extends State<PrintPreviewScreen> {
             SectionProvider,
             PrintingProvider,
             ({
+              bool isLoading,
+              List<PlaylistItem> items,
               Map<int, Cipher> ciphers,
-              List<Version> versions,
+              Map<int, Version> versions,
+              Map<int, FlowItem> flowItems,
               Map<int, Map<int, Section>> versionsSections,
               Map<int, String Function(String)> versionsTransposeChords,
               bool showChords,
@@ -72,68 +166,124 @@ class _PrintPreviewScreenState extends State<PrintPreviewScreen> {
             })
           >(
             selector: (context, trans, play, ciph, localVer, sect, print) {
-              final versionIDs = <int>[];
+              List<PlaylistItem> items = [];
+              final flowItems = <int, FlowItem>{};
+              final versions = <int, Version>{};
+              final ciphers = <int, Cipher>{};
+              final versionsSections = <int, Map<int, Section>>{};
+              final versionsTransposeChords = <int, String Function(String)>{};
               String fileName = '';
+
               if (widget.versionID != null) {
-                versionIDs.add(widget.versionID!);
+                try {
+                  _getSong(
+                    widget.versionID!,
+                    trans,
+                    ciph,
+                    localVer,
+                    sect,
+                    fileName: fileName,
+                    versions: versions,
+                    ciphers: ciphers,
+                    versionsSections: versionsSections,
+                    versionsTransposeChords: versionsTransposeChords,
+                  );
+                  items.add(
+                    PlaylistItem.version(
+                      versionId: widget.versionID!,
+                      position: 0,
+                    ),
+                  );
+                } catch (e) {
+                  debugPrint(e.toString());
+                  return (
+                    isLoading: false,
+                    versionsTransposeChords: versionsTransposeChords,
+                    ciphers: ciphers,
+                    versions: versions,
+                    versionsSections: versionsSections,
+                    showChords: print.showChords,
+                    showLyrics: print.showLyrics,
+                    fileName: fileName,
+                    items: items,
+                    flowItems: flowItems,
+                  );
+                }
               }
 
               if (widget.playlistID != null) {
                 final playlist = play.getPlaylist(widget.playlistID!);
-
                 if (playlist == null) {
                   throw Exception(
                     'Playlist not found for ID: ${widget.playlistID}',
                   );
                 }
-
+                items = playlist.items;
                 fileName = playlist.name;
-
                 for (final item in playlist.items) {
+                  if (item.contentId == null) {
+                    debugPrint("Item has no contentID");
+                    continue;
+                  }
                   switch (item.type) {
                     case PlaylistItemType.version:
-                      versionIDs.add(item.contentId!);
+                      try {
+                        _getSong(
+                          item.contentId!,
+                          trans,
+                          ciph,
+                          localVer,
+                          sect,
+                          fileName: fileName,
+                          versions: versions,
+                          ciphers: ciphers,
+                          versionsSections: versionsSections,
+                          versionsTransposeChords: versionsTransposeChords,
+                        );
+                      } catch (e) {
+                        debugPrint(e.toString());
+                        return (
+                          isLoading: false,
+                          versionsTransposeChords: versionsTransposeChords,
+                          ciphers: ciphers,
+                          versions: versions,
+                          versionsSections: versionsSections,
+                          showChords: print.showChords,
+                          showLyrics: print.showLyrics,
+                          fileName: fileName,
+                          items: items,
+                          flowItems: flowItems,
+                        );
+                      }
                       break;
                     case PlaylistItemType.flowItem:
-                      //TODO-EXPORT FLOW ITEM
+                      final flowItem = context
+                          .read<FlowItemProvider>()
+                          .getFlowItem(item.contentId!);
+                      if (flowItem == null) {
+                        debugPrint("Couldnt get flow Item ${item.contentId}");
+                        return (
+                          isLoading: true,
+                          versionsTransposeChords: versionsTransposeChords,
+                          ciphers: ciphers,
+                          versions: versions,
+                          versionsSections: versionsSections,
+                          showChords: print.showChords,
+                          showLyrics: print.showLyrics,
+                          fileName: fileName,
+                          items: items,
+                          flowItems: flowItems,
+                        );
+                      }
+
+                      flowItems[item.contentId!] = flowItem;
                       break;
                   }
                 }
               }
 
-              final versions = <Version>[];
-              final ciphers = <int, Cipher>{};
-              final versionsSections = <int, Map<int, Section>>{};
-              final versionsTransposeChords = <int, String Function(String)>{};
-
-              for (final versionID in versionIDs) {
-                final version = localVer.getVersion(versionID);
-                if (version == null) {
-                  debugPrint('Version not found for ID: $versionID');
-                  continue;
-                }
-                final cipher = ciph.getCipher(version.cipherID);
-                if (cipher == null) {
-                  debugPrint('Cipher not found for ID: $versionID');
-                  continue;
-                }
-                if (widget.playlistID == null) {
-                  fileName = cipher.title;
-                }
-                final sections = sect.getSections(versionID);
-                final transposeChord = (String chord) => trans.transposeChord(
-                  chord,
-                  cipher.musicKey,
-                  version.transposedKey,
-                );
-
-                versions.add(version);
-                ciphers[versionID] = cipher;
-                versionsSections[versionID] = sections;
-                versionsTransposeChords[versionID] = transposeChord;
-              }
-
               return (
+                isLoading: false,
                 versionsTransposeChords: versionsTransposeChords,
                 ciphers: ciphers,
                 versions: versions,
@@ -141,11 +291,18 @@ class _PrintPreviewScreenState extends State<PrintPreviewScreen> {
                 showChords: print.showChords,
                 showLyrics: print.showLyrics,
                 fileName: fileName,
+                items: items,
+                flowItems: flowItems,
               );
             },
             builder: (context, s, child) {
+              if (s.isLoading) {
+                return Center(child: IconLoadIndicator(size: 180));
+              }
               print.tokenize(
+                items: s.items,
                 versionsTransposeChords: s.versionsTransposeChords,
+                flowItems: s.flowItems,
                 context: context,
                 ciphers: s.ciphers,
                 versions: s.versions,
@@ -231,6 +388,7 @@ class _PrintPreviewScreenState extends State<PrintPreviewScreen> {
                         pageHeight: pageHeight,
                         margin: print.margin,
                         columnGap: print.columnGap,
+                        headerGap: print.headerGap,
                         sectionSpacing: print.sectionSpacing,
                         columnCount: print.columnCount,
                       );

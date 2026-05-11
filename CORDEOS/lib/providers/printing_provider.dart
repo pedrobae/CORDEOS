@@ -4,6 +4,8 @@ import 'package:cordeos/l10n/app_localizations.dart';
 import 'package:cordeos/models/domain/cipher/cipher.dart';
 import 'package:cordeos/models/domain/cipher/section.dart';
 import 'package:cordeos/models/domain/cipher/version.dart';
+import 'package:cordeos/models/domain/playlist/flow_item.dart';
+import 'package:cordeos/models/domain/playlist/playlist_item.dart';
 import 'package:cordeos/services/print_cache.dart';
 import 'package:cordeos/utils/section_type.dart';
 import 'package:cordeos/utils/fonts.dart';
@@ -140,12 +142,19 @@ class PrintingProvider extends ChangeNotifier {
   /// ===== VERSION DATA CACHES =====
   // String -> measurement
   final Map<String, Measurements> _tokenMeasurements = {};
+
+  // contentID -> PlaylistItem
+  final List<PlaylistItem> _itemsCache = [];
+
   // versionID -> sectionID -> cache
   final Map<int, Map<int, SectionPrintCache>> _versionsSectionCache = {};
   // versionID -> songMap
   final Map<int, List<int>> _songMaps = {};
   // versionID -> headerData
   final Map<int, HeaderData> _headersData = {};
+
+  // flowID -> FlowItem
+  final Map<int, FlowItem> _flowCache = {};
 
   /// ===== STATE SETTINGS =====
   // Filter Settings
@@ -236,8 +245,10 @@ class PrintingProvider extends ChangeNotifier {
   }
 
   void tokenize({
+    required List<PlaylistItem> items,
     required Map<int, Cipher> ciphers,
-    required List<Version> versions,
+    required Map<int, Version> versions,
+    required Map<int, FlowItem> flowItems,
     required Map<int, Map<int, Section>> versionsSections,
     required Map<int, String Function(String)> versionsTransposeChords,
     required BuildContext context,
@@ -246,66 +257,80 @@ class PrintingProvider extends ChangeNotifier {
 
     final l10n = AppLocalizations.of(context)!;
 
-    for (final version in versions) {
-      final cipher = ciphers[version.id];
-      final sections = versionsSections[version.id];
-      final transposeChord = versionsTransposeChords[version.id];
+    _itemsCache.addAll(items);
+    _flowCache.addAll(flowItems);
 
-      if (cipher == null || sections == null || transposeChord == null) {
-        debugPrint(
-          "Couldnt find cipher, or section or transposeCHord for version ${version.id}",
-        );
-        continue;
-      }
+    for (final item in items) {
+      switch (item.type) {
+        case PlaylistItemType.version:
+          final version = versions[item.contentId!];
+          final cipher = ciphers[item.contentId!];
+          final sections = versionsSections[item.contentId!];
+          final transposeChord = versionsTransposeChords[item.contentId!];
 
-      _headersData[version.id!] = HeaderData(
-        title: cipher.title,
-        author: cipher.author,
-        musicKey: version.transposedKey ?? cipher.musicKey,
-        bpm: version.bpm,
-        duration: version.duration,
-        songMapLabel: l10n.songStructure,
-        bpmLabel: l10n.bpm,
-        durationLabel: l10n.duration,
-      );
+          if (cipher == null ||
+              sections == null ||
+              transposeChord == null ||
+              version == null) {
+            debugPrint(
+              "Couldnt find Cipher, Version, Sections, or TransposeChord for version ${item.contentId!}",
+            );
+            continue;
+          }
 
-      _songMaps[version.id!] = version.songStructure;
+          _songMaps[version.id!] = version.songStructure;
 
-      _versionsSectionCache[version.id!] = {};
-
-      final types = <int, SectionType>{};
-      for (var section in sections.values) {
-        types[section.key] = section.sectionType;
-      }
-      final badgesData = getSectionBadges(types);
-      for (final sectionKey in version.songStructure) {
-        final section = sections[sectionKey];
-        if (section == null) {
-          throw Exception(
-            'Section with key $sectionKey not found for version ID: ${version.id}',
+          _versionsSectionCache[version.id!] = {};
+          final types = <int, SectionType>{};
+          for (var section in sections.values) {
+            types[section.key] = section.sectionType;
+          }
+          final badgesData = getSectionBadges(types);
+          _headersData[version.id!] = HeaderData(
+            title: cipher.title,
+            author: cipher.author,
+            musicKey: version.transposedKey ?? cipher.musicKey,
+            bpm: version.bpm,
+            duration: version.duration,
+            songMapLabel: l10n.songStructure,
+            bpmLabel: l10n.bpm,
+            durationLabel: l10n.duration,
+            codeSongMap: version.songStructure
+                .map((int key) => badgesData[key]!.code)
+                .toList(),
           );
-        }
+          for (final sectionKey in version.songStructure) {
+            final section = sections[sectionKey];
+            if (section == null) {
+              throw Exception(
+                'Section with key $sectionKey not found for version ID: ${version.id}',
+              );
+            }
 
-        final tokens = _tokenizer.tokenize(
-          section.contentText,
-          showLyrics: showLyrics,
-          showChords: showChords,
-          transposeChord: transposeChord,
-        );
+            final tokens = _tokenizer.tokenize(
+              section.contentText,
+              showLyrics: showLyrics,
+              showChords: showChords,
+              transposeChord: transposeChord,
+            );
 
-        final organized = _tokenizer.organize(tokens);
+            final organized = _tokenizer.organize(tokens);
 
-        if (!context.mounted) throw Exception('Context is not mounted');
+            if (!context.mounted) throw Exception('Context is not mounted');
 
-        _versionsSectionCache[version.id!]![sectionKey] = SectionPrintCache(
-          key: sectionKey,
-          code: badgesData[sectionKey]!.code,
-          color: badgesData[sectionKey]!.color,
-          label: section.sectionType.localizedLabel(context),
-          type: section.sectionType,
-          tokens: tokens,
-          organized: organized,
-        );
+            _versionsSectionCache[version.id!]![sectionKey] = SectionPrintCache(
+              key: sectionKey,
+              code: badgesData[sectionKey]!.code,
+              color: badgesData[sectionKey]!.color,
+              label: section.sectionType.localizedLabel(context),
+              type: section.sectionType,
+              tokens: tokens,
+              organized: organized,
+            );
+          }
+        case PlaylistItemType.flowItem:
+          // No flow item tokenization
+          break;
       }
     }
   }
@@ -348,36 +373,54 @@ class PrintingProvider extends ChangeNotifier {
 
   List<PrintPreviewSnapshot> buildPreviewSnapshot(double maxWidth) {
     final snapshots = <PrintPreviewSnapshot>[];
-    for (final versionKey in _versionsSectionCache.keys) {
-      snapshots.add(
-        PrintPreviewSnapshot.build(
-          songMap: _songMaps[versionKey]!,
-          sections: _versionsSectionCache[versionKey]!,
-          builder: _builder,
-          tokenMeasurements: _tokenMeasurements,
-          headerData: _headersData[versionKey]!,
-          ctx: PrintingContext(
-            showHeader: showHeader,
-            showRepeatSections: showRepeatSections,
-            showAnnotations: showAnnotations,
-            showSongMap: showSongMap,
-            showSectionLabels: showSectionLabels,
-            showBpm: showBpm,
-            showDuration: showDuration,
-            showChords: showChords,
-            showLyrics: showLyrics,
-            lyricStyle: lyricStyle,
-            chordStyle: chordStyle,
-            headerStyle: headerSyle,
-            labelStyle: labelStyle,
-            chordLyricSpacing: heightSpacing,
-            heightSpacing: heightSpacing,
-            maxWidth: maxWidth,
-            contentWidth:
-                (maxWidth * columnCount) + ((columnCount - 1) * columnGap),
-          ),
-        ),
-      );
+    final ctx = PrintingContext(
+      showHeader: showHeader,
+      showRepeatSections: showRepeatSections,
+      showAnnotations: showAnnotations,
+      showSongMap: showSongMap,
+      showSectionLabels: showSectionLabels,
+      showBpm: showBpm,
+      showDuration: showDuration,
+      showChords: showChords,
+      showLyrics: showLyrics,
+      lyricStyle: lyricStyle,
+      chordStyle: chordStyle,
+      headerStyle: headerSyle,
+      labelStyle: labelStyle,
+      chordLyricSpacing: heightSpacing,
+      heightSpacing: heightSpacing,
+      maxWidth: maxWidth,
+      contentWidth: (maxWidth * columnCount) + ((columnCount - 1) * columnGap),
+    );
+    for (final item in _itemsCache) {
+      switch (item.type) {
+        case PlaylistItemType.version:
+          snapshots.add(
+            PrintPreviewSnapshot(
+              type: item.type,
+              songSnapshot: SongPPS.build(
+                songMap: _songMaps[item.contentId]!,
+                sections: _versionsSectionCache[item.contentId]!,
+                builder: _builder,
+                tokenMeasurements: _tokenMeasurements,
+                headerData: _headersData[item.contentId]!,
+                ctx: ctx,
+              ),
+            ),
+          );
+          break;
+        case PlaylistItemType.flowItem:
+          snapshots.add(
+            PrintPreviewSnapshot(
+              type: item.type,
+              flowSnapshot: FlowPPS.build(
+                flow: _flowCache[item.contentId]!,
+                ctx: ctx,
+              ),
+            ),
+          );
+          break;
+      }
     }
     return snapshots;
   }
@@ -391,68 +434,92 @@ class PrintingProvider extends ChangeNotifier {
     final pages = <PageLayout>[];
     int snapIdx = 0;
     for (final snapshot in snapshots) {
-      final cursor = _LayoutCursor(
-        headerHeight: showHeader ? snapshot.headerBlockHeight + headerGap : 0,
-        columnWidth: sectionWidth + columnGap,
-      );
+      switch (snapshot.type) {
+        case PlaylistItemType.version:
+          final songSnapshot = snapshot.songSnapshot!;
+          final cursor = _LayoutCursor(
+            headerHeight: showHeader
+                ? songSnapshot.headerBlockHeight + headerGap
+                : 0,
+            columnWidth: sectionWidth + columnGap,
+          );
 
-      final contentHeight = pageHeight - 2 * margin;
+          final contentHeight = pageHeight - 2 * margin;
 
-      final placements = <SectionPlacement>[];
+          final placements = <SectionPlacement>[];
+          final seenKeys = <int>{};
+          bool firstPage = true;
+          for (final key in songSnapshot.songMap) {
+            if (seenKeys.contains(key) && !showRepeatSections) {
+              continue;
+            }
+            seenKeys.add(key);
 
-      final seenKeys = <int>{};
-      bool firstPage = true;
-      for (final key in snapshot.songMap) {
-        if (seenKeys.contains(key) && !showRepeatSections) {
-          continue;
-        }
-        seenKeys.add(key);
+            final model = songSnapshot.sectionModels[key]!;
+            final sectionBlockHeight =
+                model.size.height +
+                (showSectionLabels ? songSnapshot.sectionLabelHeight : 0);
 
-        final model = snapshot.sectionModels[key]!;
-        final sectionBlockHeight =
-            model.size.height +
-            (showSectionLabels ? snapshot.sectionLabelHeight : 0);
+            if (sectionBlockHeight > contentHeight) {
+              // TODO-Break sections bigger than space
+              // for now skip
+              debugPrint("PRINTING PROVIDER - failed to layout big section");
+            }
 
-        if (sectionBlockHeight > contentHeight) {
-          // TODO-Break sections bigger than space
-          // for now skip
-          debugPrint("PRINTING PROVIDER - failed to layout big section");
-        }
+            if (cursor.y + sectionBlockHeight > contentHeight) {
+              final newPage = cursor.breakColumn(columnCount);
 
-        if (cursor.y + sectionBlockHeight > contentHeight) {
-          final newPage = cursor.breakColumn(columnCount);
+              if (newPage) {
+                pages.add(
+                  PageLayout(
+                    snapshotIndex: snapIdx,
+                    isFlow: false,
+                    songPageLayout: SongPageLayout(
+                      placements: List.from(placements),
+                      showHeader: firstPage,
+                    ),
+                  ),
+                );
+                placements.clear();
+                firstPage = false;
+              }
+            }
 
-          if (newPage) {
+            placements.add(
+              SectionPlacement(
+                sectionKey: model.key,
+                pageIndex: cursor.pageIndex,
+                columnIndex: cursor.columnIndex,
+                xOffset: cursor.x,
+                yOffset: cursor.y,
+              ),
+            );
+
+            cursor.y += sectionBlockHeight + sectionSpacing;
+          }
+
+          if (placements.isNotEmpty) {
             pages.add(
               PageLayout(
-                placements: List.from(placements),
+                isFlow: false,
                 snapshotIndex: snapIdx,
-                showHeader: firstPage,
+                songPageLayout: SongPageLayout(
+                  placements: List.from(placements),
+                ),
               ),
             );
             placements.clear();
-            firstPage = false;
           }
-        }
-
-        placements.add(
-          SectionPlacement(
-            sectionKey: model.key,
-            pageIndex: cursor.pageIndex,
-            columnIndex: cursor.columnIndex,
-            xOffset: cursor.x,
-            yOffset: cursor.y,
-          ),
-        );
-
-        cursor.y += sectionBlockHeight + sectionSpacing;
-      }
-
-      if (placements.isNotEmpty) {
-        pages.add(
-          PageLayout(placements: List.from(placements), snapshotIndex: snapIdx),
-        );
-        placements.clear();
+          break;
+        case PlaylistItemType.flowItem:
+          pages.add(
+            PageLayout(
+              isFlow: true,
+              songPageLayout: null,
+              snapshotIndex: snapIdx,
+            ),
+          );
+          break;
       }
       snapIdx++;
     }
@@ -634,65 +701,96 @@ class PrintingProvider extends ChangeNotifier {
     await _preloadFonts(snapshots, fontCache, ratio);
 
     for (int pageIdx = 0; pageIdx < pages.length; pageIdx++) {
-      final pageLayout = pages[pageIdx];
-      final snapshot = snapshots[pageLayout.snapshotIndex];
+      final layout = pages[pageIdx];
+      final snapshot = snapshots[layout.snapshotIndex];
       final page = document.pages.add();
 
-      // Start drawing at top-left with margins
-      double currentY = 0;
+      switch (snapshot.type) {
+        case PlaylistItemType.version:
+          final songLayout = layout.songPageLayout!;
+          final songSnapshot = snapshot.songSnapshot!;
+          double currentY = 0;
+          // DRAW HEADER (only on first page)
+          if (songLayout.showHeader && songSnapshot.headerBlockHeight > 0) {
+            for (final instruction in songSnapshot.headerInstructions) {
+              final scaledX = instruction.offset.dx * ratio;
+              final scaledY = currentY + (instruction.offset.dy * ratio);
 
-      // DRAW HEADER (only on first page)
-      if (pageLayout.showHeader && snapshot.headerBlockHeight > 0) {
-        for (final instruction in snapshot.headerInstructions) {
-          final scaledX = instruction.offset.dx * ratio;
-          final scaledY = currentY + (instruction.offset.dy * ratio);
+              _drawHeaderLine(
+                page.graphics,
+                instruction,
+                scaledX,
+                scaledY,
+                ratio,
+                fontCache,
+              );
+            }
+            currentY +=
+                songSnapshot.headerBlockHeight * ratio + headerGap * ratio;
+          }
 
-          _drawHeaderLine(
-            page.graphics,
-            instruction,
-            scaledX,
-            scaledY,
-            ratio,
-            fontCache,
+          // DRAW SECTIONS
+          for (final placement in songLayout.placements) {
+            final model = songSnapshot.sectionModels[placement.sectionKey]!;
+
+            // Calculate section position with margins
+            // Note: placement.yOffset already includes header height on first page
+            final sectionX = placement.xOffset * ratio;
+            final sectionY = placement.yOffset * ratio;
+
+            // Draw section label and badge if needed
+            final badge = songSnapshot.badgeModels[placement.sectionKey];
+            final label =
+                songSnapshot.sectionLabelPainters[placement.sectionKey];
+
+            if (badge != null && label != null && showSectionLabels) {
+              _drawSectionBadge(
+                page.graphics,
+                badge,
+                label,
+                sectionX,
+                sectionY,
+                ratio,
+                fontCache,
+              );
+            }
+
+            // Draw section content (text instructions and underlines)
+            _drawSectionContent(
+              page.graphics,
+              model,
+              sectionX,
+              sectionY +
+                  (songSnapshot.sectionLabelHeight * ratio) +
+                  (4 * ratio),
+              ratio,
+              fontCache,
+            );
+          }
+        case PlaylistItemType.flowItem:
+          final flowSnapshot = snapshot.flowSnapshot!;
+
+          // DRAW FLOW HEADER
+          // Get font from cache
+          final headerFont =
+              fontCache[_getKey(flowSnapshot.headerStyle, ratio)];
+          if (headerFont == null)
+            throw Exception("Couldnt find header font on cache");
+          page.graphics.drawString(
+            flowSnapshot.headerPainter.plainText,
+            headerFont,
           );
-        }
-        currentY += snapshot.headerBlockHeight * ratio + headerGap * ratio;
-      }
 
-      // DRAW SECTIONS
-      for (final placement in pageLayout.placements) {
-        final model = snapshot.sectionModels[placement.sectionKey]!;
-
-        // Calculate section position with margins
-        // Note: placement.yOffset already includes header height on first page
-        final sectionX = placement.xOffset * ratio;
-        final sectionY = placement.yOffset * ratio;
-
-        // Draw section label and badge if needed
-        final badge = snapshot.badgeModels[placement.sectionKey];
-        final label = snapshot.sectionLabelPainters[placement.sectionKey];
-
-        if (badge != null && label != null && showSectionLabels) {
-          _drawSectionBadge(
-            page.graphics,
-            badge,
-            label,
-            sectionX,
-            sectionY,
-            ratio,
-            fontCache,
+          // DRAW FLOW CONTENT
+          // Get font from cache
+          final contentFont =
+              fontCache[_getKey(flowSnapshot.contentStyle, ratio)];
+          if (contentFont == null)
+            throw Exception("Couldnt find header font on cache");
+          page.graphics.drawString(
+            flowSnapshot.contentPainter.plainText,
+            contentFont,
           );
-        }
-
-        // Draw section content (text instructions and underlines)
-        _drawSectionContent(
-          page.graphics,
-          model,
-          sectionX,
-          sectionY + (snapshot.sectionLabelHeight * ratio) + (4 * ratio),
-          ratio,
-          fontCache,
-        );
       }
     }
 
@@ -707,58 +805,46 @@ class PrintingProvider extends ChangeNotifier {
   ) async {
     final fontKeys = <String>{};
     for (final snapshot in snapshots) {
-      // Collect fonts from header
-      for (final instruction in snapshot.headerInstructions) {
-        final fontName = instruction.style.fontFamily ?? 'OpenSans';
-        final isBold = instruction.style.fontWeight == FontWeight.bold;
-        final isItalic = instruction.style.fontStyle == FontStyle.italic;
-        final size = instruction.style.fontSize! * ratio;
-        fontKeys.add('${fontName}_${isBold}_${isItalic}_${size}');
+      switch (snapshot.type) {
+        case PlaylistItemType.version:
+          final songSnap = snapshot.songSnapshot!;
+          // Collect fonts from header
+          for (final instruction in songSnap.headerInstructions) {
+            fontKeys.add(_getKey(instruction.style, ratio));
+          }
+          // Collect fonts from sections
+          for (final model in songSnap.sectionModels.values) {
+            for (final instruction in model.textInstructions) {
+              fontKeys.add(_getKey(instruction.style, ratio));
+            }
+          }
+          for (final model in songSnap.badgeModels.values) {
+            fontKeys.add(_getKey(model.style, ratio));
+          }
+          for (final model in songSnap.sectionLabelPainters.values) {
+            fontKeys.add(_getKey(model.style, ratio));
+          }
+          break;
+        case PlaylistItemType.flowItem:
+          final flowSnap = snapshot.flowSnapshot!;
+          fontKeys.add(_getKey(flowSnap.headerStyle, ratio));
+          fontKeys.add(_getKey(flowSnap.contentStyle, ratio));
       }
+    }
 
-      // Collect fonts from sections
-      for (final model in snapshot.sectionModels.values) {
-        for (final instruction in model.textInstructions) {
-          final fontName = instruction.style.fontFamily ?? 'OpenSans';
-          final isBold = instruction.style.fontWeight == FontWeight.bold;
-          final isItalic = instruction.style.fontStyle == FontStyle.italic;
-          final size = instruction.style.fontSize! * ratio;
-          fontKeys.add('${fontName}_${isBold}_${isItalic}_$size');
-        }
-      }
-
-      for (final model in snapshot.badgeModels.values) {
-        final style = model.style;
-        final fontName = style.fontFamily ?? 'OpenSans';
-        final isBold = style.fontWeight == FontWeight.bold;
-        final isItalic = style.fontStyle == FontStyle.italic;
-        final size = style.fontSize! * ratio;
-        fontKeys.add('${fontName}_${isBold}_${isItalic}_$size');
-      }
-
-      for (final model in snapshot.sectionLabelPainters.values) {
-        final style = model.style;
-        final fontName = style.fontFamily ?? 'OpenSans';
-        final isBold = style.fontWeight == FontWeight.bold;
-        final isItalic = style.fontStyle == FontStyle.italic;
-        final size = style.fontSize! * ratio;
-        fontKeys.add('${fontName}_${isBold}_${isItalic}_$size');
-      }
-
-      // Load all fonts
-      for (final key in fontKeys) {
-        final splitKey = key.split('_');
-        try {
-          final font = await getPdfFont(
-            splitKey[0],
-            double.tryParse(splitKey[3]) ?? 0,
-            isBold: splitKey[1] == 'true',
-            isItalic: splitKey[2] == 'true',
-          );
-          fontCache[key] = font;
-        } catch (e) {
-          debugPrint('Failed to preload font ${splitKey[0]}: $e');
-        }
+    // Load all fonts
+    for (final key in fontKeys) {
+      final splitKey = key.split('_');
+      try {
+        final font = await getPdfFont(
+          splitKey[0],
+          double.tryParse(splitKey[3]) ?? 0,
+          isBold: splitKey[1] == 'true',
+          isItalic: splitKey[2] == 'true',
+        );
+        fontCache[key] = font;
+      } catch (e) {
+        debugPrint('Failed to preload font ${splitKey[0]}: $e');
       }
     }
   }
@@ -920,11 +1006,11 @@ class PrintingProvider extends ChangeNotifier {
     Map<String, PdfFont> fontCache,
   ) {
     // Draw text instructions (chords and lyrics)
-    for (final i in model.textInstructions) {
-      final ratioedSize = i.style.fontSize! * ratio;
-      final fontName = i.style.fontFamily;
-      final isBold = i.style.fontWeight == FontWeight.bold;
-      final isItalic = i.style.fontStyle == FontStyle.italic;
+    for (final inst in model.textInstructions) {
+      final ratioedSize = inst.style.fontSize! * ratio;
+      final fontName = inst.style.fontFamily;
+      final isBold = inst.style.fontWeight == FontWeight.bold;
+      final isItalic = inst.style.fontStyle == FontStyle.italic;
 
       // Get font from cache
       final cacheKey = '${fontName}_${isBold}_${isItalic}_$ratioedSize';
@@ -933,13 +1019,15 @@ class PrintingProvider extends ChangeNotifier {
       if (pdfFont == null)
         throw Exception("Couldn't find content font in cache");
 
-      final textX = baseX + (i.offset.dx * ratio);
-      final textY = baseY + (i.offset.dy * ratio);
+      final textX = baseX + (inst.offset.dx * ratio);
+      final textY = baseY + (inst.offset.dy * ratio);
 
       graphics.drawString(
-        i.painter.plainText,
+        inst.painter.plainText,
         pdfFont,
-        brush: PdfSolidBrush(_colorToPdfColor(i.style.color ?? Colors.black)),
+        brush: PdfSolidBrush(
+          _colorToPdfColor(inst.style.color ?? Colors.black),
+        ),
         bounds: Rect.fromLTWH(textX, textY, double.maxFinite, ratioedSize * 2),
       );
     }
@@ -968,8 +1056,19 @@ class PrintingProvider extends ChangeNotifier {
   }
 
   void clearCache() {
+    _itemsCache.clear();
+    _flowCache.clear();
     _versionsSectionCache.clear();
     _songMaps.clear();
     _headersData.clear();
+  }
+
+  String _getKey(TextStyle style, double ratio) {
+    final fontName = style.fontFamily ?? 'OpenSans';
+    final isBold = style.fontWeight == FontWeight.bold;
+    final isItalic = style.fontStyle == FontStyle.italic;
+    final size = style.fontSize! * ratio;
+
+    return '${fontName}_${isBold}_${isItalic}_${size}';
   }
 }
