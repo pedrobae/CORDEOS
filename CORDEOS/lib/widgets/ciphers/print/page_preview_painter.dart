@@ -286,7 +286,7 @@ class SongPageLayout {
   final List<SectionPlacement> placements;
   final bool showHeader;
 
-  const SongPageLayout({required this.placements, this.showHeader = false});
+  const SongPageLayout({required this.placements, required this.showHeader});
 }
 
 /// [CustomPainter] that renders a page preview using pre-computed

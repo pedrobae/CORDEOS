@@ -505,10 +505,12 @@ class PrintingProvider extends ChangeNotifier {
                 snapshotIndex: snapIdx,
                 songPageLayout: SongPageLayout(
                   placements: List.from(placements),
+                  showHeader: firstPage,
                 ),
               ),
             );
             placements.clear();
+            firstPage = false;
           }
           break;
         case PlaylistItemType.flowItem:
