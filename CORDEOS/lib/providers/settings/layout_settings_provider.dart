@@ -12,8 +12,8 @@ class LayoutSetProvider extends ChangeNotifier {
   double cardWidthMult = 1.0;
 
   double heightSpacing = 0;
-  double minChordSpacing = 4;
-  double letterSpacing = 0;
+  final double minChordSpacing = 4;
+  final double letterSpacing = 0;
 
   bool _showChords = true;
   bool _showLyrics = true;
@@ -40,8 +40,8 @@ class LayoutSetProvider extends ChangeNotifier {
     showSectionHeaders = SettingsService.getShowSectionHeaders();
     cardWidthMult = SettingsService.getCardWidthMult();
     heightSpacing = SettingsService.getHeightSpacing();
-    minChordSpacing = SettingsService.getMinChordSpacing();
-    letterSpacing = SettingsService.getLetterSpacing();
+    // minChordSpacing = SettingsService.getMinChordSpacing();
+    // letterSpacing = SettingsService.getLetterSpacing();
     notifyListeners();
   }
 
@@ -78,17 +78,17 @@ class LayoutSetProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setMinChordSpacing(double value) {
-    minChordSpacing = value;
-    SettingsService.setMinChordSpacing(value);
-    notifyListeners();
-  }
+  // void setMinChordSpacing(double value) {
+  //   minChordSpacing = value;
+  //   SettingsService.setMinChordSpacing(value);
+  //   notifyListeners();
+  // }
 
-  void setLetterSpacing(double value) {
-    letterSpacing = value;
-    SettingsService.setLetterSpacing(value);
-    notifyListeners();
-  }
+  // void setLetterSpacing(double value) {
+  //   letterSpacing = value;
+  //   SettingsService.setLetterSpacing(value);
+  //   notifyListeners();
+  // }
 
   void toggleSectionHeaders() {
     showSectionHeaders = !showSectionHeaders;

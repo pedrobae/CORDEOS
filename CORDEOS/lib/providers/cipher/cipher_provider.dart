@@ -225,8 +225,8 @@ class CipherProvider extends ChangeNotifier {
     List<String>? links,
   }) {
     _ciphers[cipherId] = _ciphers[cipherId]!.copyWith(
-      title: title,
-      author: author,
+      title: title?.trim(),
+      author: author?.trim(),
       language: language,
       links: links,
     );
