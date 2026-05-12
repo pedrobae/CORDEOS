@@ -283,10 +283,12 @@ class ScrollProvider extends ChangeNotifier {
         curve: Curves.easeInOut,
         alignment: 0.2,
       ).then((_) {
-        // After scroll completes, try section again
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          probeScrollToItem(targetItemIndex, targetSectionIndex);
-        });
+        // After scroll completes, try section again if its index is != 0
+        if (targetSectionIndex != 0) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            probeScrollToItem(targetItemIndex, targetSectionIndex);
+          });
+        }
       });
       return;
     }
@@ -357,7 +359,7 @@ class ScrollProvider extends ChangeNotifier {
     }
 
     int loopCount = 0;
-    while ((hasItemsPost || hasItemsPre) && loopCount <= 100) {
+    while ((hasItemsPost || hasItemsPre) && loopCount <= 25) {
       indexOffset++;
       loopCount++;
       if (checkPreNext) {
@@ -420,6 +422,8 @@ class ScrollProvider extends ChangeNotifier {
     if (itemFront < viewportHeight * 0.30 && itemBack > viewportHeight * 0.70) {
       return true;
     }
+
+    if (itemFront < viewportHeight && itemBack > 0) return true;
 
     return false;
   }

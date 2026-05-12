@@ -102,11 +102,13 @@ class _PlayPlaylistState extends State<PlayPlaylist> {
       _scroll.currentItemIndex = visibleItemIndex;
     }
 
-    // Sync current section
-    _scroll.syncSectionFromViewport(
-      _scrollController.position.viewportDimension,
-      context.read<LayoutSetProvider>().scrollDirection,
-    );
+    if (_state.currentItem?.type != PlaylistItemType.flowItem) {
+      // Sync current section
+      _scroll.syncSectionFromViewport(
+        _scrollController.position.viewportDimension,
+        context.read<LayoutSetProvider>().scrollDirection,
+      );
+    }
   }
 
   void _scrollOneStep({required bool forward}) async {
@@ -222,6 +224,7 @@ class _PlayPlaylistState extends State<PlayPlaylist> {
 
     return Container(
       key: key,
+      padding: EdgeInsets.only(bottom: 56),
       child: Selector<PlayStateProvider, PlaylistItem?>(
         selector: (context, play) => play.getItemAt(i),
         builder: (context, item, child) {

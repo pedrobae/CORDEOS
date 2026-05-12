@@ -344,7 +344,8 @@ class TokenProvider extends ChangeNotifier {
 
   // ═══════════════════════════════════════════════════════════════════════════
   String getContent(TokenCacheKey key) {
-    final content = _tokenizer.reconstructContent(getTokens(key)!);
+    final tokens = getTokens(key)!;
+    final content = _tokenizer.reconstructContent(tokens);
     return content;
   }
 

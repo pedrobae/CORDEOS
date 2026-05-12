@@ -31,25 +31,26 @@ class TokenizationService {
     final List<ContentToken> lineTokens = [];
     for (int index = 0; index < content.length; index++) {
       final char = content[index];
-      if (char == '\n') {
+      if (char == '\n' && (showLyrics || showChords)) {
         if (lineTokens.isEmpty) {
           // Trim empty lines
           continue;
         }
 
-        if (showLyrics || showChords) {
-          _ensureSeparators(lineTokens);
+        _ensureSeparators(lineTokens);
+        _preHandling(lineTokens);
+        _postHandling(lineTokens);
 
-          lineTokens.add(ContentToken(type: TokenType.newline, text: char));
-
-          _preHandling(lineTokens);
-          _postHandling(lineTokens);
-          _removeAdjacentSeparators(lineTokens);
-        }
+        lineTokens.add(ContentToken(type: TokenType.newline, text: char));
 
         tokens.addAll(lineTokens);
         lineTokens.clear();
-      } else if ((char == ' ' || char == '\t') && showLyrics) {
+      } else if (char == ' ' && showLyrics) {
+        lineTokens.add(ContentToken(type: TokenType.space, text: char));
+      } else if (char == '\t' && showLyrics) {
+        lineTokens.add(ContentToken(type: TokenType.space, text: char));
+        lineTokens.add(ContentToken(type: TokenType.space, text: char));
+        lineTokens.add(ContentToken(type: TokenType.space, text: char));
         lineTokens.add(ContentToken(type: TokenType.space, text: char));
       } else if (char == '[') {
         // GROUP CHORD TOKEN
@@ -88,7 +89,6 @@ class TokenizationService {
       _ensureSeparators(lineTokens);
       _preHandling(lineTokens);
       _postHandling(lineTokens);
-      _removeAdjacentSeparators(lineTokens);
       tokens.addAll(lineTokens);
     }
 
@@ -99,20 +99,7 @@ class TokenizationService {
     return tokens;
   }
 
-  void _removeAdjacentSeparators(List<ContentToken> lineTokens) {
-    for (int i = lineTokens.length - 2; i > 0; i--) {
-      if (lineTokens[i].type == TokenType.preSeparator &&
-          lineTokens[i + 1].type == TokenType.postSeparator) {
-        lineTokens.removeAt(i);
-        lineTokens.removeAt(i);
-        break;
-      }
-    }
-  }
-
-  /// Mutates the line tokens to ensure that chord targets are positioned before chords,
-  /// Insert chord targets before preceding chords
-  /// Remove spaces on preceding sides of lyrics
+  /// Mutates the line tokens to ensure that chord targets are positioned before chords
   void _preHandling(List<ContentToken> lineTokens) {
     final iteratingLine = List<ContentToken>.from(lineTokens);
     int offset = 0; // Track the offset caused by insertions
@@ -127,16 +114,10 @@ class TokenizationService {
         );
         offset++; // Increment the offset for each insertion
       }
-      if (token.type == TokenType.space) {
-        lineTokens.removeAt(i + offset);
-        offset--; // Decrement the offset for each removal
-      }
     }
   }
 
-  /// Mutates the line tokens to ensure that chord targets are positioned before chords,
-  /// Insert chord targets before preceding chords
-  /// Remove spaces on preceding sides of lyrics
+  /// Mutates the line tokens to ensure that chord targets are positioned before chords
   void _postHandling(List<ContentToken> lineTokens) {
     final iteratingLine = List<ContentToken>.from(lineTokens);
     int offset = 0; // Track the offset caused by removals
@@ -171,18 +152,49 @@ class TokenizationService {
     );
 
     if (!hasPreSeparator) {
-      // If there are no pre-separators, find the first lyric token and insert a target before it.
-      // If there are no lyric tokens, position at the end of the line.
-      final firstLyricsIndex = lineTokens.indexWhere(
+      final firstLyricIndex = lineTokens.indexWhere(
         (token) => token.type == TokenType.lyric,
       );
-      final insertIndex = firstLyricsIndex != -1
-          ? firstLyricsIndex
-          : lineTokens.length;
-      lineTokens.insert(
-        insertIndex,
-        ContentToken(type: TokenType.preSeparator, text: '<'),
-      );
+
+      if (firstLyricIndex != -1) {
+        // Has lyrics, search preceding space
+        final precedingSpaceIndex = lineTokens
+            .sublist(0, firstLyricIndex)
+            .indexWhere((token) => token.type == TokenType.space);
+
+        if (precedingSpaceIndex != -1) {
+          // Has Preceding Space, swap preceding space for preSeparator
+          lineTokens.removeAt(precedingSpaceIndex);
+          lineTokens.insert(
+            precedingSpaceIndex,
+            ContentToken(type: TokenType.preSeparator, text: '<'),
+          );
+        } else {
+          // Has no preceding space, search preceding chord
+          final precedingChordIndex =
+              lineTokens.sublist(0, firstLyricIndex).length -
+              1 -
+              lineTokens
+                  .sublist(0, firstLyricIndex)
+                  .reversed
+                  .toList()
+                  .indexWhere((token) => token.type == TokenType.space);
+
+          if (precedingChordIndex != -1) {
+            // Has Preceding Chord, place separator before chord
+            lineTokens.insert(
+              precedingChordIndex,
+              ContentToken(type: TokenType.preSeparator, text: '<'),
+            );
+          } else {
+            // Place separator at start
+            lineTokens.insert(
+              0,
+              ContentToken(type: TokenType.preSeparator, text: '<'),
+            );
+          }
+        }
+      }
     }
     if (!hasPostSeparator) {
       // If there are no post-separators, find the first lyric token and insert a target after it.
@@ -218,9 +230,10 @@ class TokenizationService {
         case TokenType.newline:
           return token.text;
         case TokenType.preSeparator:
+          return ' ';
+        case TokenType.preChordTarget:
         case TokenType.postSeparator:
         case TokenType.underline:
-        case TokenType.preChordTarget:
         case TokenType.postChordTarget:
           return ''; // Purely visual tokens - return empty string
       }
