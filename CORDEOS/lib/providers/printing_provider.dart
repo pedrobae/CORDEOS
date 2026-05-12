@@ -272,7 +272,7 @@ class PrintingProvider extends ChangeNotifier {
               transposeChord == null ||
               version == null) {
             debugPrint(
-              "Couldnt find Cipher, Version, Sections, or TransposeChord for version ${item.contentId!}",
+              "Couldn't find Cipher, Version, Sections, or TransposeChord for version ${item.contentId!}",
             );
             continue;
           }
@@ -766,7 +766,7 @@ class PrintingProvider extends ChangeNotifier {
           final headerFont =
               fontCache[_getKey(flowSnapshot.headerStyle, ratio)];
           if (headerFont == null)
-            throw Exception("Couldnt find header font on cache");
+            throw Exception("Couldn't find header font on cache");
           page.graphics.drawString(
             flowSnapshot.headerPainter.plainText,
             headerFont,
@@ -777,7 +777,7 @@ class PrintingProvider extends ChangeNotifier {
           final contentFont =
               fontCache[_getKey(flowSnapshot.contentStyle, ratio)];
           if (contentFont == null)
-            throw Exception("Couldnt find header font on cache");
+            throw Exception("Couldn't find header font on cache");
           page.graphics.drawString(
             flowSnapshot.contentPainter.plainText,
             contentFont,
@@ -849,23 +849,16 @@ class PrintingProvider extends ChangeNotifier {
     double ratio,
     Map<String, PdfFont> fontCache,
   ) {
-    final ratioedSize = i.style.fontSize! * ratio;
-    final fontName = i.style.fontFamily;
-    final isBold = i.style.fontWeight == FontWeight.bold;
-    final isItalic = i.style.fontStyle == FontStyle.italic;
+    final pdfFont = fontCache[_getKey(i.style, ratio)];
 
-    // Get font from cache
-    final cacheKey = '${fontName}_${isBold}_${isItalic}_$ratioedSize';
-    final pdfFont = fontCache[cacheKey];
-
-    if (pdfFont == null) throw Exception("Couldnt find header font on cache");
+    if (pdfFont == null) throw Exception("Couldn't find header font on cache");
 
     // Set text color if specified, default to black if not
     graphics.drawString(
       i.painter.plainText,
       pdfFont,
       brush: PdfSolidBrush(_colorToPdfColor(i.style.color ?? Colors.black)),
-      bounds: Rect.fromLTWH(x, y, double.maxFinite, ratioedSize * 2),
+      bounds: Rect.fromLTWH(x, y, double.maxFinite, i.style.fontSize! * ratio * 2),
     );
   }
 
@@ -945,44 +938,35 @@ class PrintingProvider extends ChangeNotifier {
     );
 
     // Draw badge text
-    final badgeFontSize = (badge.style.fontSize ?? fontSize) * ratio;
-    final badgeFontName = badge.style.fontFamily ?? fontFamily;
-    final badgeIsBold = badge.style.fontWeight == FontWeight.bold;
-    final badgeIsItalic = badge.style.fontStyle == FontStyle.italic;
-    final badgeCacheKey =
-        '${badgeFontName}_${badgeIsBold}_${badgeIsItalic}_$badgeFontSize';
-    final badgeFont = fontCache[badgeCacheKey];
+    final badgeFont = fontCache[_getKey(badge.style, ratio)];
 
-    if (badgeFont == null) throw Exception("Couldnt find badge font in cache");
+    if (badgeFont == null) throw Exception("Couldn't find badge font in cache");
 
     graphics.drawString(
       badge.textPainter.plainText,
       badgeFont,
       brush: PdfSolidBrush(PdfColor(255, 255, 255)),
-      bounds: Rect.fromLTWH(x + (4 * ratio), y, badgeWidth, badgeFontSize * 2),
+      bounds: Rect.fromLTWH(
+        x + (4 * ratio),
+        y,
+        badgeWidth,
+        badge.style.fontSize! * 2 * ratio,
+      ),
     );
 
     // Draw label text
-    final style = label.style;
-    final labelFontSize = style.fontSize! * ratio;
-    final fontName = style.fontFamily!;
-    final isBold = style.fontWeight == FontWeight.bold;
-    final isItalic = style.fontStyle == FontStyle.italic;
-
-    final cacheKey = '${fontName}_${isBold}_${isItalic}_$labelFontSize';
-    final labelFont = fontCache[cacheKey];
-
-    if (labelFont == null) throw Exception("Couldnt find label font in cache");
+    final labelFont = fontCache[_getKey(label.style, ratio)];
+    if (labelFont == null) throw Exception("Couldn't find label font in cache");
 
     graphics.drawString(
       label.textPainter.plainText,
       labelFont,
-      brush: PdfSolidBrush(_colorToPdfColor(style.color ?? Colors.black)),
+      brush: PdfSolidBrush(_colorToPdfColor(label.style.color ?? Colors.black)),
       bounds: Rect.fromLTWH(
         x + badgeWidth + (12 * ratio),
         y + (2 * ratio),
         double.maxFinite,
-        labelFontSize * 2,
+        label.style.fontSize! * 2 * ratio,
       ),
     );
   }
@@ -998,15 +982,7 @@ class PrintingProvider extends ChangeNotifier {
   ) {
     // Draw text instructions (chords and lyrics)
     for (final inst in model.textInstructions) {
-      final ratioedSize = inst.style.fontSize! * ratio;
-      final fontName = inst.style.fontFamily;
-      final isBold = inst.style.fontWeight == FontWeight.bold;
-      final isItalic = inst.style.fontStyle == FontStyle.italic;
-
-      // Get font from cache
-      final cacheKey = '${fontName}_${isBold}_${isItalic}_$ratioedSize';
-      final pdfFont = fontCache[cacheKey];
-
+      final pdfFont = fontCache[_getKey(inst.style, ratio)];
       if (pdfFont == null)
         throw Exception("Couldn't find content font in cache");
 
@@ -1019,7 +995,12 @@ class PrintingProvider extends ChangeNotifier {
         brush: PdfSolidBrush(
           _colorToPdfColor(inst.style.color ?? Colors.black),
         ),
-        bounds: Rect.fromLTWH(textX, textY, double.maxFinite, ratioedSize * 2),
+        bounds: Rect.fromLTWH(
+          textX,
+          textY,
+          double.maxFinite,
+          (inst.style.fontSize! * ratio) * 2,
+        ),
       );
     }
 
@@ -1056,10 +1037,10 @@ class PrintingProvider extends ChangeNotifier {
 
   String _getKey(TextStyle style, double ratio) {
     final fontName = style.fontFamily ?? 'OpenSans';
-    final isBold = style.fontWeight == FontWeight.bold;
+    final fontWeight = style.fontWeight;
     final isItalic = style.fontStyle == FontStyle.italic;
     final size = style.fontSize! * ratio;
 
-    return '${fontName}_${isBold}_${isItalic}_${size}';
+    return '${fontName}_${fontWeight}_${isItalic}_${size}';
   }
 }
