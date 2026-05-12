@@ -688,7 +688,7 @@ class PrintingProvider extends ChangeNotifier {
     document.pageSettings.margins = (PdfMargins()..all = margin * ratio);
 
     // Pre-load all fonts needed for this PDF
-    final fontCache = <String, PdfFont>{};
+    final fontCache = <TextStyle, PdfFont>{};
     await _preloadFonts(snapshots, fontCache, ratio);
 
     for (int pageIdx = 0; pageIdx < pages.length; pageIdx++) {
@@ -764,7 +764,7 @@ class PrintingProvider extends ChangeNotifier {
           // DRAW FLOW HEADER
           // Get font from cache
           final headerFont =
-              fontCache[_getKey(flowSnapshot.headerStyle, ratio)];
+              fontCache[_resize(flowSnapshot.headerStyle, ratio)];
           if (headerFont == null)
             throw Exception("Couldn't find header font on cache");
           page.graphics.drawString(
@@ -775,7 +775,7 @@ class PrintingProvider extends ChangeNotifier {
           // DRAW FLOW CONTENT
           // Get font from cache
           final contentFont =
-              fontCache[_getKey(flowSnapshot.contentStyle, ratio)];
+              fontCache[_resize(flowSnapshot.contentStyle, ratio)];
           if (contentFont == null)
             throw Exception("Couldn't find header font on cache");
           page.graphics.drawString(
@@ -791,51 +791,50 @@ class PrintingProvider extends ChangeNotifier {
   /// Pre-load all fonts used in the snapshot to cache them
   Future<void> _preloadFonts(
     List<PrintPreviewSnapshot> snapshots,
-    Map<String, PdfFont> fontCache,
+    Map<TextStyle, PdfFont> fontCache,
     double ratio,
   ) async {
-    final fontKeys = <String>{};
+    final fontKeys = <TextStyle>{};
     for (final snapshot in snapshots) {
       switch (snapshot.type) {
         case PlaylistItemType.version:
           final songSnap = snapshot.songSnapshot!;
           // Collect fonts from header
           for (final instruction in songSnap.headerInstructions) {
-            fontKeys.add(_getKey(instruction.style, ratio));
+            fontKeys.add(_resize(instruction.style, ratio));
           }
           // Collect fonts from sections
           for (final model in songSnap.sectionModels.values) {
             for (final instruction in model.textInstructions) {
-              fontKeys.add(_getKey(instruction.style, ratio));
+              fontKeys.add(_resize(instruction.style, ratio));
             }
           }
           for (final model in songSnap.badgeModels.values) {
-            fontKeys.add(_getKey(model.style, ratio));
+            fontKeys.add(_resize(model.style, ratio));
           }
           for (final model in songSnap.sectionLabelPainters.values) {
-            fontKeys.add(_getKey(model.style, ratio));
+            fontKeys.add(_resize(model.style, ratio));
           }
           break;
         case PlaylistItemType.flowItem:
           final flowSnap = snapshot.flowSnapshot!;
-          fontKeys.add(_getKey(flowSnap.headerStyle, ratio));
-          fontKeys.add(_getKey(flowSnap.contentStyle, ratio));
+          fontKeys.add(_resize(flowSnap.headerStyle, ratio));
+          fontKeys.add(_resize(flowSnap.contentStyle, ratio));
       }
     }
 
     // Load all fonts
     for (final key in fontKeys) {
-      final splitKey = key.split('_');
       try {
         final font = await getPdfFont(
-          splitKey[0],
-          double.tryParse(splitKey[3]) ?? 0,
-          isBold: splitKey[1] == 'true',
-          isItalic: splitKey[2] == 'true',
+          key.fontFamily ?? 'OpenSans',
+          key.fontSize ?? 8,
+          (key.fontWeight?.value ?? 400).toDouble(),
+          isItalic: key.fontStyle == FontStyle.italic,
         );
         fontCache[key] = font;
       } catch (e) {
-        debugPrint('Failed to preload font ${splitKey[0]}: $e');
+        debugPrint('Failed to preload font $key: $e');
       }
     }
   }
@@ -847,9 +846,9 @@ class PrintingProvider extends ChangeNotifier {
     double x,
     double y,
     double ratio,
-    Map<String, PdfFont> fontCache,
+    Map<TextStyle, PdfFont> fontCache,
   ) {
-    final pdfFont = fontCache[_getKey(i.style, ratio)];
+    final pdfFont = fontCache[_resize(i.style, ratio)];
 
     if (pdfFont == null) throw Exception("Couldn't find header font on cache");
 
@@ -858,7 +857,12 @@ class PrintingProvider extends ChangeNotifier {
       i.painter.plainText,
       pdfFont,
       brush: PdfSolidBrush(_colorToPdfColor(i.style.color ?? Colors.black)),
-      bounds: Rect.fromLTWH(x, y, double.maxFinite, i.style.fontSize! * ratio * 2),
+      bounds: Rect.fromLTWH(
+        x,
+        y,
+        double.maxFinite,
+        i.style.fontSize! * ratio * 3,
+      ),
     );
   }
 
@@ -870,7 +874,7 @@ class PrintingProvider extends ChangeNotifier {
     double x,
     double y,
     double ratio,
-    Map<String, PdfFont> fontCache,
+    Map<TextStyle, PdfFont> fontCache,
   ) {
     // Draw badge background (rounded rectangle)
     final badgeWidth = (badge.textPainter.width + 8) * ratio;
@@ -938,7 +942,7 @@ class PrintingProvider extends ChangeNotifier {
     );
 
     // Draw badge text
-    final badgeFont = fontCache[_getKey(badge.style, ratio)];
+    final badgeFont = fontCache[_resize(badge.style, ratio)];
 
     if (badgeFont == null) throw Exception("Couldn't find badge font in cache");
 
@@ -955,7 +959,7 @@ class PrintingProvider extends ChangeNotifier {
     );
 
     // Draw label text
-    final labelFont = fontCache[_getKey(label.style, ratio)];
+    final labelFont = fontCache[_resize(label.style, ratio)];
     if (labelFont == null) throw Exception("Couldn't find label font in cache");
 
     graphics.drawString(
@@ -978,11 +982,11 @@ class PrintingProvider extends ChangeNotifier {
     double baseX,
     double baseY,
     double ratio,
-    Map<String, PdfFont> fontCache,
+    Map<TextStyle, PdfFont> fontCache,
   ) {
     // Draw text instructions (chords and lyrics)
     for (final inst in model.textInstructions) {
-      final pdfFont = fontCache[_getKey(inst.style, ratio)];
+      final pdfFont = fontCache[_resize(inst.style, ratio)];
       if (pdfFont == null)
         throw Exception("Couldn't find content font in cache");
 
@@ -1035,12 +1039,7 @@ class PrintingProvider extends ChangeNotifier {
     _headersData.clear();
   }
 
-  String _getKey(TextStyle style, double ratio) {
-    final fontName = style.fontFamily ?? 'OpenSans';
-    final fontWeight = style.fontWeight;
-    final isItalic = style.fontStyle == FontStyle.italic;
-    final size = style.fontSize! * ratio;
-
-    return '${fontName}_${fontWeight}_${isItalic}_${size}';
+  TextStyle _resize(TextStyle style, double ratio) {
+    return style.copyWith(fontSize: (style.fontSize ?? 8) * ratio);
   }
 }

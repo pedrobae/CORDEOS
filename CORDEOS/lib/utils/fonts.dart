@@ -89,8 +89,8 @@ final Map<String, PdfFont> _fontCache = {};
 /// Load a PDF font from the asset, using cache to avoid reloading
 Future<PdfFont> getPdfFont(
   String fontName,
-  double fontSize, {
-  bool isBold = false,
+  double fontSize,
+  double fontWeight, {
   bool isItalic = false,
 }) async {
   final fontFamily = FontFamiliesMethods.fromName(fontName);
@@ -99,7 +99,7 @@ Future<PdfFont> getPdfFont(
     return PdfStandardFont(PdfFontFamily.helvetica, fontSize);
   }
 
-  final cacheKey = '${fontFamily.key}_${isBold}_${isItalic}_$fontSize';
+  final cacheKey = '${fontFamily.key}_${fontWeight}_${isItalic}_$fontSize';
 
   // Return cached font if available
   if (_fontCache.containsKey(cacheKey)) {
@@ -109,10 +109,18 @@ Future<PdfFont> getPdfFont(
   // Load and cache the font
   try {
     final fontBytes = await fontFamily.loadFontBytes(
-      isBold: isBold,
+      isBold: fontWeight > 600,
       isItalic: isItalic,
     );
-    final pdfFont = PdfTrueTypeFont(fontBytes, fontSize);
+    final pdfFont = PdfTrueTypeFont(
+      fontBytes,
+      fontSize,
+      multiStyle: [
+        if (fontWeight > 600) PdfFontStyle.bold,
+        if (isItalic) PdfFontStyle.italic,
+        PdfFontStyle.regular,
+      ],
+    );
     _fontCache[cacheKey] = pdfFont;
     return pdfFont;
   } catch (e) {

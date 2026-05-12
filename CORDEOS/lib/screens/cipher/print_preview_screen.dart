@@ -100,18 +100,19 @@ class _PrintPreviewScreenState extends State<PrintPreviewScreen> {
     await sect.ensureAreLoaded(versionID, version.songStructure);
   }
 
-  void _getSong(
+  ({
+    Cipher cipher,
+    Version version,
+    Map<int, Section> sections,
+    String Function(String) transposeChord,
+  })
+  _getSong(
     int versionID,
     TranspositionProvider trans,
     CipherProvider ciph,
     LocalVersionProvider localVer,
-    SectionProvider sect, {
-    required String fileName,
-    required Map<int, Version> versions,
-    required Map<int, Cipher> ciphers,
-    required Map<int, Map<int, Section>> versionsSections,
-    required Map<int, String Function(String)> versionsTransposeChords,
-  }) {
+    SectionProvider sect,
+  ) {
     final version = localVer.getVersion(versionID);
     if (version == null) {
       throw Exception('Version not found for ID: $versionID');
@@ -120,17 +121,16 @@ class _PrintPreviewScreenState extends State<PrintPreviewScreen> {
     if (cipher == null) {
       throw Exception('Cipher not found for ID: $versionID');
     }
-    if (widget.playlistID == null) {
-      fileName = cipher.title;
-    }
     final sections = sect.getSections(versionID);
     final transposeChord = (String chord) =>
         trans.transposeChord(chord, cipher.musicKey, version.transposedKey);
 
-    versions[versionID] = version;
-    ciphers[versionID] = cipher;
-    versionsSections[versionID] = sections;
-    versionsTransposeChords[versionID] = transposeChord;
+    return (
+      cipher: cipher,
+      version: version,
+      sections: sections,
+      transposeChord: transposeChord,
+    );
   }
 
   @override
@@ -180,17 +180,12 @@ class _PrintPreviewScreenState extends State<PrintPreviewScreen> {
 
               if (widget.versionID != null) {
                 try {
-                  _getSong(
+                  final song = _getSong(
                     widget.versionID!,
                     trans,
                     ciph,
                     localVer,
                     sect,
-                    fileName: fileName,
-                    versions: versions,
-                    ciphers: ciphers,
-                    versionsSections: versionsSections,
-                    versionsTransposeChords: versionsTransposeChords,
                   );
                   items.add(
                     PlaylistItem.version(
@@ -198,6 +193,12 @@ class _PrintPreviewScreenState extends State<PrintPreviewScreen> {
                       position: 0,
                     ),
                   );
+                  versions[widget.versionID!] = song.version;
+                  ciphers[widget.versionID!] = song.cipher;
+                  versionsSections[widget.versionID!] = song.sections;
+                  versionsTransposeChords[widget.versionID!] =
+                      song.transposeChord;
+                  fileName = song.cipher.title;
                 } catch (e) {
                   debugPrint(e.toString());
                   return (
@@ -231,18 +232,18 @@ class _PrintPreviewScreenState extends State<PrintPreviewScreen> {
                   switch (item.type) {
                     case PlaylistItemType.version:
                       try {
-                        _getSong(
+                        final song = _getSong(
                           item.contentId!,
                           trans,
                           ciph,
                           localVer,
                           sect,
-                          fileName: fileName,
-                          versions: versions,
-                          ciphers: ciphers,
-                          versionsSections: versionsSections,
-                          versionsTransposeChords: versionsTransposeChords,
                         );
+                        versions[widget.versionID!] = song.version;
+                        ciphers[widget.versionID!] = song.cipher;
+                        versionsSections[widget.versionID!] = song.sections;
+                        versionsTransposeChords[widget.versionID!] =
+                            song.transposeChord;
                       } catch (e) {
                         debugPrint(e.toString());
                         return (
