@@ -89,15 +89,15 @@ class SectionProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  dynamic cacheCopyOfSection({
+  int? cacheCopyOfSection({
     required dynamic versionId,
-    required dynamic sectionKey,
+    required int sectionKey,
   }) {
     final section = _sections[versionId]?[sectionKey];
     if (section == null) return null;
 
     final newKey = _getAvailableKey(versionId);
-    final newSection = section.copyWith(id: newKey);
+    final newSection = section.copyWith(key: newKey);
     _sections[versionId]![newKey] = newSection;
 
     _hasUnsavedChanges = true;
@@ -120,10 +120,7 @@ class SectionProvider extends ChangeNotifier {
 
   // ====== READ =====
   /// Ensures all sections of given structure and version is loaded
-  Future<void> ensureAreLoaded(
-    int versionID,
-    List<int> songStruct,
-  ) async {
+  Future<void> ensureAreLoaded(int versionID, List<int> songStruct) async {
     if (_sections[versionID] != null &&
         songStruct.every((key) => _sections[versionID]!.containsKey(key)))
       return;

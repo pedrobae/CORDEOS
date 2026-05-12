@@ -1106,6 +1106,12 @@ abstract class AppLocalizations {
   /// **'Repetir a seção no Mapa da Música'**
   String get duplicateSectionTooltip;
 
+  /// Label for copy section action
+  ///
+  /// In pt, this message translates to:
+  /// **'Criar cópia'**
+  String get copySection;
+
   /// Tooltip for copy section action
   ///
   /// In pt, this message translates to:

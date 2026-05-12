@@ -410,9 +410,7 @@ class _TokenContentCardState extends State<TokenContentCard> {
               ),
               // create copy
               FilledTextButton(
-                text: AppLocalizations.of(
-                  context,
-                )!.createPlaceholder(AppLocalizations.of(context)!.copy),
+                text: AppLocalizations.of(context)!.copySection,
                 trailingIcon: Icons.chevron_right,
                 tooltip: AppLocalizations.of(context)!.copySectionTooltip,
                 isDiscrete: true,

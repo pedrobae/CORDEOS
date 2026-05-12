@@ -544,6 +544,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get duplicateSectionTooltip => 'Repetir a seção no Mapa da Música';
 
   @override
+  String get copySection => 'Criar cópia';
+
+  @override
   String get copySectionTooltip => 'Cria uma nova seção com o mesmo conteúdo';
 
   @override

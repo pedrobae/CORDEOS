@@ -699,6 +699,10 @@
   "@duplicateSectionTooltip": {
     "description": "Tooltip for duplicate section action"
   },
+  "copySection": "Create copy",
+  "@copySection": {
+    "description": "Label for copy section action"
+  },
   "copySectionTooltip": "Create a new section with the same content",
   "@copySectionTooltip": {
     "description": "Tooltip for copy section action"

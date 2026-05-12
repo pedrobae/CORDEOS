@@ -42,12 +42,16 @@ class PositionService {
       isEditMode,
     );
 
-    final lineHeight =
-        organizedTokens.tokens.any((token) => token.type == TokenType.lyric)
-        ? ((showLyrics ? lyricHeight : 0.0) +
-              (showChords ? chordHeight : 0.0) +
-              (showChords && showLyrics ? heightSpacing : 0.0))
-        : chordHeight;
+    final double lineHeight;
+    if (isEditMode ||
+        organizedTokens.tokens.any((token) => token.type == TokenType.lyric)) {
+      lineHeight =
+          ((showLyrics ? lyricHeight : 0.0) +
+          (showChords ? chordHeight : 0.0) +
+          (showChords && showLyrics ? heightSpacing : 0.0));
+    } else {
+      lineHeight = chordHeight;
+    }
 
     final ctx = _LayoutCtx(
       chordHeight: chordHeight,
