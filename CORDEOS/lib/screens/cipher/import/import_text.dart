@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cordeos/l10n/app_localizations.dart';
 import 'package:cordeos/models/domain/cipher/version.dart';
 import 'package:cordeos/models/domain/parsing_cipher.dart';
@@ -193,7 +195,9 @@ class _ImportTextScreenState extends State<ImportTextScreen> {
       text: AppLocalizations.of(context)!.import,
       isDark: true,
       isDisabled: _importTextController.text.isEmpty,
-      onPressed: () => _parse(context, imp, par),
+      onPressed: () async {
+        await _parse(context, imp, par);
+      },
     );
   }
 
@@ -218,25 +222,27 @@ class _ImportTextScreenState extends State<ImportTextScreen> {
       if (widget.cipherID != -1 && widget.versionID != -1) {
         // CLEAN THE SCREEN STACK IF COMING FROM EDITING
         nav.pop(); // pop the import screen
-        nav.pop(); // pop the edit cipher screen - bypass change detection, since we're reopening it with the new data right after
+        nav.pop(); // pop the edit cipher screen - bypass change detection, since we're reopening it with added new data right after
       }
 
       // Navigate to edit cipher screen
-      nav.push(
-        () => EditCipherScreen(
-          versionType: VersionType.import,
-          versionID: widget.versionID,
-          cipherID: widget.cipherID,
-        ),
-        keepAlive: true,
-        changeDetector: () {
-          return ciph.hasUnsavedChanges || localVer.hasUnsavedChanges;
-        },
-        onChangeDiscarded: () async {
-          await localVer.loadVersion(widget.versionID);
-          await ciph.loadCipher(widget.cipherID);
-        },
-      );
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        nav.push(
+          () => EditCipherScreen(
+            versionType: VersionType.import,
+            versionID: widget.versionID,
+            cipherID: widget.cipherID,
+          ),
+          keepAlive: true,
+          changeDetector: () {
+            return ciph.hasUnsavedChanges || localVer.hasUnsavedChanges;
+          },
+          onChangeDiscarded: () async {
+            await localVer.loadVersion(widget.versionID);
+            await ciph.loadCipher(widget.cipherID);
+          },
+        );
+      });
     }
   }
 }

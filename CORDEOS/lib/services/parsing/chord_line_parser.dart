@@ -177,6 +177,8 @@ class ChordLineParser {
 
     if (_isChordLine(lastLineText)) {
       content = '$content${_formatChordOnlyLine(lastLineText)}';
+    } else if (lines.length == 1) {
+      content = lastLineText;
     }
 
     return content;

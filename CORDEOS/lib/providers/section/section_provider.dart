@@ -46,17 +46,15 @@ class SectionProvider extends ChangeNotifier {
   }
 
   /// ===== CREATE =====
-  // Add a new section, returns the new section code (with suffix if there was a conflict)
-  int cacheAddSection(dynamic versionKey, Color color, String sectionType) {
+  // Add a new section, returns the new section key
+  int cacheAddSection(dynamic versionKey, Section section) {
     final key = _getAvailableKey(versionKey);
     final newSection = Section(
       key: key,
-      versionID: versionKey is String
-          ? -1
-          : versionKey, // if versionKey is String, it's a new/importing version, so use -1 as placeholder
-      contentColor: color,
-      contentType: sectionType,
-      contentText: '',
+      versionID: versionKey is int ? versionKey : -1,
+      contentColor: section.contentColor,
+      contentType: section.contentType,
+      contentText: section.contentText
     );
 
     _sections[newSection.versionID] ??= {};

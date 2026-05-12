@@ -18,6 +18,10 @@ class SectionParser {
       }
     }
 
+    if (buffer.isNotEmpty) {
+      rawSections.add(buffer.toString());
+    }
+
     for (int i = 0; i < rawSections.length; i++) {
       String sectionContent = rawSections[i].trimRight();
       if (sectionContent.isEmpty) {

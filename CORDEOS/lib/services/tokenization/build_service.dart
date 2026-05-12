@@ -147,7 +147,6 @@ class TokenizationBuilder {
     required double maxWidth,
     required double lineHeight,
     required double chordHeight,
-    required double lyricHeight,
     required Color chordTargetColor,
     required Color surfaceColor,
     required Color onSurfaceColor,
@@ -249,7 +248,7 @@ class TokenizationBuilder {
               wordWidgets.add(
                 TokenWidget(
                   widget: buildDraggableChord(
-                    lyricsHeight: lyricHeight,
+                    lineHeight: lineHeight,
                     token: token,
                     contentColor: contentColor,
                     onContentColor: onContentColor,
@@ -350,7 +349,7 @@ class TokenizationBuilder {
     required Color onContentColor,
     required TextStyle chordStyle,
     required bool isEnabled,
-    required double lyricsHeight,
+    required double lineHeight,
     required Function() toggleDrag,
   }) {
     // ChordTokens
@@ -380,8 +379,8 @@ class TokenizationBuilder {
             childWhenDragging: SizedBox.shrink(),
             child: chordWidget,
             dragAnchorStrategy: (draggable, context, position) =>
-                Offset(5, lyricsHeight),
-            feedbackOffset: Offset(0, -lyricsHeight),
+                Offset(5, lineHeight),
+            feedbackOffset: Offset(0, -lineHeight),
           )
         : chordWidget;
   }

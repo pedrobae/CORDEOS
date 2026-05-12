@@ -1,4 +1,5 @@
 import "package:cordeos/l10n/app_localizations.dart";
+import "package:cordeos/models/domain/cipher/section.dart";
 import "package:cordeos/providers/cipher/cipher_provider.dart";
 import "package:cordeos/providers/navigation_provider.dart";
 import "package:cordeos/providers/section/section_provider.dart";
@@ -78,10 +79,7 @@ class _ManageSheetState extends State<ManageSheet> {
     return Selector2<
       LocalVersionProvider,
       SectionProvider,
-      ({
-        Map<int, SectionBadgeData> badgesData,
-        List<int> sectionIDs,
-      })
+      ({Map<int, SectionBadgeData> badgesData, List<int> sectionIDs})
     >(
       selector: (context, localVer, sect) {
         final sections = sect.getSections(widget.versionID);
@@ -324,8 +322,13 @@ class _ManageSheetState extends State<ManageSheet> {
       onTap: () {
         final newKey = sect.cacheAddSection(
           widget.versionID,
-          notesColor,
-          notesLabel,
+          Section(
+            key: -1,
+            versionID: widget.versionID,
+            contentType: notesLabel,
+            contentText: '',
+            contentColor: notesColor,
+          ),
         );
 
         nav.push(

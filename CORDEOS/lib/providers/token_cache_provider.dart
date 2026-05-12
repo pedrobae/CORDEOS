@@ -306,7 +306,6 @@ class TokenProvider extends ChangeNotifier {
       onAddChord: onAddChord,
       onRemoveChord: onRemoveChord,
       lineHeight: lyricHeight + key.heightSpacing! + chordHeight,
-      lyricHeight: lyricHeight,
       chordHeight: chordHeight,
       toggleDrag: _toggleDragging(),
     );

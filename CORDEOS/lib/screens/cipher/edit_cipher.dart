@@ -88,42 +88,12 @@ class _EditCipherScreenState extends State<EditCipherScreen>
     } else {
       // MERGING IMPORTED SECTIONS WITH EXISTING CIPHER
       final importedVersion = versionDto;
-      final importedStruct = importedVersion.songStructure;
       final importedSections = importedVersion.sections.map(
         (key, value) => MapEntry(key, value.toDomain()),
       );
-
-      final existingVersion = localVer.getVersion(widget.versionID)!;
-      final existingStruct = existingVersion.songStructure;
-
-      // FOR ANY CODE THAT OVERLAPS RENAME THE IMPORTED CODE
-      for (int key in importedStruct) {
-        if (existingStruct.contains(key)) {
-          int newKey = 0;
-          while (existingStruct.contains(newKey) ||
-              importedStruct.contains(newKey)) {
-            newKey++;
-          }
-          final newSect = importedSections[key]!.copyWith(
-            key: newKey,
-            versionID: widget.versionID,
-          );
-          // Cache new section
-          sect.cacheAddSection(
-            widget.versionID,
-            newSect.contentColor,
-            newSect.contentType,
-          );
-          sect.cacheUpdate(
-            widget.versionID,
-            newKey,
-            newContentText: newSect.contentText,
-          );
-          // append to existing struct
-          existingStruct.add(newKey);
-        }
-        // Cache new struct
-        localVer.cacheUpdates(widget.versionID, songStructure: existingStruct);
+      for (final section in importedSections.values) {
+        final newKey = sect.cacheAddSection(widget.versionID, section);
+        localVer.addSectionToStruct(widget.versionID, newKey);
       }
     }
 
