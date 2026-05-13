@@ -1,5 +1,5 @@
-import '../../helpers/database.dart';
-import '../../models/domain/playlist/flow_item.dart';
+import 'package:cordeos/helpers/database.dart';
+import 'package:cordeos/models/domain/playlist/flow_item.dart';
 
 class FlowItemRepository {
   final DatabaseHelper _databaseHelper = DatabaseHelper();

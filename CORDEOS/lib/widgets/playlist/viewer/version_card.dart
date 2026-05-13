@@ -185,6 +185,7 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard> {
                       () => ViewCipherScreen(
                         versionType: VersionType.playlist,
                         versionID: widget.versionId,
+                        versionDto: widget.version,
                         cipherID: s.cipherID,
                       ),
                       onPopCallback: () {

@@ -38,9 +38,11 @@ class _FlowItemCardState extends State<FlowItemCard> {
 
     final flow = context.read<FlowItemProvider>();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await flow.loadFlowItem(widget.flowItemID);
-    });
+    if (widget.flowItem == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        await flow.loadFlowItem(widget.flowItemID);
+      });
+    }
   }
 
   @override
@@ -79,6 +81,7 @@ class _FlowItemCardState extends State<FlowItemCard> {
                 final flow = context.read<FlowItemProvider>();
                 nav.push(
                   () => FlowItemEditor(
+                    flowItem: widget.flowItem,
                     playlistID: widget.playlistID,
                     flowID: widget.flowItemID,
                     canEdit: widget.canEdit,

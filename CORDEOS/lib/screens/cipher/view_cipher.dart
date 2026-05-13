@@ -1,4 +1,5 @@
 import 'package:cordeos/models/domain/cipher/version.dart';
+import 'package:cordeos/models/dtos/version_dto.dart';
 import 'package:cordeos/providers/play/auto_scroll_provider.dart';
 import 'package:cordeos/providers/navigation_provider.dart';
 import 'package:cordeos/providers/section/section_provider.dart';
@@ -19,11 +20,13 @@ import 'package:cordeos/screens/cipher/edit_cipher.dart';
 
 class ViewCipherScreen extends StatefulWidget {
   final int? cipherID;
+  final VersionDto? versionDto;
   final dynamic versionID;
   final VersionType versionType;
 
   const ViewCipherScreen({
     super.key,
+    this.versionDto,
     required this.cipherID,
     this.versionID,
 
@@ -45,7 +48,7 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
     _scrollController = ScrollController();
     _trans = context.read<TranspositionProvider>();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadData();
+      if (widget.versionDto != null) _loadData();
       _setOriginalKey();
       _scrollController.addListener(_scrollListener);
     });
@@ -110,7 +113,10 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
     final String originalKey;
     final String? transposedKey;
 
-    if (widget.versionType == VersionType.cloud) {
+    if (widget.versionDto != null) {
+      originalKey = widget.versionDto!.originalKey;
+      transposedKey = widget.versionDto!.transposedKey;
+    } else if (widget.versionType == VersionType.cloud) {
       final version = cloudVer.getVersion(widget.versionID)!;
       originalKey = version.originalKey;
       transposedKey = version.transposedKey;
@@ -153,7 +159,11 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
                 padding: scrollDirection == Axis.vertical
                     ? const EdgeInsets.symmetric(vertical: 16, horizontal: 8)
                     : const EdgeInsets.symmetric(horizontal: 8),
-                child: VersionWrap(itemIndex: 0, versionID: widget.versionID),
+                child: VersionWrap(
+                  itemIndex: 0,
+                  versionID: widget.versionID,
+                  versionDto: widget.versionDto,
+                ),
               ),
             );
           },
@@ -180,7 +190,12 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
           Row(
             children: [
               if (isWideScreen)
-                Expanded(child: StructureList(versionID: widget.versionID)),
+                Expanded(
+                  child: StructureList(
+                    versionID: widget.versionID,
+                    versionDto: widget.versionDto,
+                  ),
+                ),
 
               if (widget.versionType == VersionType.local) ...[
                 IconButton(
@@ -190,7 +205,7 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
                 if (isWideScreen) ...[SizedBox(width: 24)] else ...[Spacer()],
               ],
               IconButton(
-                icon: const Icon(Icons.format_paint),
+                icon: const Icon(Icons.settings),
                 onPressed: _showStyleSettings(),
                 onLongPress: _showStyleSettings(secret: true),
               ),
@@ -210,7 +225,11 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
               ),
             ],
           ),
-          if (!isWideScreen) StructureList(versionID: widget.versionID),
+          if (!isWideScreen)
+            StructureList(
+              versionID: widget.versionID,
+              versionDto: widget.versionDto,
+            ),
         ],
       ),
     );

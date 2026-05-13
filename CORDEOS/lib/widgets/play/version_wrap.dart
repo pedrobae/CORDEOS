@@ -1,4 +1,5 @@
 import 'package:cordeos/l10n/app_localizations.dart';
+import 'package:cordeos/models/dtos/version_dto.dart';
 import 'package:cordeos/providers/play/auto_scroll_provider.dart';
 import 'package:cordeos/providers/cipher/cipher_provider.dart';
 import 'package:cordeos/providers/settings/layout_settings_provider.dart';
@@ -15,12 +16,14 @@ import 'package:provider/provider.dart';
 
 class VersionWrap extends StatelessWidget {
   final int itemIndex;
+  final VersionDto? versionDto;
   final dynamic versionID;
 
   const VersionWrap({
     super.key,
     required this.itemIndex,
     required this.versionID,
+    this.versionDto,
   });
 
   @override
@@ -41,22 +44,23 @@ class VersionWrap extends StatelessWidget {
       })
     >(
       selector: (context, laySet, trans, ciph, localVer, cloudVer, sect) {
-        String originalKey = versionID is String
-            ? cloudVer.getVersion(versionID)!.originalKey
-            : () {
-                final version = localVer.getVersion(versionID)!;
-                return ciph.getCipher(version.cipherID)!.musicKey;
-              }();
-
-        String? newKey =
-            trans.transposedKey ??
-            (versionID is String
-                ? cloudVer.getVersion(versionID)!.transposedKey
-                : localVer.getVersion(versionID)!.transposedKey);
-
-        final songStructure = versionID is String
-            ? cloudVer.getVersion(versionID)!.songStructure
-            : localVer.getSongStructure(versionID);
+        String originalKey;
+        String? newKey;
+        List<int> songStructure;
+        if (versionDto != null) {
+          originalKey = versionDto!.originalKey;
+          newKey = versionDto!.transposedKey;
+          songStructure = versionDto!.songStructure;
+        } else if (versionID is String) {
+          originalKey = cloudVer.getVersion(versionID)!.originalKey;
+          newKey = cloudVer.getVersion(versionID)!.transposedKey;
+          songStructure = cloudVer.getVersion(versionID)!.songStructure;
+        } else {
+          final version = localVer.getVersion(versionID)!;
+          originalKey = ciph.getCipher(version.cipherID)!.musicKey;
+          newKey = localVer.getVersion(versionID)!.transposedKey;
+          songStructure = localVer.getSongStructure(versionID);
+        }
 
         final filteredStructure = <int>[];
         for (var key in songStructure) {
@@ -77,11 +81,14 @@ class VersionWrap extends StatelessWidget {
           }
           filteredStructure.add(key);
         }
+
         final sectionTypes = <int, SectionType>{};
         for (var key in filteredStructure) {
-          final sectionType = sect
-              .getSection(versionKey: versionID, sectionKey: key)
-              ?.sectionType;
+          final sectionType = versionDto != null
+              ? versionDto!.sections[key]?.sectionType
+              : sect
+                    .getSection(versionKey: versionID, sectionKey: key)
+                    ?.sectionType;
 
           if (sectionType != null) {
             sectionTypes[key] = sectionType;
@@ -141,8 +148,12 @@ class VersionWrap extends StatelessWidget {
         String? key;
         int? bpm;
         Duration? duration;
-
-        if (versionID is String) {
+        if (versionDto != null) {
+          title = versionDto!.title;
+          key = versionDto!.transposedKey ?? versionDto!.originalKey;
+          bpm = versionDto!.bpm;
+          duration = Duration(seconds: versionDto!.duration);
+        } else if (versionID is String) {
           final version = cloudVer.getVersion(versionID);
           if (version == null) {
             return (title: null, key: null, bpm: null, duration: null);
@@ -214,10 +225,9 @@ class VersionWrap extends StatelessWidget {
 
       final sectionKey = filteredStructure[i];
 
-      final section = sect.getSection(
-        versionKey: versionID,
-        sectionKey: sectionKey,
-      );
+      final section = versionDto != null
+          ? versionDto!.sections[sectionKey]?.toDomain()
+          : sect.getSection(versionKey: versionID, sectionKey: sectionKey);
 
       if (section == null) {
         debugPrint(

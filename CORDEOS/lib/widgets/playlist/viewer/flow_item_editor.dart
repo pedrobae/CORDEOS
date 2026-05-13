@@ -1,3 +1,4 @@
+import 'package:cordeos/models/domain/playlist/flow_item.dart';
 import 'package:cordeos/providers/playlist/playlist_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:cordeos/l10n/app_localizations.dart';
@@ -12,12 +13,14 @@ import 'package:cordeos/widgets/common/labeled_duration_picker.dart';
 import 'package:cordeos/widgets/common/labeled_text_field.dart';
 
 class FlowItemEditor extends StatefulWidget {
+  final FlowItem? flowItem;
   final int flowID;
   final int playlistID;
   final bool canEdit;
 
   const FlowItemEditor({
     super.key,
+    this.flowItem,
     required this.flowID,
     required this.playlistID,
     required this.canEdit,
@@ -40,10 +43,18 @@ class _FlowItemEditorState extends State<FlowItemEditor> {
     _contentController = TextEditingController();
     _durationController = TextEditingController();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await _loadFlow();
-      _addListeners();
-    });
+    if (widget.flowItem != null) {
+      _titleController.text = widget.flowItem!.title;
+      _contentController.text = widget.flowItem!.contentText;
+      _durationController.text = DateTimeUtils.formatDuration(
+        widget.flowItem!.duration,
+      );
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        await _loadFlow();
+        _addListeners();
+      });
+    }
   }
 
   void _addListeners() {
@@ -65,6 +76,7 @@ class _FlowItemEditorState extends State<FlowItemEditor> {
   Future<void> _loadFlow() async {
     final flow = context.read<FlowItemProvider>();
     final play = context.read<PlaylistProvider>();
+
     if (widget.flowID == -1) {
       final playlist = play.getPlaylist(widget.playlistID);
       final position = playlist != null ? playlist.items.length : 0;

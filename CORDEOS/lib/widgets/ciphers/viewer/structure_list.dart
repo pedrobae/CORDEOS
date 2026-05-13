@@ -1,3 +1,4 @@
+import 'package:cordeos/models/dtos/version_dto.dart';
 import 'package:cordeos/providers/play/play_state_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:cordeos/l10n/app_localizations.dart';
@@ -12,9 +13,10 @@ import 'package:cordeos/providers/section/section_provider.dart';
 import 'package:cordeos/utils/section_type.dart';
 
 class StructureList extends StatefulWidget {
+  final VersionDto? versionDto;
   final dynamic versionID;
 
-  const StructureList({super.key, required this.versionID});
+  const StructureList({super.key, required this.versionID, this.versionDto});
 
   @override
   State<StructureList> createState() => _StructureListState();
@@ -69,15 +71,19 @@ class _StructureListState extends State<StructureList> {
           return (songStructure: [], badgesData: {});
         }
 
-        final songStructure = widget.versionID is String
-            ? cloudVer.getVersion(widget.versionID)!.songStructure
-            : localVer.getSongStructure(widget.versionID);
+        final songStructure = widget.versionDto != null
+            ? widget.versionDto!.songStructure
+            : (widget.versionID is String
+                  ? cloudVer.getVersion(widget.versionID)!.songStructure
+                  : localVer.getSongStructure(widget.versionID));
 
         final sectionTypes = <int, SectionType>{};
         for (var key in songStructure) {
-          final type = sect
-              .getSection(versionKey: widget.versionID, sectionKey: key)
-              ?.sectionType;
+          final type = widget.versionDto != null
+              ? widget.versionDto!.sections[key]?.sectionType
+              : sect
+                    .getSection(versionKey: widget.versionID, sectionKey: key)
+                    ?.sectionType;
           if (type != null) {
             sectionTypes[key] = type;
           } else {
