@@ -152,7 +152,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen>
                 )
               : null,
           body: Padding(
-            padding:const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             child: s.items.isEmpty
                 ? _buildEmptyState()
                 : _buildItemsList(s.items),

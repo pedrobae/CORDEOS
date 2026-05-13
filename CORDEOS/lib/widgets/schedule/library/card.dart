@@ -86,6 +86,7 @@ class ScheduleCard extends StatelessWidget {
             nav.push(
               () => ViewScheduleScreen(scheduleID: scheduleId),
               showBottomNavBar: true,
+              keepAlive: true,
               changeDetector: () {
                 return play.hasUnsavedChanges ||
                     flow.hasUnsavedChanges ||
@@ -253,22 +254,6 @@ class ScheduleCard extends StatelessWidget {
               ),
 
               // ACTIONS
-              // edit
-              FilledTextButton(
-                text: AppLocalizations.of(
-                  context,
-                )!.editPlaceholder(AppLocalizations.of(context)!.schedule),
-                trailingIcon: Icons.chevron_right,
-                isDark: true,
-                onPressed: () {
-                  final nav = context.read<NavigationProvider>();
-                  Navigator.of(context).pop(); // Close the sheet
-                  nav.push(
-                    () => ViewScheduleScreen(scheduleID: scheduleId),
-                    showBottomNavBar: true,
-                  );
-                },
-              ),
               // duplicate
               FilledTextButton(
                 text: AppLocalizations.of(context)!.duplicatePlaceholder(''),

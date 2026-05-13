@@ -44,7 +44,11 @@ class PlaylistVersionCard extends StatefulWidget {
   State<PlaylistVersionCard> createState() => _PlaylistVersionCardState();
 }
 
-class _PlaylistVersionCardState extends State<PlaylistVersionCard> {
+class _PlaylistVersionCardState extends State<PlaylistVersionCard>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
   @override
   void initState() {
     super.initState();
@@ -75,6 +79,8 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
+
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
