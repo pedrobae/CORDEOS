@@ -1,8 +1,9 @@
 import 'dart:math';
 
+import 'package:cordeos/models/dtos/version_dto.dart';
 import 'package:cordeos/providers/token_cache_provider.dart';
 import 'package:cordeos/utils/section_type.dart';
-import 'package:cordeos/widgets/ciphers/viewer/structure_list.dart';
+import 'package:cordeos/widgets/ciphers/section_badge.dart';
 import 'package:flutter/material.dart';
 import 'package:cordeos/l10n/app_localizations.dart';
 
@@ -22,6 +23,7 @@ import 'package:cordeos/widgets/common/custom_reorderable_delayed.dart';
 import 'package:cordeos/widgets/playlist/viewer/version_card_actions.dart';
 
 class PlaylistVersionCard extends StatefulWidget {
+  final VersionDto? version;
   final int playlistId;
   final int versionId;
   final int index;
@@ -35,6 +37,7 @@ class PlaylistVersionCard extends StatefulWidget {
     required this.versionId,
     required this.itemId,
     required this.canEdit,
+    this.version,
   });
 
   @override
@@ -46,26 +49,28 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard> {
   void initState() {
     super.initState();
     // Pre-load cipher data if not already loaded
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final localVer = context.read<LocalVersionProvider>();
-      final sectionProvider = context.read<SectionProvider>();
-      final ciph = context.read<CipherProvider>();
+    if (widget.version == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        final localVer = context.read<LocalVersionProvider>();
+        final sectionProvider = context.read<SectionProvider>();
+        final ciph = context.read<CipherProvider>();
 
-      Version? version = localVer.getVersion(widget.versionId);
-      await localVer.loadVersion(widget.versionId);
-      version = localVer.getVersion(widget.versionId);
+        Version? version = localVer.getVersion(widget.versionId);
+        await localVer.loadVersion(widget.versionId);
+        version = localVer.getVersion(widget.versionId);
 
-      if (version == null) {
-        throw Exception('Failed to load version with ID ${widget.versionId}');
-      }
+        if (version == null) {
+          throw Exception('Failed to load version with ID ${widget.versionId}');
+        }
 
-      final cipher = ciph.getCipher(version.cipherID);
-      if (cipher == null) {
-        await ciph.loadCipher(version.cipherID);
-      }
+        final cipher = ciph.getCipher(version.cipherID);
+        if (cipher == null) {
+          await ciph.loadCipher(version.cipherID);
+        }
 
-      await sectionProvider.loadSectionsOfVersion(widget.versionId);
-    });
+        await sectionProvider.loadSectionsOfVersion(widget.versionId);
+      });
+    }
   }
 
   @override
@@ -90,6 +95,29 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard> {
       })
     >(
       selector: (context, localVer, ciph, sect) {
+        if (widget.version != null) {
+          final sectionTypes = <int, SectionType>{};
+          for (var key in widget.version!.songStructure) {
+            final type = widget.version!.sections[key]?.sectionType;
+            if (type != null) {
+              sectionTypes[key] = type;
+            } else {
+              sectionTypes[key] = SectionType.unknown;
+            }
+          }
+          return (
+            cipherID: -1,
+            title: widget.version!.title,
+            musicKey:
+                widget.version!.transposedKey ?? widget.version!.originalKey,
+            duration: DateTimeUtils.formatDuration(
+              Duration(seconds: widget.version!.duration),
+            ),
+            bpm: widget.version!.bpm.toString(),
+            badgesData: getSectionBadges(sectionTypes),
+            songStructure: widget.version!.songStructure,
+          );
+        }
         final version = localVer.getVersion(widget.versionId);
         final cipher = version != null
             ? ciph.getCipher(version.cipherID)
@@ -210,7 +238,28 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard> {
                                 s.badgesData,
                                 s.songStructure,
                               )
-                            : StructureList(versionID: widget.versionId),
+                            : SizedBox(
+                                height: 25,
+                                child: ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: s.songStructure.length,
+                                  itemBuilder: (_, index) {
+                                    final key = s.songStructure[index];
+                                    final badgeData = s.badgesData[key];
+                                    if (badgeData == null) {
+                                      return SizedBox.shrink();
+                                    }
+                                    return Padding(
+                                      padding: const EdgeInsets.only(
+                                        right: 2.0,
+                                      ),
+                                      child: SectionBadge(
+                                        sectionBadgeData: badgeData,
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
                       ],
                     ),
                   ),

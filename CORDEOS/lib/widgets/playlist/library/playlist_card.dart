@@ -54,7 +54,11 @@ class PlaylistCard extends StatelessWidget {
             sel.isSelectionMode
                 ? sel.toggleSelection(playlistID, exclusive: true)
                 : nav.push(
-                    () => ViewPlaylistScreen(playlistId: playlistID),
+                    () => ViewPlaylistScreen(
+                      playlistID: playlistID,
+                      canEdit: true,
+                      isPadded: true,
+                    ),
                     changeDetector: () {
                       return play.hasUnsavedChanges ||
                           flow.hasUnsavedChanges ||

@@ -1,8 +1,9 @@
 import 'package:cordeos/l10n/app_localizations.dart';
+import 'package:cordeos/models/domain/playlist/flow_item.dart';
 
-import 'package:cordeos/models/domain/playlist/playlist.dart';
 import 'package:cordeos/models/domain/playlist/playlist_item.dart';
 import 'package:cordeos/models/domain/schedule.dart';
+import 'package:cordeos/models/dtos/playlist_dto.dart';
 import 'package:cordeos/providers/play/auto_scroll_provider.dart';
 import 'package:cordeos/providers/play/play_state_provider.dart';
 import 'package:cordeos/providers/playlist/flow_item_provider.dart';
@@ -26,90 +27,122 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class ViewPlaylistScreen extends StatefulWidget {
-  final int playlistId; // Receive the playlist ID from the parent
-  final bool canEdit; // Cannot edit a playlist without ownership
+  final PlaylistDto? playlistDto;
+  final int playlistID;
+  final bool canEdit;
+  final bool isPadded;
 
   const ViewPlaylistScreen({
     super.key,
-    required this.playlistId,
-    this.canEdit = true,
+    required this.playlistID,
+    this.playlistDto,
+    this.canEdit = false,
+    this.isPadded = false,
   });
 
   @override
   State<ViewPlaylistScreen> createState() => _ViewPlaylistScreenState();
 }
 
-class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
+class _ViewPlaylistScreenState extends State<ViewPlaylistScreen>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
   @override
   Widget build(BuildContext context) {
+    super.build(context);
+
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
     final nav = context.read<NavigationProvider>();
 
-    return Selector<PlaylistProvider, Playlist?>(
-      selector: (context, play) => play.getPlaylist(widget.playlistId),
-      builder: (context, playlist, child) {
-        if (playlist == null) {
+    return Selector<
+      PlaylistProvider,
+      ({String name, List<PlaylistItem> items})
+    >(
+      selector: (context, play) {
+        final playlist = play.getPlaylist(widget.playlistID);
+
+        return (
+          name:
+              (widget.playlistDto == null
+                  ? playlist?.name
+                  : widget.playlistDto?.name) ??
+              '',
+          items:
+              (widget.playlistDto == null
+                  ? playlist?.items
+                  : widget.playlistDto?.toDomain(-1).items) ??
+              [],
+        );
+      },
+      builder: (context, s, child) {
+        if (s.name.isEmpty) {
           return Center(child: CircularProgressIndicator());
         }
 
         return Scaffold(
-          appBar: AppBar(
-            leading: BackButton(
-              color: colorScheme.onSurface,
-              onPressed: () => nav.attemptPop(context),
-            ),
-            title: Text(playlist.name, style: textTheme.titleMedium),
-            actions: [
-              // Play
-              if (widget.canEdit)
-                IconButton(
-                  icon: Icon(
-                    Icons.play_circle_fill_rounded,
+          appBar: widget.isPadded
+              ? AppBar(
+                  leading: BackButton(
                     color: colorScheme.onSurface,
-                    size: 30,
+                    onPressed: () => nav.attemptPop(context),
                   ),
-                  onPressed: () {
-                    final localVer = context.read<LocalVersionProvider>();
-                    final sect = context.read<SectionProvider>();
-                    final state = context.read<PlayStateProvider>();
-                    final scroll = context.read<ScrollProvider>();
+                  title: Text(s.name, style: textTheme.titleMedium),
+                  actions: widget.canEdit
+                      ? [
+                          // Play
+                          IconButton(
+                            icon: Icon(
+                              Icons.play_circle_fill_rounded,
+                              color: colorScheme.onSurface,
+                              size: 30,
+                            ),
+                            onPressed: () {
+                              final localVer = context
+                                  .read<LocalVersionProvider>();
+                              final sect = context.read<SectionProvider>();
+                              final state = context.read<PlayStateProvider>();
+                              final scroll = context.read<ScrollProvider>();
 
-                    scroll.disableAutoScrollMode();
-                    state.setItemCount(playlist.items.length);
-                    for (var item in playlist.items) {
-                      state.appendItem(item);
-                    }
+                              scroll.disableAutoScrollMode();
+                              state.setItemCount(s.items.length);
+                              for (var item in s.items) {
+                                state.appendItem(item);
+                              }
 
-                    nav.push(
-                      () => PlayPlaylist(canEdit: true),
-                      changeDetector: () {
-                        return localVer.hasUnsavedChanges ||
-                            sect.hasUnsavedChanges;
-                      },
-                      onChangeDiscarded: () {
-                        for (var item in playlist.items) {
-                          if (item.type == PlaylistItemType.version) {
-                            localVer.loadVersion(item.contentId!);
-                          }
-                        }
-                      },
-                    );
-                  },
-                ),
-              // Save
-              if (widget.canEdit)
-                IconButton(
-                  icon: Icon(
-                    Icons.save,
-                    color: colorScheme.onSurface,
-                    size: 30,
-                  ),
-                  onPressed: () => _handleSave(playlist, nav),
-                ),
-            ],
-          ),
+                              nav.push(
+                                () => PlayPlaylist(canEdit: true),
+                                changeDetector: () {
+                                  return localVer.hasUnsavedChanges ||
+                                      sect.hasUnsavedChanges;
+                                },
+                                onChangeDiscarded: () {
+                                  for (var item in s.items) {
+                                    if (item.type == PlaylistItemType.version) {
+                                      localVer.loadVersion(item.contentId!);
+                                    }
+                                  }
+                                },
+                              );
+                            },
+                          ),
+                          // Save
+                          if (widget.canEdit)
+                            IconButton(
+                              icon: Icon(
+                                Icons.save,
+                                color: colorScheme.onSurface,
+                                size: 30,
+                              ),
+                              onPressed: () => _handleSave(),
+                            ),
+                        ]
+                      : [],
+                )
+              : null,
           floatingActionButton: widget.canEdit
               ? FloatingActionButton(
                   onPressed: () => _openPlaylistEditSheet(),
@@ -119,10 +152,10 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                 )
               : null,
           body: Padding(
-            padding: const EdgeInsets.all(16),
-            child: playlist.items.isEmpty
+            padding:const EdgeInsets.all(16),
+            child: s.items.isEmpty
                 ? _buildEmptyState()
-                : _buildItemsList(),
+                : _buildItemsList(s.items),
           ),
         );
       },
@@ -151,61 +184,54 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
     );
   }
 
-  Widget _buildItemsList() {
-    return Selector<PlaylistProvider, int>(
-      selector: (context, play) {
-        final playlist = play.getPlaylist(widget.playlistId);
-        return playlist?.items.length ?? 0;
-      },
-      builder: (context, itemCount, child) {
-        return widget.canEdit
-            ? ReorderableListView.builder(
-                proxyDecorator: (child, index, animation) =>
-                    Material(type: MaterialType.transparency, child: child),
-                buildDefaultDragHandles: false,
-                onReorder: (oldIndex, newIndex) =>
-                    _onReorder(oldIndex, newIndex),
-                itemCount: itemCount,
-                itemBuilder: (_, index) => _buildPlaylistItem(index),
-              )
-            : ListView.builder(
-                itemCount: itemCount,
-                itemBuilder: (_, index) => _buildPlaylistItem(index),
-              );
-      },
-    );
+  Widget _buildItemsList(List<PlaylistItem> items) {
+    return widget.canEdit
+        ? ReorderableListView.builder(
+            proxyDecorator: (child, index, animation) =>
+                Material(type: MaterialType.transparency, child: child),
+            buildDefaultDragHandles: false,
+            onReorder: (oldIndex, newIndex) => _onReorder(oldIndex, newIndex),
+            itemCount: items.length,
+            itemBuilder: (_, index) => _buildPlaylistItem(items[index], index),
+          )
+        : ListView.builder(
+            itemCount: items.length,
+            itemBuilder: (_, index) => _buildPlaylistItem(items[index], index),
+          );
   }
 
-  Widget _buildPlaylistItem(int index) {
-    return Selector<PlaylistProvider, PlaylistItem?>(
-      key: ValueKey('idx_$index'),
-      selector: (context, play) {
-        return play.getPlaylist(widget.playlistId)?.items[index];
-      },
-      builder: (context, item, child) {
-        if (item == null) return SizedBox();
-        switch (item.type) {
-          case PlaylistItemType.version:
-            return PlaylistVersionCard(
-              index: index,
-              canEdit: widget.canEdit,
-              versionId: item.contentId!,
-              playlistId: widget.playlistId,
-              itemId: item.id ?? -1,
-            );
-          case PlaylistItemType.flowItem:
-            return FlowItemCard(
-              index: index,
-              flowItemID: item.contentId ?? item.id!,
-              playlistID: widget.playlistId,
-              canEdit: widget.canEdit,
-            );
-        }
-      },
-    );
+  Widget _buildPlaylistItem(PlaylistItem item, int index) {
+    switch (item.type) {
+      case PlaylistItemType.version:
+        return PlaylistVersionCard(
+          key: ValueKey('idx_$index'),
+          index: index,
+          canEdit: widget.canEdit,
+          versionId: item.contentId ?? -1,
+          playlistId: widget.playlistID,
+          itemId: item.id ?? -1,
+          version: widget.playlistDto?.versions[item.firebaseContentId],
+        );
+      case PlaylistItemType.flowItem:
+        return FlowItemCard(
+          key: ValueKey('idx_$index'),
+          index: index,
+          flowItemID: item.contentId ?? -1,
+          playlistID: widget.playlistID,
+          canEdit: widget.canEdit,
+          flowItem: widget.playlistDto != null
+              ? FlowItem.fromFirestore(
+                  widget.playlistDto!.flowItems[item.firebaseContentId]!,
+                  playlistId: widget.playlistID,
+                )
+              : null,
+        );
+    }
   }
 
-  Future<void> _handleSave(Playlist playlist, NavigationProvider nav) async {
+  Future<void> _handleSave() async {
+    final nav = context.read<NavigationProvider>();
+
     final play = context.read<PlaylistProvider>();
     final localVer = context.read<LocalVersionProvider>();
     final localSch = context.read<LocalScheduleProvider>();
@@ -216,10 +242,10 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
     await localVer.persistCachedDeletions();
     await flow.persistDeletions();
 
-    await play.savePlaylistItems(playlist.id);
+    await play.savePlaylistItems(widget.playlistID);
 
     final schedule = await localSch.getScheduleWithPlaylistId(
-      widget.playlistId,
+      widget.playlistID,
     );
 
     if (schedule != null && schedule.scheduleState == ScheduleState.published) {
@@ -243,7 +269,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
           shape: LinearBorder(),
           onClosing: () {},
           builder: (context) {
-            return AddToPlaylistSheet(playlistID: widget.playlistId);
+            return AddToPlaylistSheet(playlistID: widget.playlistID);
           },
         );
       },
@@ -257,7 +283,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
 
     try {
       context.read<PlaylistProvider>().cacheReposition(
-        widget.playlistId,
+        widget.playlistID,
         oldIndex,
         newIndex,
       );

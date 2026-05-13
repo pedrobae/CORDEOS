@@ -9,14 +9,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class RoleCard extends StatelessWidget {
-  final int scheduleID;
-  final int roleID; // Role or RoleDTO object
+  final dynamic scheduleID;
+  final Role role;
   final bool canEdit;
 
   const RoleCard({
     super.key,
     required this.scheduleID,
-    required this.roleID,
+    required this.role,
     required this.canEdit,
   });
 
@@ -26,100 +26,87 @@ class RoleCard extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context)!;
 
-    return Selector<LocalScheduleProvider, Role?>(
-      selector: (context, localSch) =>
-          localSch.getSchedule(scheduleID)?.roles[roleID],
-      builder: (context, role, child) {
-        if (role == null) {
-          return Center(child: CircularProgressIndicator());
-        }
-
-        return Container(
-          padding: const EdgeInsets.all(8.0),
-          decoration: BoxDecoration(
-            border: Border.all(color: colorScheme.surfaceContainerLowest),
-            borderRadius: BorderRadius.circular(0),
-          ),
-          child: Column(
+    return Container(
+      padding: const EdgeInsets.all(8.0),
+      decoration: BoxDecoration(
+        border: Border.all(color: colorScheme.surfaceContainerLowest),
+        borderRadius: BorderRadius.circular(0),
+      ),
+      child: Column(
+        spacing: 8.0,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisSize: MainAxisSize.max,
             spacing: 8.0,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                mainAxisSize: MainAxisSize.max,
-                spacing: 8.0,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [Text(role.name, style: textTheme.titleMedium)],
-                    ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [Text(role.name, style: textTheme.titleMedium)],
+                ),
+              ),
+              if (canEdit) ...[
+                // ACTIONS
+                GestureDetector(
+                  onTap: () => _openAddUserSheet(context),
+                  child: SizedBox(
+                    width: 30,
+                    height: 30,
+                    child: Icon(Icons.add),
                   ),
-                  if (canEdit) ...[
-                    // ACTIONS
-                    GestureDetector(
-                      onTap: () => _openAddUserSheet(context),
-                      child: SizedBox(
-                        width: 30,
-                        height: 30,
-                        child: Icon(Icons.add),
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: () => _openEditRoleSheet(context),
-                      child: SizedBox(
-                        width: 30,
-                        height: 30,
-                        child: Icon(Icons.edit),
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        if (scheduleID is String) {
-                          return; // Prevent deletion of cloud schedule roles
-                        }
-                        showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          builder: (context) {
-                            return DeleteConfirmationSheet(
-                              itemType: l10n.role,
-                              onConfirm: () {
-                                context
-                                    .read<LocalScheduleProvider>()
-                                    .deleteRole(scheduleID, roleID);
-                              },
+                ),
+                GestureDetector(
+                  onTap: () => _openEditRoleSheet(context),
+                  child: SizedBox(
+                    width: 30,
+                    height: 30,
+                    child: Icon(Icons.edit),
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    if (scheduleID is String) {
+                      return; // Prevent deletion of cloud schedule roles
+                    }
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      builder: (context) {
+                        return DeleteConfirmationSheet(
+                          itemType: l10n.role,
+                          onConfirm: () {
+                            context.read<LocalScheduleProvider>().deleteRole(
+                              scheduleID,
+                              role.id,
                             );
                           },
                         );
                       },
-                      child: SizedBox(
-                        width: 30,
-                        height: 30,
-                        child: Icon(Icons.delete, color: colorScheme.error),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-              if (role.users.isEmpty) ...[
-                Text(
-                  l10n.noMembers,
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.surfaceContainerLowest,
+                    );
+                  },
+                  child: SizedBox(
+                    width: 30,
+                    height: 30,
+                    child: Icon(Icons.delete, color: colorScheme.error),
                   ),
-                  softWrap: false,
-                ),
-              ] else ...[
-                UsersList(
-                  scheduleId: scheduleID,
-                  roleID: roleID,
-                  canEdit: canEdit,
                 ),
               ],
             ],
           ),
-        );
-      },
+          if (role.users.isEmpty) ...[
+            Text(
+              l10n.noMembers,
+              style: textTheme.bodyMedium?.copyWith(
+                color: colorScheme.surfaceContainerLowest,
+              ),
+              softWrap: false,
+            ),
+          ] else ...[
+            UsersList(scheduleId: scheduleID, role: role, canEdit: canEdit),
+          ],
+        ],
+      ),
     );
   }
 
@@ -132,7 +119,7 @@ class RoleCard extends StatelessWidget {
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(context).viewInsets.bottom,
           ),
-          child: EditRoleSheet(scheduleID: scheduleID, roleID: roleID),
+          child: EditRoleSheet(scheduleID: scheduleID, roleID: role.id),
         );
       },
     );
@@ -147,7 +134,7 @@ class RoleCard extends StatelessWidget {
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(context).viewInsets.bottom,
           ),
-          child: AddUserSheet(scheduleId: scheduleID, roleID: roleID),
+          child: AddUserSheet(scheduleId: scheduleID, roleID: role.id),
         );
       },
     );

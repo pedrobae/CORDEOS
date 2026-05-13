@@ -1,3 +1,7 @@
+import 'package:cordeos/providers/playlist/flow_item_provider.dart';
+import 'package:cordeos/providers/section/section_provider.dart';
+import 'package:cordeos/providers/selection_provider.dart';
+import 'package:cordeos/providers/version/local_version_provider.dart';
 import 'package:flutter/material.dart';
 
 import 'package:cordeos/l10n/app_localizations.dart';
@@ -47,9 +51,9 @@ class ScheduleCard extends StatelessWidget {
           playlist: play.getPlaylist(schedule?.playlistId ?? -1),
         );
       },
-      builder: (context, selection, child) {
+      builder: (context, s, child) {
         // LOADING STATE
-        if (selection.schedule == null) {
+        if (s.schedule == null) {
           return Center(
             child: CircularProgressIndicator(color: colorScheme.primary),
           );
@@ -57,11 +61,11 @@ class ScheduleCard extends StatelessWidget {
 
         String? userRole = AppLocalizations.of(context)!.generalMember;
         if (auth.id != null) {
-          if (auth.id == selection.schedule!.ownerFirebaseId) {
+          if (auth.id == s.schedule!.ownerFirebaseId) {
             userRole = AppLocalizations.of(context)!.owner;
           } else {
             final localID = user.getLocalIdByFirebaseId(auth.id!);
-            for (var role in selection.schedule!.roles.values) {
+            for (var role in s.schedule!.roles.values) {
               if (role.users.any((u) => u.id == localID)) {
                 userRole = role.name;
                 break;
@@ -72,9 +76,38 @@ class ScheduleCard extends StatelessWidget {
 
         return GestureDetector(
           onTap: () {
+            final localVer = context.read<LocalVersionProvider>();
+            final sect = context.read<SectionProvider>();
+            final flow = context.read<FlowItemProvider>();
+            final play = context.read<PlaylistProvider>();
+            final sel = context.read<SelectionProvider>();
+            final localSch = context.read<LocalScheduleProvider>();
+
             nav.push(
               () => ViewScheduleScreen(scheduleID: scheduleId),
               showBottomNavBar: true,
+              changeDetector: () {
+                return play.hasUnsavedChanges ||
+                    flow.hasUnsavedChanges ||
+                    localVer.hasUnsavedChanges ||
+                    sect.hasUnsavedChanges ||
+                    localSch.hasUnsavedChanges;
+              },
+              onChangeDiscarded: () async {
+                debugPrint('PLAYLIST VIEW - discarding Changes');
+                play.loadPlaylist(s.playlist!.id);
+                localSch.loadSchedule(scheduleId);
+                for (var id in sel.newlyAddedVersionIds) {
+                  debugPrint('\t - deleting version with id $id');
+                  await localVer.deleteVersion(id);
+                  await sect.deleteSectionsOfVersion(id);
+                }
+                play.clearUnsavedChanges();
+                flow.deleteCachedCreations();
+                localVer.clearUnsavedChanges();
+                sect.clearUnsavedChanges();
+                sel.clearNewlyAddedVersionIds();
+              },
             );
           },
           child: Container(
@@ -103,13 +136,11 @@ class ScheduleCard extends StatelessWidget {
                               spacing: 8,
                               children: [
                                 Text(
-                                  selection.schedule!.name,
+                                  s.schedule!.name,
                                   style: theme.textTheme.titleMedium,
                                   softWrap: true,
                                 ),
-                                StatusChip(
-                                  status: selection.schedule!.scheduleState,
-                                ),
+                                StatusChip(status: s.schedule!.scheduleState),
                               ],
                             ),
 
@@ -118,27 +149,23 @@ class ScheduleCard extends StatelessWidget {
                               spacing: 16.0,
                               children: [
                                 Text(
-                                  DateTimeUtils.formatDate(
-                                    selection.schedule!.date,
-                                  ),
+                                  DateTimeUtils.formatDate(s.schedule!.date),
                                   style: theme.textTheme.bodyMedium,
                                 ),
                                 Text(
-                                  DateTimeUtils.formatTime(
-                                    selection.schedule!.date,
-                                  ),
+                                  DateTimeUtils.formatTime(s.schedule!.date),
                                 ),
                                 Text(
-                                  selection.schedule!.location,
+                                  s.schedule!.location,
                                   style: theme.textTheme.bodyMedium!,
                                 ),
                               ],
                             ),
 
                             // PLAYLIST INFO
-                            selection.playlist != null
+                            s.playlist != null
                                 ? Text(
-                                    '${AppLocalizations.of(context)!.playlist}: ${selection.playlist!.name}',
+                                    '${AppLocalizations.of(context)!.playlist}: ${s.playlist!.name}',
                                     style: theme.textTheme.bodyMedium,
                                   )
                                 : SizedBox.shrink(),
@@ -164,9 +191,8 @@ class ScheduleCard extends StatelessWidget {
                   ),
                 ),
                 //share
-                if (selection.schedule!.ownerFirebaseId == auth.id &&
-                    selection.schedule!.scheduleState ==
-                        ScheduleState.published)
+                if (s.schedule!.ownerFirebaseId == auth.id &&
+                    s.schedule!.scheduleState == ScheduleState.published)
                   FilledTextButton(
                     text: AppLocalizations.of(context)!.share,
                     isDense: true,

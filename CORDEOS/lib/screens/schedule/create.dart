@@ -61,19 +61,16 @@ class _CreateScheduleScreenState extends State<CreateScheduleScreen> {
 
     return Scaffold(
       appBar: _buildAppBar(nav),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          spacing: 16,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _buildStepIndicator(),
-            _buildStepInstruction(),
-            _buildStepSpacing(),
-            _buildStepContent(),
-            _buildContinueButton(localSch, nav, auth),
-          ],
-        ),
+      body: Column(
+        spacing: 16,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _buildStepIndicator(),
+          _buildStepInstruction(),
+          _buildStepSpacing(),
+          _buildStepContent(),
+          _buildContinueButton(localSch, nav, auth),
+        ],
       ),
     );
   }
