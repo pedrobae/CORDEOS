@@ -14,24 +14,25 @@ import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
 import 'package:cordeos/providers/cipher/cipher_provider.dart';
 import 'package:cordeos/providers/settings/layout_settings_provider.dart';
-import 'package:cordeos/providers/version/cloud_version_provider.dart';
 import 'package:cordeos/providers/version/local_version_provider.dart';
 import 'package:cordeos/screens/cipher/edit_cipher.dart';
 
 class ViewCipherScreen extends StatefulWidget {
   final int? cipherID;
   final VersionDto? versionDto;
-  final dynamic versionID;
+  final int? versionID;
   final VersionType versionType;
 
-  const ViewCipherScreen({
+  ViewCipherScreen({
     super.key,
     this.versionDto,
-    required this.cipherID,
+    this.cipherID,
     this.versionID,
 
     required this.versionType,
-  });
+  }) {
+    assert(versionID != null || versionDto != null);
+  }
 
   @override
   State<ViewCipherScreen> createState() => _ViewCipherScreenState();
@@ -48,7 +49,6 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
     _scrollController = ScrollController();
     _trans = context.read<TranspositionProvider>();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (widget.versionDto != null) _loadData();
       _setOriginalKey();
       _scrollController.addListener(_scrollListener);
     });
@@ -76,37 +76,7 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
     }
   }
 
-  Future<void> _loadData() async {
-    if (!mounted) return;
-    final sect = context.read<SectionProvider>();
-    final cloudVer = context.read<CloudVersionProvider>();
-
-    switch (widget.versionType) {
-      case VersionType.import:
-      case VersionType.brandNew:
-        break;
-      case VersionType.local:
-      case VersionType.playlist:
-        break;
-      case VersionType.cloud:
-        if (widget.versionID != null) {
-          final version = cloudVer.getVersion(widget.versionID);
-
-          if (version == null) return;
-
-          sect.setNewSectionsInCache(
-            widget.versionID,
-            version.sections.map(
-              (key, value) => MapEntry(key, value.toDomain()),
-            ),
-          );
-        }
-        break;
-    }
-  }
-
   void _setOriginalKey() {
-    final cloudVer = context.read<CloudVersionProvider>();
     final localVer = context.read<LocalVersionProvider>();
     final ciph = context.read<CipherProvider>();
 
@@ -116,20 +86,14 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
     if (widget.versionDto != null) {
       originalKey = widget.versionDto!.originalKey;
       transposedKey = widget.versionDto!.transposedKey;
-    } else if (widget.versionType == VersionType.cloud) {
-      final version = cloudVer.getVersion(widget.versionID)!;
-      originalKey = version.originalKey;
-      transposedKey = version.transposedKey;
     } else {
       final cipher = ciph.getCipher(widget.cipherID!);
-      final version = localVer.getVersion(widget.versionID);
+      final version = localVer.getVersion(widget.versionID!);
       originalKey = cipher!.musicKey;
       transposedKey = version?.transposedKey;
     }
-    _trans.setOriginalKey(
-      originalKey,
-      (widget.versionID is int) ? widget.versionID : -2,
-    );
+
+    _trans.setOriginalKey(originalKey, widget.versionID ?? -2);
     _trans.setTransposedKey(transposedKey);
   }
 
@@ -268,7 +232,7 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
       context.read<NavigationProvider>().push(
         () => EditCipherScreen(
           cipherID: widget.cipherID!,
-          versionID: widget.versionID,
+          versionID: widget.versionID!,
           versionType: widget.versionType,
         ),
         keepAlive: true,
@@ -278,9 +242,9 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
               sect.hasUnsavedChanges;
         },
         onChangeDiscarded: () {
-          localVer.loadVersion(widget.versionID);
+          localVer.loadVersion(widget.versionID!);
           ciph.loadCipher(widget.cipherID ?? -1);
-          sect.loadSectionsOfVersion(widget.versionID);
+          sect.loadSectionsOfVersion(widget.versionID!);
         },
       );
     };

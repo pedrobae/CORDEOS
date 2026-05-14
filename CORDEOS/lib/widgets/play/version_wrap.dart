@@ -5,7 +5,6 @@ import 'package:cordeos/providers/cipher/cipher_provider.dart';
 import 'package:cordeos/providers/settings/layout_settings_provider.dart';
 import 'package:cordeos/providers/section/section_provider.dart';
 import 'package:cordeos/providers/transposition_provider.dart';
-import 'package:cordeos/providers/version/cloud_version_provider.dart';
 import 'package:cordeos/providers/version/local_version_provider.dart';
 import 'package:cordeos/utils/date_utils.dart';
 import 'package:cordeos/utils/section_type.dart';
@@ -17,7 +16,7 @@ import 'package:provider/provider.dart';
 class VersionWrap extends StatelessWidget {
   final int itemIndex;
   final VersionDto? versionDto;
-  final dynamic versionID;
+  final int? versionID;
 
   const VersionWrap({
     super.key,
@@ -28,12 +27,11 @@ class VersionWrap extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Selector6<
+    return Selector5<
       LayoutSetProvider,
       TranspositionProvider,
       CipherProvider,
       LocalVersionProvider,
-      CloudVersionProvider,
       SectionProvider,
       ({
         Axis wrapDirection,
@@ -43,7 +41,7 @@ class VersionWrap extends StatelessWidget {
         String? newKey,
       })
     >(
-      selector: (context, laySet, trans, ciph, localVer, cloudVer, sect) {
+      selector: (context, laySet, trans, ciph, localVer, sect) {
         String originalKey;
         String? newKey;
         List<int> songStructure;
@@ -51,15 +49,11 @@ class VersionWrap extends StatelessWidget {
           originalKey = versionDto!.originalKey;
           newKey = versionDto!.transposedKey;
           songStructure = versionDto!.songStructure;
-        } else if (versionID is String) {
-          originalKey = cloudVer.getVersion(versionID)!.originalKey;
-          newKey = cloudVer.getVersion(versionID)!.transposedKey;
-          songStructure = cloudVer.getVersion(versionID)!.songStructure;
         } else {
-          final version = localVer.getVersion(versionID)!;
+          final version = localVer.getVersion(versionID!)!;
           originalKey = ciph.getCipher(version.cipherID)!.musicKey;
-          newKey = localVer.getVersion(versionID)!.transposedKey;
-          songStructure = localVer.getSongStructure(versionID);
+          newKey = localVer.getVersion(versionID!)!.transposedKey;
+          songStructure = localVer.getSongStructure(versionID!);
         }
 
         final filteredStructure = <int>[];
@@ -137,13 +131,12 @@ class VersionWrap extends StatelessWidget {
   Widget _buildHeader(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
 
-    return Selector3<
+    return Selector2<
       CipherProvider,
       LocalVersionProvider,
-      CloudVersionProvider,
       ({String? title, String? key, int? bpm, Duration? duration})
     >(
-      selector: (context, ciph, localVer, cloudVer) {
+      selector: (context, ciph, localVer) {
         String? title;
         String? key;
         int? bpm;
@@ -153,17 +146,8 @@ class VersionWrap extends StatelessWidget {
           key = versionDto!.transposedKey ?? versionDto!.originalKey;
           bpm = versionDto!.bpm;
           duration = Duration(seconds: versionDto!.duration);
-        } else if (versionID is String) {
-          final version = cloudVer.getVersion(versionID);
-          if (version == null) {
-            return (title: null, key: null, bpm: null, duration: null);
-          }
-          title = version.title;
-          key = version.transposedKey ?? version.originalKey;
-          bpm = version.bpm;
-          duration = Duration(milliseconds: version.duration);
         } else {
-          final version = localVer.getVersion(versionID);
+          final version = localVer.getVersion(versionID!);
           if (version == null) {
             return (title: null, key: null, bpm: null, duration: null);
           }
@@ -212,7 +196,6 @@ class VersionWrap extends StatelessWidget {
     String originalKey,
     String? newKey,
   ) {
-    if (versionID == null) return [const SizedBox.shrink()];
 
     final scroll = context.read<ScrollProvider>();
     final sect = context.read<SectionProvider>();

@@ -1,5 +1,5 @@
+import 'package:cordeos/models/dtos/version_dto.dart';
 import 'package:cordeos/providers/token_cache_provider.dart';
-import 'package:cordeos/utils/section_type.dart';
 import 'package:flutter/material.dart';
 import 'package:cordeos/models/domain/cipher/version.dart';
 
@@ -32,36 +32,16 @@ class CloudCipherCard extends StatelessWidget {
 
     return Selector<
       CloudVersionProvider,
-      ({
-        String? title,
-        String? key,
-        String? duration,
-        int? bpm,
-        bool isDownloading,
-      })
+      ({VersionDto? dto, bool isDownloading})
     >(
       selector: (context, cloudVer) {
-        final version = cloudVer.getVersion(versionId);
-
-        final types = <int, SectionType>{};
-        for (var key in version?.songStructure ?? []) {
-          final type = version?.sections[key]?.sectionType;
-          if (type != null) {
-            types[key] = type;
-          }
-        }
         return (
-          title: version?.title,
-          key: version?.transposedKey ?? version?.originalKey,
-          duration: DateTimeUtils.formatDuration(
-            Duration(seconds: version?.duration ?? 0),
-          ),
-          bpm: version?.bpm,
+          dto: cloudVer.getVersion(versionId),
           isDownloading: cloudVer.isDownloading(versionId),
         );
       },
       builder: (context, s, child) {
-        if (s.title == null) {
+        if (s.dto == null) {
           return (Center(child: CircularProgressIndicator()));
         }
 
@@ -70,8 +50,7 @@ class CloudCipherCard extends StatelessWidget {
             final token = context.read<TokenProvider>();
             nav.push(
               () => ViewCipherScreen(
-                cipherID: null,
-                versionID: versionId,
+                versionDto: s.dto!,
                 versionType: VersionType.cloud,
               ),
               onPopCallback: () {
@@ -112,28 +91,31 @@ class CloudCipherCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // TITLE
-                          Text(s.title!, style: textTheme.titleMedium),
+                          Text(s.dto!.title, style: textTheme.titleMedium),
 
                           // INFO
                           Row(
                             spacing: 8.0,
                             children: [
                               Text(
-                                '${l10n.musicKey}: ${s.key}',
+                                '${l10n.musicKey}: ${s.dto!.transposedKey ?? s.dto!.originalKey}',
                                 style: textTheme.bodyMedium,
                               ),
-                              if (s.bpm != null && s.bpm != 0)
+                              if (s.dto!.bpm != 0)
                                 Text(
                                   AppLocalizations.of(
                                     context,
-                                  )!.bpmWithPlaceholder(s.bpm!.toString()),
+                                  )!.bpmWithPlaceholder(s.dto!.bpm.toString()),
                                   style: textTheme.bodyMedium,
                                 ),
-                              if (s.duration != null && s.duration!.isNotEmpty)
-                                Text(
-                                  l10n.durationWithPlaceholder(s.duration!),
-                                  style: textTheme.bodyMedium,
+                              Text(
+                                l10n.durationWithPlaceholder(
+                                  DateTimeUtils.formatDuration(
+                                    Duration(seconds: s.dto!.duration),
+                                  ),
                                 ),
+                                style: textTheme.bodyMedium,
+                              ),
                             ],
                           ),
                         ],

@@ -236,9 +236,9 @@ class _PlayPlaylistState extends State<PlayPlaylist> {
             case PlaylistItemType.version:
               return VersionWrap(
                 itemIndex: i,
-                versionID: widget.playlistDto != null
-                    ? item.firebaseContentId
-                    : item.contentId,
+                versionDto:
+                    widget.playlistDto?.versions[item.firebaseContentId],
+                versionID: item.contentId,
               );
             case PlaylistItemType.flowItem:
               FlowItem? flow;

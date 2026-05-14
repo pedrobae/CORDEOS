@@ -67,10 +67,6 @@ class _StructureListState extends State<StructureList> {
       ({List<int> songStructure, Map<int, SectionBadgeData> badgesData})
     >(
       selector: (context, laySet, localVer, cloudVer, sect) {
-        if (widget.versionID == null) {
-          return (songStructure: [], badgesData: {});
-        }
-
         final songStructure = widget.versionDto != null
             ? widget.versionDto!.songStructure
             : (widget.versionID is String
