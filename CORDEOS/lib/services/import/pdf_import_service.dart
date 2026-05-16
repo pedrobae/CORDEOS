@@ -1,10 +1,9 @@
 import 'dart:io';
 import 'package:cordeos/helpers/pdf_glyph_extractor.dart';
 import 'package:cordeos/models/dtos/pdf_dto.dart';
-import 'package:cordeos/services/import/import_service_base.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 
-class PDFImportService extends ImportService {
+class PDFImportService {
   /// Extracts text with detailed formatting information for better parsing
   ///
   /// Returns a list of text lines with font size, boldness, and position metadata
@@ -49,16 +48,5 @@ class PDFImportService extends ImportService {
     } finally {
       document?.dispose();
     }
-  }
-
-  /// Validates that the PDF file exists and has .pdf extension
-  @override
-  Future<bool> validate(String path) async {
-    if (!path.toLowerCase().endsWith('.pdf')) {
-      return false;
-    }
-
-    final file = File(path);
-    return await file.exists();
   }
 }

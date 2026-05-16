@@ -1194,13 +1194,17 @@
   "@import": {
     "description": "Import button label"
   },
+  "batchImport": "Importação em Lote",
+  "@batchImport": {
+    "description": "Batch Import Title"
+  },
   "importFromPDF": "Importar de PDF",
   "@importFromPDF": {
     "description": "Import from PDF option"
   },
-  "selectPDFFile": "Selecionar Arquivo PDF",
-  "@selectPDFFile": {
-    "description": "Prompt to select a PDF file"
+  "selectFile": "Selecionar Arquivo",
+  "@selectFile": {
+    "description": "Prompt to select a file"
   },
   "selectedFile": "Arquivo Selecionado: ",
   "@selectedFile": {
@@ -1210,6 +1214,10 @@
   "@processPDF": {
     "description": "Process PDF button label"
   },
+  "processSpreadsheet": "Processar Planilha",
+  "@processSpreadsheet": {
+    "description": "Process Spreadsheet button label"
+  },
   "generatingPdf": "Gerando PDF...",
   "@generatingPdf": {
     "description": "Message displayed while generating PDF"
@@ -1218,9 +1226,13 @@
   "@howToImport": {
     "description": "How to import instructions title"
   },
-  "importInstructions": "• Selecione um PDF com uma cifra\n• Escolha se o PDF tem colunas ou não\n• Processe o PDF e faça os ajustes necessários\n• Salve a cifra importada na sua biblioteca",
-  "@importInstructions": {
+  "pdfImportInstructions": "• Selecione um PDF com uma cifra\n• Escolha se o PDF tem colunas ou não\n• Processe o PDF e faça os ajustes necessários\n• Salve a cifra importada na sua biblioteca",
+  "@pdfImportInstructions": {
     "description": "Instructions for importing a song map from a PDF file"
+  },
+  "spreadsheetImportInstructions": "• Selecione uma planilha com as seguintes colunas:\n• Conteúdo\n• Título\n• Autor (Opcional)\n• Tom (Opcional)\n• BPM (Opcional)\n• Duração (Opcional)\n• Idioma (Opcional)\n• Tags (Opcional)\n• Links (Opcional)\n• Anotações (Opcional)",
+  "@spreadsheetImportInstructions": {
+    "description": "Instructions for importing a song map from a Spreadsheet file"
   },
   "importFromImage": "Importar de Imagem",
   "@importFromImage": {
@@ -1229,6 +1241,10 @@
   "importFromText": "Importar de Texto",
   "@importFromText": {
     "description": "Import from text option"
+  },
+  "importFromSpreadsheet": "Importar de Planilha",
+  "@importFromSpreadsheet": {
+    "description": "Import from Spreadsheet option"
   },
   "pasteTextPrompt": "Cole o texto da cifra aqui...",
   "@pasteTextPrompt": {

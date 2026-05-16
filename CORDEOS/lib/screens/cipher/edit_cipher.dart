@@ -1,10 +1,9 @@
 import 'package:cordeos/l10n/app_localizations.dart';
 import 'package:cordeos/models/domain/cipher/cipher.dart';
 import 'package:cordeos/models/domain/cipher/version.dart';
+import 'package:cordeos/models/dtos/version_dto.dart';
 import 'package:cordeos/providers/cipher/edit_sections_state_provider.dart';
-import 'package:cordeos/providers/cipher/import_provider.dart';
 import 'package:cordeos/providers/navigation_provider.dart';
-import 'package:cordeos/providers/cipher/parser_provider.dart';
 import 'package:cordeos/providers/user/my_auth_provider.dart';
 import 'package:cordeos/providers/version/cloud_version_provider.dart';
 import 'package:cordeos/services/key_recognizer_service.dart';
@@ -20,6 +19,7 @@ class EditCipherScreen extends StatefulWidget {
   final int cipherID;
   final int versionID;
   final VersionType versionType;
+  final VersionDto? versionDto;
   final bool isEnabled;
 
   const EditCipherScreen({
@@ -27,6 +27,7 @@ class EditCipherScreen extends StatefulWidget {
     required this.cipherID,
     required this.versionID,
     required this.versionType,
+    this.versionDto,
     this.isEnabled = true,
   });
 
@@ -66,13 +67,12 @@ class _EditCipherScreenState extends State<EditCipherScreen>
   }
 
   Future<void> _loadImportedCipher() async {
-    final parse = context.read<ParserProvider>();
     final ciph = context.read<CipherProvider>();
     final localVer = context.read<LocalVersionProvider>();
     final sect = context.read<SectionProvider>();
 
-    final versionDto = parse.parsedSong;
-    if (versionDto == null) return;
+    if (widget.versionDto == null) return;
+    final versionDto = widget.versionDto!;
 
     if (widget.cipherID == -1) {
       // CREATING NEW FROM IMPORTED
@@ -96,9 +96,6 @@ class _EditCipherScreenState extends State<EditCipherScreen>
         localVer.addSectionToStruct(widget.versionID, newKey);
       }
     }
-
-    parse.clearCache();
-    context.read<ImportProvider>().clearCache();
   }
 
   Future<void> _loadLocalVersion() async {

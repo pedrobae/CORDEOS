@@ -6,6 +6,7 @@ import 'package:cordeos/providers/user/my_auth_provider.dart';
 import 'package:cordeos/providers/version/local_version_provider.dart';
 import 'package:cordeos/screens/cipher/edit_cipher.dart';
 import 'package:cordeos/screens/cipher/import/import_pdf.dart';
+import 'package:cordeos/screens/cipher/import/import_spreadsheet.dart';
 import 'package:cordeos/screens/cipher/import/import_text.dart';
 import 'package:cordeos/widgets/common/filled_text_button.dart';
 import 'package:flutter/material.dart';
@@ -18,6 +19,7 @@ class NewSongSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
 
     final nav = context.read<NavigationProvider>();
     final auth = context.read<MyAuthProvider>();
@@ -37,9 +39,7 @@ class NewSongSheet extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                AppLocalizations.of(
-                  context,
-                )!.createPlaceholder(AppLocalizations.of(context)!.cipher),
+                l10n.createPlaceholder(l10n.cipher),
                 style: textTheme.titleMedium,
               ),
               IconButton(
@@ -53,7 +53,7 @@ class NewSongSheet extends StatelessWidget {
 
           /// MANUALLY CREATE SONG
           FilledTextButton(
-            text: AppLocalizations.of(context)!.createManually,
+            text: l10n.createManually,
             isDark: true,
             icon: Icons.add,
             trailingIcon: Icons.chevron_right,
@@ -83,7 +83,7 @@ class NewSongSheet extends StatelessWidget {
           /// IMPORT SECTION BUTTONS
           // text
           FilledTextButton(
-            text: AppLocalizations.of(context)!.importFromText,
+            text: l10n.importFromText,
             icon: Icons.text_snippet,
             trailingIcon: Icons.chevron_right,
             isDiscrete: true,
@@ -94,7 +94,7 @@ class NewSongSheet extends StatelessWidget {
           ),
           // pdf
           FilledTextButton(
-            text: AppLocalizations.of(context)!.importFromPDF,
+            text: l10n.importFromPDF,
             icon: Icons.picture_as_pdf,
             trailingIcon: Icons.chevron_right,
             isDiscrete: true,
@@ -103,10 +103,22 @@ class NewSongSheet extends StatelessWidget {
               nav.push(() => const ImportPdfScreen());
             },
           ),
+          // spreadsheet
+          FilledTextButton(
+            text: l10n.importFromSpreadsheet,
+            icon: Icons.grid_on,
+            trailingIcon: Icons.chevron_right,
+            isDiscrete: true,
+            onPressed: () {
+              // for now show coming soon snackbar from the settings screen
+              Navigator.of(context).pop();
+              nav.push(() => const ImportSpreadSheetScreen());
+            },
+          ),
           // image
           if (auth.isAdmin)
             FilledTextButton(
-              text: AppLocalizations.of(context)!.importFromImage,
+              text: l10n.importFromImage,
               icon: Icons.image,
               trailingIcon: Icons.chevron_right,
               isDiscrete: true,

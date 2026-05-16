@@ -1,6 +1,7 @@
 import 'package:cordeos/l10n/app_localizations.dart';
 import 'package:cordeos/models/domain/cipher/version.dart';
 import 'package:cordeos/models/domain/parsing_cipher.dart';
+import 'package:cordeos/models/dtos/version_dto.dart';
 import 'package:cordeos/providers/cipher/cipher_provider.dart';
 import 'package:cordeos/providers/navigation_provider.dart';
 import 'package:cordeos/providers/cipher/parser_provider.dart';
@@ -63,7 +64,7 @@ class _ImportPdfScreenState extends State<ImportPdfScreen> {
           SnackBar(
             content: Text(
               AppLocalizations.of(context)!.errorMessage(
-                AppLocalizations.of(context)!.selectPDFFile,
+                AppLocalizations.of(context)!.selectFile,
                 e.toString(),
               ),
             ),
@@ -116,7 +117,7 @@ class _ImportPdfScreenState extends State<ImportPdfScreen> {
   }
 
   Widget _buildFileSelectionSection(ImportProvider imp) {
-    return imp.selectedFile != null
+    return imp.filePath != null
         ? _buildSelectedFileDisplay(imp)
         : _buildSelectFileButton(imp);
   }
@@ -146,7 +147,7 @@ class _ImportPdfScreenState extends State<ImportPdfScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  imp.selectedFileName!,
+                  imp.fileName!,
                   style: textTheme.titleSmall,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -183,7 +184,7 @@ class _ImportPdfScreenState extends State<ImportPdfScreen> {
   Widget _buildSelectFileButton(ImportProvider imp) {
     return FilledTextButton(
       onPressed: () => imp.isImporting ? null : _pickPdfFile(),
-      text: AppLocalizations.of(context)!.selectPDFFile,
+      text: AppLocalizations.of(context)!.selectFile,
       isDark: true,
     );
   }
@@ -255,7 +256,7 @@ class _ImportPdfScreenState extends State<ImportPdfScreen> {
             ],
           ),
           Text(
-            AppLocalizations.of(context)!.importInstructions,
+            AppLocalizations.of(context)!.pdfImportInstructions,
             style: textTheme.bodyMedium,
           ),
         ],
@@ -284,7 +285,7 @@ class _ImportPdfScreenState extends State<ImportPdfScreen> {
           FilledTextButton(
             isDark: true,
             isDisabled:
-                (imp.selectedFile == null ||
+                (imp.filePath == null ||
                 imp.isImporting ||
                 imp.importVariation == null),
             onPressed: () => _processAndNavigate(imp, par, nav, localVer, ciph),
@@ -312,25 +313,32 @@ class _ImportPdfScreenState extends State<ImportPdfScreen> {
     LocalVersionProvider localVer,
     CipherProvider ciph,
   ) async {
-    final importedCipher = await imp.importText();
-    if (importedCipher == null) {
+    final imports = await imp.importText();
+    if (imports.isEmpty) {
       throw Exception('Failed to import text from PDF');
     }
-    await par.parseCipher(importedCipher);
-    nav.push(
-      () => EditCipherScreen(
-        cipherID: widget.cipherID,
-        versionType: VersionType.import,
-        versionID: widget.versionID,
-      ),
-      keepAlive: true,
-      changeDetector: () =>
-          localVer.hasUnsavedChanges || ciph.hasUnsavedChanges ,
-      onChangeDiscarded: () {
-        localVer.loadVersion(widget.versionID);
-        ciph.loadCipher(widget.cipherID);
-      },
-    );
+    final songs = <VersionDto>[];
+    for (final import in imports) {
+      final song = await par.parseCipher(import);
+      if (song != null) songs.add(song);
+    }
+
+    if (songs.length == 1)
+      nav.push(
+        () => EditCipherScreen(
+          cipherID: widget.cipherID,
+          versionType: VersionType.import,
+          versionID: widget.versionID,
+          versionDto: songs[0],
+        ),
+        keepAlive: true,
+        changeDetector: () =>
+            localVer.hasUnsavedChanges || ciph.hasUnsavedChanges,
+        onChangeDiscarded: () {
+          localVer.loadVersion(widget.versionID);
+          ciph.loadCipher(widget.cipherID);
+        },
+      );
   }
 
   void _handleCancel(ImportProvider imp, NavigationProvider nav) {

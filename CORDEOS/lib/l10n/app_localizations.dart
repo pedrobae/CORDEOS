@@ -1760,17 +1760,23 @@ abstract class AppLocalizations {
   /// **'Importar'**
   String get import;
 
+  /// Batch Import Title
+  ///
+  /// In pt, this message translates to:
+  /// **'Importação em Lote'**
+  String get batchImport;
+
   /// Import from PDF option
   ///
   /// In pt, this message translates to:
   /// **'Importar de PDF'**
   String get importFromPDF;
 
-  /// Prompt to select a PDF file
+  /// Prompt to select a file
   ///
   /// In pt, this message translates to:
-  /// **'Selecionar Arquivo PDF'**
-  String get selectPDFFile;
+  /// **'Selecionar Arquivo'**
+  String get selectFile;
 
   /// Label for displaying the selected file name
   ///
@@ -1783,6 +1789,12 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Processar PDF'**
   String get processPDF;
+
+  /// Process Spreadsheet button label
+  ///
+  /// In pt, this message translates to:
+  /// **'Processar Planilha'**
+  String get processSpreadsheet;
 
   /// Message displayed while generating PDF
   ///
@@ -1800,7 +1812,13 @@ abstract class AppLocalizations {
   ///
   /// In pt, this message translates to:
   /// **'• Selecione um PDF com uma cifra\n• Escolha se o PDF tem colunas ou não\n• Processe o PDF e faça os ajustes necessários\n• Salve a cifra importada na sua biblioteca'**
-  String get importInstructions;
+  String get pdfImportInstructions;
+
+  /// Instructions for importing a song map from a Spreadsheet file
+  ///
+  /// In pt, this message translates to:
+  /// **'• Selecione uma planilha com as seguintes colunas:\n• Conteúdo\n• Título\n• Autor (Opcional)\n• Tom (Opcional)\n• BPM (Opcional)\n• Duração (Opcional)\n• Idioma (Opcional)\n• Tags (Opcional)\n• Links (Opcional)\n• Anotações (Opcional)'**
+  String get spreadsheetImportInstructions;
 
   /// Import from image option
   ///
@@ -1813,6 +1831,12 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Importar de Texto'**
   String get importFromText;
+
+  /// Import from Spreadsheet option
+  ///
+  /// In pt, this message translates to:
+  /// **'Importar de Planilha'**
+  String get importFromSpreadsheet;
 
   /// Prompt to paste cipher text
   ///

@@ -927,10 +927,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get import => 'Import';
 
   @override
+  String get batchImport => 'Batch Import';
+
+  @override
   String get importFromPDF => 'Import from PDF';
 
   @override
-  String get selectPDFFile => 'Select PDF File';
+  String get selectFile => 'Select File';
 
   @override
   String get selectedFile => 'Selected File: ';
@@ -939,20 +942,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get processPDF => 'Process PDF';
 
   @override
+  String get processSpreadsheet => 'Process Spreadsheet';
+
+  @override
   String get generatingPdf => 'Generating PDF...';
 
   @override
   String get howToImport => 'How to Import';
 
   @override
-  String get importInstructions =>
+  String get pdfImportInstructions =>
       '• Select a PDF with the song map\n• Choose whether the PDF has columns or not\n• Process the PDF and make the adjustments as needed\n• Save the imported song map to your library';
+
+  @override
+  String get spreadsheetImportInstructions =>
+      '• Select a Spreadsheet with the following columns:\n• Content\n• Title\n• Author (Optional)\n• Key (Optional)\n• BPM (Opcional)\n• Duração (Optional)\n• Language (Optional)\n• Tags (Opcional)\n• Links (Optional)\n• Annotations (Optional)';
 
   @override
   String get importFromImage => 'Import from Image';
 
   @override
   String get importFromText => 'Import from Text';
+
+  @override
+  String get importFromSpreadsheet => 'Import from Spreadsheet';
 
   @override
   String get pasteTextPrompt => 'Paste the cipher text here...';

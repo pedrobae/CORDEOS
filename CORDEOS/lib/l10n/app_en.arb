@@ -1198,13 +1198,21 @@
   "@import": {
     "description": "Import button label"
   },
+  "batchImport": "Batch Import",
+  "@batchImport": {
+    "description": "Batch Import Title"
+  },
   "importFromPDF": "Import from PDF",
   "@importFromPDF": {
     "description": "Import from PDF option"
   },
-  "selectPDFFile": "Select PDF File",
-  "@selectPDFFile": {
-    "description": "Prompt to select a PDF file"
+  "importFromSpreadsheet": "Import from Spreadsheet",
+  "@importFromSpreadsheet": {
+    "description": "Import from Spreadsheet option"
+  },
+  "selectFile": "Select File",
+  "@selectFile": {
+    "description": "Prompt to select a file"
   },
   "selectedFile": "Selected File: ",
   "@selectedFile": {
@@ -1214,6 +1222,10 @@
   "@processPDF": {
     "description": "Process PDF button label"
   },
+  "processSpreadsheet": "Process Spreadsheet",
+  "@processSpreadsheet": {
+    "description": "Process Spreadsheet button label"
+  },
   "generatingPdf": "Generating PDF...",
   "@generatingPdf": {
     "description": "Message displayed while generating PDF"
@@ -1222,9 +1234,13 @@
   "@howToImport": {
     "description": "How to import instructions title"
   },
-  "importInstructions": "• Select a PDF with the song map\n• Choose whether the PDF has columns or not\n• Process the PDF and make the adjustments as needed\n• Save the imported song map to your library",
-  "@importInstructions": {
+  "pdfImportInstructions": "• Select a PDF with the song map\n• Choose whether the PDF has columns or not\n• Process the PDF and make the adjustments as needed\n• Save the imported song map to your library",
+  "@pdfImportInstructions": {
     "description": "Instructions for importing a song map from a PDF file"
+  },
+  "spreadsheetImportInstructions": "• Select a Spreadsheet with the following columns:\n• Content\n• Title\n• Author (Optional)\n• Key (Optional)\n• BPM (Opcional)\n• Duração (Optional)\n• Language (Optional)\n• Tags (Opcional)\n• Links (Optional)\n• Annotations (Optional)",
+  "@spreadsheetImportInstructions": {
+    "description": "Instructions for importing a song map from a Spreadsheet file"
   },
   "importFromImage": "Import from Image",
   "@importFromImage": {

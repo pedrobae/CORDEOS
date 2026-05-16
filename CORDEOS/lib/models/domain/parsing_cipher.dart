@@ -3,7 +3,7 @@ import 'package:cordeos/models/dtos/pdf_dto.dart';
 import 'package:cordeos/models/dtos/version_dto.dart';
 import 'package:flutter/material.dart';
 
-enum ImportType { text, pdf, image }
+enum ImportType { text, pdf, image, spreadSheet }
 
 /// Import strategy variants - different ways to extract text from source
 /// Used when the same import type has multiple extraction methods
@@ -91,9 +91,6 @@ class ParsingResult {
 class ParsingCipher {
   final ImportType importType;
   ParsingResult result;
-
-  /// Global metadata extracted from the entire document (title, author, etc)
-  Map<String, dynamic> metadata = {};
 
   ParsingCipher({required this.importType, required this.result});
 }

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cordeos/l10n/app_localizations.dart';
 import 'package:cordeos/models/domain/cipher/version.dart';
 import 'package:cordeos/models/domain/parsing_cipher.dart';
+import 'package:cordeos/models/dtos/version_dto.dart';
 import 'package:cordeos/providers/cipher/cipher_provider.dart';
 import 'package:cordeos/providers/navigation_provider.dart';
 import 'package:cordeos/providers/cipher/parser_provider.dart';
@@ -212,12 +213,16 @@ class _ImportTextScreenState extends State<ImportTextScreen> {
 
     final text = _importTextController.text;
     if (text.isNotEmpty) {
-      final importedCipher = await imp.importText(data: text);
+      final importedCiphers = await imp.importText(data: text);
 
-      if (importedCipher == null) {
+      if (importedCiphers.isEmpty) {
         throw Exception('Failed to import text');
       }
-      par.parseCipher(importedCipher);
+      final songs = <VersionDto>[];
+      for (final import in importedCiphers) {
+        final song = await par.parseCipher(import);
+        if (song != null) songs.add(song);
+      }
 
       if (widget.cipherID != -1 && widget.versionID != -1) {
         // CLEAN THE SCREEN STACK IF COMING FROM EDITING
@@ -226,12 +231,13 @@ class _ImportTextScreenState extends State<ImportTextScreen> {
       }
 
       // Navigate to edit cipher screen
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (songs.length == 1)
         nav.push(
           () => EditCipherScreen(
             versionType: VersionType.import,
             versionID: widget.versionID,
             cipherID: widget.cipherID,
+            versionDto: songs[0],
           ),
           keepAlive: true,
           changeDetector: () {
@@ -242,7 +248,6 @@ class _ImportTextScreenState extends State<ImportTextScreen> {
             await ciph.loadCipher(widget.cipherID);
           },
         );
-      });
     }
   }
 }

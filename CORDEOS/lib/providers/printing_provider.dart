@@ -463,7 +463,6 @@ class PrintingProvider extends ChangeNotifier {
 
             if (sectionBlockHeight > contentHeight) {
               // TODO-Break sections bigger than space
-              // for now skip
               debugPrint("PRINTING PROVIDER - failed to layout big section");
             }
 

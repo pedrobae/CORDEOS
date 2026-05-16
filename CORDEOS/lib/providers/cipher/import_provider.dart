@@ -1,24 +1,27 @@
 import 'package:cordeos/models/domain/parsing_cipher.dart';
+import 'package:cordeos/models/dtos/pdf_dto.dart';
+import 'package:cordeos/services/import/spreadsheet_import_service.dart.dart';
 import 'package:flutter/foundation.dart';
-import 'package:cordeos/services/import/image_import_service.dart';
 import 'package:cordeos/services/import/pdf_import_service.dart';
 
 class ImportProvider extends ChangeNotifier {
   final PDFImportService _pdfService = PDFImportService();
-  final ImageImportService _imageService = ImageImportService();
+  // final ImageImportService _imageService = ImageImportService();
+  final SpreadsheetImportService _spreadSheetService =
+      SpreadsheetImportService();
 
   /// Single ParsingCipher object that may contain multiple import variants
   bool _isImporting = false;
-  String? _selectedFile;
-  String? _selectedFileName;
+  String? _filePath;
+  String? _fileName;
   int? _fileSize;
   String? _error;
   ImportType? _importType;
   ParsingStrategy? _parsingStrategy;
   ImportVariation? _importVariation;
 
-  String? get selectedFile => _selectedFile;
-  String? get selectedFileName => _selectedFileName;
+  String? get filePath => _filePath;
+  String? get fileName => _fileName;
   String? get fileSize => _parseFileSize(_fileSize);
   bool get isImporting => _isImporting;
   String? get error => _error;
@@ -52,36 +55,47 @@ class ImportProvider extends ChangeNotifier {
   /// Imports text based on the selected import type.
   /// For PDFs: creates multiple import variants (with/without columns) in a single ParsingCipher
   /// For text/images: creates a single import variant
-  Future<ParsingCipher?> importText({String? data}) async {
-    if (_isImporting) return null;
+  Future<List<ParsingCipher>> importText({String? data}) async {
+    final imports = <ParsingCipher>[];
+    if (_isImporting) return imports;
 
     _isImporting = true;
     _error = null;
     notifyListeners();
 
-    ParsingCipher? importedCipher;
     try {
       switch (_importType) {
         case ImportType.text:
           // Text import: single import variant (textDirect)
-          importedCipher = ParsingCipher(
+          final import = ParsingCipher(
             result: ParsingResult(
               strategy: _parsingStrategy!,
               rawText: data ?? '',
             ),
             importType: ImportType.text,
           );
+
+          final rawLines = data?.split('\n') ?? [];
+          for (var i = 0; i < rawLines.length; i++) {
+            var line = rawLines[i];
+            // Split line text into words using whitespace as delimiter
+            List<String> words = line.split(RegExp(r'\s+')).toList();
+            import.result.lines.add(
+              LineData(wordCount: words.length, text: line, lineIndex: i),
+            );
+          }
+          imports.add(import);
           break;
 
         case ImportType.pdf:
           // PDF import: multiple import variants (with/without columns)
           final pdfDocument = await _pdfService.extractTextWithFormatting(
-            selectedFile!,
-            selectedFileName!,
+            filePath!,
+            fileName!,
             _importVariation == ImportVariation.pdfWithColumns,
           );
 
-          importedCipher = ParsingCipher(
+          final import = ParsingCipher(
             importType: ImportType.pdf,
             result: ParsingResult(
               strategy: ParsingStrategy.pdfFormatting,
@@ -89,7 +103,7 @@ class ImportProvider extends ChangeNotifier {
             ),
           );
 
-          importedCipher.result.metadata['title'] = pdfDocument.documentName
+          import.result.metadata['title'] = pdfDocument.documentName
               .split('.') // remove file extension
               .first;
 
@@ -99,18 +113,47 @@ class ImportProvider extends ChangeNotifier {
             throw Exception('No text lines were extracted from the PDF');
           }
 
-          importedCipher.result.lines.addAll(importedLines);
+          import.result.lines.addAll(importedLines);
+          imports.add(import);
           break;
 
         case ImportType.image:
-          final text = await _imageService.extractText(selectedFile!);
-          importedCipher = ParsingCipher(
-            result: ParsingResult(
-              strategy: ParsingStrategy.pdfFormatting,
-              rawText: text,
-            ),
-            importType: ImportType.image,
-          );
+          // final text = await _imageService.extractText(filePath!);
+          // final import = ParsingCipher(
+          //   result: ParsingResult(
+          //     strategy: ParsingStrategy.pdfFormatting,
+          //     rawText: text,
+          //   ),
+          //   importType: ImportType.image,
+          // );
+          // imports.add(import);
+          break;
+        case ImportType.spreadSheet:
+          final data = await _spreadSheetService.extractData(filePath!);
+          for (final sheetLine in data) {
+            final import = ParsingCipher(
+              result: ParsingResult(
+                strategy: ParsingStrategy.doubleNewLine,
+                rawText: sheetLine.content,
+              ),
+              importType: ImportType.spreadSheet,
+            );
+            import.result.metadata.addAll(sheetLine.metadata);
+            final rawLines = sheetLine.content.split('\n');
+            for (var i = 0; i < rawLines.length; i++) {
+              var sheetLine = rawLines[i];
+              // Split line text into words using whitespace as delimiter
+              List<String> words = sheetLine.split(RegExp(r'\s+')).toList();
+              import.result.lines.add(
+                LineData(
+                  wordCount: words.length,
+                  text: sheetLine,
+                  lineIndex: i,
+                ),
+              );
+            }
+            imports.add(import);
+          }
           break;
         case null:
           throw Exception('Import type must be selected before importing');
@@ -121,26 +164,26 @@ class ImportProvider extends ChangeNotifier {
       _isImporting = false;
       notifyListeners();
     }
-    return importedCipher;
+    return imports;
   }
 
   /// Sets the selected file name.
   void setSelectedFile(String filePath, {int? fileSize, String? fileName}) {
-    _selectedFile = filePath;
+    _filePath = filePath;
     _fileSize = fileSize;
-    _selectedFileName = fileName;
+    _fileName = fileName;
     notifyListeners();
   }
 
   /// Clears the selected file name.
   void clearSelectedFile() {
-    _selectedFile = null;
+    _filePath = null;
     notifyListeners();
   }
 
   /// Clears the selected file name.
   void clearSelectedFileName() {
-    _selectedFileName = null;
+    _fileName = null;
     notifyListeners();
   }
 
@@ -152,8 +195,8 @@ class ImportProvider extends ChangeNotifier {
 
   void clearCache() {
     _isImporting = false;
-    _selectedFile = null;
-    _selectedFileName = null;
+    _filePath = null;
+    _fileName = null;
     _error = null;
     _importType = null;
     _parsingStrategy = null;

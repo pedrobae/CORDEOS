@@ -48,7 +48,9 @@ dependencies:
   azlistview: ^2.0.0
   file_picker: ^8.3.7
   syncfusion_flutter_pdf: ^31.2.18
+  excel: ^4.0.6
   printing: ^5.10.0
+
   collection: ^1.19.1
 
   timezone: ^0.9.4

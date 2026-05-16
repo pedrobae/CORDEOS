@@ -6,63 +6,36 @@ import 'package:flutter/material.dart';
 class ParserProvider extends ChangeNotifier {
   final ParsingServiceBase _parsingService = ParsingServiceBase();
 
-  ParsingCipher? _cipher;
-  ParsingCipher? get cipher => _cipher;
-
   // Chosen Cipher after parsing
-  VersionDto? _parsedSong;
-  VersionDto? get parsedSong => _parsedSong;
-
   bool _isParsing = false;
   bool get isParsing => _isParsing;
 
   String _error = '';
   String get error => _error;
 
-  Future<void> parseCipher(ParsingCipher importedCipher) async {
-    if (_isParsing) return;
+  Future<VersionDto?> parseCipher(ParsingCipher importedCipher) async {
+    VersionDto? song;
+    if (_isParsing) return song;
 
-    _cipher = importedCipher;
     _isParsing = true;
     _error = '';
     notifyListeners();
 
     try {
-      // ===== PRE-PROCESSING STEPS =====
-      switch (importedCipher.importType) {
-        case ImportType.text:
-          // Calculate line metrics
-          _parsingService.separateLines(importedCipher.result);
-          break;
-        case ImportType.pdf:
-          // PDF-specific pre-processing can be added here
-          break;
-        case ImportType.image:
-          // Image specific parsing can be added here
-          break;
-      }
-
       /// ===== PARSING STEPS =====
-      _parsingService.parse(_cipher!.result);
-
-      // Build domain Cipher from parsed sections
-      _parsedSong = _parsingService.buildVersionFromResult(
-        _cipher!.result,
-      );
-
+      final result = _parsingService.parse(importedCipher.result);
+      song = _parsingService.buildVersionFromResult(result);
       _isParsing = false;
       notifyListeners();
     } catch (e) {
       _error = 'Error during parsing: $e';
       _isParsing = false;
       notifyListeners();
-      return;
     }
+    return song;
   }
 
   void clearCache() {
-    _cipher = null;
-    _parsedSong = null;
     _isParsing = false;
     _error = '';
   }

@@ -1,5 +1,4 @@
 import 'package:cordeos/models/domain/parsing_cipher.dart';
-import 'package:cordeos/models/dtos/pdf_dto.dart';
 import 'package:cordeos/models/dtos/version_dto.dart';
 import 'package:cordeos/services/parsing/chord_line_parser.dart';
 import 'package:cordeos/services/parsing/section_parser.dart';
@@ -8,9 +7,10 @@ class ParsingServiceBase {
   final ChordLineParser chordLineParser = ChordLineParser();
   final SectionParser sectionParser = SectionParser();
 
-  void parse(ParsingResult result) {
+  ParsingResult parse(ParsingResult result) {
     parseSections(result);
     parseChords(result);
+    return result;
   }
 
   void parseSections(ParsingResult result) {
@@ -40,23 +40,6 @@ class ParsingServiceBase {
   }
 
   /// ----- PRE-PROCESSING HELPERS ------
-  void separateLines(ParsingResult result) {
-    final rawLines = result.rawText.split('\n');
-    for (var i = 0; i < rawLines.length; i++) {
-      var line = rawLines[i];
-      // Split line text into words using whitespace as delimiter
-      List<String> words = line.split(RegExp(r'\s+')).toList();
-
-      result.lines.add(
-        LineData(
-          wordCount: words.length,
-          text: line,
-          lineIndex: i,
-        ),
-      );
-    }
-  }
-
   VersionDto buildVersionFromResult(ParsingResult result) {
     return VersionDto(
       sections: result.parsedSections,
@@ -65,13 +48,17 @@ class ParsingServiceBase {
       versionName: 'Imported',
       duration: result.metadata['duration'] ?? 0,
       title: result.metadata['title'] ?? 'Unknown Title',
-      author: result.metadata['artist'] ?? 'Unknown Artist',
+      author: result.metadata['author'] ?? 'Unknown Author',
       language: result.metadata['language'] ?? '',
-      originalKey: '',
+      originalKey: result.metadata['key'] ?? '',
+      links: result.metadata['links'] != null
+          ? List<String>.from(result.metadata['tags'])
+          : [],
+      notes: result.metadata['annotations'],
+
       tags: result.metadata['tags'] != null
           ? List<String>.from(result.metadata['tags'])
           : [],
-
     );
   }
 }

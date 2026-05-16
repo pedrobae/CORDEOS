@@ -932,10 +932,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get import => 'Importar';
 
   @override
+  String get batchImport => 'Importação em Lote';
+
+  @override
   String get importFromPDF => 'Importar de PDF';
 
   @override
-  String get selectPDFFile => 'Selecionar Arquivo PDF';
+  String get selectFile => 'Selecionar Arquivo';
 
   @override
   String get selectedFile => 'Arquivo Selecionado: ';
@@ -944,20 +947,30 @@ class AppLocalizationsPt extends AppLocalizations {
   String get processPDF => 'Processar PDF';
 
   @override
+  String get processSpreadsheet => 'Processar Planilha';
+
+  @override
   String get generatingPdf => 'Gerando PDF...';
 
   @override
   String get howToImport => 'Como Importar';
 
   @override
-  String get importInstructions =>
+  String get pdfImportInstructions =>
       '• Selecione um PDF com uma cifra\n• Escolha se o PDF tem colunas ou não\n• Processe o PDF e faça os ajustes necessários\n• Salve a cifra importada na sua biblioteca';
+
+  @override
+  String get spreadsheetImportInstructions =>
+      '• Selecione uma planilha com as seguintes colunas:\n• Conteúdo\n• Título\n• Autor (Opcional)\n• Tom (Opcional)\n• BPM (Opcional)\n• Duração (Opcional)\n• Idioma (Opcional)\n• Tags (Opcional)\n• Links (Opcional)\n• Anotações (Opcional)';
 
   @override
   String get importFromImage => 'Importar de Imagem';
 
   @override
   String get importFromText => 'Importar de Texto';
+
+  @override
+  String get importFromSpreadsheet => 'Importar de Planilha';
 
   @override
   String get pasteTextPrompt => 'Cole o texto da cifra aqui...';
