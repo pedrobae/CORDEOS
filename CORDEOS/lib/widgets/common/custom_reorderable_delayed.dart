@@ -5,12 +5,13 @@ class CustomReorderableDelayed extends ReorderableDelayedDragStartListener {
   final Duration delay;
 
   const CustomReorderableDelayed({
-    super.key, 
+    super.key,
     required this.delay,
-    required super.child, 
-    required super.index
-    });
-  
+    required super.child,
+    required super.index,
+    super.enabled,
+  });
+
   @override
   MultiDragGestureRecognizer createRecognizer() {
     return DelayedMultiDragGestureRecognizer(debugOwner: this, delay: delay);

@@ -49,7 +49,9 @@ class _AddUserSheetState extends State<AddUserSheet> {
   void _onUsernameChanged() {
     if (!mounted) return;
     if (_resetDropdownOnNextChange > 0) {
-      debugPrint(_resetDropdownOnNextChange.toString());
+      debugPrint(
+        "SHEET ADD USER - drop down reset countdown - $_resetDropdownOnNextChange",
+      );
       setState(() {
         _resetDropdownOnNextChange--;
       });
@@ -79,7 +81,9 @@ class _AddUserSheetState extends State<AddUserSheet> {
   VoidCallback _onEmailChanged() {
     return () async {
       if (_resetDropdownOnNextChange > 0) {
-        debugPrint(_resetDropdownOnNextChange.toString());
+        debugPrint(
+          "SHEET ADD USER - drop down reset countdown - $_resetDropdownOnNextChange",
+        );
         setState(() {
           _resetDropdownOnNextChange--;
         });
@@ -130,7 +134,7 @@ class _AddUserSheetState extends State<AddUserSheet> {
     });
   }
 
-  void _addUser(BuildContext context) async {
+  void _addUser() async {
     final username = _usernameController.text.trim();
     final email = _emailController.text.trim();
 
@@ -143,25 +147,25 @@ class _AddUserSheetState extends State<AddUserSheet> {
       return;
     }
 
-    final userProvider = context.read<UserProvider>();
-    final scheduleProvider = context.read<LocalScheduleProvider>();
+    final userProv = context.read<UserProvider>();
+    final localSch = context.read<LocalScheduleProvider>();
 
     // Check if user exists in known users
-    User? user = userProvider.knownUsers.firstWhereOrNull(
+    User? user = userProv.knownUsers.firstWhereOrNull(
       (user) => user.email.toLowerCase() == email.toLowerCase(),
     );
 
     if (user == null || user.firebaseId == null || user.firebaseId!.isEmpty) {
-      user = (await userProvider.fetchUserDtoByEmail(email))?.toDomain();
+      user = (await userProv.fetchUserDtoByEmail(email))?.toDomain();
 
       if (user != null) {
         // Upsert to local db if found in cloud
-        await userProvider.upsertUser(user);
+        await userProv.upsertUser(user);
       }
     }
-    user ??= await userProvider.createLocalUnknownUser(username, email);
+    user ??= await userProv.createLocalUnknownUser(username, email);
 
-    scheduleProvider.addUserToRole(widget.scheduleId, widget.roleID, user);
+    localSch.cacheAddUserToRole(widget.scheduleId, widget.roleID, user);
 
     if (context.mounted) {
       Navigator.of(context).pop();
@@ -182,121 +186,117 @@ class _AddUserSheetState extends State<AddUserSheet> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Consumer2<UserProvider, LocalScheduleProvider>(
-      builder: (context, userProvider, scheduleProvider, child) {
-        return Container(
-          decoration: BoxDecoration(
-            color: colorScheme.surface,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(0)),
-          ),
-          padding: const EdgeInsets.all(16.0),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(0)),
+      ),
+      padding: const EdgeInsets.all(16.0),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // HEADER
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                // HEADER
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    IconButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                      icon: Icon(Icons.close),
-                    ),
-                  ],
-                ),
-
-                // NAME INPUT WITH DROPDOWN
-                Column(
-                  spacing: 16,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // EMAIL INPUT WITH DROPDOWN
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      spacing: 8,
-                      children: [
-                        LabeledTextField(
-                          label: AppLocalizations.of(context)!.email,
-                          controller: _emailController,
-                          hint: AppLocalizations.of(context)!.enterEmailHint,
-                        ),
-                        if (_showDropdown && _emailFilteredUsers.isNotEmpty)
-                          Container(
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: colorScheme.surfaceContainerLowest,
-                              ),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            constraints: BoxConstraints(maxHeight: 200),
-                            child: ListView.builder(
-                              shrinkWrap: true,
-                              itemCount: _emailFilteredUsers.length,
-                              itemBuilder: (context, index) {
-                                final user = _emailFilteredUsers[index];
-                                return ListTile(
-                                  title: Text(user.email),
-                                  subtitle: Text(user.username),
-                                  onTap: () => _selectUser(user),
-                                );
-                              },
-                            ),
-                          ),
-                      ],
-                    ),
-
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      spacing: 8,
-                      children: [
-                        LabeledTextField(
-                          label: AppLocalizations.of(context)!.name,
-                          controller: _usernameController,
-                          hint: AppLocalizations.of(context)!.enterNameHint,
-                        ),
-                        if (_showDropdown && _usernameFilteredUsers.isNotEmpty)
-                          Container(
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: colorScheme.surfaceContainerLowest,
-                              ),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            constraints: BoxConstraints(maxHeight: 200),
-                            child: ListView.builder(
-                              shrinkWrap: true,
-                              itemCount: _usernameFilteredUsers.length,
-                              itemBuilder: (context, index) {
-                                final user = _usernameFilteredUsers[index];
-                                return ListTile(
-                                  title: Text(user.username),
-                                  subtitle: Text(user.email),
-                                  onTap: () => _selectUser(user),
-                                );
-                              },
-                            ),
-                          ),
-                      ],
-                    ),
-
-                    // ADD BUTTON
-                    FilledTextButton(
-                      onPressed: () => _addUser(context),
-                      text: AppLocalizations.of(
-                        context,
-                      )!.addPlaceholder(AppLocalizations.of(context)!.member),
-                      isDark: true,
-                    ),
-                    SizedBox(),
-                  ],
+                IconButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  icon: Icon(Icons.close),
                 ),
               ],
             ),
-          ),
-        );
-      },
+
+            // NAME INPUT WITH DROPDOWN
+            Column(
+              spacing: 16,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // EMAIL INPUT WITH DROPDOWN
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: 8,
+                  children: [
+                    LabeledTextField(
+                      label: AppLocalizations.of(context)!.email,
+                      controller: _emailController,
+                      hint: AppLocalizations.of(context)!.enterEmailHint,
+                    ),
+                    if (_showDropdown && _emailFilteredUsers.isNotEmpty)
+                      Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: colorScheme.surfaceContainerLowest,
+                          ),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        constraints: BoxConstraints(maxHeight: 200),
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: _emailFilteredUsers.length,
+                          itemBuilder: (context, index) {
+                            final user = _emailFilteredUsers[index];
+                            return ListTile(
+                              title: Text(user.email),
+                              subtitle: Text(user.username),
+                              onTap: () => _selectUser(user),
+                            );
+                          },
+                        ),
+                      ),
+                  ],
+                ),
+
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: 8,
+                  children: [
+                    LabeledTextField(
+                      label: AppLocalizations.of(context)!.name,
+                      controller: _usernameController,
+                      hint: AppLocalizations.of(context)!.enterNameHint,
+                    ),
+                    if (_showDropdown && _usernameFilteredUsers.isNotEmpty)
+                      Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: colorScheme.surfaceContainerLowest,
+                          ),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        constraints: BoxConstraints(maxHeight: 200),
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: _usernameFilteredUsers.length,
+                          itemBuilder: (context, index) {
+                            final user = _usernameFilteredUsers[index];
+                            return ListTile(
+                              title: Text(user.username),
+                              subtitle: Text(user.email),
+                              onTap: () => _selectUser(user),
+                            );
+                          },
+                        ),
+                      ),
+                  ],
+                ),
+
+                // ADD BUTTON
+                FilledTextButton(
+                  onPressed: () => _addUser(),
+                  text: AppLocalizations.of(
+                    context,
+                  )!.addPlaceholder(AppLocalizations.of(context)!.member),
+                  isDark: true,
+                ),
+                SizedBox(),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

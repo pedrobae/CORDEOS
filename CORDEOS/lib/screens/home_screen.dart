@@ -2,7 +2,6 @@ import 'package:cordeos/l10n/app_localizations.dart';
 import 'package:cordeos/providers/schedule/cloud_schedule_provider.dart';
 import 'package:cordeos/providers/schedule/local_schedule_provider.dart';
 import 'package:cordeos/providers/user/user_provider.dart';
-import 'package:cordeos/providers/version/cloud_version_provider.dart';
 import 'package:cordeos/widgets/schedule/library/card_cloud.dart';
 import 'package:cordeos/widgets/schedule/library/card.dart';
 import 'package:flutter/material.dart';
@@ -33,7 +32,6 @@ class _HomeScreenState extends State<HomeScreen> {
     final userProvider = context.read<UserProvider>();
     final localScheduleProvider = context.read<LocalScheduleProvider>();
     final cloudScheduleProvider = context.read<CloudScheduleProvider>();
-    final cloudVersionProvider = context.read<CloudVersionProvider>();
 
     if (!authProvider.isAuthenticated) {
       return;
@@ -44,12 +42,6 @@ class _HomeScreenState extends State<HomeScreen> {
     final user = userProvider.getUserByFirebaseId(authProvider.id!);
     if (user != null) {
       authProvider.setUserData(user);
-    }
-
-    for (var schedule in cloudScheduleProvider.schedules.values) {
-      for (var versionEntry in schedule.playlist.versions.entries) {
-        cloudVersionProvider.setVersion(versionEntry.key, versionEntry.value);
-      }
     }
   }
 

@@ -3,15 +3,21 @@ import 'dart:async';
 import 'package:cordeos/models/domain/cipher/cipher.dart';
 import 'package:cordeos/models/dtos/version_dto.dart';
 import 'package:cordeos/repositories/cloud/version_repository.dart';
+import 'package:cordeos/repositories/local/version_repository.dart';
 import 'package:cordeos/services/key_recognizer_service.dart';
 import 'package:flutter/foundation.dart';
 
 class CloudVersionProvider extends ChangeNotifier {
   final CloudVersionRepository _repo = CloudVersionRepository();
+  final LocalVersionRepository _localRepo = LocalVersionRepository();
   final _recognizer = KeyRecognizerService();
 
   final Map<String, VersionDto> _versions =
       {}; // Cached cloud versions firebaseID -> Version
+  final Map<String, Map<int, CloudVersionNote>> _notes =
+      {}; // Cached cloud versions firebaseID -> Note
+  final Map<String, String> _overwriteKeys =
+      {}; // Cached cloud versions firebaseID -> Key
 
   bool _isSaving = false;
   bool _isLoading = false;
@@ -123,11 +129,6 @@ class CloudVersionProvider extends ChangeNotifier {
     return firestoreID;
   }
 
-  void setVersion(String firebaseId, VersionDto version) {
-    _versions[firebaseId] = version;
-    notifyListeners();
-  }
-
   // ===== READ =====
   /// Loads public versions from Firestore
   Future<void> loadVersions({
@@ -236,5 +237,116 @@ class CloudVersionProvider extends ChangeNotifier {
   Future<void> setSearchTerm(String term) async {
     _searchTerm = term.toLowerCase();
     notifyListeners();
+  }
+
+  // ============= LOCAL NOTES =================
+  Future<int> create(
+    int position,
+    String content,
+    String title,
+    String firebaseVersionID,
+  ) async {
+    final note = CloudVersionNote(
+      title: title,
+      id: -1,
+      position: position,
+      content: content,
+      firebaseVersionID: firebaseVersionID,
+    );
+    final id = await _localRepo.createNote(note);
+    await _localRepo.updateNote(id, note.copyWith(id: id));
+    _notes[firebaseVersionID] ??= {};
+    _notes[firebaseVersionID]![id] = note;
+    notifyListeners();
+    return id;
+  }
+
+  // READ
+  Map<int, CloudVersionNote> getNotesOfVersion(String cloudVersionFirebaseID) {
+    return _notes[cloudVersionFirebaseID] ?? {};
+  }
+
+  Future<void> loadNotes() async {
+    if (_isLoading) return;
+    _isLoading = true;
+    notifyListeners();
+    try {
+      _notes.clear();
+      _notes.addAll(await _localRepo.getNotes());
+    } catch (e) {
+      _error = e.toString();
+      if (kDebugMode) {
+        print('Error loading version notes: $e');
+      }
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> ensureVersionNotesAreLoaded(String firebaseID) async {
+    if (_notes[firebaseID] != null) return;
+    if (_isLoading) return;
+
+    _isLoading = true;
+    notifyListeners();
+    try {
+      final notes = await _localRepo.getNotesOfVersion(firebaseID);
+      _notes[firebaseID] = notes;
+    } catch (e) {
+      _error = e.toString();
+      if (kDebugMode) {
+        print('Error loading version notes: $e');
+      }
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // UPDATE
+  Future<void> update(int id, CloudVersionNote note) async {
+    await _localRepo.updateNote(id, note);
+  }
+
+  // DELETE
+  Future<void> delete(String firebaseID, int id) async {
+    _notes[firebaseID]!.remove(id);
+    notifyListeners();
+    await _localRepo.deleteNote(id);
+  }
+
+  // ============= OVERWRITE KEY =================
+  Future<void> saveKey(String key, String firebaseVersionID) async {
+    _overwriteKeys[firebaseVersionID] = key;
+    await _localRepo.saveKey(key, firebaseVersionID);
+    notifyListeners();
+  }
+
+  Future<void> loadOverwriteKeys() async {
+    if (_isLoading) return;
+
+    _isLoading = true;
+    notifyListeners();
+    try {
+      _overwriteKeys.addAll(await _localRepo.loadOverwriteKeys());
+    } catch (e) {
+      _error = e.toString();
+      debugPrint("CLOUD VERSION PROVIDER - error loading overwrite keys");
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> ensureOverwriteKeyIsLoaded(String firebaseVersionID) async {
+    if (_overwriteKeys[firebaseVersionID] != null) return;
+    final key = await _localRepo.loadOverwriteKeyOfVersion(firebaseVersionID);
+    if (key != null) _overwriteKeys[firebaseVersionID] = key;
+    notifyListeners();
+  }
+
+  String? checkOverwriteKey(String firebaseVersionID) {
+    return _overwriteKeys[firebaseVersionID];
   }
 }

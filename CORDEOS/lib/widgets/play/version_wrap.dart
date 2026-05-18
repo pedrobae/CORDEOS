@@ -47,7 +47,7 @@ class VersionWrap extends StatelessWidget {
         List<int> songStructure;
         if (versionDto != null) {
           originalKey = versionDto!.originalKey;
-          newKey = versionDto!.transposedKey;
+          newKey = versionDto!.overwriteKey ?? versionDto!.transposedKey;
           songStructure = versionDto!.songStructure;
         } else {
           final version = localVer.getVersion(versionID!)!;
@@ -143,7 +143,10 @@ class VersionWrap extends StatelessWidget {
         Duration? duration;
         if (versionDto != null) {
           title = versionDto!.title;
-          key = versionDto!.transposedKey ?? versionDto!.originalKey;
+          key =
+              versionDto!.overwriteKey ??
+              versionDto!.transposedKey ??
+              versionDto!.originalKey;
           bpm = versionDto!.bpm;
           duration = Duration(seconds: versionDto!.duration);
         } else {
@@ -196,7 +199,6 @@ class VersionWrap extends StatelessWidget {
     String originalKey,
     String? newKey,
   ) {
-
     final scroll = context.read<ScrollProvider>();
     final sect = context.read<SectionProvider>();
     final trans = context.read<TranspositionProvider>();

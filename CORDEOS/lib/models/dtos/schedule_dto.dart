@@ -161,7 +161,7 @@ class ScheduleDto {
       location: location,
       roomVenue: roomVenue,
       playlistId: playlistLocalId,
-      roles: {},
+      roles: [],
       shareCode: shareCode,
       collaborators: collaborators,
       isPublic:

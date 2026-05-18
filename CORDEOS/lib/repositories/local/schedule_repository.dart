@@ -1,6 +1,7 @@
 import 'package:cordeos/helpers/database.dart';
 import 'package:cordeos/models/domain/schedule.dart';
 import 'package:cordeos/models/domain/user.dart';
+import 'package:sqflite/sqflite.dart';
 
 class LocalScheduleRepository {
   final DatabaseHelper _databaseHelper = DatabaseHelper();
@@ -10,7 +11,7 @@ class LocalScheduleRepository {
     final db = await _databaseHelper.database;
     int scheduleId = await db.insert('schedule', schedule.toSqlite());
 
-    for (var role in schedule.roles.values) {
+    for (var role in schedule.roles) {
       await insertRole(scheduleId, role);
     }
 
@@ -143,22 +144,71 @@ class LocalScheduleRepository {
     );
   }
 
-  //
-  Future<void> updateRole(int scheduleId, Role role) async {
+  /// Delete roles not on the list, create roles not on the db, update roles on both
+  Future<void> saveRoles(int scheduleId, List<Role> roles) async {
     final db = await _databaseHelper.database;
 
-    if (role.id == -1) throw ArgumentError('Role ID cannot be -1 for update.');
-    await db.update(
-      'role',
-      role.toSqlite(scheduleId),
-      where: 'id = ?',
-      whereArgs: [role.id],
+    await db.transaction((txn) async {
+      final result = await txn.query(
+        'role',
+        where: 'schedule_id = ?',
+        whereArgs: [scheduleId],
+      );
+
+      final existingIds = result.map((row) => row['id'] as int).toList();
+
+      for (final role in roles) {
+        if (existingIds.contains(role.id)) {
+          await txn.update(
+            'role',
+            role.toSqlite(scheduleId),
+            where: 'id = ?',
+            whereArgs: [role.id],
+          );
+          await _saveUsersInTxn(txn, role.users, role.id);
+        } else {
+          await txn.insert('role', role.toSqlite(scheduleId));
+        }
+        await _saveUsersInTxn(txn, role.users, role.id);
+        existingIds.remove(role.id);
+      }
+
+      for (final remainingID in existingIds) {
+        await txn.delete('role', where: 'id = ?', whereArgs: [remainingID]);
+      }
+    });
+  }
+
+  Future<void> _saveUsersInTxn(
+    Transaction txn,
+    List<User> users,
+    int roleID,
+  ) async {
+    final result = await txn.query(
+      'role_member',
+      where: 'role_id = ?',
+      whereArgs: [roleID],
     );
 
-    // Delete and reinsert members
-    await db.delete('role_member', where: 'role_id = ?', whereArgs: [role.id]);
-    for (var user in role.users) {
-      await insertMember(role.id, user.id!);
+    final existingIds = result.map((row) => row['member_id'] as int).toList();
+
+    for (final user in users) {
+      if (user.id == null) continue;
+      if (!existingIds.contains(user.id!)) {
+        await txn.insert('role_member', {
+          'role_id': roleID,
+          'member_id': user.id!,
+        });
+      }
+      existingIds.remove(user.id);
+    }
+
+    for (final remainingID in existingIds) {
+      await txn.delete(
+        'role_member',
+        where: 'role_id = ?, member_id = ?',
+        whereArgs: [roleID, remainingID],
+      );
     }
   }
 
@@ -166,13 +216,6 @@ class LocalScheduleRepository {
   Future<void> deleteSchedule(int id) async {
     final db = await _databaseHelper.database;
     await db.delete('schedule', where: 'id = ?', whereArgs: [id]);
-  }
-
-  /// Deletes a role and its member associations from the database.
-  Future<void> deleteRole(int roleId) async {
-    final db = await _databaseHelper.database;
-    await db.delete('role', where: 'id = ?', whereArgs: [roleId]);
-    await db.delete('role_member', where: 'role_id = ?', whereArgs: [roleId]);
   }
 
   /// Removes a user from a role by deleting the corresponding entry in the role_member table.

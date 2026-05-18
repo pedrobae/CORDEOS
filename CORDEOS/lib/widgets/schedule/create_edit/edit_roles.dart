@@ -8,12 +8,17 @@ import 'package:cordeos/widgets/schedule/create_edit/sheet_rename_role.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class EditRoles extends StatelessWidget {
+class EditRoles extends StatefulWidget {
   final dynamic scheduleId;
   final bool canEdit;
 
   const EditRoles({super.key, required this.scheduleId, this.canEdit = true});
 
+  @override
+  State<EditRoles> createState() => _EditRolesState();
+}
+
+class _EditRolesState extends State<EditRoles> {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
@@ -33,16 +38,16 @@ class EditRoles extends StatelessWidget {
                   List<Role>
                 >(
                   selector: (context, localSch, cloudSch) {
-                    final roles = <Role>[];
-                    if (scheduleId is int)
-                      roles.addAll(
-                        localSch.getSchedule(scheduleId)!.roles.values,
-                      );
-
-                    if (scheduleId is String) {
+                    List<Role> roles;
+                    if (widget.scheduleId is int) {
+                      roles = [
+                        ...localSch.getSchedule(widget.scheduleId)!.roles,
+                      ];
+                    } else {
+                      roles = [];
                       int i = -1;
                       for (final roleDto
-                          in cloudSch.getSchedule(scheduleId)!.roles) {
+                          in cloudSch.getSchedule(widget.scheduleId)!.roles) {
                         roles.add(roleDto.toDomain(i));
                         i--;
                       }
@@ -72,9 +77,9 @@ class EditRoles extends StatelessWidget {
                         return Container(
                           margin: const EdgeInsets.only(bottom: 16.0),
                           child: RoleCard(
-                            scheduleID: scheduleId,
+                            scheduleID: widget.scheduleId,
                             role: role,
-                            canEdit: canEdit,
+                            canEdit: widget.canEdit,
                           ),
                         );
                       },
@@ -83,7 +88,7 @@ class EditRoles extends StatelessWidget {
                 ),
           ),
           // ADD ROLE BUTTON
-          if (canEdit)
+          if (widget.canEdit)
             FilledTextButton(
               text: l10n.role,
               isDense: true,
@@ -96,7 +101,10 @@ class EditRoles extends StatelessWidget {
                     padding: EdgeInsets.only(
                       bottom: MediaQuery.of(context).viewInsets.bottom,
                     ),
-                    child: EditRoleSheet(scheduleID: scheduleId, roleID: -1),
+                    child: EditRoleSheet(
+                      scheduleID: widget.scheduleId,
+                      roleID: -1,
+                    ),
                   );
                 },
               ),

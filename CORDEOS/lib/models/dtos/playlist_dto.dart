@@ -131,4 +131,42 @@ class PlaylistDto {
     }
     return playlistItems;
   }
+
+  PlaylistDto mergeVersions(
+    Map<String, String?>? versionsKeys,
+    Map<String, Map<int, CloudVersionNote>>? versionsNotes,
+  ) {
+    if (versionsKeys == null || versionsNotes == null) return this;
+    final newVersions = <String, VersionDto>{};
+    for (final version in versions.values) {
+      newVersions[version.firebaseId!] = version
+          .mergeNotes(versionsNotes[version.firebaseId!]!)
+          .copyWith(overwriteKey: versionsKeys[version.firebaseId!]);
+    }
+
+    return this.copyWith(versions: newVersions);
+  }
+
+  PlaylistDto copyWith({
+    String? name,
+    List<String>? itemOrder,
+    Map<String, Map<String, dynamic>>? flowItems,
+    Map<String, VersionDto>? versions,
+  }) {
+    return PlaylistDto(
+      name: name ?? this.name,
+      itemOrder: itemOrder ?? this.itemOrder,
+      flowItems: flowItems ?? this.flowItems,
+      versions: versions ?? this.versions,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is PlaylistDto &&
+        this.name == other.name &&
+        this.versions.values.every(
+          (version) => other.versions.containsValue(version),
+        );
+  }
 }

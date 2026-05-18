@@ -1,5 +1,6 @@
 import 'package:cordeos/helpers/chords.dart';
 import 'package:cordeos/l10n/app_localizations.dart';
+import 'package:cordeos/providers/version/cloud_version_provider.dart';
 import 'package:cordeos/providers/version/local_version_provider.dart';
 import 'package:cordeos/widgets/common/filled_text_button.dart';
 import 'package:flutter/material.dart';
@@ -7,21 +8,21 @@ import 'package:provider/provider.dart';
 
 class SelectKeySheet extends StatefulWidget {
   final bool showSave;
-  final bool showOriginal;
   final String? initialKey;
-  final int versionID;
+  final dynamic versionID;
   final String originalKey;
   final Function(String) onKeySelected;
 
-  const SelectKeySheet({
+  SelectKeySheet({
     super.key,
     this.showSave = true,
-    this.showOriginal = true,
     this.initialKey,
     required this.versionID,
     required this.originalKey,
     required this.onKeySelected,
-  });
+  }) {
+    assert(versionID is String || versionID is int);
+  }
 
   @override
   State<SelectKeySheet> createState() => _SelectKeySheetState();
@@ -124,7 +125,7 @@ class _SelectKeySheetState extends State<SelectKeySheet> {
               );
             },
           ),
-          if (widget.showOriginal && widget.originalKey != '')
+          if (widget.originalKey != '')
             FilledTextButton(
               text: AppLocalizations.of(context)!.originalKey,
               isDark: true,
@@ -138,14 +139,20 @@ class _SelectKeySheetState extends State<SelectKeySheet> {
               text: AppLocalizations.of(context)!.save,
               isDark: true,
               onPressed: () async {
-                final localVer = context.read<LocalVersionProvider>();
                 final nav = Navigator.of(context);
+                final localVer = context.read<LocalVersionProvider>();
+                final cloudVer = context.read<CloudVersionProvider>();
 
-                localVer.cacheUpdates(
-                  widget.versionID,
-                  transposedKey: selectedKey,
-                );
-                await localVer.saveVersion(versionID: widget.versionID);
+                if (widget.versionID is int) {
+                  localVer.cacheUpdates(
+                    widget.versionID,
+                    transposedKey: selectedKey,
+                  );
+                  await localVer.saveVersion(versionID: widget.versionID);
+                } else {
+                  cloudVer.saveKey(selectedKey, widget.versionID);
+                }
+
                 nav.pop();
               },
             ),

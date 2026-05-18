@@ -1,8 +1,10 @@
 import 'package:cordeos/models/dtos/playlist_dto.dart';
+import 'package:cordeos/models/dtos/version_dto.dart';
 import 'package:cordeos/providers/playlist/flow_item_provider.dart';
 import 'package:cordeos/providers/schedule/cloud_schedule_provider.dart';
 import 'package:cordeos/providers/selection_provider.dart';
 import 'package:cordeos/providers/user/my_auth_provider.dart';
+import 'package:cordeos/providers/version/cloud_version_provider.dart';
 import 'package:cordeos/providers/version/local_version_provider.dart';
 import 'package:cordeos/services/sync_service.dart';
 import 'package:cordeos/widgets/common/cloud_download_indicator.dart';
@@ -60,6 +62,10 @@ class _ViewScheduleScreenState extends State<ViewScheduleScreen>
 
         final schedule = localSch.getSchedule(widget.scheduleID)!;
         play.loadPlaylist(schedule.playlistId);
+      } else {
+        final cloudVer = context.read<CloudVersionProvider>();
+        await cloudVer.loadNotes();
+        await cloudVer.loadOverwriteKeys();
       }
     });
   }
@@ -112,6 +118,7 @@ class _ViewScheduleScreenState extends State<ViewScheduleScreen>
         ),
 
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _buildScheduleDetails(),
             Divider(),
@@ -126,31 +133,58 @@ class _ViewScheduleScreenState extends State<ViewScheduleScreen>
               child: TabBarView(
                 controller: _tabController,
                 children: [
-                  Selector2<
+                  Selector3<
                     LocalScheduleProvider,
                     CloudScheduleProvider,
-                    ({PlaylistDto? dto, int id})
+                    CloudVersionProvider,
+                    ({
+                      PlaylistDto? dto,
+                      int id,
+                      Map<String, String?>? versionsKeys,
+                      Map<String, Map<int, CloudVersionNote>>? versionsNotes,
+                    })
                   >(
-                    selector: (context, localSch, cloudSch) {
+                    selector: (context, localSch, cloudSch, cloudVer) {
                       int? id;
                       PlaylistDto? dto;
+                      final notesMap = <String, Map<int, CloudVersionNote>>{};
+                      final keysMap = <String, String?>{};
                       if (_isCloud) {
                         final schedule = cloudSch.getSchedule(
                           widget.scheduleID,
                         );
-                        dto = schedule?.playlist;
+                        if (schedule == null)
+                          throw Exception(
+                            "Couldnt get schedule ${widget.scheduleID}",
+                          );
+                        dto = schedule.playlist;
+
+                        for (final version in dto.versions.values) {
+                          notesMap[version.firebaseId!] = cloudVer
+                              .getNotesOfVersion(version.firebaseId!);
+                          keysMap[version.firebaseId!] = cloudVer
+                              .checkOverwriteKey(version.firebaseId!);
+                        }
                       } else {
                         final schedule = localSch.getSchedule(
                           widget.scheduleID,
                         );
                         id = schedule?.id;
                       }
-                      return (dto: dto, id: id ?? -1);
+                      return (
+                        dto: dto,
+                        id: id ?? -1,
+                        versionsNotes: notesMap,
+                        versionsKeys: keysMap,
+                      );
                     },
                     builder: (context, s, child) {
                       return ViewPlaylistScreen(
                         playlistID: s.id,
-                        playlistDto: s.dto,
+                        playlistDto: s.dto?.mergeVersions(
+                          s.versionsKeys,
+                          s.versionsNotes,
+                        ),
                         canEdit: !_isCloud,
                       );
                     },
@@ -362,7 +396,7 @@ class _ViewScheduleScreenState extends State<ViewScheduleScreen>
     final nav = context.read<NavigationProvider>();
     final auth = context.read<MyAuthProvider>();
 
-    await localSch.saveUserRoles(widget.scheduleID);
+    await localSch.saveRoles(widget.scheduleID);
     await localSch.uploadChangesToCloud(widget.scheduleID, auth.id!);
     nav.pop();
   }

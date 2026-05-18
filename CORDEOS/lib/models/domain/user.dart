@@ -121,4 +121,26 @@ class User {
       isActive: isActive ?? this.isActive,
     );
   }
+
+  @override
+  bool operator ==(Object other) {
+    return other is User &&
+        this.firebaseId == other.firebaseId &&
+        this.username == other.username &&
+        this.email == other.email &&
+        this.profilePhoto == other.profilePhoto &&
+        this.language == other.language &&
+        this.timeZone == other.timeZone &&
+        this.country == other.country;
+  }
+
+  @override
+  int get hashCode =>
+      this.firebaseId.hashCode +
+      this.username.hashCode +
+      this.email.hashCode +
+      this.profilePhoto.hashCode +
+      this.language.hashCode +
+      this.timeZone.hashCode +
+      this.country.hashCode;
 }

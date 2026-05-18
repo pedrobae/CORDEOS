@@ -4,7 +4,7 @@ import 'package:cordeos/providers/schedule/local_schedule_provider.dart';
 import 'package:cordeos/widgets/common/delete_confirmation.dart';
 import 'package:cordeos/widgets/schedule/create_edit/sheet_add_user.dart';
 import 'package:cordeos/widgets/schedule/create_edit/sheet_rename_role.dart';
-import 'package:cordeos/widgets/schedule/create_edit/sheet_user.dart';
+import 'package:cordeos/widgets/schedule/create_edit/user_list.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -76,7 +76,7 @@ class RoleCard extends StatelessWidget {
                         return DeleteConfirmationSheet(
                           itemType: l10n.role,
                           onConfirm: () {
-                            context.read<LocalScheduleProvider>().deleteRole(
+                            context.read<LocalScheduleProvider>().cacheDeleteRole(
                               scheduleID,
                               role.id,
                             );

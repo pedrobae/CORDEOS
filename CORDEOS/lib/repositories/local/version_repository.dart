@@ -1,6 +1,7 @@
 import 'package:cordeos/models/domain/cipher/version.dart';
 
 import 'package:cordeos/helpers/database.dart';
+import 'package:cordeos/models/dtos/version_dto.dart';
 
 class LocalVersionRepository {
   final _databaseHelper = DatabaseHelper();
@@ -133,5 +134,113 @@ class LocalVersionRepository {
       return null;
     });
     return cipherID;
+  }
+
+  // Cloud version notes
+  // CREATE
+  Future<int> createNote(CloudVersionNote note) async {
+    final db = await _databaseHelper.database;
+    final result = await db.insert('cloud_version_note', note.toSqlite());
+    return result;
+  }
+
+  // READ
+  Future<Map<int, CloudVersionNote>> getNotesOfVersion(
+    String cloudVersionFirebaseID,
+  ) async {
+    final db = await _databaseHelper.database;
+    final result = await db.query(
+      'cloud_version_note',
+      where: 'firebase_version_id = ?',
+      whereArgs: [cloudVersionFirebaseID],
+    );
+    final map = <int, CloudVersionNote>{};
+    for (final row in result) {
+      map[row['id'] as int] = CloudVersionNote.fromSqlite(row);
+    }
+    return map;
+  }
+
+  Future<Map<String, Map<int, CloudVersionNote>>> getNotes() async {
+    final db = await _databaseHelper.database;
+    final result = await db.query('cloud_version_note');
+
+    final map = <String, Map<int, CloudVersionNote>>{};
+    for (final row in result) {
+      map[row['firebase_version_id'] as String] ??= {};
+      map[row['firebase_version_id'] as String]![row['id'] as int] =
+          CloudVersionNote.fromSqlite(row);
+    }
+    return map;
+  }
+
+  // UPDATE
+  Future<void> updateNote(int id, CloudVersionNote note) async {
+    final db = await _databaseHelper.database;
+    await db.update(
+      'cloud_version_note',
+      note.toSqlite(),
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  // DELETE
+  Future<void> deleteNote(int id) async {
+    final db = await _databaseHelper.database;
+    await db.delete('cloud_version_note', where: 'id = ?', whereArgs: [id]);
+  }
+
+  // ======== OVERWRITE KEY ==============
+
+  Future<void> saveKey(String key, String firebaseVersionID) async {
+    final db = await _databaseHelper.database;
+
+    await db.transaction((txn) async {
+      final result = await txn.query(
+        'cloud_version_key_overwrite',
+        where: 'firebase_version_id = ?',
+        whereArgs: [firebaseVersionID],
+        limit: 1,
+      );
+
+      if (result.isEmpty) {
+        await txn.insert('cloud_version_key_overwrite', {
+          'firebase_version_id': firebaseVersionID,
+          'key': key,
+        });
+      } else {
+        await txn.update(
+          'cloud_version_key_overwrite',
+          {'key': key},
+          where: 'firebase_version_id = ?',
+          whereArgs: [firebaseVersionID],
+        );
+      }
+    });
+  }
+
+  Future<String?> loadOverwriteKeyOfVersion(String firebaseVersionID) async {
+    final db = await _databaseHelper.database;
+    final result = await db.query(
+      'cloud_version_key_overwrite',
+      columns: ['key'],
+      where: 'firebase_version_id = ?',
+      whereArgs: [firebaseVersionID],
+    );
+
+    return result.firstOrNull?['key'] as String?;
+  }
+
+  Future<Map<String, String>> loadOverwriteKeys() async {
+    final db = await _databaseHelper.database;
+    final result = await db.query('cloud_version_key_overwrite');
+
+    final map = <String, String>{};
+    for (final row in result) {
+      map[row['firebase_version_id'] as String] = row['key'] as String;
+    }
+
+    return map;
   }
 }

@@ -22,7 +22,7 @@ class DatabaseHelper {
 
       final db = await openDatabase(
         path,
-        version: 23,
+        version: 26,
         onCreate: _onCreate,
         onUpgrade: _onUpgrade, // Handle migrations
       );
@@ -215,6 +215,25 @@ class DatabaseHelper {
       ) 
     ''');
 
+    // Create schedule edits table
+    await db.execute('''  
+      CREATE TABLE cloud_version_note (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        firebase_version_id TEXT NOT NULL,
+        position INTEGER NOT NULL,
+        content TEXT,
+        title TEXT
+      ) 
+    ''');
+
+    await db.execute('''  
+      CREATE TABLE cloud_version_key_overwrite (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        firebase_version_id TEXT UNIQUE NOT NULL,
+        key TEXT
+      ) 
+    ''');
+
     // Create indexes for better performance
     await db.execute(
       'CREATE INDEX idx_cipher_tags_cipher_id ON cipher_tags(cipher_id)',
@@ -363,6 +382,30 @@ class DatabaseHelper {
         await db.execute('ALTER TABLE version DROP COLUMN notes');
       } catch (e) {}
       await db.execute('ALTER TABLE version ADD COLUMN notes TEXT \'\'');
+    }
+    if (oldVersion < 24) {
+      await db.execute('''  
+      CREATE TABLE cloud_version_note (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        firebase_version_id TEXT NOT NULL,
+        position INTEGER NOT NULL,
+        content TEXT
+      ) 
+    ''');
+    }
+    if (oldVersion < 25) {
+      await db.execute('''  
+      ALTER TABLE cloud_version_note ADD COLUMN title TEXT ''
+    ''');
+    }
+    if (oldVersion < 26) {
+      await db.execute('''  
+      CREATE TABLE cloud_version_key_overwrite (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        firebase_version_id TEXT UNIQUE NOT NULL,
+        key TEXT
+      ) 
+    ''');
     }
   }
 

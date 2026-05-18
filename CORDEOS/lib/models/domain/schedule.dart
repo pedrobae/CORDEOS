@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:collection/collection.dart';
 import 'package:cordeos/helpers/codes.dart';
 import 'package:cordeos/models/domain/user.dart';
 import 'package:cordeos/models/dtos/playlist_dto.dart';
@@ -16,12 +17,12 @@ class Schedule {
   final String? roomVenue;
   final String? annotations;
   final int playlistId;
-  final Map<int, Role> roles;
+  final List<Role> roles;
   final List<String> collaborators;
   final String shareCode;
-  bool isPublic;
+  final bool isPublic;
 
-  Schedule({
+  const Schedule({
     required this.id,
     this.firebaseId,
     required this.ownerFirebaseId,
@@ -64,7 +65,7 @@ class Schedule {
       location: map['location'] as String,
       roomVenue: map['room_venue'] as String?,
       playlistId: map['playlist_id'] as int,
-      roles: Map.fromEntries(roles.map((r) => MapEntry(r.id, r))),
+      roles: roles,
       collaborators: (map['collaborators'] is String)
           ? (map['collaborators'] as String).split(',')
           : [],
@@ -99,7 +100,7 @@ class Schedule {
     String? location,
     String? roomVenue,
     int? playlistId,
-    Map<int, Role>? roles,
+    List<Role>? roles,
     String? annotations,
     String? shareCode,
     bool? isPublic,
@@ -132,7 +133,7 @@ class Schedule {
       roomVenue: roomVenue,
       shareCode: shareCode,
       playlist: playlist,
-      roles: roles.values.map((role) => role.toDto()).toList(),
+      roles: roles.map((role) => role.toDto()).toList(),
       collaborators: collaborators,
     );
   }
@@ -168,22 +169,22 @@ class Schedule {
     int id = -1;
     bool foundValidID = false;
     while (!foundValidID) {
-      if (!roles.keys.contains(-1)) {
+      if (roles.none((role) => role.id == id)) {
         foundValidID = true;
       } else {
         id--;
       }
     }
-    roles[id] = role.copyWith(id: id);
+    roles.add(role.copyWith(id: id));
   }
 }
 
 class Role {
   final int id;
-  String name;
+  final String name;
   final List<User> users;
 
-  Role({required this.id, required this.name, required this.users});
+  const Role({required this.id, required this.name, required this.users});
 
   factory Role.fromSqlite(Map<String, dynamic> map, List<User> users) {
     return Role(
@@ -211,4 +212,19 @@ class Role {
       users: users ?? this.users,
     );
   }
+
+  @override
+  bool operator ==(Object other) {
+    return other is Role &&
+        this.id == other.id &&
+        this.name == other.name &&
+        this.users.every((user) => other.users.contains(user)) &&
+        other.users.every((user) => this.users.contains(user));
+  }
+
+  @override
+  int get hashCode =>
+      this.id.hashCode +
+      this.name.hashCode +
+      this.users.fold(0, (value, user) => value + user.hashCode);
 }

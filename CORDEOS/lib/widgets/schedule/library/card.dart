@@ -65,7 +65,7 @@ class ScheduleCard extends StatelessWidget {
             userRole = AppLocalizations.of(context)!.owner;
           } else {
             final localID = user.getLocalIdByFirebaseId(auth.id!);
-            for (var role in s.schedule!.roles.values) {
+            for (var role in s.schedule!.roles) {
               if (role.users.any((u) => u.id == localID)) {
                 userRole = role.name;
                 break;

@@ -16,6 +16,7 @@ class VersionDto {
   final String versionName;
   final String originalKey;
   final String? transposedKey;
+  final String? overwriteKey;
   final List<int> songStructure;
   final Timestamp? updatedAt;
   final Map<int, SectionDto> sections;
@@ -36,9 +37,18 @@ class VersionDto {
     this.tags = const [],
     required this.originalKey,
     this.transposedKey,
+    this.overwriteKey,
     this.links = const [],
     this.notes,
   });
+
+  Map<int, SectionBadgeData> get badgesData {
+    final types = <int, SectionType>{};
+    for (final key in songStructure) {
+      types[key] = sections[key]!.sectionType;
+    }
+    return getSectionBadges(types);
+  }
 
   factory VersionDto.fromFirestore(Map<String, dynamic> map, String id) {
     final parsedStructure = _parseStructureAndSections(
@@ -252,11 +262,12 @@ class VersionDto {
     String? versionName,
     String? originalKey,
     String? transposedKey,
+    String? overwriteKey,
     List<int>? songStructure,
     Timestamp? updatedAt,
     Map<int, SectionDto>? sections,
     List<String>? links,
-    String? notes
+    String? notes,
   }) {
     return VersionDto(
       firebaseId: firebaseId ?? this.firebaseId,
@@ -268,13 +279,44 @@ class VersionDto {
       tags: tags ?? this.tags,
       versionName: versionName ?? this.versionName,
       originalKey: originalKey ?? this.originalKey,
+      overwriteKey: overwriteKey ?? this.overwriteKey,
       transposedKey: transposedKey ?? this.transposedKey,
       songStructure: songStructure ?? this.songStructure,
       updatedAt: updatedAt ?? this.updatedAt,
       sections: sections ?? this.sections,
       links: links ?? this.links,
-      notes: notes
+      notes: notes,
     );
+  }
+
+  VersionDto mergeNotes(Map<int, CloudVersionNote> notes) {
+    List<int> newStruct = [];
+    newStruct.addAll(songStructure);
+    for (final note in notes.values) {
+      newStruct.insert(note.position, note.id > 0 ? -note.id : note.id);
+      sections[note.id > 0 ? -note.id : note.id] = note.toSection();
+    }
+    return this.copyWith(songStructure: newStruct);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return (other is VersionDto &&
+        this.author == other.author &&
+        this.title == other.title &&
+        this.bpm == other.bpm &&
+        this.duration == other.duration &&
+        this.firebaseId == other.firebaseId &&
+        this.language == other.language &&
+        this.links.every((link) => other.links.contains(link)) &&
+        this.notes == other.notes &&
+        this.originalKey == other.originalKey &&
+        this.overwriteKey == other.overwriteKey &&
+        this.sections.keys.every((key) => other.sections.containsKey(key)) &&
+        this.songStructure.every((key) => other.songStructure.contains(key)) &&
+        this.tags.every((tag) => other.tags.contains(tag)) &&
+        this.transposedKey == other.transposedKey &&
+        this.versionName == other.versionName);
   }
 }
 
@@ -331,4 +373,63 @@ class _ParsedStructure {
   final Map<int, SectionDto> sections;
 
   const _ParsedStructure({required this.songStructure, required this.sections});
+}
+
+class CloudVersionNote {
+  final int id;
+  final int position;
+  final String content;
+  final String title;
+  final String firebaseVersionID;
+
+  const CloudVersionNote({
+    required this.id,
+    required this.position,
+    required this.title,
+    required this.content,
+    required this.firebaseVersionID,
+  });
+
+  factory CloudVersionNote.fromSqlite(Map<String, dynamic> row) {
+    return CloudVersionNote(
+      id: row['id'],
+      position: row['position'],
+      title: row['title'],
+      content: row['content'],
+      firebaseVersionID: row['firebase_version_id'],
+    );
+  }
+
+  Map<String, dynamic> toSqlite() {
+    return {
+      'title': title,
+      'position': position,
+      'content': content,
+      'firebase_version_id': firebaseVersionID,
+    };
+  }
+
+  CloudVersionNote copyWith({
+    int? id,
+    String? content,
+    String? title,
+    int? position,
+  }) {
+    return CloudVersionNote(
+      id: id ?? this.id,
+      position: position ?? this.position,
+      title: title ?? this.title,
+      content: content ?? this.content,
+      firebaseVersionID: firebaseVersionID,
+    );
+  }
+
+  SectionDto toSection() {
+    return SectionDto(
+      key: -id,
+      contentType: title,
+      contentText: content,
+      color: colorToHex(SectionType.annotation.color),
+    );
+  }
 }

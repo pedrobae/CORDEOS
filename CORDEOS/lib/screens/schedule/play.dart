@@ -1,7 +1,7 @@
 import 'dart:async';
+import 'package:cordeos/models/dtos/version_dto.dart';
 import 'package:flutter/material.dart';
 
-import 'package:cordeos/models/domain/cipher/section.dart';
 import 'package:cordeos/models/domain/playlist/playlist_item.dart';
 
 import 'package:provider/provider.dart';
@@ -98,7 +98,6 @@ class PlayScheduleState extends State<PlaySchedule> {
 
     final cloudSch = context.read<CloudScheduleProvider>();
     final cloudVer = context.read<CloudVersionProvider>();
-    final sect = context.read<SectionProvider>();
     final state = context.read<PlayStateProvider>();
 
     final schedule = cloudSch.getSchedule(widget.scheduleId);
@@ -113,15 +112,8 @@ class PlayScheduleState extends State<PlaySchedule> {
     for (var item in items) {
       switch (item.type) {
         case PlaylistItemType.version:
-          final version = schedule.playlist.versions[item.firebaseContentId]!;
-          cloudVer.setVersion(item.firebaseContentId!, version);
-
-          final sections = <int, Section>{};
-          for (var entry in version.sections.entries) {
-            sections[entry.key] = entry.value.toDomain();
-          }
-
-          sect.setNewSectionsInCache(item.firebaseContentId!, sections);
+          await cloudVer.ensureVersionNotesAreLoaded(item.firebaseContentId!);
+          await cloudVer.ensureOverwriteKeyIsLoaded(item.firebaseContentId!);
           break;
         case PlaylistItemType.flowItem:
           // Flow items are loaded as part of the schedule
@@ -145,11 +137,27 @@ class PlayScheduleState extends State<PlaySchedule> {
       );
     }
 
+    if (!isCloud) return PlayPlaylist();
+
     final cloudSch = context.read<CloudScheduleProvider>();
+    final cloudVer = context.read<CloudVersionProvider>();
+
+    final playlistDto = cloudSch.getSchedule(widget.scheduleId)!.playlist;
+
+    final versionsNotes = <String, Map<int, CloudVersionNote>>{};
+    final versionsKeys = <String, String?>{};
+    for (final version in playlistDto.versions.values) {
+      versionsNotes[version.firebaseId!] = cloudVer.getNotesOfVersion(
+        version.firebaseId!,
+      );
+      versionsKeys[version.firebaseId!] = cloudVer.checkOverwriteKey(
+        version.firebaseId!,
+      );
+    }
 
     return PlayPlaylist(
       playlistDto: isCloud
-          ? cloudSch.getSchedule(widget.scheduleId)!.playlist
+          ? playlistDto.mergeVersions(versionsKeys, versionsNotes)
           : null,
     );
   }

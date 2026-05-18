@@ -2,7 +2,9 @@ import 'dart:math';
 
 import 'package:cordeos/models/dtos/version_dto.dart';
 import 'package:cordeos/providers/token_cache_provider.dart';
+import 'package:cordeos/providers/version/cloud_version_provider.dart';
 import 'package:cordeos/utils/section_type.dart';
+import 'package:cordeos/widgets/ciphers/editor/sections/sheet_guest_manage.dart';
 import 'package:cordeos/widgets/ciphers/section_badge.dart';
 import 'package:flutter/material.dart';
 import 'package:cordeos/l10n/app_localizations.dart';
@@ -86,7 +88,8 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard>
 
     final nav = context.read<NavigationProvider>();
 
-    return Selector3<
+    return Selector4<
+      CloudVersionProvider,
       LocalVersionProvider,
       CipherProvider,
       SectionProvider,
@@ -100,11 +103,13 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard>
         List<int> songStructure,
       })
     >(
-      selector: (context, localVer, ciph, sect) {
+      selector: (context, cloudVer, localVer, ciph, sect) {
         if (widget.version != null) {
           final sectionTypes = <int, SectionType>{};
-          for (var key in widget.version!.songStructure) {
-            final type = widget.version!.sections[key]?.sectionType;
+          final versionDto = widget.version!;
+
+          for (var key in versionDto.songStructure) {
+            final type = versionDto.sections[key]?.sectionType;
             if (type != null) {
               sectionTypes[key] = type;
             } else {
@@ -113,15 +118,17 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard>
           }
           return (
             cipherID: -1,
-            title: widget.version!.title,
+            title: versionDto.title,
             musicKey:
-                widget.version!.transposedKey ?? widget.version!.originalKey,
+                versionDto.overwriteKey ??
+                versionDto.transposedKey ??
+                versionDto.originalKey,
             duration: DateTimeUtils.formatDuration(
-              Duration(seconds: widget.version!.duration),
+              Duration(seconds: versionDto.duration),
             ),
-            bpm: widget.version!.bpm.toString(),
+            bpm: versionDto.bpm.toString(),
             badgesData: getSectionBadges(sectionTypes),
-            songStructure: widget.version!.songStructure,
+            songStructure: versionDto.songStructure,
           );
         }
         final version = localVer.getVersion(widget.versionId);
@@ -212,31 +219,58 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard>
                     padding: const EdgeInsets.all(8),
                     child: Column(
                       spacing: 4,
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Text(
-                          s.title,
-                          style: textTheme.titleMedium,
-                          softWrap: true,
-                        ),
-                        Wrap(
-                          spacing: 8,
+                        Row(
                           children: [
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  '${AppLocalizations.of(context)!.musicKey}: ',
-                                  style: textTheme.bodyMedium,
+                            Expanded(
+                              child: Column(
+                                spacing: 4,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    s.title,
+                                    style: textTheme.titleMedium,
+                                    softWrap: true,
+                                  ),
+                                  Wrap(
+                                    spacing: 8,
+                                    children: [
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            '${AppLocalizations.of(context)!.musicKey}: ',
+                                            style: textTheme.bodyMedium,
+                                          ),
+                                          Text(
+                                            s.musicKey,
+                                            style: textTheme.bodyMedium,
+                                          ),
+                                        ],
+                                      ),
+                                      Text(
+                                        '${AppLocalizations.of(context)!.bpm}: ${s.bpm}',
+                                        style: textTheme.bodyMedium,
+                                      ),
+                                      Text(
+                                        s.duration,
+                                        style: textTheme.bodyMedium,
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (!widget.canEdit)
+                              GestureDetector(
+                                onTap: _openGuestEditSheet(),
+                                child: SizedBox(
+                                  width: 25,
+                                  height: 50,
+                                  child: Icon(Icons.edit),
                                 ),
-                                Text(s.musicKey, style: textTheme.bodyMedium),
-                              ],
-                            ),
-                            Text(
-                              '${AppLocalizations.of(context)!.bpm}: ${s.bpm}',
-                              style: textTheme.bodyMedium,
-                            ),
-                            Text(s.duration, style: textTheme.bodyMedium),
+                              ),
                           ],
                         ),
                         // REORDERABLE SECTION CHIPS
@@ -274,9 +308,7 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard>
               ),
               if (widget.canEdit)
                 GestureDetector(
-                  onTap: () {
-                    _openVersionActions(context, s.cipherID!);
-                  },
+                  onTap: _openVersionActions(s.cipherID!),
                   child: Container(
                     // Container to paint and enable hitbox for the icon
                     color: Colors.transparent,
@@ -354,18 +386,43 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard>
     );
   }
 
-  void _openVersionActions(BuildContext context, int cipherID) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) {
-        return VersionCardActionsSheet(
-          itemID: widget.itemId,
-          versionID: widget.versionId,
-          cipherID: cipherID,
-          playlistID: widget.playlistId,
-        );
-      },
+  VoidCallback _openVersionActions(int cipherID) {
+    return () {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        builder: (context) {
+          return VersionCardActionsSheet(
+            itemID: widget.itemId,
+            versionID: widget.versionId,
+            cipherID: cipherID,
+            playlistID: widget.playlistId,
+          );
+        },
+      );
+    };
+  }
+
+  VoidCallback _openGuestEditSheet() {
+    final cloudVer = context.read<CloudVersionProvider>();
+    final notes = cloudVer.getNotesOfVersion(widget.version!.firebaseId!);
+    final overwriteKey = cloudVer.checkOverwriteKey(
+      widget.version!.firebaseId!,
     );
+
+    return () {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        builder: (context) {
+          return GuestManageSheet(
+            firebaseVersionID: widget.version!.firebaseId!,
+            versionDto: widget.version!
+                .mergeNotes(notes)
+                .copyWith(overwriteKey: overwriteKey),
+          );
+        },
+      );
+    };
   }
 }

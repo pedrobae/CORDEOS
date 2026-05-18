@@ -54,6 +54,7 @@ class _FlowItemCardState extends State<FlowItemCard> {
     final flow = context.read<FlowItemProvider>();
     final flowItem = widget.flowItem ?? flow.getFlowItem(widget.flowItemID);
 
+    if (flowItem == null) return CircularProgressIndicator();
     return Container(
       decoration: BoxDecoration(
         color: colorScheme.surface,
@@ -111,7 +112,7 @@ class _FlowItemCardState extends State<FlowItemCard> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(flowItem!.title, style: textTheme.titleMedium),
+                        Text(flowItem.title, style: textTheme.titleMedium),
                         Text(
                           DateTimeUtils.formatDuration(flowItem.duration),
                           style: textTheme.bodyMedium,

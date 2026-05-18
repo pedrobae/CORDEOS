@@ -85,7 +85,7 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
 
     if (widget.versionDto != null) {
       originalKey = widget.versionDto!.originalKey;
-      transposedKey = widget.versionDto!.transposedKey;
+      transposedKey = widget.versionDto!.overwriteKey ?? widget.versionDto!.transposedKey;
     } else {
       final cipher = ciph.getCipher(widget.cipherID!);
       final version = localVer.getVersion(widget.versionID!);

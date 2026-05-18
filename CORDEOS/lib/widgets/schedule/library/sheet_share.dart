@@ -33,7 +33,7 @@ class _ShareScheduleSheetState extends State<ShareScheduleSheet> {
 
     return Selector<
       LocalScheduleProvider,
-      ({String shareCode, String scheduleName, Map<int, Role> roles})
+      ({String shareCode, String scheduleName, List<Role> roles})
     >(
       selector: (context, localSch) {
         final schedule = localSch.getSchedule(widget.scheduleID);
@@ -124,7 +124,7 @@ class _ShareScheduleSheetState extends State<ShareScheduleSheet> {
                       style: textTheme.titleMedium,
                       textAlign: TextAlign.center,
                     ),
-                    for (var role in s.roles.values)
+                    for (var role in s.roles)
                       Container(
                         padding: EdgeInsets.all(8),
                         decoration: BoxDecoration(

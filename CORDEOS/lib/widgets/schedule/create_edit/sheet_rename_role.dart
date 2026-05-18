@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:cordeos/l10n/app_localizations.dart';
 import 'package:cordeos/providers/schedule/local_schedule_provider.dart';
 import 'package:cordeos/widgets/common/filled_text_button.dart';
@@ -30,7 +31,8 @@ class _EditRoleSheetState extends State<EditRoleSheet> {
 
       final role = localSch
           .getSchedule(widget.scheduleID)
-          ?.roles[widget.roleID];
+          ?.roles
+          .firstWhereOrNull((role) => role.id == widget.roleID);
 
       if (role != null) {
         _nameController.text = role.name;
@@ -105,10 +107,10 @@ class _EditRoleSheetState extends State<EditRoleSheet> {
   void _onSubmit(LocalScheduleProvider localSch) {
     if (widget.roleID == -1) {
       // CREATE NEW ROLE
-      localSch.addRoleToSchedule(widget.scheduleID, _nameController.text);
+      localSch.cacheNewRole(widget.scheduleID, _nameController.text);
     } else {
       // UPDATE EXISTING ROLE
-      localSch.updateRoleName(
+      localSch.cacheNewRoleName(
         widget.scheduleID,
         widget.roleID,
         _nameController.text,

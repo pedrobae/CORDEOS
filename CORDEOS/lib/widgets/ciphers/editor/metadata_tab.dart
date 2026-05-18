@@ -273,7 +273,6 @@ class _MetadataTabState extends State<MetadataTab> {
                       initialKey: originalKey ?? '',
                       originalKey: originalKey ?? '',
                       versionID: widget.versionID,
-                      showOriginal: false,
                       onKeySelected: (key) {
                         context.read<CipherProvider>().cacheMusicKey(
                           widget.cipherID,

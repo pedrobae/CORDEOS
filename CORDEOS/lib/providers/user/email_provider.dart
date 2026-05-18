@@ -41,7 +41,7 @@ class EmailProvider extends ChangeNotifier {
   Future<bool> sendInvites(
     String shareCode,
     String scheduleName,
-    Map<int, Role> roles,
+    List<Role> roles,
     List<String> selectedRoles,
     EmailStrings emailStrings,
   ) async {
@@ -56,7 +56,7 @@ class EmailProvider extends ChangeNotifier {
       int successCount = 0;
       int failureCount = 0;
 
-      for (var role in roles.values) {
+      for (var role in roles) {
         if (selectedRoles.contains(role.name)) {
           for (var user in role.users) {
             try {

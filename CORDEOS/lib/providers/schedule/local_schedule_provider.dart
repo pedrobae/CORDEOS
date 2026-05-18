@@ -76,7 +76,7 @@ class LocalScheduleProvider extends ChangeNotifier {
       date: DateTime.now(),
       location: '',
       playlistId: playlistId,
-      roles: {},
+      roles: [],
       shareCode: generateShareCode(),
       collaborators: [],
     );
@@ -238,29 +238,25 @@ class LocalScheduleProvider extends ChangeNotifier {
   }
 
   // ===== UPDATE =====
-  Future<void> addRoleToSchedule(int scheduleID, String roleName) async {
+  Future<void> cacheNewRole(int scheduleID, String roleName) async {
     final schedule = _schedules[scheduleID];
     if (schedule == null) return;
 
     final newRole = Role(id: -1, name: roleName, users: []);
 
-    if (scheduleID == -1) {
-      // CACHE ONLY
-      schedule.addRole(newRole);
-    } else {
-      final newID = await _repo.insertRole(scheduleID, newRole);
-      schedule.roles[newID] = newRole.copyWith(id: newID);
-    }
+    schedule.addRole(newRole);
     _hasUnsavedChanges = true;
     notifyListeners();
   }
 
-  void updateRoleName(int scheduleID, int roleID, String newName) {
+  void cacheNewRoleName(int scheduleID, int roleID, String newName) {
     final schedule = _schedules[scheduleID];
     if (schedule == null) return;
 
-    final role = schedule.roles[roleID]!;
-    role.name = newName;
+    final index = schedule.roles.indexWhere((role) => role.id == roleID);
+    if (index == -1) return;
+    final role = schedule.roles[index];
+    schedule.roles[index] = role.copyWith(name: newName);
 
     _hasUnsavedChanges = true;
 
@@ -368,27 +364,37 @@ class LocalScheduleProvider extends ChangeNotifier {
 
   // ===== MEMBER MANAGEMENT =====
   /// Adds an existing user to a role in a schedule (local).
-  void addUserToRole(int scheduleID, int roleId, User user) {
+  void cacheAddUserToRole(int scheduleID, int roleId, User user) {
     final schedule = _schedules[scheduleID];
     if (schedule == null) return;
 
-    final role = schedule.roles.values.firstWhere((role) => role.id == roleId);
+    final index = schedule.roles.indexWhere((role) => role.id == roleId);
+    if (index == -1) return;
+    final role = schedule.roles[index];
 
-    role.users.add(user);
+    final newUsers = [user];
+    newUsers.addAll(role.users);
+
+    schedule.roles[index] = role.copyWith(users: newUsers);
 
     _hasUnsavedChanges = true;
-
     notifyListeners();
+    debugPrint(
+      "LOCAL SCHEDULE PROVIDER - added user ${user.username} to role $roleId",
+    );
   }
 
   void removeUserFromRole(int scheduleID, int roleId, int userId) {
     final schedule = _schedules[scheduleID];
     if (schedule == null) return;
+    final index = schedule.roles.indexWhere((role) => role.id == roleId);
+    if (index == -1) return;
+    final role = schedule.roles[index];
 
-    final role = schedule.roles.values.firstWhere((role) => role.id == roleId);
+    final newUsers = [...role.users];
+    newUsers.removeWhere((user) => user.id == userId);
 
-    role.users.removeWhere((user) => user.id == userId);
-
+    schedule.roles[index] = role.copyWith(users: newUsers);
     _hasUnsavedChanges = true;
 
     notifyListeners();
@@ -397,17 +403,17 @@ class LocalScheduleProvider extends ChangeNotifier {
   void clearUsersFromRole(int scheduleID, int roleId) {
     final schedule = _schedules[scheduleID];
     if (schedule == null) return;
-
-    final role = schedule.roles.values.firstWhere((role) => role.id == roleId);
-
-    role.users.clear();
+    final index = schedule.roles.indexWhere((role) => role.id == roleId);
+    if (index == -1) return;
+    final role = schedule.roles[index];
+    schedule.roles[index] = role.copyWith(users: []);
 
     _hasUnsavedChanges = true;
 
     notifyListeners();
   }
 
-  Future<void> saveUserRoles(int scheduleID) async {
+  Future<void> saveRoles(int scheduleID) async {
     if (_isSaving) return;
 
     _isSaving = true;
@@ -417,9 +423,7 @@ class LocalScheduleProvider extends ChangeNotifier {
     try {
       final schedule = _schedules[scheduleID];
 
-      for (Role role in schedule?.roles.values ?? []) {
-        await _repo.updateRole(scheduleID, role);
-      }
+      await _repo.saveRoles(scheduleID, schedule?.roles ?? []);
     } catch (e) {
       _error = e.toString();
     } finally {
@@ -430,9 +434,7 @@ class LocalScheduleProvider extends ChangeNotifier {
   }
 
   // ===== DELETE =====
-  /// Deletes a role from a schedule (local).
-  /// Also removes all members assigned to that role.
-  void deleteRole(int scheduleID, int roleId) {
+  void cacheDeleteRole(int scheduleID, int roleId) {
     final schedule = _schedules[scheduleID];
     if (schedule == null || _isLoading) return;
 
@@ -441,9 +443,11 @@ class LocalScheduleProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      schedule.roles.remove(roleId);
+      final index = schedule.roles.indexWhere((role) => role.id == roleId);
+      if (index == -1) throw Exception("Couldnt get role $roleId");
 
-      if (roleId != -1) _repo.deleteRole(roleId);
+      schedule.roles.removeAt(index);
+      _schedules[scheduleID] = schedule.copyWith(roles: [...schedule.roles]);
     } catch (e) {
       _error = e.toString();
     } finally {
