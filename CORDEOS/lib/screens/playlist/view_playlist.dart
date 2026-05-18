@@ -64,18 +64,15 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen>
     >(
       selector: (context, play) {
         final playlist = play.getPlaylist(widget.playlistID);
-
+        if (playlist == null)
+          throw Exception("Couldn't get playlist ${widget.playlistID}");
         return (
-          name:
-              (widget.playlistDto == null
-                  ? playlist?.name
-                  : widget.playlistDto?.name) ??
-              '',
-          items:
-              (widget.playlistDto == null
-                  ? playlist?.items
-                  : widget.playlistDto?.toDomain(-1).items) ??
-              [],
+          name: (widget.playlistDto == null
+              ? playlist.name
+              : widget.playlistDto!.name),
+          items: (widget.playlistDto == null
+              ? playlist.items
+              : widget.playlistDto!.toDomain(-1).items),
         );
       },
       builder: (context, s, child) {
