@@ -60,23 +60,29 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen>
 
     return Selector<
       PlaylistProvider,
-      ({String name, List<PlaylistItem> items})
+      ({String? name, List<PlaylistItem>? items})
     >(
       selector: (context, play) {
-        final playlist = play.getPlaylist(widget.playlistID);
-        if (playlist == null)
-          throw Exception("Couldn't get playlist ${widget.playlistID}");
-        return (
-          name: (widget.playlistDto == null
-              ? playlist.name
-              : widget.playlistDto!.name),
-          items: (widget.playlistDto == null
-              ? playlist.items
-              : widget.playlistDto!.toDomain(-1).items),
-        );
+        String? name;
+        List<PlaylistItem>? items;
+
+        if (widget.playlistDto == null) {
+          final playlist = play.getPlaylist(widget.playlistID);
+          if (playlist == null)
+            debugPrint(
+              "VIEW PLAYLIST - Couldn't get playlist ${widget.playlistID}",
+            );
+          name = playlist?.name;
+          items = playlist?.items;
+        } else {
+          name = widget.playlistDto!.name;
+          items = widget.playlistDto!.toDomain(-1).items;
+        }
+
+        return (name: name, items: items);
       },
       builder: (context, s, child) {
-        if (s.name.isEmpty) {
+        if (s.name == null || s.name!.isEmpty) {
           return Center(child: CircularProgressIndicator());
         }
 
@@ -87,7 +93,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen>
                     color: colorScheme.onSurface,
                     onPressed: () => nav.attemptPop(context),
                   ),
-                  title: Text(s.name, style: textTheme.titleMedium),
+                  title: Text(s.name!, style: textTheme.titleMedium),
                   actions: widget.canEdit
                       ? [
                           // Play
@@ -105,8 +111,8 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen>
                               final scroll = context.read<ScrollProvider>();
 
                               scroll.disableAutoScrollMode();
-                              state.setItemCount(s.items.length);
-                              for (var item in s.items) {
+                              state.setItemCount(s.items!.length);
+                              for (var item in s.items!) {
                                 state.appendItem(item);
                               }
 
@@ -117,7 +123,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen>
                                       sect.hasUnsavedChanges;
                                 },
                                 onChangeDiscarded: () {
-                                  for (var item in s.items) {
+                                  for (var item in s.items!) {
                                     if (item.type == PlaylistItemType.version) {
                                       localVer.loadVersion(item.contentId!);
                                     }
@@ -150,9 +156,9 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen>
               : null,
           body: Padding(
             padding: const EdgeInsets.all(16),
-            child: s.items.isEmpty
+            child: s.items!.isEmpty
                 ? _buildEmptyState()
-                : _buildItemsList(s.items),
+                : _buildItemsList(s.items!),
           ),
         );
       },
