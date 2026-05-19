@@ -88,7 +88,6 @@ class _MetadataTabState extends State<MetadataTab> {
           throw Exception("Cannot edit Cloud version");
         case VersionType.local:
         case VersionType.playlist:
-        case VersionType.import:
           final cipher = ciph.getCipher(widget.cipherID)!;
           final version = localVer.getVersion(widget.versionID)!;
           controllers[InfoField.title]!.text = cipher.title;

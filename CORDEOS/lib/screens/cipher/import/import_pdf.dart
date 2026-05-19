@@ -1,12 +1,13 @@
 import 'package:cordeos/l10n/app_localizations.dart';
 import 'package:cordeos/models/domain/cipher/version.dart';
 import 'package:cordeos/models/domain/parsing_cipher.dart';
-import 'package:cordeos/models/dtos/version_dto.dart';
 import 'package:cordeos/providers/cipher/cipher_provider.dart';
 import 'package:cordeos/providers/navigation_provider.dart';
 import 'package:cordeos/providers/cipher/parser_provider.dart';
+import 'package:cordeos/providers/section/section_provider.dart';
 import 'package:cordeos/providers/version/local_version_provider.dart';
 import 'package:cordeos/screens/cipher/edit_cipher.dart';
+import 'package:cordeos/services/sync_service.dart';
 import 'package:cordeos/widgets/common/filled_text_button.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
@@ -288,7 +289,7 @@ class _ImportPdfScreenState extends State<ImportPdfScreen> {
                 (imp.filePath == null ||
                 imp.isImporting ||
                 imp.importVariation == null),
-            onPressed: () => _processAndNavigate(imp, par, nav, localVer, ciph),
+            onPressed: _processAndNavigate(),
             text: AppLocalizations.of(context)!.processPDF,
           ),
         FilledTextButton(
@@ -306,39 +307,61 @@ class _ImportPdfScreenState extends State<ImportPdfScreen> {
     imp.clearError();
   }
 
-  Future<void> _processAndNavigate(
-    ImportProvider imp,
-    ParserProvider par,
-    NavigationProvider nav,
-    LocalVersionProvider localVer,
-    CipherProvider ciph,
-  ) async {
-    final imports = await imp.importText();
-    if (imports.isEmpty) {
-      throw Exception('Failed to import text from PDF');
-    }
-    final songs = <VersionDto>[];
-    for (final import in imports) {
-      final song = await par.parseCipher(import);
-      if (song != null) songs.add(song);
-    }
+  VoidCallback _processAndNavigate() {
+    return () async {
+      final imp = context.read<ImportProvider>();
+      final par = context.read<ParserProvider>();
+      final ciph = context.read<CipherProvider>();
+      final localVer = context.read<LocalVersionProvider>();
+      final sect = context.read<SectionProvider>();
+      final nav = context.read<NavigationProvider>();
 
-    if (songs.length == 1)
-      nav.push(
-        () => EditCipherScreen(
-          cipherID: widget.cipherID,
-          versionType: VersionType.import,
-          versionID: widget.versionID,
-          versionDto: songs[0],
-        ),
-        keepAlive: true,
-        changeDetector: () =>
-            localVer.hasUnsavedChanges || ciph.hasUnsavedChanges,
-        onChangeDiscarded: () {
-          localVer.loadVersion(widget.versionID);
-          ciph.loadCipher(widget.cipherID);
-        },
-      );
+      final imports = await imp.importText();
+      if (imports.isEmpty) {
+        throw Exception('Failed to import text from PDF');
+      }
+      final versionIDs = <int>[];
+      for (final import in imports) {
+        final song = await par.parseCipher(import);
+        if (song != null) {
+          if (widget.cipherID != -1) {
+            final sections = song.sections.map(
+              (key, value) => MapEntry(key, value.toDomain()),
+            );
+            for (final section in sections.values) {
+              final newKey = sect.cacheAddSection(widget.versionID, section);
+              localVer.addSectionToStruct(widget.versionID, newKey);
+            }
+            versionIDs.add(widget.versionID);
+          } else {
+            final id = await ScheduleSyncService().upsertVersion(song);
+            versionIDs.add(id);
+          }
+        }
+      }
+
+      if (versionIDs.length == 1) {
+        nav.pop;
+        if (widget.versionID == -1) {
+          nav.push(
+            () => EditCipherScreen(
+              cipherID: widget.cipherID,
+              versionID: widget.versionID,
+              versionType: VersionType.local,
+            ),
+            keepAlive: true,
+            changeDetector: () =>
+                localVer.hasUnsavedChanges || ciph.hasUnsavedChanges,
+            onChangeDiscarded: () {
+              localVer.loadVersion(widget.versionID);
+              ciph.loadCipher(widget.cipherID);
+            },
+          );
+        }
+      } else {
+        //TODO - pdf batch import
+      }
+    };
   }
 
   void _handleCancel(ImportProvider imp, NavigationProvider nav) {

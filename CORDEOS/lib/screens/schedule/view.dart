@@ -139,13 +139,13 @@ class _ViewScheduleScreenState extends State<ViewScheduleScreen>
                     CloudVersionProvider,
                     ({
                       PlaylistDto? dto,
-                      int id,
+                      int playlistID,
                       Map<String, String?>? versionsKeys,
                       Map<String, Map<int, CloudVersionNote>>? versionsNotes,
                     })
                   >(
                     selector: (context, localSch, cloudSch, cloudVer) {
-                      int? id;
+                      int? playID;
                       PlaylistDto? dto;
                       final notesMap = <String, Map<int, CloudVersionNote>>{};
                       final keysMap = <String, String?>{};
@@ -169,18 +169,18 @@ class _ViewScheduleScreenState extends State<ViewScheduleScreen>
                         final schedule = localSch.getSchedule(
                           widget.scheduleID,
                         );
-                        id = schedule?.id;
+                        playID = schedule?.playlistId;
                       }
                       return (
                         dto: dto,
-                        id: id ?? -1,
+                        playlistID: playID ?? -1,
                         versionsNotes: notesMap,
                         versionsKeys: keysMap,
                       );
                     },
                     builder: (context, s, child) {
                       return ViewPlaylistScreen(
-                        playlistID: s.id,
+                        playlistID: s.playlistID,
                         playlistDto: s.dto?.mergeVersions(
                           s.versionsKeys,
                           s.versionsNotes,

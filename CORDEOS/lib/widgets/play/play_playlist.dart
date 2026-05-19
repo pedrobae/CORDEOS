@@ -403,6 +403,9 @@ class _PlayPlaylistState extends State<PlayPlaylist> {
                             versionID: widget.playlistDto != null
                                 ? item.firebaseContentId
                                 : item.contentId,
+                            versionDto: widget
+                                .playlistDto
+                                ?.versions[item.firebaseContentId],
                           ),
                   ),
 

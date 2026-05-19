@@ -1,7 +1,6 @@
 import 'package:cordeos/l10n/app_localizations.dart';
 import 'package:cordeos/models/domain/cipher/cipher.dart';
 import 'package:cordeos/models/domain/cipher/version.dart';
-import 'package:cordeos/models/dtos/version_dto.dart';
 import 'package:cordeos/providers/cipher/edit_sections_state_provider.dart';
 import 'package:cordeos/providers/navigation_provider.dart';
 import 'package:cordeos/providers/user/my_auth_provider.dart';
@@ -19,7 +18,6 @@ class EditCipherScreen extends StatefulWidget {
   final int cipherID;
   final int versionID;
   final VersionType versionType;
-  final VersionDto? versionDto;
   final bool isEnabled;
 
   const EditCipherScreen({
@@ -27,7 +25,6 @@ class EditCipherScreen extends StatefulWidget {
     required this.cipherID,
     required this.versionID,
     required this.versionType,
-    this.versionDto,
     this.isEnabled = true,
   });
 
@@ -51,8 +48,6 @@ class _EditCipherScreenState extends State<EditCipherScreen>
 
   Future<void> _loadData() async {
     switch (widget.versionType) {
-      case VersionType.import:
-        await _loadImportedCipher();
       case VersionType.local:
         await _loadLocalVersion();
       case VersionType.brandNew:
@@ -66,38 +61,6 @@ class _EditCipherScreenState extends State<EditCipherScreen>
     }
   }
 
-  Future<void> _loadImportedCipher() async {
-    final ciph = context.read<CipherProvider>();
-    final localVer = context.read<LocalVersionProvider>();
-    final sect = context.read<SectionProvider>();
-
-    if (widget.versionDto == null) return;
-    final versionDto = widget.versionDto!;
-
-    if (widget.cipherID == -1) {
-      // CREATING NEW FROM IMPORTED
-      ciph.setNewCipherInCache(Cipher.fromVersionDto(versionDto));
-
-      localVer.setNewVersionInCache(versionDto.toDomain());
-      sect.setNewSectionsInCache(
-        -1,
-        versionDto.sections.map(
-          (key, value) => MapEntry(key, value.toDomain()),
-        ),
-      );
-    } else {
-      // MERGING IMPORTED SECTIONS WITH EXISTING CIPHER
-      final importedVersion = versionDto;
-      final importedSections = importedVersion.sections.map(
-        (key, value) => MapEntry(key, value.toDomain()),
-      );
-      for (final section in importedSections.values) {
-        final newKey = sect.cacheAddSection(widget.versionID, section);
-        localVer.addSectionToStruct(widget.versionID, newKey);
-      }
-    }
-  }
-
   Future<void> _loadLocalVersion() async {
     final cipherProvider = context.read<CipherProvider>();
     final localVersionProvider = context.read<LocalVersionProvider>();
@@ -108,6 +71,14 @@ class _EditCipherScreenState extends State<EditCipherScreen>
     await sectionProvider.loadSectionsOfVersion(widget.versionID);
   }
 
+  Future<void> _loadPlaylistVersion() async {
+    final ciph = context.read<CipherProvider>();
+    final sect = context.read<SectionProvider>();
+
+    await ciph.loadCipher(widget.cipherID);
+    await sect.loadSectionsOfVersion(widget.versionID);
+  }
+
   void _loadNewCipher() {
     final ciph = context.read<CipherProvider>();
     final localVer = context.read<LocalVersionProvider>();
@@ -116,14 +87,6 @@ class _EditCipherScreenState extends State<EditCipherScreen>
     ciph.setNewCipherInCache(Cipher.empty());
     localVer.setNewVersionInCache(Version.empty());
     sect.setNewSectionsInCache(-1, {});
-  }
-
-  Future<void> _loadPlaylistVersion() async {
-    final ciph = context.read<CipherProvider>();
-    final sect = context.read<SectionProvider>();
-
-    await ciph.loadCipher(widget.cipherID);
-    await sect.loadSectionsOfVersion(widget.versionID);
   }
 
   @override
@@ -281,7 +244,6 @@ class _EditCipherScreenState extends State<EditCipherScreen>
     final ciph = context.read<CipherProvider>();
     final localVer = context.read<LocalVersionProvider>();
     final sect = context.read<SectionProvider>();
-    final nav = context.read<NavigationProvider>();
 
     final cipher = ciph.getCipher(widget.cipherID);
     if (cipher == null || cipher.musicKey.isEmpty) {
@@ -292,8 +254,7 @@ class _EditCipherScreenState extends State<EditCipherScreen>
       ciph.cacheMusicKey(widget.cipherID, key);
     }
 
-    if (widget.versionType == VersionType.import ||
-        widget.versionType == VersionType.brandNew) {
+    if (widget.versionType == VersionType.brandNew) {
       final cipherID = await ciph.createCipher();
       final versionID = await localVer.createVersion(cipherID: cipherID);
       await sect.createSections(versionID);
@@ -303,10 +264,6 @@ class _EditCipherScreenState extends State<EditCipherScreen>
       }
       await localVer.saveVersion(versionID: widget.versionID);
       await sect.saveSections(versionID: widget.versionID);
-    }
-
-    if (widget.versionType == VersionType.import) {
-      nav.pop();
     }
   }
 

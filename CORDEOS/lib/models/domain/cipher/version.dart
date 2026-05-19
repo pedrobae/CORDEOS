@@ -2,7 +2,7 @@ import 'package:cordeos/models/domain/cipher/cipher.dart';
 import 'package:cordeos/models/domain/cipher/section.dart';
 import 'package:cordeos/models/dtos/version_dto.dart';
 
-enum VersionType { import, brandNew, cloud, local, playlist }
+enum VersionType { brandNew, cloud, local, playlist }
 
 class Version {
   final int? id;

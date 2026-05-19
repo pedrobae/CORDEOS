@@ -100,16 +100,14 @@ class _AddTagSheetState extends State<AddTagSheet> {
               isDark: true,
               onPressed: () {
                 switch (widget.versionType) {
-                  case VersionType.playlist:
-                    throw Exception('Cannot add tags to playlist versions');
                   case VersionType.brandNew:
-                  case VersionType.import:
                   case VersionType.local:
                     ciph.cacheAddTag(
                       widget.cipherID ?? -1,
                       tagController.text.trim(),
                     );
                   case VersionType.cloud:
+                  case VersionType.playlist:
                     throw Exception(
                       'Cannot add tags to cloud versions. Please save the version locally first.',
                     );

@@ -164,14 +164,13 @@ class ScheduleDto {
       roles: [],
       shareCode: shareCode,
       collaborators: collaborators,
-      isPublic:
-          true, // All schedules on firestore are considered published, access is controlled by share code and collaborators list
+      isPublic: true,
     );
 
     int i = -1;
     for (var roleDto in roles) {
       final role = roleDto.toDomain(i);
-      schedule.roles[i] = role;
+      schedule.roles.add(role);
       i--;
     }
 

@@ -47,10 +47,8 @@ class ScheduleSyncService {
       );
     }
 
-    debugPrint("\t syncing playlist");
     final playlistID = await syncPlaylist(scheduleDto.playlist, ownerUser);
 
-    debugPrint("\t syncing schedule");
     final scheduleID = await syncSchedule(scheduleDto, playlistID, isPublic);
 
     debugPrint("\t fetching roles");
@@ -75,6 +73,7 @@ class ScheduleSyncService {
     int playlistID,
     bool isPublic,
   ) async {
+    debugPrint("\t syncing schedule");
     final schedule = scheduleDto
         .toDomain(playlistLocalId: playlistID)
         .copyWith(isPublic: isPublic);
@@ -150,6 +149,8 @@ class ScheduleSyncService {
   }
 
   Future<int> syncPlaylist(PlaylistDto playlistDto, User ownerUser) async {
+    debugPrint("\t syncing playlist");
+
     final playlistID = await _playlistRepo.upsertPlaylistMetadata(
       playlistDto.toDomain(ownerUser.id!),
     );
@@ -188,7 +189,9 @@ class ScheduleSyncService {
           final versionDto = playlistDto.versions[item.firebaseContentId]!;
           debugPrint("\t\tsyncing version");
 
-          await upsertPlaylistVersion(versionDto, playlistID);
+          final versionID = await upsertVersion(versionDto);
+          await _playlistRepo.addVersionToPlaylist(playlistID, versionID);
+
           existingItems.remove(
             existingItems.firstWhere(
               (i) =>
@@ -220,10 +223,7 @@ class ScheduleSyncService {
     return playlistID;
   }
 
-  Future<void> upsertPlaylistVersion(
-    VersionDto versionDto,
-    int playlistID,
-  ) async {
+  Future<int> upsertVersion(VersionDto versionDto) async {
     /// Ensure cipher exists and is up to date
     int? cipherId = await _cipherRepo.getCipherIdByTitleAuthor(
       title: versionDto.title,
@@ -282,6 +282,7 @@ class ScheduleSyncService {
           );
         }
       }
+      return existingVersion.id!;
     } else {
       // Version doesn't exist locally, insert it and add it to the playlist
       final versionID = await _versionRepo.insertVersion(
@@ -293,7 +294,7 @@ class ScheduleSyncService {
           section.toDomain(versionID: versionID),
         );
       }
-      await _playlistRepo.addVersionToPlaylist(playlistID, versionID);
+      return versionID;
     }
   }
 

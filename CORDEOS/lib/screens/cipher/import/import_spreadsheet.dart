@@ -1,6 +1,6 @@
-import 'package:cordeos/models/dtos/version_dto.dart';
 import 'package:cordeos/providers/cipher/parser_provider.dart';
 import 'package:cordeos/screens/cipher/import/batch_staging.dart';
+import 'package:cordeos/services/sync_service.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:cordeos/l10n/app_localizations.dart';
@@ -269,14 +269,17 @@ class _ImportPdfScreenState extends State<ImportSpreadSheetScreen> {
         throw Exception('Failed to import text from PDF');
       }
 
-      final songs = <VersionDto>[];
+      final versionIDs = <int>[];
       for (final import in imports) {
         final song = await par.parseCipher(import);
-        if (song != null) songs.add(song);
+        if (song != null) {
+          final id = await ScheduleSyncService().upsertVersion(song);
+          versionIDs.add(id);
+        }
       }
 
       nav.push(
-        () => BatchImportStaging(songs: songs),
+        () => BatchImportStaging(versionIDs: versionIDs),
         keepAlive: true,
         showBottomNavBar: true,
         onPopCallback: () {

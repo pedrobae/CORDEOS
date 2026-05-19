@@ -3,12 +3,13 @@ import 'dart:async';
 import 'package:cordeos/l10n/app_localizations.dart';
 import 'package:cordeos/models/domain/cipher/version.dart';
 import 'package:cordeos/models/domain/parsing_cipher.dart';
-import 'package:cordeos/models/dtos/version_dto.dart';
 import 'package:cordeos/providers/cipher/cipher_provider.dart';
 import 'package:cordeos/providers/navigation_provider.dart';
 import 'package:cordeos/providers/cipher/parser_provider.dart';
+import 'package:cordeos/providers/section/section_provider.dart';
 import 'package:cordeos/providers/version/local_version_provider.dart';
 import 'package:cordeos/screens/cipher/edit_cipher.dart';
+import 'package:cordeos/services/sync_service.dart';
 import 'package:cordeos/widgets/common/filled_text_button.dart';
 import 'package:cordeos/widgets/common/icon_load_indicator.dart';
 import 'package:flutter/material.dart';
@@ -197,57 +198,66 @@ class _ImportTextScreenState extends State<ImportTextScreen> {
       isDark: true,
       isDisabled: _importTextController.text.isEmpty,
       onPressed: () async {
-        await _parse(context, imp, par);
+        await _parse();
       },
     );
   }
 
-  Future<void> _parse(
-    BuildContext context,
-    ImportProvider imp,
-    ParserProvider par,
-  ) async {
-    final localVer = Provider.of<LocalVersionProvider>(context, listen: false);
-    final ciph = Provider.of<CipherProvider>(context, listen: false);
-    final nav = Provider.of<NavigationProvider>(context, listen: false);
+  Future<void> _parse() async {
+    final sect = context.read<SectionProvider>();
+    final localVer = context.read<LocalVersionProvider>();
+    final ciph = context.read<CipherProvider>();
+    final nav = context.read<NavigationProvider>();
+    final imp = context.read<ImportProvider>();
+    final par = context.read<ParserProvider>();
 
     final text = _importTextController.text;
     if (text.isNotEmpty) {
-      final importedCiphers = await imp.importText(data: text);
+      final imports = await imp.importText(data: text);
 
-      if (importedCiphers.isEmpty) {
+      if (imports.isEmpty) {
         throw Exception('Failed to import text');
       }
-      final songs = <VersionDto>[];
-      for (final import in importedCiphers) {
+      final versionIDs = <int>[];
+      for (final import in imports) {
         final song = await par.parseCipher(import);
-        if (song != null) songs.add(song);
-      }
-
-      if (widget.cipherID != -1 && widget.versionID != -1) {
-        // CLEAN THE SCREEN STACK IF COMING FROM EDITING
-        nav.pop(); // pop the import screen
-        nav.pop(); // pop the edit cipher screen - bypass change detection, since we're reopening it with added new data right after
+        if (song != null) {
+          if (widget.cipherID != -1) {
+            final sections = song.sections.map(
+              (key, value) => MapEntry(key, value.toDomain()),
+            );
+            for (final section in sections.values) {
+              final newKey = sect.cacheAddSection(widget.versionID, section);
+              localVer.addSectionToStruct(widget.versionID, newKey);
+            }
+            versionIDs.add(widget.versionID);
+          } else {
+            final id = await ScheduleSyncService().upsertVersion(song);
+            versionIDs.add(id);
+          }
+        }
       }
 
       // Navigate to edit cipher screen
-      if (songs.length == 1)
-        nav.push(
-          () => EditCipherScreen(
-            versionType: VersionType.import,
-            versionID: widget.versionID,
-            cipherID: widget.cipherID,
-            versionDto: songs[0],
-          ),
-          keepAlive: true,
-          changeDetector: () {
-            return ciph.hasUnsavedChanges || localVer.hasUnsavedChanges;
-          },
-          onChangeDiscarded: () async {
-            await localVer.loadVersion(widget.versionID);
-            await ciph.loadCipher(widget.cipherID);
-          },
-        );
+      if (versionIDs.length == 1) {
+        nav.pop();
+        if (widget.versionID == -1)
+          nav.push(
+            () => EditCipherScreen(
+              versionID: widget.versionID,
+              cipherID: widget.cipherID,
+              versionType: VersionType.local,
+            ),
+            keepAlive: true,
+            changeDetector: () {
+              return ciph.hasUnsavedChanges || localVer.hasUnsavedChanges;
+            },
+            onChangeDiscarded: () async {
+              await localVer.loadVersion(widget.versionID);
+              await ciph.loadCipher(widget.cipherID);
+            },
+          );
+      }
     }
   }
 }
