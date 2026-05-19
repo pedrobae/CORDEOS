@@ -254,7 +254,6 @@ class CloudVersionProvider extends ChangeNotifier {
       firebaseVersionID: firebaseVersionID,
     );
     final id = await _localRepo.createNote(note);
-    await _localRepo.updateNote(id, note.copyWith(id: id));
     _notes[firebaseVersionID] ??= {};
     _notes[firebaseVersionID]![id] = note;
     notifyListeners();
@@ -305,7 +304,13 @@ class CloudVersionProvider extends ChangeNotifier {
   }
 
   // UPDATE
-  Future<void> update(int id, CloudVersionNote note) async {
+  Future<void> update(
+    String firebaseVersionID,
+    int id,
+    CloudVersionNote note,
+  ) async {
+    _notes[firebaseVersionID]![id] = note;
+    notifyListeners();
     await _localRepo.updateNote(id, note);
   }
 

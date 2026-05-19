@@ -643,6 +643,18 @@
   "@chords": {
     "description": "Chords field label"
   },
+  "chordCustomization": "Customização de Acorde",
+  "@chordCustomization": {
+    "description": "Title for Chord Customization"
+  },
+  "chordBass": "Inversões",
+  "@chordBass": {
+    "description": "Label for chordBass toggle"
+  },
+  "addedNotes": "Notas Adicionadas",
+  "@addedNotes": {
+    "description": "Label for added notes toggle"
+  },
   "transitions": "Transições",
   "@transitions": {
     "description": "Transitions field label"

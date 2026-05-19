@@ -166,6 +166,8 @@ class PrintingProvider extends ChangeNotifier {
   bool showSectionLabels = true;
   bool showBpm = true;
   bool showDuration = true;
+  bool showChordBass = true;
+  bool showAddedNotes = true;
   bool showChords = true;
   bool showLyrics = true;
 
@@ -232,6 +234,7 @@ class PrintingProvider extends ChangeNotifier {
     showDuration = PrintCacheService.getShowDuration();
     showSectionLabels = PrintCacheService.getShowLabel();
     showChords = PrintCacheService.getShowChords();
+    // TODO CHORD CUSTOMIZATION ON PRINT
     showLyrics = PrintCacheService.getShowLyrics();
     // Layout settings
     heightSpacingMult = PrintCacheService.getHeightSpacingMult();
@@ -308,6 +311,8 @@ class PrintingProvider extends ChangeNotifier {
 
             final tokens = _tokenizer.tokenize(
               section.contentText,
+              showAddedNotes: showAddedNotes,
+              showChordBass: showChordBass,
               showLyrics: showLyrics,
               showChords: showChords,
               transposeChord: transposeChord,

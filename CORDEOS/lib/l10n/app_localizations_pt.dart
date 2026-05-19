@@ -504,6 +504,15 @@ class AppLocalizationsPt extends AppLocalizations {
   String get chords => 'Acordes';
 
   @override
+  String get chordCustomization => 'Customização de Acorde';
+
+  @override
+  String get chordBass => 'Inversões';
+
+  @override
+  String get addedNotes => 'Notas Adicionadas';
+
+  @override
   String get transitions => 'Transições';
 
   @override

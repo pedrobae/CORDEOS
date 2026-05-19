@@ -1,5 +1,6 @@
 import 'package:cordeos/l10n/app_localizations.dart';
 import 'package:cordeos/providers/settings/layout_settings_provider.dart';
+import 'package:cordeos/widgets/settings/chord_customization.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -10,6 +11,7 @@ class ContentFilters extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
 
     return Consumer<LayoutSetProvider>(
       builder: (context, settings, child) {
@@ -27,10 +29,7 @@ class ContentFilters extends StatelessWidget {
               // HEADER
               Row(
                 children: [
-                  Text(
-                    AppLocalizations.of(context)!.contentFilters,
-                    style: textTheme.titleMedium,
-                  ),
+                  Text(l10n.contentFilters, style: textTheme.titleMedium),
                   Spacer(),
                   IconButton(
                     icon: const Icon(Icons.close),
@@ -40,33 +39,52 @@ class ContentFilters extends StatelessWidget {
               ),
 
               // FILTERS
-              _buildFilterToggle(
-                context,
-                label: AppLocalizations.of(context)!.chords,
-                value: settings.showChords,
-                onChanged: (_) => settings.toggleChords(),
+              GestureDetector(
+                onTap: () {
+                  Navigator.of(context).pop();
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    builder: (context) => ChordCustomization(),
+                  );
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(0),
+                    border: Border.all(
+                      color: colorScheme.surfaceContainerLowest,
+                      width: 1,
+                    ),
+                  ),
+                  child: _buildFilterToggle(
+                    textTheme,
+                    label: l10n.chords,
+                    value: settings.showChords,
+                    onChanged: (_) => settings.toggleChords(),
+                  ),
+                ),
               ),
               _buildFilterToggle(
-                context,
-                label: AppLocalizations.of(context)!.repeatSections,
+                textTheme,
+                label: l10n.repeatSections,
                 value: settings.showRepeatSections,
                 onChanged: (_) => settings.toggleRepeatSections(),
               ),
               _buildFilterToggle(
-                context,
-                label: AppLocalizations.of(context)!.notes,
+                textTheme,
+                label: l10n.notes,
                 value: settings.showAnnotations,
                 onChanged: (_) => settings.toggleAnnotations(),
               ),
               _buildFilterToggle(
-                context,
-                label: AppLocalizations.of(context)!.transitions,
+                textTheme,
+                label: l10n.transitions,
                 value: settings.showTransitions,
                 onChanged: (_) => settings.toggleTransitions(),
               ),
               _buildFilterToggle(
-                context,
-                label: AppLocalizations.of(context)!.lyrics,
+                textTheme,
+                label: l10n.lyrics,
                 value: settings.showLyrics,
                 onChanged: (_) => settings.toggleLyrics(),
               ),
@@ -78,14 +96,12 @@ class ContentFilters extends StatelessWidget {
     );
   }
 
-  Row _buildFilterToggle(
-    BuildContext context, {
+  Widget _buildFilterToggle(
+    TextTheme textTheme, {
     required String label,
     required bool value,
     required ValueChanged<bool> onChanged,
   }) {
-    final textTheme = Theme.of(context).textTheme;
-
     return Row(
       children: [
         Icon(Icons.chevron_right),

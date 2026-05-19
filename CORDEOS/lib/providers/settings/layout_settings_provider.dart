@@ -18,6 +18,11 @@ class LayoutSetProvider extends ChangeNotifier {
   final double minChordSpacing = 4;
   final double letterSpacing = 0;
 
+  bool _showChordBass = true;
+  bool _showAddedNotes = true;
+  bool get showChordBass => _showChordBass;
+  bool get showAddedNotes => _showAddedNotes;
+
   bool _showChords = true;
   bool _showLyrics = true;
   bool _showAnnotations = true;
@@ -35,6 +40,8 @@ class LayoutSetProvider extends ChangeNotifier {
     fontSize = SettingsService.getFontSize();
     fontFamily = SettingsService.getFontFamily();
     scrollDirection = SettingsService.getScrollDirection();
+    _showChordBass = SettingsService.getShowChordBass();
+    _showAddedNotes = SettingsService.getShowAddedNotes();
     _showChords = SettingsService.getShowChords();
     _showLyrics = SettingsService.getShowLyrics();
     _showAnnotations = SettingsService.getShowNotes();
@@ -84,6 +91,18 @@ class LayoutSetProvider extends ChangeNotifier {
   void toggleSectionHeaders() {
     showSectionHeaders = !showSectionHeaders;
     SettingsService.setShowSectionHeaders(showSectionHeaders);
+    notifyListeners();
+  }
+
+  void toggleChordBass() {
+    _showChordBass = !_showChordBass;
+    SettingsService.setShowChordBass(_showChordBass);
+    notifyListeners();
+  }
+
+  void toggleAddedNotes() {
+    _showAddedNotes = !_showAddedNotes;
+    SettingsService.setShowAddedNotes(_showAddedNotes);
     notifyListeners();
   }
 

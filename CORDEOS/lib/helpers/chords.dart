@@ -2,14 +2,22 @@ class Chord {
   final String root;
   final String quality;
   final String? bass;
-  final String? variation;
+  final String? addedNote;
 
   const Chord({
     required this.root,
     required this.quality,
     this.bass,
-    this.variation,
+    this.addedNote,
   });
+
+  String string({required bool showBass, required bool showAddedNote}) {
+    String result = root;
+    if (quality.isNotEmpty) result += quality;
+    if (addedNote != null && showAddedNote) result += addedNote!;
+    if (bass != null && showBass) result += '/$bass';
+    return result;
+  }
 
   /// Parses a chord string into a Chord object
   /// Example: "C#m7/G#" -> Chord(root: "C#", quality: "m", variation: "7", bass: "G#")
@@ -20,13 +28,12 @@ class Chord {
     final regex = RegExp(r'^([A-G][b#]?)(m|dim|ø)?(.*?)(?:/(.*))?$');
     final match = regex.firstMatch(chordStr);
     if (match == null) {
-      throw FormatException('Invalid chord format: $chordStr');
+      return Chord(root: chordStr, quality: '');
     }
-
     return Chord(
       root: match.group(1)!,
       quality: match.group(2) ?? '',
-      variation: match.group(3)?.isEmpty == true ? null : match.group(3),
+      addedNote: match.group(3)?.isEmpty == true ? null : match.group(3),
       bass: match.group(4),
     );
   }
@@ -35,7 +42,7 @@ class Chord {
   String toString() {
     String result = root;
     if (quality.isNotEmpty) result += quality;
-    if (variation != null) result += variation!;
+    if (addedNote != null) result += addedNote!;
     if (bass != null) result += '/$bass';
     return result;
   }

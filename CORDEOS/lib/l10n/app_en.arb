@@ -403,6 +403,18 @@
   "@scrollDirection": {
     "description": "Label for scroll direction setting"
   },
+  "chordCustomization": "Chord Customization",
+  "@chordCustomization": {
+    "description": "Title for Chord Customization"
+  },
+  "chordBass": "Chord Bass",
+  "@chordBass": {
+    "description": "Label for chordBass toggle"
+  },
+  "addedNotes": "Added Notes",
+  "@addedNotes": {
+    "description": "Label for added notes toggle"
+  },
   "chordColor": "Chord Color:",
   "@chordColor": {
     "description": "Label for chord color setting"

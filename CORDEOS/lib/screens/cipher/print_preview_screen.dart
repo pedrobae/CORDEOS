@@ -501,7 +501,7 @@ class _PrintPreviewScreenState extends State<PrintPreviewScreen> {
                 setState(() => _showLayoutBar = !_showLayoutBar);
               },
               icon: Icon(
-                Icons.format_paint_rounded,
+                Icons.settings,
                 color: _showLayoutBar ? colorScheme.primary : null,
               ),
             ),

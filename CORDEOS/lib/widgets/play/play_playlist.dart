@@ -516,7 +516,7 @@ class _PlayPlaylistState extends State<PlayPlaylist> {
         child: SizedBox(
           width: 40,
           height: 40,
-          child: Icon(Icons.format_paint, color: colorScheme.primary),
+          child: Icon(Icons.settings, color: colorScheme.primary),
         ),
       ),
       GestureDetector(

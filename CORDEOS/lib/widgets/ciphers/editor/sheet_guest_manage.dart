@@ -29,37 +29,19 @@ class GuestManageSheet extends StatefulWidget {
 }
 
 class _GuestManageSheetState extends State<GuestManageSheet> {
-  Map<int, CloudVersionNote> notes = {};
-  List<int> songStruct = [];
+  void Function(int, int) _onReorder(CloudVersionNote note) {
+    return (oldIndex, newIndex) async {
+      if (oldIndex < newIndex) newIndex--;
 
-  @override
-  void initState() {
-    final cloudVer = context.read<CloudVersionProvider>();
-    notes = cloudVer.getNotesOfVersion(widget.firebaseVersionID);
-    songStruct.addAll(widget.versionDto.songStructure);
-    setState(() {});
-    super.initState();
-  }
-
-  void _onReorder(int oldIndex, int newIndex) async {
-    if (oldIndex < newIndex) newIndex--;
-    final key = songStruct.removeAt(oldIndex);
-    songStruct.insert(newIndex, key);
-    setState(() {});
-
-    final note = notes[-key];
-
-    if (note != null)
       await context.read<CloudVersionProvider>().update(
-        -key,
+        note.firebaseVersionID,
+        note.id,
         note.copyWith(position: newIndex),
       );
+    };
   }
 
   void _deleteNote(int id) async {
-    songStruct.remove(id);
-    notes.remove(-id);
-    setState(() {});
     await context.read<CloudVersionProvider>().delete(
       widget.firebaseVersionID,
       -id,
@@ -118,13 +100,20 @@ class _GuestManageSheetState extends State<GuestManageSheet> {
             spacing: 8,
             children: [
               _buildNoteCard(),
-              ListView.builder(
-                shrinkWrap: true,
-                itemCount: notes.length,
-                itemBuilder: (context, index) {
-                  return _buildNoteCard(
-                    note: notes.values.toList()[index],
-                    key: notes.keys.toList()[index],
+              Selector<CloudVersionProvider, Map<int, CloudVersionNote>>(
+                selector: (context, cloudVer) => Map.from(
+                  cloudVer.getNotesOfVersion(widget.firebaseVersionID),
+                ),
+                builder: (context, notes, child) {
+                  return ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: notes.length,
+                    itemBuilder: (context, index) {
+                      return _buildNoteCard(
+                        note: notes.values.toList()[index],
+                        key: notes.keys.toList()[index],
+                      );
+                    },
                   );
                 },
               ),
@@ -195,97 +184,125 @@ class _GuestManageSheetState extends State<GuestManageSheet> {
     final colorScheme = Theme.of(context).colorScheme;
     return SizedBox(
       height: 42,
-      child: ReorderableListView.builder(
-        proxyDecorator: (child, index, animation) =>
-            Material(type: MaterialType.transparency, child: child),
-        buildDefaultDragHandles: false,
-        scrollDirection: Axis.horizontal,
-        onReorder: (oldIndex, newIndex) => _onReorder(oldIndex, newIndex),
-        itemCount: songStruct.length,
-        itemBuilder: (context, index) {
-          final id = songStruct[index];
-          return CustomReorderableDelayed(
-            key: ValueKey(
-              'ver_idx_${widget.firebaseVersionID}_sect_idx_$index',
-            ),
-            index: index,
-            delay: Duration(milliseconds: 100),
-            enabled: id < 0,
-            child: (id > 0)
-                ? Container(
-                    margin: EdgeInsets.only(right: 4),
-                    height: 44,
-                    width: 42,
-                    decoration: BoxDecoration(
-                      color: widget.versionDto.badgesData[id]!.color.withValues(
-                        alpha: .90,
-                      ),
-                      borderRadius: BorderRadius.circular(7),
+      child:
+          Selector<
+            CloudVersionProvider,
+            ({List<int> songStruct, Map<int, CloudVersionNote> notes})
+          >(
+            selector: (context, cloudVer) {
+              final notes = cloudVer.getNotesOfVersion(
+                widget.firebaseVersionID,
+              );
+
+              final songMap = [...widget.versionDto.songStructure];
+              songMap.removeWhere((sectionID) => sectionID < 0);
+              for (final note in notes.values) {
+                songMap.insert(note.position, -note.id);
+              }
+
+              return (songStruct: songMap, notes: notes);
+            },
+            builder: (context, s, child) {
+              return ReorderableListView.builder(
+                proxyDecorator: (child, index, animation) =>
+                    Material(type: MaterialType.transparency, child: child),
+                buildDefaultDragHandles: false,
+                scrollDirection: Axis.horizontal,
+                onReorder: (oldIndex, newIndex) => _onReorder(
+                  s.notes[-s.songStruct[oldIndex]]!,
+                )(oldIndex, newIndex),
+                itemCount: s.songStruct.length,
+                itemBuilder: (context, index) {
+                  final sectionID = s.songStruct[index];
+                  return CustomReorderableDelayed(
+                    key: ValueKey(
+                      'ver_idx_${widget.firebaseVersionID}_sect_idx_$index',
                     ),
-                    child: Center(
-                      child: Text(
-                        widget.versionDto.badgesData[id]!.code,
-                        style: TextStyle(
-                          color: colorScheme.surface,
-                          fontWeight: FontWeight.w500,
-                          fontSize: 16,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  )
-                : Container(
-                    height: 44,
-                    width: 44,
-                    decoration: BoxDecoration(
-                      color: SectionType.annotation.color.withValues(
-                        alpha: .90,
-                      ),
-                      borderRadius: BorderRadius.circular(7),
-                    ),
-                    margin: EdgeInsets.only(right: 4),
-                    child: Stack(
-                      clipBehavior: Clip.hardEdge,
-                      children: [
-                        Center(
-                          child: Text(
-                            widget.versionDto.badgesData[id]!.code,
-                            style: TextStyle(
-                              color: colorScheme.surface,
-                              fontWeight: FontWeight.w500,
-                              fontSize: 16,
+                    index: index,
+                    delay: Duration(milliseconds: 100),
+                    enabled: sectionID < 0,
+                    child: (sectionID > 0)
+                        ? Container(
+                            margin: EdgeInsets.only(right: 4),
+                            height: 44,
+                            width: 42,
+                            decoration: BoxDecoration(
+                              color: widget
+                                  .versionDto
+                                  .badgesData[sectionID]!
+                                  .color
+                                  .withValues(alpha: .90),
+                              borderRadius: BorderRadius.circular(7),
                             ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                        Positioned(
-                          top: -5,
-                          right: -5,
-                          child: GestureDetector(
-                            onTap: () {
-                              _deleteNote(id);
-                            },
-                            child: Container(
-                              width: 22,
-                              height: 22,
-                              decoration: BoxDecoration(
-                                color: Colors.red,
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                Icons.close,
-                                color: colorScheme.surface,
-                                size: 12,
+                            child: Center(
+                              child: Text(
+                                widget.versionDto.badgesData[sectionID]!.code,
+                                style: TextStyle(
+                                  color: colorScheme.surface,
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 16,
+                                ),
+                                textAlign: TextAlign.center,
                               ),
                             ),
+                          )
+                        : Container(
+                            height: 44,
+                            width: 44,
+                            decoration: BoxDecoration(
+                              color: SectionType.annotation.color.withValues(
+                                alpha: .90,
+                              ),
+                              borderRadius: BorderRadius.circular(7),
+                            ),
+                            margin: EdgeInsets.only(right: 4),
+                            child: Stack(
+                              clipBehavior: Clip.hardEdge,
+                              children: [
+                                Center(
+                                  child: Text(
+                                    widget
+                                        .versionDto
+                                        .badgesData[sectionID]!
+                                        .code,
+                                    style: TextStyle(
+                                      color: colorScheme.surface,
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 16,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                                Positioned(
+                                  top: -5,
+                                  right: -5,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      _deleteNote(sectionID);
+                                    },
+                                    child: Container(
+                                      width: 22,
+                                      height: 22,
+                                      decoration: BoxDecoration(
+                                        color: Colors.red,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Icon(
+                                        Icons.close,
+                                        color: colorScheme.surface,
+                                        size: 12,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-          );
-        },
-      ),
+                  );
+                },
+              );
+            },
+          ),
     );
   }
 
@@ -335,7 +352,7 @@ class _GuestManageSheetState extends State<GuestManageSheet> {
               child: Text(
                 note == null
                     ? AppLocalizations.of(context)!.newPlaceholder(notesLabel)
-                    : '${widget.versionDto.badgesData[-key!]?.code} - ${note.title}',
+                    : '${widget.versionDto.badgesData[-key!]?.code ?? 'N'} - ${note.title}',
                 style: textTheme.bodyLarge,
               ),
             ),

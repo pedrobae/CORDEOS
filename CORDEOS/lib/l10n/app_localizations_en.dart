@@ -502,6 +502,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chords => 'Chords';
 
   @override
+  String get chordCustomization => 'Chord Customization';
+
+  @override
+  String get chordBass => 'Chord Bass';
+
+  @override
+  String get addedNotes => 'Added Notes';
+
+  @override
   String get transitions => 'Transitions';
 
   @override

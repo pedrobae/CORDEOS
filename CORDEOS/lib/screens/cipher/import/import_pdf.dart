@@ -7,6 +7,7 @@ import 'package:cordeos/providers/cipher/parser_provider.dart';
 import 'package:cordeos/providers/section/section_provider.dart';
 import 'package:cordeos/providers/version/local_version_provider.dart';
 import 'package:cordeos/screens/cipher/edit_cipher.dart';
+import 'package:cordeos/screens/cipher/import/batch_staging.dart';
 import 'package:cordeos/services/sync_service.dart';
 import 'package:cordeos/widgets/common/filled_text_button.dart';
 import 'package:file_picker/file_picker.dart';
@@ -359,7 +360,15 @@ class _ImportPdfScreenState extends State<ImportPdfScreen> {
           );
         }
       } else {
-        //TODO - pdf batch import
+        nav.push(
+          () => BatchImportStaging(versionIDs: versionIDs),
+          keepAlive: true,
+          showBottomNavBar: true,
+          onPopCallback: () {
+            imp.clearCache();
+            par.clearCache();
+          },
+        );
       }
     };
   }

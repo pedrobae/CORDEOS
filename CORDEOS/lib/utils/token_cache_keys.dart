@@ -14,6 +14,8 @@ class TokenCacheKey {
   double? minChordSpacing;
   double? letterSpacing;
   bool? showChords;
+  bool? showChordBass;
+  bool? showAddedNotes;
   bool? showLyrics;
   bool isEditMode;
   int? transposeValue;
@@ -28,6 +30,8 @@ class TokenCacheKey {
     this.letterSpacing,
     this.showChords,
     this.showLyrics,
+    this.showChordBass,
+    this.showAddedNotes,
     this.transposeValue,
     required this.sectionKey,
     this.isEditMode = false,
@@ -72,7 +76,7 @@ class TokenCacheKey {
 
 /// Token cache key: content + filters + transposition
 String tokenCacheKey(TokenCacheKey k) =>
-    '${k.sectionKey}|content:${k.content}|chords:${k.showChords}|lyrics:${k.showLyrics}|transposeValue:${k.transposeValue}|editMode:${k.isEditMode}';
+    '${k.sectionKey}|content:${k.content}|chords:${k.showChords}|lyrics:${k.showLyrics}|bass:${k.showChordBass}|addedNotes:${k.showAddedNotes}|transposeValue:${k.transposeValue}|editMode:${k.isEditMode}';
 
 String measurementKey(
   String text,

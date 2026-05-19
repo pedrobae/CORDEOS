@@ -24,6 +24,8 @@ class SettingsService {
   static const String _keyLetterSpacing = 'layout_letter_spacing';
 
   // Filter Settings Keys
+  static const String _keyShowChordBass = 'layout_show_chord_bass';
+  static const String _keyShowAddedNotes = 'layout_show_added_notes';
   static const String _keyShowChords = 'layout_show_chords';
   static const String _keyShowLyrics = 'layout_show_lyrics';
   static const String _keyShowNotes = 'layout_show_notes';
@@ -204,6 +206,26 @@ class SettingsService {
   }
 
   // ====== FILTER SETTINGS ======
+
+  /// Save show chord bass
+  static Future<void> setShowChordBass(bool show) async {
+    await _preferences.setBool(_keyShowChordBass, show);
+  }
+
+  /// Get show chord bass
+  static bool getShowChordBass() {
+    return _preferences.getBool(_keyShowChordBass) ?? true;
+  }
+
+  /// Save show added notes
+  static Future<void> setShowAddedNotes(bool show) async {
+    await _preferences.setBool(_keyShowAddedNotes, show);
+  }
+
+  /// Get show added Notes
+  static bool getShowAddedNotes() {
+    return _preferences.getBool(_keyShowAddedNotes) ?? true;
+  }
 
   /// Save show chords
   static Future<void> setShowChords(bool show) async {

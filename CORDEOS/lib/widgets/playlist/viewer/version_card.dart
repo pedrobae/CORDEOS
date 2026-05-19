@@ -4,7 +4,8 @@ import 'package:cordeos/models/dtos/version_dto.dart';
 import 'package:cordeos/providers/token_cache_provider.dart';
 import 'package:cordeos/providers/version/cloud_version_provider.dart';
 import 'package:cordeos/utils/section_type.dart';
-import 'package:cordeos/widgets/ciphers/editor/sections/sheet_guest_manage.dart';
+import 'package:cordeos/widgets/ciphers/editor/sheet_guest_manage.dart';
+import 'package:cordeos/widgets/ciphers/library/sheet_links.dart';
 import 'package:cordeos/widgets/ciphers/section_badge.dart';
 import 'package:flutter/material.dart';
 import 'package:cordeos/l10n/app_localizations.dart';
@@ -95,12 +96,13 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard>
       SectionProvider,
       ({
         int? cipherID,
-        String title,
-        String musicKey,
-        String duration,
-        String bpm,
+        String? title,
+        String? musicKey,
+        String? duration,
+        String? bpm,
         Map<int, SectionBadgeData> badgesData,
-        List<int> songStructure,
+        List<int>? songStructure,
+        List<String>? links,
       })
     >(
       selector: (context, cloudVer, localVer, ciph, sect) {
@@ -129,6 +131,7 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard>
             bpm: versionDto.bpm.toString(),
             badgesData: getSectionBadges(sectionTypes),
             songStructure: versionDto.songStructure,
+            links: versionDto.links,
           );
         }
         final version = localVer.getVersion(widget.versionId);
@@ -151,16 +154,15 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard>
         }
         return (
           cipherID: cipher?.id,
-          title: cipher?.title ?? '',
-          musicKey: version?.transposedKey ?? cipher?.musicKey ?? '',
-          duration: (version != null && version.duration != Duration.zero)
+          title: cipher?.title,
+          musicKey: version?.transposedKey ?? cipher?.musicKey,
+          duration: (version != null)
               ? DateTimeUtils.formatDuration(version.duration)
-              : '-',
-          bpm: (version != null && version.bpm != 0)
-              ? version.bpm.toString()
-              : '-',
+              : null,
+          bpm: (version != null) ? version.bpm.toString() : null,
           badgesData: getSectionBadges(sectionTypes),
-          songStructure: songStructure ?? [],
+          songStructure: songStructure,
+          links: cipher?.links,
         );
       },
       builder: (context, s, child) {
@@ -229,7 +231,7 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard>
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    s.title,
+                                    s.title!,
                                     style: textTheme.titleMedium,
                                     softWrap: true,
                                   ),
@@ -244,7 +246,7 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard>
                                             style: textTheme.bodyMedium,
                                           ),
                                           Text(
-                                            s.musicKey,
+                                            s.musicKey!,
                                             style: textTheme.bodyMedium,
                                           ),
                                         ],
@@ -254,7 +256,7 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard>
                                         style: textTheme.bodyMedium,
                                       ),
                                       Text(
-                                        s.duration,
+                                        s.duration!,
                                         style: textTheme.bodyMedium,
                                       ),
                                     ],
@@ -262,6 +264,19 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard>
                                 ],
                               ),
                             ),
+                            if (s.links!.any((link) {
+                                  return link.isNotEmpty;
+                                }) &&
+                                !widget.canEdit)
+                              GestureDetector(
+                                onTap: _openLinksSheet(s.links!),
+                                child: SizedBox(
+                                  width: 25,
+                                  height: 50,
+                                  child: Icon(Icons.link),
+                                ),
+                              ),
+
                             if (!widget.canEdit)
                               GestureDetector(
                                 onTap: _openGuestEditSheet(),
@@ -277,15 +292,15 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard>
                         widget.canEdit
                             ? _buildReorderableSectionChips(
                                 s.badgesData,
-                                s.songStructure,
+                                s.songStructure!,
                               )
                             : SizedBox(
                                 height: 25,
                                 child: ListView.builder(
                                   scrollDirection: Axis.horizontal,
-                                  itemCount: s.songStructure.length,
+                                  itemCount: s.songStructure!.length,
                                   itemBuilder: (_, index) {
-                                    final key = s.songStructure[index];
+                                    final key = s.songStructure![index];
                                     final badgeData = s.badgesData[key];
                                     if (badgeData == null) {
                                       return SizedBox.shrink();
@@ -306,6 +321,18 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard>
                   ),
                 ),
               ),
+              if (s.links!.any((link) {
+                    return link.isNotEmpty;
+                  }) &&
+                  (widget.canEdit))
+                GestureDetector(
+                  onTap: _openLinksSheet(s.links!),
+                  child: SizedBox(
+                    width: 25,
+                    height: 50,
+                    child: Icon(Icons.link),
+                  ),
+                ),
               if (widget.canEdit)
                 GestureDetector(
                   onTap: _openVersionActions(s.cipherID!),
@@ -404,12 +431,6 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard>
   }
 
   VoidCallback _openGuestEditSheet() {
-    final cloudVer = context.read<CloudVersionProvider>();
-    final notes = cloudVer.getNotesOfVersion(widget.version!.firebaseId!);
-    final overwriteKey = cloudVer.checkOverwriteKey(
-      widget.version!.firebaseId!,
-    );
-
     return () {
       showModalBottomSheet(
         context: context,
@@ -417,9 +438,25 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard>
         builder: (context) {
           return GuestManageSheet(
             firebaseVersionID: widget.version!.firebaseId!,
-            versionDto: widget.version!
-                .mergeNotes(notes)
-                .copyWith(overwriteKey: overwriteKey),
+            versionDto: widget.version!,
+          );
+        },
+      );
+    };
+  }
+
+  VoidCallback _openLinksSheet(List<String> links) {
+    return () {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        builder: (context) {
+          return BottomSheet(
+            shape: LinearBorder(),
+            onClosing: () {},
+            builder: (context) {
+              return LinksSheet(links: links);
+            },
           );
         },
       );

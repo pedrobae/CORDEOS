@@ -161,6 +161,7 @@ class _CloudNoteScreenState extends State<CloudNoteScreen> {
     final cloudVer = context.read<CloudVersionProvider>();
     if (widget.note != null) {
       cloudVer.update(
+        widget.firebaseVersionID,
         0,
         widget.note!.copyWith(
           content: _textController.text,

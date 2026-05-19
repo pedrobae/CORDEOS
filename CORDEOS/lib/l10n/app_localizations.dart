@@ -1028,6 +1028,24 @@ abstract class AppLocalizations {
   /// **'Acordes'**
   String get chords;
 
+  /// Title for Chord Customization
+  ///
+  /// In pt, this message translates to:
+  /// **'Customização de Acorde'**
+  String get chordCustomization;
+
+  /// Label for chordBass toggle
+  ///
+  /// In pt, this message translates to:
+  /// **'Inversões'**
+  String get chordBass;
+
+  /// Label for added notes toggle
+  ///
+  /// In pt, this message translates to:
+  /// **'Notas Adicionadas'**
+  String get addedNotes;
+
   /// Transitions field label
   ///
   /// In pt, this message translates to:

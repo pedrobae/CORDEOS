@@ -1,3 +1,4 @@
+import 'package:cordeos/helpers/chords.dart';
 import 'package:cordeos/services/tokenization/helper_classes.dart';
 
 /// Service responsible for tokenizing ChordPro content,
@@ -21,6 +22,8 @@ class TokenizationService {
     String content, {
     required bool showLyrics,
     required bool showChords,
+    required bool showChordBass,
+    required bool showAddedNotes,
     required String Function(String) transposeChord,
   }) {
     if (content.isEmpty) {
@@ -64,7 +67,12 @@ class TokenizationService {
           lineTokens.add(
             ContentToken(
               type: TokenType.chord,
-              text: transposeChord(chordText),
+              text: transposeChord(
+                Chord.fromString(chordText).string(
+                  showBass: showChordBass,
+                  showAddedNote: showAddedNotes,
+                ),
+              ),
             ),
           );
         }
