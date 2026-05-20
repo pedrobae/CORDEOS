@@ -236,7 +236,6 @@ class PrintingProvider extends ChangeNotifier {
     showChords = PrintCacheService.getShowChords();
     showChordBass = PrintCacheService.getShowChordBass();
     showAddedNotes = PrintCacheService.getShowAddedNotes();
-    // TODO CHORD CUSTOMIZATION ON PRINT
     showLyrics = PrintCacheService.getShowLyrics();
     // Layout settings
     heightSpacingMult = PrintCacheService.getHeightSpacingMult();

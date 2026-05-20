@@ -51,93 +51,106 @@ class _FlowItemCardState extends State<FlowItemCard> {
     final colorScheme = Theme.of(context).colorScheme;
 
     final nav = context.read<NavigationProvider>();
-    final flow = context.read<FlowItemProvider>();
-    final flowItem = widget.flowItem ?? flow.getFlowItem(widget.flowItemID);
-
-    if (flowItem == null) return CircularProgressIndicator();
-    return Container(
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(0),
-        border: Border.all(color: colorScheme.surfaceContainerLowest),
-      ),
-      margin: const EdgeInsets.only(bottom: 16),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          if (widget.canEdit)
-            CustomReorderableDelayed(
-              delay: Duration(milliseconds: 100),
-              index: widget.index,
-              child: Container(
-                // Container to paint and enable hitbox for the icon
-                color: Colors.transparent,
-                height: 60,
-                child: Icon(Icons.drag_indicator, size: 30),
-              ),
-            ),
-          Expanded(
-            child: GestureDetector(
-              onTap: () {
-                final flow = context.read<FlowItemProvider>();
-                nav.push(
-                  () => FlowItemEditor(
-                    flowItem: widget.flowItem,
-                    playlistID: widget.playlistID,
-                    flowID: widget.flowItemID,
-                    canEdit: widget.canEdit,
-                  ),
-                  changeDetector: widget.canEdit
-                      ? () => flow.hasUnsavedChanges
-                      : null,
-                  onChangeDiscarded: widget.canEdit
-                      ? () => flow.loadFlowItem(widget.flowItemID)
-                      : null,
-                  showBottomNavBar: true,
-                );
-              },
-              child: Container(
-                decoration: BoxDecoration(
-                  border: BorderDirectional(
-                    start: BorderSide(
-                      color: colorScheme.surfaceContainerLowest,
-                      width: 1,
-                    ),
-                  ),
-                ),
-                padding: const EdgeInsets.all(8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+    return Selector<FlowItemProvider, FlowItem?>(
+      selector: (context, flow) {
+        return widget.flowItem ?? flow.getFlowItem(widget.flowItemID);
+      },
+      builder: (context, flowItem, child) {
+        return Container(
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
+            borderRadius: BorderRadius.circular(0),
+            border: Border.all(color: colorScheme.surfaceContainerLowest),
+          ),
+          margin: const EdgeInsets.only(bottom: 16),
+          child: (flowItem == null)
+              ? Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              : Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(flowItem.title, style: textTheme.titleMedium),
-                        Text(
-                          DateTimeUtils.formatDuration(flowItem.duration),
-                          style: textTheme.bodyMedium,
+                    if (widget.canEdit)
+                      CustomReorderableDelayed(
+                        delay: Duration(milliseconds: 100),
+                        index: widget.index,
+                        child: Container(
+                          // Container to paint and enable hitbox for the icon
+                          color: Colors.transparent,
+                          height: 60,
+                          child: Icon(Icons.drag_indicator, size: 30),
                         ),
-                      ],
+                      ),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          final flow = context.read<FlowItemProvider>();
+                          nav.push(
+                            () => FlowItemEditor(
+                              flowItem: widget.flowItem,
+                              playlistID: widget.playlistID,
+                              flowID: widget.flowItemID,
+                              canEdit: widget.canEdit,
+                            ),
+                            changeDetector: widget.canEdit
+                                ? () => flow.hasUnsavedChanges
+                                : null,
+                            onChangeDiscarded: widget.canEdit
+                                ? () => flow.loadFlowItem(widget.flowItemID)
+                                : null,
+                            showBottomNavBar: true,
+                          );
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(
+                            border: BorderDirectional(
+                              start: BorderSide(
+                                color: colorScheme.surfaceContainerLowest,
+                                width: 1,
+                              ),
+                            ),
+                          ),
+                          padding: const EdgeInsets.all(8),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    flowItem.title,
+                                    style: textTheme.titleMedium,
+                                  ),
+                                  Text(
+                                    DateTimeUtils.formatDuration(
+                                      flowItem.duration,
+                                    ),
+                                    style: textTheme.bodyMedium,
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
+                    if (widget.canEdit)
+                      GestureDetector(
+                        onTap: () {
+                          _openFlowActionsSheet(context);
+                        },
+                        child: Container(
+                          // Container to paint and enable hitbox for the icon
+                          color: Colors.transparent,
+                          height: 60,
+                          child: Icon(Icons.more_vert_rounded, size: 30),
+                        ),
+                      ),
                   ],
                 ),
-              ),
-            ),
-          ),
-          if (widget.canEdit)
-            GestureDetector(
-              onTap: () {
-                _openFlowActionsSheet(context);
-              },
-              child: Container(
-                // Container to paint and enable hitbox for the icon
-                color: Colors.transparent,
-                height: 60,
-                child: Icon(Icons.more_vert_rounded, size: 30),
-              ),
-            ),
-        ],
-      ),
+        );
+      },
     );
   }
 
