@@ -24,6 +24,7 @@ class PositionService {
     required Map<String, Measurements> measurements,
     required TextStyle lyricStyle,
     required TextStyle chordStyle,
+    required TextStyle annotationStyle,
     required double maxWidth,
     required double heightSpacing,
     required double minChordSpacing,
@@ -39,7 +40,9 @@ class PositionService {
       measurements,
       lyricStyle,
       chordStyle,
+      annotationStyle,
       isEditMode,
+      minChordSpacing,
     );
 
     final double lineHeight;
@@ -66,6 +69,7 @@ class PositionService {
       lineHeight: lineHeight,
       chordStyle: chordStyle,
       lyricStyle: lyricStyle,
+      annotationStyle: annotationStyle,
     );
 
     final cursor = _LayoutCursor(
@@ -220,7 +224,6 @@ class PositionService {
               )]!;
 
           cursor.chordX = cursor.lyricsX + msr.width + ctx.minChordSpacing;
-
           charIndex++;
           break;
 
@@ -276,6 +279,42 @@ class PositionService {
         // the line level — neither should appear during word iteration.
         case TokenType.underline:
         case TokenType.newline:
+          break;
+        case TokenType.chordAnnotation:
+          positions.setPosition(
+            token,
+            max(cursor.lyricsX, cursor.chordX) -
+                (isEditMode ? TokenizationConstants.chordTokenWidthPadding : 0),
+            cursor.yOffset,
+          );
+
+          final msr =
+              ctx.measurements[measurementKey(
+                token.text,
+                ctx.annotationStyle,
+                isChordToken: isEditMode,
+              )]!;
+
+          cursor.chordX += msr.width + ctx.minChordSpacing;
+          charIndex++;
+        case TokenType.lyricAnnotation:
+          if (cursor.hasLyrics == false) {
+            cursor.hasLyrics = true;
+          }
+          positions.setPosition(token, cursor.lyricsX, cursor.yOffset);
+          final msr =
+              ctx.measurements[measurementKey(
+                token.text,
+                ctx.annotationStyle,
+                isChordToken: isEditMode,
+              )]!;
+
+          cursor.lyricsX += msr.width + ctx.letterSpacing;
+
+          if (cursor.lyricsX > cursor.chordX) {
+            cursor.chordX = cursor.lyricsX;
+          }
+          charIndex++;
           break;
       }
       if (ctx.checkOverflow &&
@@ -335,12 +374,13 @@ class PositionService {
     Map<String, Measurements> measurements,
     TextStyle lyricStyle,
     TextStyle chordStyle,
+    TextStyle annotationStyle,
     bool isEditMode,
+    double minChordSpacing,
   ) {
     double precedingOffset = 0;
     for (var line in contentTokens.lines) {
-      double lineChordX = 0;
-      double lineLyricX = 0;
+      double xOffset = 0;
       bool foundSeparator = false;
 
       for (var word in line.words) {
@@ -348,41 +388,53 @@ class PositionService {
           break;
         }
         for (var token in word.tokens) {
-          if (token.type == TokenType.preSeparator) {
-            foundSeparator = true;
-            if (isEditMode) {
-              lineChordX += TokenizationConstants.targetWidth;
-            }
-            break;
-          } else if (token.type == TokenType.chord) {
-            // Accumulate all widths
-            lineChordX +=
-                measurements[measurementKey(
-                      token.text,
-                      chordStyle,
-                      isChordToken: isEditMode,
-                    )]
-                    ?.width ??
-                0.0;
-          } else {
-            lineLyricX +=
-                measurements[measurementKey(
-                      token.text,
-                      lyricStyle,
-                      isChordToken: false,
-                    )]
-                    ?.width ??
-                0.0;
+          switch (token.type) {
+            case TokenType.chord:
+              xOffset +=
+                  measurements[measurementKey(
+                        token.text,
+                        chordStyle,
+                        isChordToken: isEditMode,
+                      )]!
+                      .width;
+              break;
+            case TokenType.space:
+              xOffset +=
+                  measurements[measurementKey(token.text, lyricStyle)]!.width;
+              break;
+            case TokenType.preSeparator:
+              foundSeparator = true;
+              if (isEditMode) {
+                xOffset += TokenizationConstants.targetWidth;
+              }
+              break;
+            case TokenType.chordAnnotation:
+              xOffset +=
+                  measurements[measurementKey(
+                        token.text,
+                        annotationStyle,
+                        isChordToken: isEditMode,
+                      )]!
+                      .width;
+              break;
+            case TokenType.lyricAnnotation:
+            case TokenType.lyric:
+            case TokenType.newline:
+            case TokenType.postSeparator:
+            case TokenType.preChordTarget:
+            case TokenType.postChordTarget:
+            case TokenType.underline:
+              //THESE DONT AFFECT ORE ARE NOT EXPECTED TO BE POSITIONED IN THE PRECEDING SECTION
+              break;
           }
         }
       }
-      final offsetCandidate = max(lineChordX, lineLyricX);
-      if (offsetCandidate > precedingOffset && foundSeparator) {
-        precedingOffset = offsetCandidate;
+      if (xOffset > precedingOffset && foundSeparator) {
+        precedingOffset = xOffset;
       }
     }
 
-    return precedingOffset;
+    return precedingOffset + minChordSpacing;
   }
 
   /// Checks whether there is a lyric token after [chordToken] in the same word.
@@ -442,6 +494,7 @@ class _LayoutCtx {
   final double lineHeight;
   final TextStyle chordStyle;
   final TextStyle lyricStyle;
+  final TextStyle annotationStyle;
   bool checkOverflow = true;
 
   _LayoutCtx({
@@ -457,6 +510,7 @@ class _LayoutCtx {
     required this.lineHeight,
     required this.chordStyle,
     required this.lyricStyle,
+    required this.annotationStyle,
   });
 
   /// Marks the context for reflow, which relaxes overflow checks and allows

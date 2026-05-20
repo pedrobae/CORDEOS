@@ -62,6 +62,7 @@ class PrintingContext {
   final TextStyle chordStyle;
   final TextStyle headerStyle;
   final TextStyle labelStyle;
+  final TextStyle annotationStyle;
   final double chordLyricSpacing;
   final double heightSpacing;
   final double minChordSpacing;
@@ -82,6 +83,7 @@ class PrintingContext {
     required this.chordStyle,
     required this.headerStyle,
     required this.labelStyle,
+    required this.annotationStyle,
     required this.chordLyricSpacing,
     required this.heightSpacing,
     required this.minChordSpacing,
@@ -198,6 +200,14 @@ class PrintingProvider extends ChangeNotifier {
     fontSize: fontSize * 0.8,
     height: 1,
     color: headerColor,
+  );
+
+  TextStyle get annotationStyle => TextStyle(
+    fontFamily: fontFamily,
+    fontSize: fontSize,
+    fontStyle: FontStyle.italic,
+    height: 1,
+    color: lyricColor,
   );
 
   TextStyle get labelStyle => TextStyle(
@@ -347,6 +357,7 @@ class PrintingProvider extends ChangeNotifier {
           tokens: cache.tokens,
           chordStyle: chordStyle,
           lyricStyle: lyricStyle,
+          annotationStyle: annotationStyle,
           measurements: _tokenMeasurements,
         );
 
@@ -362,6 +373,7 @@ class PrintingProvider extends ChangeNotifier {
           measurements: _tokenMeasurements,
           lyricStyle: lyricStyle,
           chordStyle: chordStyle,
+          annotationStyle: annotationStyle,
           maxWidth: maxWidth,
           chordHeight: chordHeight,
           lyricHeight: lyricHeight,
@@ -392,6 +404,7 @@ class PrintingProvider extends ChangeNotifier {
       chordStyle: chordStyle,
       headerStyle: headerSyle,
       labelStyle: labelStyle,
+      annotationStyle: annotationStyle,
       chordLyricSpacing: heightSpacing,
       heightSpacing: heightSpacing,
       minChordSpacing: minChordSpacing,
@@ -541,6 +554,7 @@ class PrintingProvider extends ChangeNotifier {
     required List<ContentToken> tokens,
     required TextStyle chordStyle,
     required TextStyle lyricStyle,
+    required TextStyle annotationStyle,
     required Map<String, Measurements> measurements,
   }) {
     for (final token in tokens) {
@@ -571,6 +585,15 @@ class PrintingProvider extends ChangeNotifier {
         case TokenType.underline:
         case TokenType.newline:
           // Computed dynamically during positioning — nothing to pre-measure.
+          break;
+        case TokenType.chordAnnotation:
+        case TokenType.lyricAnnotation:
+          final key = measurementKey(token.text, annotationStyle);
+          measurements.putIfAbsent(
+            key,
+            () =>
+                _builder.measureText(text: token.text, style: annotationStyle),
+          );
           break;
       }
     }

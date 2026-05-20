@@ -110,6 +110,7 @@ class TokenProvider extends ChangeNotifier {
   void measureTokens({
     required TextStyle chordStyle,
     required TextStyle lyricStyle,
+    required TextStyle annotationStyle,
     required TokenCacheKey key,
   }) {
     final tokens = getTokens(key);
@@ -212,6 +213,22 @@ class TokenProvider extends ChangeNotifier {
         case TokenType.newline:
           // Dynamic, computed during positioning
           break;
+        case TokenType.lyricAnnotation:
+        case TokenType.chordAnnotation:
+          final msrKey = measurementKey(
+            token.text,
+            annotationStyle,
+            isChordToken: key.isEditMode,
+          );
+          _measurementCache.putIfAbsent(
+            msrKey,
+            () => _builder.measureText(
+              text: token.text,
+              style: annotationStyle,
+              isChordToken: key.isEditMode,
+            ),
+          );
+          break;
       }
     }
   }
@@ -226,6 +243,7 @@ class TokenProvider extends ChangeNotifier {
     required TokenCacheKey key,
     required TextStyle lyricStyle,
     required TextStyle chordStyle,
+    required TextStyle annotationStyle,
   }) {
     final cacheKey = positionCacheKey(key, chordStyle, lyricStyle);
     if (_positionCache.containsKey(cacheKey)) {
@@ -250,6 +268,7 @@ class TokenProvider extends ChangeNotifier {
       isEditMode: key.isEditMode,
       lyricStyle: lyricStyle,
       chordStyle: chordStyle,
+      annotationStyle: annotationStyle,
       lyricHeight: lyricHeight,
       chordHeight: chordHeight,
       showChords: key.showChords ?? true,
@@ -269,7 +288,9 @@ class TokenProvider extends ChangeNotifier {
     required TokenCacheKey key,
     required TextStyle lyricStyle,
     required TextStyle chordStyle,
-    required Color chordTargetColor,
+    required TextStyle annotationStyle,
+    required Color primary,
+    required Color secondary,
     required Color surfaceColor,
     required Color onSurfaceColor,
     required Color contentColor,
@@ -298,8 +319,10 @@ class TokenProvider extends ChangeNotifier {
       tokenPositions: getPositions(key, chordStyle, lyricStyle)!,
       chordStyle: chordStyle,
       lyricStyle: lyricStyle,
+      annotationStyle: annotationStyle,
       maxWidth: key.maxWidth!,
-      chordTargetColor: chordTargetColor,
+      primary: primary,
+      secondary: secondary,
       surfaceColor: surfaceColor,
       onSurfaceColor: onSurfaceColor,
       contentColor: contentColor,
@@ -325,6 +348,7 @@ class TokenProvider extends ChangeNotifier {
     TokenCacheKey key,
     TextStyle lyricStyle,
     TextStyle chordStyle,
+    TextStyle annotationStyle,
   ) {
     final cacheKey = paintCacheKey(key, chordStyle, lyricStyle);
     if (_paintCache.containsKey(cacheKey)) {
@@ -337,8 +361,10 @@ class TokenProvider extends ChangeNotifier {
       positions: getPositions(key, chordStyle, lyricStyle)!,
       chordStyle: chordStyle,
       lyricStyle: lyricStyle,
+      annotationStyle: annotationStyle,
       chordColor: key.chordColor!,
       lyricColor: key.lyricColor!,
+      annotationColor: key.annotationColor!,
     );
 
     _paintCache[cacheKey] = model;

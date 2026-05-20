@@ -79,6 +79,8 @@ enum TokenType {
   preChordTarget, // Used to render a drag Target below chord - '@'
   postChordTarget, // Variation due to on dragged to differences - &
   underline, // Underscore widget used to stretch a word when a chord cant fit - N/A
+  chordAnnotation, // Used to render text on the chord line with annotation style '[*Hello]'
+  lyricAnnotation, // Used to render text on the lyric line with annotation style '{Hello}'
 }
 
 class Measurements {

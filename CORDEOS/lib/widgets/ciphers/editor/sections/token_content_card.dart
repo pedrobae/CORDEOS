@@ -242,12 +242,14 @@ class _TokenContentCardState extends State<TokenContentCard> {
                     ({
                       TextStyle lyricStyle,
                       TextStyle chordStyle,
+                      TextStyle annotationStyle,
                       double heightSpacing,
                     })
                   >(
                     selector: (context, laySet, trans) => (
                       lyricStyle: laySet.lyricStyle,
                       chordStyle: laySet.chordStyle,
+                      annotationStyle: laySet.annotationStyle,
                       heightSpacing: laySet.heightSpacing,
                     ),
                     builder: (context, measure, child) {
@@ -256,6 +258,7 @@ class _TokenContentCardState extends State<TokenContentCard> {
                       _tokenProv.measureTokens(
                         chordStyle: measure.chordStyle,
                         lyricStyle: measure.lyricStyle,
+                        annotationStyle: measure.annotationStyle,
                         key: _tokensKey!,
                       );
 
@@ -291,6 +294,7 @@ class _TokenContentCardState extends State<TokenContentCard> {
                             key: _tokensKey!,
                             lyricStyle: measure.lyricStyle,
                             chordStyle: measure.chordStyle,
+                            annotationStyle: measure.annotationStyle,
                           );
 
                           final positions = _tokenProv.getPositions(
@@ -303,8 +307,10 @@ class _TokenContentCardState extends State<TokenContentCard> {
                             key: _tokensKey!,
                             lyricStyle: measure.lyricStyle,
                             chordStyle: measure.chordStyle,
+                            annotationStyle: measure.annotationStyle,
                             contentColor: s.section!.contentColor,
-                            chordTargetColor: colorScheme.surfaceTint,
+                            primary: colorScheme.surfaceTint,
+                            secondary: colorScheme.secondary,
                             surfaceColor: colorScheme.surface,
                             onSurfaceColor: colorScheme.onSurface,
                             onContentColor: colorScheme.surface,

@@ -150,4 +150,12 @@ class LayoutSetProvider extends ChangeNotifier {
     height: 1,
     letterSpacing: 0,
   );
+
+  TextStyle get annotationStyle => TextStyle(
+    fontFamily: fontFamily,
+    fontSize: fontSize,
+    fontStyle: FontStyle.italic,
+    height: 1,
+    letterSpacing: 0,
+  );
 }

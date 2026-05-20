@@ -66,7 +66,7 @@ class SongPPS {
       }
 
       final lyricStyle = (section.type == SectionType.annotation)
-          ? ctx.lyricStyle.copyWith(fontStyle: FontStyle.italic)
+          ? ctx.annotationStyle
           : ctx.lyricStyle;
 
       models[key] = builder.buildPaintModel(
@@ -75,6 +75,7 @@ class SongPPS {
         positions: section.positions!,
         chordStyle: ctx.chordStyle,
         lyricStyle: lyricStyle,
+        annotationStyle: ctx.annotationStyle,
       );
 
       if (ctx.showSectionLabels) {

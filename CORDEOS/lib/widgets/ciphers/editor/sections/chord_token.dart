@@ -1,7 +1,5 @@
-import 'package:cordeos/providers/transposition_provider.dart';
 import 'package:cordeos/services/tokenization/helper_classes.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class ChordToken extends StatelessWidget {
   final ContentToken token;
@@ -19,26 +17,20 @@ class ChordToken extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<TranspositionProvider>(
-      builder: (context, trans, child) {
-        return Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: TokenizationConstants.chordTokenWidthPadding,
-            vertical: TokenizationConstants.chordTokenHeightPadding,
-          ),
-          decoration: BoxDecoration(
-            color: sectionColor,
-            borderRadius: BorderRadius.circular(100),
-          ),
-          child: Text(
-            token.text,
-            textAlign: TextAlign.center,
-            style: chordStyle.copyWith(
-              color: textColor,
-            ),
-          ),
-        );
-      },
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: TokenizationConstants.chordTokenWidthPadding,
+        vertical: TokenizationConstants.chordTokenHeightPadding,
+      ),
+      decoration: BoxDecoration(
+        color: sectionColor,
+        borderRadius: BorderRadius.circular(100),
+      ),
+      child: Text(
+        token.text,
+        textAlign: TextAlign.center,
+        style: chordStyle.copyWith(color: textColor),
+      ),
     );
   }
 }

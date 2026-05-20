@@ -72,11 +72,17 @@ class SectionCard extends StatelessWidget {
         tokenProv.organize(layoutKey);
         return Selector<
           LayoutSetProvider,
-          ({TextStyle lyricStyle, TextStyle chordStyle, double heightSpacing})
+          ({
+            TextStyle lyricStyle,
+            TextStyle chordStyle,
+            TextStyle annotationStyle,
+            double heightSpacing,
+          })
         >(
           selector: (context, laySet) => (
             lyricStyle: laySet.lyricStyle,
             chordStyle: laySet.chordStyle,
+            annotationStyle: laySet.annotationStyle,
             heightSpacing: laySet.heightSpacing,
           ),
           builder: (context, measure, child) {
@@ -86,6 +92,7 @@ class SectionCard extends StatelessWidget {
             tokenProv.measureTokens(
               chordStyle: measure.chordStyle,
               lyricStyle: measure.lyricStyle,
+              annotationStyle: measure.annotationStyle,
               key: layoutKey,
             );
 
@@ -118,6 +125,7 @@ class SectionCard extends StatelessWidget {
                   key: layoutKey,
                   lyricStyle: measure.lyricStyle,
                   chordStyle: measure.chordStyle,
+                  annotationStyle: measure.annotationStyle,
                 );
                 return Selector2<
                   LayoutSetProvider,

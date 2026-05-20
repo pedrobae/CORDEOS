@@ -21,6 +21,7 @@ class TokenCacheKey {
   int? transposeValue;
   Color? chordColor;
   Color? lyricColor;
+  Color? annotationColor;
 
   TokenCacheKey({
     this.content,
@@ -37,6 +38,7 @@ class TokenCacheKey {
     this.isEditMode = false,
     this.chordColor,
     this.lyricColor,
+    this.annotationColor,
   });
 
   @override

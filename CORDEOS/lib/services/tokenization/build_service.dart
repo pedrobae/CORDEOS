@@ -48,8 +48,10 @@ class TokenizationBuilder {
     required TokenPositionMap positions,
     required TextStyle chordStyle,
     required TextStyle lyricStyle,
+    required TextStyle annotationStyle,
     Color? lyricColor,
     Color? chordColor,
+    Color? annotationColor,
   }) {
     final texts = <TextPaintInstruction>[];
     final underlines = <UnderLinePaintInstruction>[];
@@ -101,6 +103,50 @@ class TokenizationBuilder {
           );
           break;
 
+        case TokenType.chordAnnotation:
+          final painter = TextPainter(
+            text: TextSpan(
+              text: token.text,
+              style: annotationStyle.copyWith(color: annotationColor),
+            ),
+            textDirection: TextDirection.ltr,
+            maxLines: 1,
+          )..layout();
+
+          texts.add(
+            TextPaintInstruction(
+              style: annotationStyle.copyWith(color: annotationColor),
+              painter: painter,
+              offset: Offset(offset.dx, offset.dy),
+            ),
+          );
+          break;
+
+        case TokenType.lyricAnnotation:
+          final painter = TextPainter(
+            text: TextSpan(
+              text: token.text,
+              style: annotationStyle.copyWith(color: annotationColor),
+            ),
+            textDirection: TextDirection.ltr,
+            maxLines: 1,
+          )..layout();
+
+          final msr =
+              measurements[measurementKey(token.text, annotationStyle)]!;
+
+          texts.add(
+            TextPaintInstruction(
+              painter: painter,
+              offset: Offset(
+                offset.dx,
+                offset.dy + positions.lineHeight - msr.height,
+              ),
+              style: annotationStyle.copyWith(color: annotationColor),
+            ),
+          );
+          break;
+
         case TokenType.underline:
           underlines.add(
             UnderLinePaintInstruction(
@@ -144,14 +190,16 @@ class TokenizationBuilder {
     required TokenPositionMap tokenPositions,
     required TextStyle chordStyle,
     required TextStyle lyricStyle,
+    required TextStyle annotationStyle,
     required double maxWidth,
     required double lineHeight,
     required double chordHeight,
-    required Color chordTargetColor,
+    required Color primary,
     required Color surfaceColor,
     required Color onSurfaceColor,
     required Color contentColor,
     required Color onContentColor,
+    required Color secondary,
     required bool isEnabled,
     required Function(
       ContentToken,
@@ -180,7 +228,7 @@ class TokenizationBuilder {
                     tokens: tokens,
                     token: token,
                     tokenPositions: tokenPositions,
-                    chordTargetColor: chordTargetColor,
+                    chordTargetColor: primary,
                     chordStyle: chordStyle,
                     lyricStyle: lyricStyle,
                     maxWidth: maxWidth,
@@ -206,7 +254,7 @@ class TokenizationBuilder {
                     token: token,
                     tokenPositions: tokenPositions,
                     lineHeight: lineHeight,
-                    chordTargetColor: chordTargetColor,
+                    chordTargetColor: primary,
                     chordStyle: chordStyle,
                     lyricStyle: lyricStyle,
                     maxWidth: maxWidth,
@@ -229,7 +277,7 @@ class TokenizationBuilder {
                     tokens: tokens,
                     token: token,
                     tokenPositions: tokenPositions,
-                    chordTargetColor: chordTargetColor,
+                    chordTargetColor: primary,
                     chordStyle: chordStyle,
                     lyricStyle: lyricStyle,
                     maxWidth: maxWidth,
@@ -330,6 +378,36 @@ class TokenizationBuilder {
                 ),
               );
               break;
+            case TokenType.chordAnnotation:
+              wordWidgets.add(
+                TokenWidget(
+                  widget: buildDraggableChord(
+                    lineHeight: lineHeight,
+                    token: token,
+                    contentColor: secondary,
+                    onContentColor: onContentColor,
+                    chordStyle: annotationStyle,
+                    isEnabled: isEnabled,
+                    toggleDrag: toggleDrag,
+                  ),
+                  token: token,
+                ),
+              );
+            case TokenType.lyricAnnotation:
+              wordWidgets.add(
+                TokenWidget(
+                  widget: buildDraggableLyric(
+                    lineHeight: lineHeight,
+                    token: token,
+                    secondaryColor: secondary,
+                    onSecondary: onContentColor,
+                    annotationStyle: annotationStyle,
+                    isEnabled: isEnabled,
+                    toggleDrag: toggleDrag,
+                  ),
+                  token: token,
+                ),
+              );
           }
         }
         if (wordWidgets.isNotEmpty) {
@@ -383,6 +461,54 @@ class TokenizationBuilder {
             feedbackOffset: Offset(0, -lineHeight),
           )
         : chordWidget;
+  }
+
+  Widget buildDraggableLyric({
+    required double lineHeight,
+    required ContentToken token,
+    required Color secondaryColor,
+    required Color onSecondary,
+    required TextStyle annotationStyle,
+    required bool isEnabled,
+    required Function() toggleDrag,
+  }) {
+    // ChordTokens
+    final chordWidget = ChordToken(
+      token: token,
+      sectionColor: secondaryColor,
+      textColor: onSecondary,
+      chordStyle: annotationStyle,
+    );
+
+    final feedback = Container(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: secondaryColor.withValues(alpha: .5),
+      ),
+      width: 10,
+      height: 10,
+    );
+
+    // GestureDetector to handle long press to drag transition
+    return SizedBox(
+      height: lineHeight,
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        child: isEnabled
+            ? LongPressDraggable<ContentToken>(
+                data: token,
+                onDragStarted: toggleDrag,
+                onDragEnd: (details) => toggleDrag(),
+                feedback: Material(color: Colors.transparent, child: feedback),
+                childWhenDragging: SizedBox.shrink(),
+                child: chordWidget,
+                dragAnchorStrategy: (draggable, context, position) =>
+                    Offset(5, lineHeight),
+                feedbackOffset: Offset(0, -lineHeight),
+              )
+            : chordWidget,
+      ),
+    );
   }
 
   Widget _buildChordTarget({

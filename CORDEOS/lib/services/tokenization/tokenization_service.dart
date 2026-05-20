@@ -43,6 +43,7 @@ class TokenizationService {
         _ensureSeparators(lineTokens);
         _preHandling(lineTokens);
         _postHandling(lineTokens);
+        _ensureNoLyricAnnotationAfterChord(lineTokens);
 
         lineTokens.add(ContentToken(type: TokenType.newline, text: char));
 
@@ -58,17 +59,27 @@ class TokenizationService {
       } else if (char == '[') {
         // GROUP CHORD TOKEN
         index++;
-        String chordText = '';
-        while (index < content.length && content[index] != ']') {
-          chordText += content[index];
+        String bracketedText = '';
+        bool isAnnotation = false;
+        if (content[index] == '*') {
+          isAnnotation = true;
           index++;
         }
-        if (showChords) {
+
+        while (index < content.length && content[index] != ']') {
+          bracketedText += content[index];
+          index++;
+        }
+        if (isAnnotation) {
+          lineTokens.add(
+            ContentToken(type: TokenType.chordAnnotation, text: bracketedText),
+          );
+        } else if (showChords) {
           lineTokens.add(
             ContentToken(
               type: TokenType.chord,
               text: transposeChord(
-                Chord.fromString(chordText).string(
+                Chord.fromString(bracketedText).string(
                   showBass: showChordBass,
                   showAddedNote: showAddedNotes,
                 ),
@@ -76,6 +87,18 @@ class TokenizationService {
             ),
           );
         }
+      } else if (char == '{') {
+        // LYRIC ANNOTATION
+        index++;
+        String annotationText = '';
+
+        while (index < content.length && content[index] != '}') {
+          annotationText += content[index];
+          index++;
+        }
+        lineTokens.add(
+          ContentToken(type: TokenType.lyricAnnotation, text: annotationText),
+        );
       } else if (char == '<' && (showLyrics || showChords)) {
         lineTokens.add(ContentToken(type: TokenType.preSeparator, text: char));
       } else if (char == '>' && (showLyrics || showChords)) {
@@ -97,6 +120,7 @@ class TokenizationService {
       _ensureSeparators(lineTokens);
       _preHandling(lineTokens);
       _postHandling(lineTokens);
+      _ensureNoLyricAnnotationAfterChord(lineTokens);
       tokens.addAll(lineTokens);
     }
 
@@ -224,6 +248,20 @@ class TokenizationService {
     }
   }
 
+  void _ensureNoLyricAnnotationAfterChord(List<ContentToken> lineTokens) {
+    final iteratingLine = List<ContentToken>.from(lineTokens);
+
+    for (int i = 0; i < iteratingLine.length - 1; i++) {
+      final current = iteratingLine[i];
+      final next = iteratingLine[i + 1];
+      if (current.type == TokenType.chord &&
+          next.type == TokenType.lyricAnnotation) {
+        final chord = lineTokens.removeAt(i);
+        lineTokens.insert(i + 1, chord);
+      }
+    }
+  }
+
   /// Reconstructs the content string from a list of ContentTokens.
   ///
   /// Converts tokens back to ChordPro format with chords in brackets.
@@ -244,6 +282,10 @@ class TokenizationService {
         case TokenType.underline:
         case TokenType.postChordTarget:
           return ''; // Purely visual tokens - return empty string
+        case TokenType.chordAnnotation:
+          return '[*${token.text}]';
+        case TokenType.lyricAnnotation:
+          return '{${token.text}}';
       }
     }).join();
   }
@@ -272,6 +314,8 @@ class TokenizationService {
           currentWord.clear();
           break;
         case TokenType.space:
+        case TokenType.chordAnnotation:
+        case TokenType.lyricAnnotation:
           if (currentWord.isNotEmpty) {
             currentLine.add(TokenWord(List.from(currentWord)));
             currentWord.clear();
