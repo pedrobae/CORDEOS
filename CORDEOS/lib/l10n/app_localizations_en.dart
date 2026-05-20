@@ -996,7 +996,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get parsingStrategy => 'Parsing Strategy';
 
   @override
-  String get doubleNewLine => 'Empty Line';
+  String get emptyLine => 'Empty Line';
 
   @override
   String get sectionLabels => 'Section Labels';

@@ -54,7 +54,7 @@ class SectionProvider extends ChangeNotifier {
       versionID: versionKey is int ? versionKey : -1,
       contentColor: section.contentColor,
       contentType: section.contentType,
-      contentText: section.contentText
+      contentText: section.contentText,
     );
 
     _sections[newSection.versionID] ??= {};
@@ -217,16 +217,8 @@ class SectionProvider extends ChangeNotifier {
 
   // ===== SAVE =====
   /// Persist the data of the given version key to the database
-  Future<void> saveSections({dynamic versionID}) async {
+  Future<void> saveSections(int versionID) async {
     try {
-      if (versionID == null) {
-        throw Exception('No version key provided.');
-      }
-
-      if (versionID is String) {
-        throw Exception('Cannot save sections for non-local version.');
-      }
-
       for (final entry in _sections[versionID]!.entries) {
         await _repo.upsertSection(entry.value.copyWith(versionID: versionID));
       }

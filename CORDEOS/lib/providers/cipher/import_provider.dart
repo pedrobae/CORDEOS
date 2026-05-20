@@ -1,8 +1,47 @@
+import 'package:collection/collection.dart';
 import 'package:cordeos/models/domain/parsing_cipher.dart';
 import 'package:cordeos/models/dtos/pdf_dto.dart';
 import 'package:cordeos/services/import/spreadsheet_import_service.dart.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:cordeos/services/import/pdf_import_service.dart';
+
+class ImportFile extends PlatformFile {
+  ParsingStrategy parsingStrategy;
+  ImportVariation importVariation;
+  ImportType importType;
+
+  ImportFile({
+    required this.importType,
+    required this.parsingStrategy,
+    required this.importVariation,
+    required super.path,
+    required super.name,
+    required super.size,
+  });
+
+  @override
+  bool operator ==(Object other) {
+    return other is ImportFile &&
+        importType == other.importType &&
+        parsingStrategy == other.parsingStrategy &&
+        importVariation == other.importVariation &&
+        path == other.path &&
+        name == other.name &&
+        size == other.size;
+  }
+
+  @override
+  int get hashCode {
+    return (importType.hashCode +
+            parsingStrategy.hashCode +
+            importVariation.hashCode +
+            path.hashCode +
+            name.hashCode +
+            size.hashCode) ~/
+        6;
+  }
+}
 
 class ImportProvider extends ChangeNotifier {
   final PDFImportService _pdfService = PDFImportService();
@@ -12,44 +51,16 @@ class ImportProvider extends ChangeNotifier {
 
   /// Single ParsingCipher object that may contain multiple import variants
   bool _isImporting = false;
-  String? _filePath;
-  String? _fileName;
-  int? _fileSize;
+  List<ImportFile> _files = [];
   String? _error;
-  ImportType? _importType;
-  ParsingStrategy? _parsingStrategy;
-  ImportVariation? _importVariation;
 
-  String? get filePath => _filePath;
-  String? get fileName => _fileName;
-  String? get fileSize => _parseFileSize(_fileSize);
+  List<ImportFile> get files => _files;
   bool get isImporting => _isImporting;
   String? get error => _error;
-  ImportType? get importType => _importType;
-  ParsingStrategy? get parsingStrategy => _parsingStrategy;
-  ImportVariation? get importVariation => _importVariation;
 
-  /// Sets the import type (text, pdf, image).
-  void setImportType(ImportType type) {
-    _importType = type;
-  }
-
-  /// Toggles the parsing strategy between double new line and section labels.
-  void toggleParsingStrategy() {
-    _parsingStrategy = _parsingStrategy == ParsingStrategy.doubleNewLine
-        ? ParsingStrategy.sectionLabels
-        : ParsingStrategy.doubleNewLine;
-    notifyListeners();
-  }
-
-  void setParsingStrategy(ParsingStrategy strategy) {
-    _parsingStrategy = strategy;
-    notifyListeners();
-  }
-
-  void setImportVariation(ImportVariation variation) {
-    _importVariation = variation;
-    notifyListeners();
+  bool hasColumns(file) {
+    return files.firstWhereOrNull((file) => file == file)?.importVariation ==
+        ImportVariation.pdfWithColumns;
   }
 
   /// Imports text based on the selected import type.
@@ -64,100 +75,102 @@ class ImportProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      switch (_importType) {
-        case ImportType.text:
-          // Text import: single import variant (textDirect)
-          final import = ParsingCipher(
-            result: ParsingResult(
-              strategy: _parsingStrategy!,
-              rawText: data ?? '',
-            ),
-            importType: ImportType.text,
-          );
-
-          final rawLines = data?.split('\n') ?? [];
-          for (var i = 0; i < rawLines.length; i++) {
-            var line = rawLines[i];
-            // Split line text into words using whitespace as delimiter
-            List<String> words = line.split(RegExp(r'\s+')).toList();
-            import.result.lines.add(
-              LineData(wordCount: words.length, text: line, lineIndex: i),
-            );
-          }
-          imports.add(import);
-          break;
-
-        case ImportType.pdf:
-          // PDF import: multiple import variants (with/without columns)
-          final pdfDocument = await _pdfService.extractTextWithFormatting(
-            filePath!,
-            fileName!,
-            _importVariation == ImportVariation.pdfWithColumns,
-          );
-
-          final import = ParsingCipher(
-            importType: ImportType.pdf,
-            result: ParsingResult(
-              strategy: ParsingStrategy.pdfFormatting,
-              rawText: '',
-            ),
-          );
-
-          import.result.metadata['title'] = pdfDocument.documentName
-              .split('.') // remove file extension
-              .first;
-
-          final importedLines = pdfDocument.lines;
-
-          if (importedLines.isEmpty) {
-            throw Exception('No text lines were extracted from the PDF');
-          }
-
-          import.result.lines.addAll(importedLines);
-          imports.add(import);
-          break;
-
-        case ImportType.image:
-          // final text = await _imageService.extractText(filePath!);
-          // final import = ParsingCipher(
-          //   result: ParsingResult(
-          //     strategy: ParsingStrategy.pdfFormatting,
-          //     rawText: text,
-          //   ),
-          //   importType: ImportType.image,
-          // );
-          // imports.add(import);
-          break;
-        case ImportType.spreadSheet:
-          final data = await _spreadSheetService.extractData(filePath!);
-          for (final sheetLine in data) {
+      for (final file in files)
+        switch (file.importType) {
+          case ImportType.text:
+            // Text import: single import variant (textDirect)
             final import = ParsingCipher(
               result: ParsingResult(
-                strategy: ParsingStrategy.doubleNewLine,
-                rawText: sheetLine.content,
+                strategy: file.parsingStrategy,
+                rawText: data ?? '',
               ),
-              importType: ImportType.spreadSheet,
+              importType: ImportType.text,
             );
-            import.result.metadata.addAll(sheetLine.metadata);
-            final rawLines = sheetLine.content.split('\n');
+
+            final rawLines = data?.split('\n') ?? [];
             for (var i = 0; i < rawLines.length; i++) {
-              var sheetLine = rawLines[i];
+              var line = rawLines[i];
               // Split line text into words using whitespace as delimiter
-              List<String> words = sheetLine.split(RegExp(r'\s+')).toList();
+              List<String> words = line.split(RegExp(r'\s+')).toList();
               import.result.lines.add(
-                LineData(
-                  wordCount: words.length,
-                  text: sheetLine,
-                  lineIndex: i,
-                ),
+                LineData(wordCount: words.length, text: line, lineIndex: i),
               );
             }
             imports.add(import);
-          }
-          break;
-        case null:
-          throw Exception('Import type must be selected before importing');
-      }
+            break;
+
+          case ImportType.pdf:
+            // PDF import: multiple import variants (with/without columns)
+            for (final file in files) {
+              final pdfDocument = await _pdfService.extractTextWithFormatting(
+                file.path!,
+                file.name,
+                file.importVariation == ImportVariation.pdfWithColumns,
+              );
+              final import = ParsingCipher(
+                importType: ImportType.pdf,
+                result: ParsingResult(
+                  strategy: ParsingStrategy.pdfFormatting,
+                  rawText: '',
+                ),
+              );
+
+              import.result.metadata['title'] = pdfDocument.documentName
+                  .split('.') // remove file extension
+                  .first;
+
+              final importedLines = pdfDocument.lines;
+              if (importedLines.isEmpty) {
+                throw Exception('No text lines were extracted from the PDF');
+              }
+
+              import.result.lines.addAll(importedLines);
+              imports.add(import);
+            }
+
+            break;
+
+          case ImportType.image:
+            // final text = await _imageService.extractText(filePath!);
+            // final import = ParsingCipher(
+            //   result: ParsingResult(
+            //     strategy: ParsingStrategy.pdfFormatting,
+            //     rawText: text,
+            //   ),
+            //   importType: ImportType.image,
+            // );
+            // imports.add(import);
+            break;
+          case ImportType.spreadSheet:
+            final data = await _spreadSheetService.extractData(
+              files.first.path!,
+            );
+            for (final sheetLine in data) {
+              final import = ParsingCipher(
+                result: ParsingResult(
+                  strategy: ParsingStrategy.emptyLine,
+                  rawText: sheetLine.content,
+                ),
+                importType: ImportType.spreadSheet,
+              );
+              import.result.metadata.addAll(sheetLine.metadata);
+              final rawLines = sheetLine.content.split('\n');
+              for (var i = 0; i < rawLines.length; i++) {
+                var sheetLine = rawLines[i];
+                // Split line text into words using whitespace as delimiter
+                List<String> words = sheetLine.split(RegExp(r'\s+')).toList();
+                import.result.lines.add(
+                  LineData(
+                    wordCount: words.length,
+                    text: sheetLine,
+                    lineIndex: i,
+                  ),
+                );
+              }
+              imports.add(import);
+            }
+            break;
+        }
     } catch (e) {
       _error = e.toString();
     } finally {
@@ -168,22 +181,14 @@ class ImportProvider extends ChangeNotifier {
   }
 
   /// Sets the selected file name.
-  void setSelectedFile(String filePath, {int? fileSize, String? fileName}) {
-    _filePath = filePath;
-    _fileSize = fileSize;
-    _fileName = fileName;
+  void addFile(ImportFile file) {
+    _files.add(file);
     notifyListeners();
   }
 
   /// Clears the selected file name.
-  void clearSelectedFile() {
-    _filePath = null;
-    notifyListeners();
-  }
-
-  /// Clears the selected file name.
-  void clearSelectedFileName() {
-    _fileName = null;
+  void removeFileAt(int index) {
+    _files.removeAt(index);
     notifyListeners();
   }
 
@@ -195,24 +200,12 @@ class ImportProvider extends ChangeNotifier {
 
   void clearCache() {
     _isImporting = false;
-    _filePath = null;
-    _fileName = null;
+    _files = [];
     _error = null;
-    _importType = null;
-    _parsingStrategy = null;
-    _importVariation = null;
     notifyListeners();
   }
 
-  String? _parseFileSize(int? sizeInBytes) {
-    if (sizeInBytes == null) return null;
-    if (sizeInBytes < 1024) return '$sizeInBytes B';
-    if (sizeInBytes < 1024 * 1024) {
-      return '${(sizeInBytes / 1024).toStringAsFixed(2)} KB';
-    }
-    if (sizeInBytes < 1024 * 1024 * 1024) {
-      return '${(sizeInBytes / (1024 * 1024)).toStringAsFixed(2)} MB';
-    }
-    return '${(sizeInBytes / (1024 * 1024 * 1024)).toStringAsFixed(2)} GB';
+  void notify() {
+    notifyListeners();
   }
 }

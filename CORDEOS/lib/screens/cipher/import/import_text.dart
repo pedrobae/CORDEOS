@@ -34,18 +34,6 @@ class _ImportTextScreenState extends State<ImportTextScreen> {
   }
 
   @override
-  void initState() {
-    super.initState();
-    _importTextController.addListener(_onImportTextChanged);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ImportProvider>().setImportType(ImportType.text);
-      context.read<ImportProvider>().setParsingStrategy(
-        ParsingStrategy.doubleNewLine,
-      );
-    });
-  }
-
-  @override
   void dispose() {
     _importTextController.removeListener(_onImportTextChanged);
     _importTextController.dispose();
@@ -162,7 +150,7 @@ class _ImportTextScreenState extends State<ImportTextScreen> {
           children: [
             Expanded(
               child: Text(
-                AppLocalizations.of(context)!.doubleNewLine,
+                AppLocalizations.of(context)!.emptyLine,
                 style: textTheme.bodyMedium,
                 textAlign: TextAlign.left,
               ),
@@ -174,9 +162,14 @@ class _ImportTextScreenState extends State<ImportTextScreen> {
                 colorScheme.primary,
               ),
               thumbIcon: WidgetStatePropertyAll<Icon>(Icon(Icons.circle)),
-              value: imp.parsingStrategy == ParsingStrategy.sectionLabels,
+              value:
+                  imp.files.first.parsingStrategy ==
+                  ParsingStrategy.sectionLabels,
               onChanged: (value) {
-                imp.toggleParsingStrategy();
+                imp.files.first.parsingStrategy = value
+                    ? ParsingStrategy.sectionLabels
+                    : ParsingStrategy.emptyLine;
+                imp.notify();
               },
             ),
             Expanded(

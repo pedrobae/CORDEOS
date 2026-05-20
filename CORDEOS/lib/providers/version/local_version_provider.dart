@@ -240,9 +240,9 @@ class LocalVersionProvider extends ChangeNotifier {
 
     try {
       // Check if version exists by its firebaseId
-      final existingVersion = await _repo.getVersionWithFirebaseId(
-        version.firebaseID!,
-      );
+      final existingVersion = version.firebaseID != null
+          ? await _repo.getVersionWithFirebaseId(version.firebaseID!)
+          : null;
 
       if (existingVersion != null) {
         // Update existing version
@@ -252,6 +252,7 @@ class LocalVersionProvider extends ChangeNotifier {
       } else {
         // Insert new version
         versionId = await _repo.insertVersion(version);
+        _versions[versionId] = version.copyWith(id: versionId);
         debugPrint('Inserted new version with id: $versionId');
       }
     } catch (e) {

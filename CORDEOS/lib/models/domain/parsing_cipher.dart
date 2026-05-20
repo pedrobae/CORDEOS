@@ -31,14 +31,14 @@ extension ImportVariationExtension on ImportVariation {
 }
 
 /// Available parsing strategies for converting imported text to cipher sections
-enum ParsingStrategy { doubleNewLine, sectionLabels, pdfFormatting }
+enum ParsingStrategy { emptyLine, sectionLabels, pdfFormatting }
 
 // extension to get localized string names
 extension ParsingStrategyExtension on ParsingStrategy {
   String getName(BuildContext context) {
     switch (this) {
-      case ParsingStrategy.doubleNewLine:
-        return AppLocalizations.of(context)!.doubleNewLine;
+      case ParsingStrategy.emptyLine:
+        return AppLocalizations.of(context)!.emptyLine;
       case ParsingStrategy.sectionLabels:
         return AppLocalizations.of(context)!.sectionLabels;
       case ParsingStrategy.pdfFormatting:
@@ -50,10 +50,7 @@ extension ParsingStrategyExtension on ParsingStrategy {
 /// Mapping of import type to their applicable parsing strategies
 Map<ImportType, List<ParsingStrategy>> importTypeToParsingStrategies = {
   ImportType.pdf: [ParsingStrategy.pdfFormatting],
-  ImportType.text: [
-    ParsingStrategy.doubleNewLine,
-    ParsingStrategy.sectionLabels,
-  ],
+  ImportType.text: [ParsingStrategy.emptyLine, ParsingStrategy.sectionLabels],
   ImportType.image: [],
 };
 

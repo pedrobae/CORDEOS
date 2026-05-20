@@ -15,7 +15,7 @@ class ParsingServiceBase {
 
   void parseSections(ParsingResult result) {
     switch (result.strategy) {
-      case ParsingStrategy.doubleNewLine:
+      case ParsingStrategy.emptyLine:
         sectionParser.parseByEmptyLine(result);
         break;
       case ParsingStrategy.sectionLabels:
@@ -29,7 +29,7 @@ class ParsingServiceBase {
 
   void parseChords(ParsingResult result) {
     switch (result.strategy) {
-      case ParsingStrategy.doubleNewLine:
+      case ParsingStrategy.emptyLine:
       case ParsingStrategy.sectionLabels:
         chordLineParser.parseBySimpleText(result);
         break;

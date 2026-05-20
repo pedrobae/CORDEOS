@@ -263,7 +263,7 @@ class _EditCipherScreenState extends State<EditCipherScreen>
         await ciph.saveCipher(widget.cipherID);
       }
       await localVer.saveVersion(versionID: widget.versionID);
-      await sect.saveSections(versionID: widget.versionID);
+      await sect.saveSections(widget.versionID);
     }
   }
 

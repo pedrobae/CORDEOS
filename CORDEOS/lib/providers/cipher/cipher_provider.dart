@@ -1,11 +1,12 @@
 import 'dart:async';
+import 'package:cordeos/models/dtos/version_dto.dart';
 import 'package:cordeos/services/key_recognizer_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:cordeos/models/domain/cipher/cipher.dart';
 import 'package:cordeos/repositories/local/cipher_repository.dart';
 
 class CipherProvider extends ChangeNotifier {
-  final CipherRepository _cipherRepository = CipherRepository();
+  final CipherRepository _repo = CipherRepository();
   final KeyRecognizerService _recognizer = KeyRecognizerService();
 
   CipherProvider() {
@@ -73,7 +74,7 @@ class CipherProvider extends ChangeNotifier {
 
     try {
       // Insert basic cipher info and tags
-      cipherId = await _cipherRepository.insertPrunedCipher(_ciphers[-1]!);
+      cipherId = await _repo.insertPrunedCipher(_ciphers[-1]!);
 
       _ciphers[cipherId] = _ciphers[-1]!.copyWith(id: cipherId);
       debugPrint('CIPHER - Created a new cipher with id $cipherId');
@@ -88,6 +89,36 @@ class CipherProvider extends ChangeNotifier {
     return cipherId;
   }
 
+  /// Inserts or updates a cipher from a versionDTO, using in importing,
+  /// 'code is mirrored from sync service'
+  Future<int> upsertVersionDto(VersionDto dto) async {
+    int? cipherId;
+    try {
+      /// Ensure cipher exists and is up to date
+      cipherId = await _repo.getCipherIdByTitleAuthor(
+        title: dto.title,
+        author: dto.author,
+      );
+
+      if (cipherId == null) {
+        // Cipher doesn't exist locally, insert it
+        cipherId = await _repo.insertPrunedCipher(Cipher.fromVersionDto(dto));
+        _ciphers[cipherId] = Cipher.fromVersionDto(dto).copyWith(id: cipherId);
+      } else {
+        // Cipher exists, merge it
+        final existingCipher = await _repo.getCipherById(cipherId);
+        final mergedCipher = existingCipher!.mergeWith(
+          Cipher.fromVersionDto(dto).copyWith(id: cipherId),
+        );
+        await _repo.updateCipher(mergedCipher);
+      }
+    } catch (e) {
+      debugPrint("CIPHER PROVIDER - error upserting version dto");
+    }
+    notifyListeners();
+    return cipherId!;
+  }
+
   void setNewCipherInCache(Cipher cipher) {
     _ciphers[-1] = cipher;
     _hasUnsavedChanges = true;
@@ -99,11 +130,11 @@ class CipherProvider extends ChangeNotifier {
   Future<void> ensureIsLoaded(int cipherID) async {
     if (ciphers[cipherID] != null) return;
     try {
-      Cipher loadedCipher = (await _cipherRepository.getCipherById(cipherID))!;
+      Cipher loadedCipher = (await _repo.getCipherById(cipherID))!;
       if (loadedCipher.musicKey.isEmpty) {
         final recognizedKey = await _recognizer.recognizeKeyLocal(cipherID);
         loadedCipher = loadedCipher.copyWith(musicKey: recognizedKey);
-        await _cipherRepository.updateCipher(loadedCipher);
+        await _repo.updateCipher(loadedCipher);
       }
 
       _ciphers[cipherID] = loadedCipher;
@@ -124,13 +155,13 @@ class CipherProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final prunedCiphers = await _cipherRepository.getAllCiphersPruned();
+      final prunedCiphers = await _repo.getAllCiphersPruned();
 
       for (var cipher in prunedCiphers) {
         if (cipher.musicKey.isEmpty) {
           final recognizedKey = await _recognizer.recognizeKeyLocal(cipher.id);
           cipher = cipher.copyWith(musicKey: recognizedKey);
-          await _cipherRepository.updateCipher(cipher);
+          await _repo.updateCipher(cipher);
         }
         _ciphers[cipher.id] = cipher;
       }
@@ -155,11 +186,11 @@ class CipherProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      Cipher loadedCipher = (await _cipherRepository.getCipherById(cipherId))!;
+      Cipher loadedCipher = (await _repo.getCipherById(cipherId))!;
       if (loadedCipher.musicKey.isEmpty) {
         final recognizedKey = await _recognizer.recognizeKeyLocal(cipherId);
         loadedCipher = loadedCipher.copyWith(musicKey: recognizedKey);
-        await _cipherRepository.updateCipher(loadedCipher);
+        await _repo.updateCipher(loadedCipher);
       }
 
       _ciphers[cipherId] = loadedCipher;
@@ -194,9 +225,9 @@ class CipherProvider extends ChangeNotifier {
           .id;
 
       if (cipherId != -1) {
-        await _cipherRepository.updateCipher(cipher.copyWith(id: cipherId));
+        await _repo.updateCipher(cipher.copyWith(id: cipherId));
       } else {
-        cipherId = await _cipherRepository.insertPrunedCipher(cipher);
+        cipherId = await _repo.insertPrunedCipher(cipher);
       }
 
       debugPrint(
@@ -222,7 +253,7 @@ class CipherProvider extends ChangeNotifier {
 
     try {
       // Update basic cipher info and tags
-      await _cipherRepository.updateCipher(_ciphers[cipherId]!);
+      await _repo.updateCipher(_ciphers[cipherId]!);
     } catch (e) {
       _error = e.toString();
       debugPrint('CIPHER - Error saving cipher: $e');
@@ -287,7 +318,7 @@ class CipherProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _cipherRepository.deleteCipher(cipherID);
+      await _repo.deleteCipher(cipherID);
       // Reload all ciphers to reflect the deletion
       _ciphers.remove(cipherID);
     } catch (e) {

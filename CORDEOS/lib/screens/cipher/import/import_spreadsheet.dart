@@ -1,6 +1,9 @@
+import 'package:cordeos/models/domain/cipher/section.dart';
+import 'package:cordeos/providers/cipher/cipher_provider.dart';
 import 'package:cordeos/providers/cipher/parser_provider.dart';
+import 'package:cordeos/providers/section/section_provider.dart';
+import 'package:cordeos/providers/version/local_version_provider.dart';
 import 'package:cordeos/screens/cipher/import/batch_staging.dart';
-import 'package:cordeos/services/sync_service.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:cordeos/l10n/app_localizations.dart';
@@ -24,19 +27,23 @@ class _ImportPdfScreenState extends State<ImportSpreadSheetScreen> {
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
-        allowedExtensions: ['csv', 'xlsx'],
+        allowedExtensions: ['csv', 'xlsx', 'gsheet'],
         allowMultiple: false,
       );
 
       // User selected a file
       if (result != null && result.files.isNotEmpty) {
-        final path = result.files.first.path;
-
+        final file = result.files.first;
         if (mounted) {
-          context.read<ImportProvider>().setSelectedFile(
-            path!,
-            fileName: result.files.first.name,
-            fileSize: result.files.first.size,
+          context.read<ImportProvider>().addFile(
+            ImportFile(
+              importType: ImportType.spreadSheet,
+              parsingStrategy: ParsingStrategy.emptyLine,
+              importVariation: ImportVariation.textDirect,
+              path: file.path,
+              name: file.name,
+              size: file.size,
+            ),
           );
         }
       }
@@ -55,6 +62,17 @@ class _ImportPdfScreenState extends State<ImportSpreadSheetScreen> {
         );
       }
     }
+  }
+
+  String _parseFileSize(int sizeInBytes) {
+    if (sizeInBytes < 1024) return '$sizeInBytes B';
+    if (sizeInBytes < 1024 * 1024) {
+      return '${(sizeInBytes / 1024).toStringAsFixed(2)} KB';
+    }
+    if (sizeInBytes < 1024 * 1024 * 1024) {
+      return '${(sizeInBytes / (1024 * 1024)).toStringAsFixed(2)} MB';
+    }
+    return '${(sizeInBytes / (1024 * 1024 * 1024)).toStringAsFixed(2)} GB';
   }
 
   @override
@@ -98,17 +116,10 @@ class _ImportPdfScreenState extends State<ImportSpreadSheetScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return Selector<
-      ImportProvider,
-      ({String? filePath, String? fileName, String? fileSize})
-    >(
-      selector: (context, imp) => (
-        filePath: imp.filePath,
-        fileName: imp.fileName,
-        fileSize: imp.fileSize,
-      ),
-      builder: (context, s, child) {
-        if (s.fileName == null) {
+    return Selector<ImportProvider, PlatformFile?>(
+      selector: (context, imp) => imp.files.firstOrNull,
+      builder: (context, file, child) {
+        if (file == null) {
           return _buildSelectFileButton();
         } else {
           return Container(
@@ -128,13 +139,13 @@ class _ImportPdfScreenState extends State<ImportSpreadSheetScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        s.fileName!,
+                        file.name,
                         style: textTheme.titleSmall,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
                       Text(
-                        s.fileSize ?? '',
+                        _parseFileSize(file.size),
                         style: textTheme.bodySmall,
                         maxLines: 1,
                       ),
@@ -242,8 +253,7 @@ class _ImportPdfScreenState extends State<ImportSpreadSheetScreen> {
           )
         else
           Selector<ImportProvider, bool>(
-            selector: (context, imp) =>
-                (imp.filePath == null || imp.isImporting),
+            selector: (context, imp) => (imp.files.isEmpty || imp.isImporting),
             builder: (context, enabled, child) {
               return FilledTextButton(
                 isDark: true,
@@ -260,10 +270,12 @@ class _ImportPdfScreenState extends State<ImportSpreadSheetScreen> {
   VoidCallback _processAndNavigate() {
     final imp = context.read<ImportProvider>();
     final par = context.read<ParserProvider>();
+    final ciph = context.read<CipherProvider>();
+    final localVer = context.read<LocalVersionProvider>();
+    final sect = context.read<SectionProvider>();
     final nav = context.read<NavigationProvider>();
 
     return () async {
-      imp.setImportType(ImportType.spreadSheet);
       final imports = await imp.importText();
       if (imports.isEmpty) {
         throw Exception('Failed to import text from PDF');
@@ -273,8 +285,22 @@ class _ImportPdfScreenState extends State<ImportSpreadSheetScreen> {
       for (final import in imports) {
         final song = await par.parseCipher(import);
         if (song != null) {
-          final id = await ScheduleSyncService().upsertVersion(song);
-          versionIDs.add(id);
+          // CREATE NEW SONG
+          final cipherID = await ciph.upsertVersionDto(song);
+          final versionID = await localVer.upsertVersion(
+            song.toDomain(cipherId: cipherID),
+          );
+          versionIDs.add(versionID);
+
+          sect.setNewSectionsInCache(
+            versionID,
+            song.sections.map(
+              (code, section) =>
+                  MapEntry(code, Section.fromFirestore(section, versionID)),
+            ),
+          );
+
+          await sect.saveSections(versionID);
         }
       }
 
@@ -294,8 +320,7 @@ class _ImportPdfScreenState extends State<ImportSpreadSheetScreen> {
     final imp = context.read<ImportProvider>();
 
     return () {
-      imp.clearSelectedFile();
-      imp.clearSelectedFileName();
+      imp.removeFileAt(0);
       imp.clearError();
     };
   }

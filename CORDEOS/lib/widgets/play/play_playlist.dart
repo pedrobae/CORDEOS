@@ -579,7 +579,7 @@ class _PlayPlaylistState extends State<PlayPlaylist> {
           case PlaylistItemType.version:
             // Save version changes
             localVer.saveVersion(versionID: item.contentId!);
-            sect.saveSections(versionID: item.contentId!);
+            sect.saveSections(item.contentId!);
             break;
           case PlaylistItemType.flowItem:
             // Cant edit flow items from here, only manage version maps

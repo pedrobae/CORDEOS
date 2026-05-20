@@ -1890,7 +1890,7 @@ abstract class AppLocalizations {
   ///
   /// In pt, this message translates to:
   /// **'Linha Vazia'**
-  String get doubleNewLine;
+  String get emptyLine;
 
   /// Parsing strategy option for section labels
   ///

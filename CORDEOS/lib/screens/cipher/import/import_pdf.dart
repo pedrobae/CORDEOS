@@ -1,4 +1,5 @@
 import 'package:cordeos/l10n/app_localizations.dart';
+import 'package:cordeos/models/domain/cipher/section.dart';
 import 'package:cordeos/models/domain/cipher/version.dart';
 import 'package:cordeos/models/domain/parsing_cipher.dart';
 import 'package:cordeos/providers/cipher/cipher_provider.dart';
@@ -8,7 +9,6 @@ import 'package:cordeos/providers/section/section_provider.dart';
 import 'package:cordeos/providers/version/local_version_provider.dart';
 import 'package:cordeos/screens/cipher/edit_cipher.dart';
 import 'package:cordeos/screens/cipher/import/batch_staging.dart';
-import 'package:cordeos/services/sync_service.dart';
 import 'package:cordeos/widgets/common/filled_text_button.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
@@ -25,17 +25,15 @@ class ImportPdfScreen extends StatefulWidget {
 }
 
 class _ImportPdfScreenState extends State<ImportPdfScreen> {
-  @override
-  void initState() {
-    super.initState();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        final imp = context.read<ImportProvider>();
-        imp.setImportType(ImportType.pdf);
-        imp.setImportVariation(ImportVariation.pdfNoColumns);
-      }
-    });
+  String _parseFileSize(int sizeInBytes) {
+    if (sizeInBytes < 1024) return '$sizeInBytes B';
+    if (sizeInBytes < 1024 * 1024) {
+      return '${(sizeInBytes / 1024).toStringAsFixed(2)} KB';
+    }
+    if (sizeInBytes < 1024 * 1024 * 1024) {
+      return '${(sizeInBytes / (1024 * 1024)).toStringAsFixed(2)} MB';
+    }
+    return '${(sizeInBytes / (1024 * 1024 * 1024)).toStringAsFixed(2)} GB';
   }
 
   /// Opens file picker and allows user to select a PDF file
@@ -44,19 +42,24 @@ class _ImportPdfScreenState extends State<ImportPdfScreen> {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf', 'doc', 'docx'],
-        allowMultiple: false,
+        allowMultiple: true,
       );
 
       // User selected a file
       if (result != null && result.files.isNotEmpty) {
-        final path = result.files.first.path;
-
-        if (mounted) {
-          context.read<ImportProvider>().setSelectedFile(
-            path!,
-            fileName: result.files.first.name,
-            fileSize: result.files.first.size,
-          );
+        for (final file in result.files) {
+          if (mounted) {
+            context.read<ImportProvider>().addFile(
+              ImportFile(
+                importType: ImportType.pdf,
+                parsingStrategy: ParsingStrategy.pdfFormatting,
+                importVariation: ImportVariation.pdfWithColumns,
+                path: file.path,
+                name: file.name,
+                size: file.size,
+              ),
+            );
+          }
         }
       }
       // If result is null, user canceled - do nothing
@@ -78,37 +81,58 @@ class _ImportPdfScreenState extends State<ImportPdfScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final nav = Provider.of<NavigationProvider>(context, listen: false);
-    final localVer = Provider.of<LocalVersionProvider>(context, listen: false);
-    final ciph = Provider.of<CipherProvider>(context, listen: false);
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
-    return Consumer2<ImportProvider, ParserProvider>(
-      builder: (context, imp, par, child) {
-        return Scaffold(
-          appBar: _buildAppBar(nav),
-          body: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              spacing: 16,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _buildFileSelectionSection(imp),
-                const SizedBox(height: 16),
-                _buildColumnsToggle(imp),
-                if (imp.error != null) _buildErrorDisplay(imp),
-                const Spacer(),
-                _buildImportInstructions(),
-                _buildActionButtons(imp, par, nav, localVer, ciph),
-              ],
+    return Scaffold(
+      appBar: _buildAppBar(),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          spacing: 16,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildSelectFileButton(),
+            _buildFiles(),
+            const SizedBox(height: 16),
+
+            Selector<ImportProvider, String?>(
+              selector: (context, imp) => imp.error,
+              builder: (context, error, child) {
+                if (error != null)
+                  return Card(
+                    color: colorScheme.errorContainer,
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.error_outline,
+                            color: colorScheme.onErrorContainer,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(error, style: textTheme.bodySmall),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                return _buildImportInstructions();
+              },
             ),
-          ),
-        );
-      },
+            _buildActionButtons(),
+          ],
+        ),
+      ),
     );
   }
 
-  AppBar _buildAppBar(NavigationProvider nav) {
+  AppBar _buildAppBar() {
     final textTheme = Theme.of(context).textTheme;
+
+    final nav = context.read<NavigationProvider>();
+
     return AppBar(
       title: Text(
         AppLocalizations.of(context)!.importFromPDF,
@@ -118,118 +142,101 @@ class _ImportPdfScreenState extends State<ImportPdfScreen> {
     );
   }
 
-  Widget _buildFileSelectionSection(ImportProvider imp) {
-    return imp.filePath != null
-        ? _buildSelectedFileDisplay(imp)
-        : _buildSelectFileButton(imp);
-  }
-
-  Widget _buildSelectedFileDisplay(ImportProvider imp) {
+  Widget _buildFiles() {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(0),
-        border: Border.all(color: colorScheme.onSurface, width: 1),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-      child: Row(
-        spacing: 8,
-        children: [
-          Icon(
-            Icons.picture_as_pdf_rounded,
-            size: 24,
-            color: colorScheme.shadow,
-          ),
-          Expanded(
-            child: Column(
-              spacing: 4,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  imp.fileName!,
-                  style: textTheme.titleSmall,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  imp.fileSize ?? '',
-                  style: textTheme.bodySmall,
-                  maxLines: 1,
-                ),
-              ],
-            ),
-          ),
-          GestureDetector(
-            onTap: () => _clearSelectedFile(imp),
-            child: Container(
+    return Expanded(
+      child: Selector<ImportProvider, List<ImportFile>>(
+        selector: (context, imp) => [...imp.files],
+        builder: (context, files, child) => ListView.builder(
+          itemCount: files.length,
+          itemBuilder: (context, index) {
+            final file = files[index];
+            return Container(
               decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: colorScheme.shadow,
-              ),
-              width: 20,
-              height: 20,
-              child: Icon(
-                Icons.close_rounded,
                 color: colorScheme.surfaceContainerHighest,
-                size: 18,
+                borderRadius: BorderRadius.circular(0),
+                border: Border.all(color: colorScheme.onSurface, width: 1),
               ),
-            ),
-          ),
-        ],
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+              margin: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                spacing: 8,
+                children: [
+                  Icon(
+                    Icons.picture_as_pdf_rounded,
+                    size: 24,
+                    color: colorScheme.shadow,
+                  ),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        spacing: 4,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            file.name,
+                            style: textTheme.titleSmall,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            _parseFileSize(file.size),
+                            style: textTheme.bodySmall,
+                            maxLines: 1,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Icon(Icons.view_column),
+                  Selector<ImportProvider, bool>(
+                    selector: (context, imp) => imp.hasColumns(file),
+                    builder: (context, hasColumns, child) {
+                      return Switch(
+                        value: hasColumns,
+                        onChanged: (value) {
+                          file.importVariation = value
+                              ? ImportVariation.pdfWithColumns
+                              : ImportVariation.pdfNoColumns;
+                          context.read<ImportProvider>().notify();
+                        },
+                      );
+                    },
+                  ),
+                  GestureDetector(
+                    onTap: () => _clearSelectedFile(index),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: colorScheme.shadow,
+                      ),
+                      width: 20,
+                      height: 20,
+                      child: Icon(
+                        Icons.close_rounded,
+                        color: colorScheme.surfaceContainerHighest,
+                        size: 18,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }
 
-  Widget _buildSelectFileButton(ImportProvider imp) {
+  Widget _buildSelectFileButton() {
+    final imp = context.read<ImportProvider>();
+
     return FilledTextButton(
       onPressed: () => imp.isImporting ? null : _pickPdfFile(),
       text: AppLocalizations.of(context)!.selectFile,
       isDark: true,
-    );
-  }
-
-  Widget _buildColumnsToggle(ImportProvider imp) {
-    final textTheme = Theme.of(context).textTheme;
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          AppLocalizations.of(context)!.hasColumns,
-          style: textTheme.titleMedium,
-        ),
-        Switch(
-          value: imp.importVariation == ImportVariation.pdfWithColumns,
-          onChanged: (value) {
-            imp.setImportVariation(
-              value
-                  ? ImportVariation.pdfWithColumns
-                  : ImportVariation.pdfNoColumns,
-            );
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildErrorDisplay(ImportProvider imp) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return Card(
-      color: colorScheme.errorContainer,
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Row(
-          children: [
-            Icon(Icons.error_outline, color: colorScheme.onErrorContainer),
-            const SizedBox(width: 12),
-            Expanded(child: Text(imp.error!, style: textTheme.bodySmall)),
-          ],
-        ),
-      ),
     );
   }
 
@@ -266,46 +273,52 @@ class _ImportPdfScreenState extends State<ImportPdfScreen> {
     );
   }
 
-  Widget _buildActionButtons(
-    ImportProvider imp,
-    ParserProvider par,
-    NavigationProvider nav,
-    LocalVersionProvider localVer,
-    CipherProvider ciph,
-  ) {
+  Widget _buildActionButtons() {
     final colorScheme = Theme.of(context).colorScheme;
-    return Column(
-      spacing: 8,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        if (par.isParsing)
-          CircularProgressIndicator(
-            color: colorScheme.primary,
-            backgroundColor: colorScheme.surfaceContainer,
-          )
-        else
-          FilledTextButton(
-            isDark: true,
-            isDisabled:
-                (imp.filePath == null ||
-                imp.isImporting ||
-                imp.importVariation == null),
-            onPressed: _processAndNavigate(),
-            text: AppLocalizations.of(context)!.processPDF,
-          ),
-        FilledTextButton(
-          isDark: false,
-          text: AppLocalizations.of(context)!.cancel,
-          onPressed: () => _handleCancel(imp, nav),
-        ),
-      ],
+
+    return Selector2<
+      ParserProvider,
+      ImportProvider,
+      ({bool isParsing, bool isImporting, bool isEmpty})
+    >(
+      selector: (context, par, imp) {
+        return (
+          isImporting: imp.isImporting,
+          isParsing: par.isParsing,
+          isEmpty: imp.files.isEmpty,
+        );
+      },
+      builder: (context, s, child) {
+        return Column(
+          spacing: 8,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (s.isParsing)
+              CircularProgressIndicator(
+                color: colorScheme.primary,
+                backgroundColor: colorScheme.surfaceContainer,
+              )
+            else
+              FilledTextButton(
+                isDark: true,
+                isDisabled: (s.isEmpty || s.isImporting),
+                onPressed: _processAndNavigate(),
+                text: AppLocalizations.of(context)!.processPDF,
+              ),
+            FilledTextButton(
+              isDark: false,
+              text: AppLocalizations.of(context)!.cancel,
+              onPressed: () => _handleCancel(),
+            ),
+          ],
+        );
+      },
     );
   }
 
-  void _clearSelectedFile(ImportProvider imp) {
-    imp.clearSelectedFile();
-    imp.clearSelectedFileName();
-    imp.clearError();
+  void _clearSelectedFile(int index) {
+    final imp = context.read<ImportProvider>();
+    imp.removeFileAt(index);
   }
 
   VoidCallback _processAndNavigate() {
@@ -325,7 +338,8 @@ class _ImportPdfScreenState extends State<ImportPdfScreen> {
       for (final import in imports) {
         final song = await par.parseCipher(import);
         if (song != null) {
-          if (widget.cipherID != -1) {
+          if (widget.versionID != -1) {
+            // MERGE SECTIONS WITH EXISTING SONG
             final sections = song.sections.map(
               (key, value) => MapEntry(key, value.toDomain()),
             );
@@ -335,8 +349,22 @@ class _ImportPdfScreenState extends State<ImportPdfScreen> {
             }
             versionIDs.add(widget.versionID);
           } else {
-            final id = await ScheduleSyncService().upsertVersion(song);
-            versionIDs.add(id);
+            // CREATE NEW SONG
+            final cipherID = await ciph.upsertVersionDto(song);
+            final versionID = await localVer.upsertVersion(
+              song.toDomain(cipherId: cipherID),
+            );
+            versionIDs.add(versionID);
+
+            sect.setNewSectionsInCache(
+              versionID,
+              song.sections.map(
+                (code, section) =>
+                    MapEntry(code, Section.fromFirestore(section, versionID)),
+              ),
+            );
+
+            await sect.saveSections(versionID);
           }
         }
       }
@@ -373,7 +401,9 @@ class _ImportPdfScreenState extends State<ImportPdfScreen> {
     };
   }
 
-  void _handleCancel(ImportProvider imp, NavigationProvider nav) {
+  void _handleCancel() {
+    final nav = context.read<NavigationProvider>();
+    final imp = context.read<ImportProvider>();
     imp.clearCache();
     nav.attemptPop(context);
   }

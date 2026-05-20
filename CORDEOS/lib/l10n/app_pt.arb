@@ -1284,8 +1284,8 @@
   "@parsingStrategy": {
     "description": "Title for parsing strategy selection"
   },
-  "doubleNewLine": "Linha Vazia",
-  "@doubleNewLine": {
+  "emptyLine": "Linha Vazia",
+  "@emptyLine": {
     "description": "Parsing strategy option for double new lines"
   },
   "sectionLabels": "Rótulos de Seção",

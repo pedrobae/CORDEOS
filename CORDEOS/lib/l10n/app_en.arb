@@ -1292,8 +1292,8 @@
   "@parsingStrategy": {
     "description": "Title for parsing strategy selection"
   },
-  "doubleNewLine": "Empty Line",
-  "@doubleNewLine": {
+  "emptyLine": "Empty Line",
+  "@emptyLine": {
     "description": "Parsing strategy option for double new lines"
   },
   "sectionLabels": "Section Labels",

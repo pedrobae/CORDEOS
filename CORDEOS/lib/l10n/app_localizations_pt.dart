@@ -1001,7 +1001,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get parsingStrategy => 'Estratégia de Processamento';
 
   @override
-  String get doubleNewLine => 'Linha Vazia';
+  String get emptyLine => 'Linha Vazia';
 
   @override
   String get sectionLabels => 'Rótulos de Seção';
