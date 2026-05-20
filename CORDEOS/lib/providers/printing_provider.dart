@@ -234,6 +234,8 @@ class PrintingProvider extends ChangeNotifier {
     showDuration = PrintCacheService.getShowDuration();
     showSectionLabels = PrintCacheService.getShowLabel();
     showChords = PrintCacheService.getShowChords();
+    showChordBass = PrintCacheService.getShowChordBass();
+    showAddedNotes = PrintCacheService.getShowAddedNotes();
     // TODO CHORD CUSTOMIZATION ON PRINT
     showLyrics = PrintCacheService.getShowLyrics();
     // Layout settings
@@ -655,7 +657,19 @@ class PrintingProvider extends ChangeNotifier {
 
   Future<void> toggleLyrics() async {
     showLyrics = !showLyrics;
-    await PrintCacheService.setShowLyrics(showChords);
+    await PrintCacheService.setShowLyrics(showLyrics);
+    notifyListeners();
+  }
+
+  Future<void> toggleChordBass() async {
+    showChordBass = !showChordBass;
+    await PrintCacheService.setShowChordBass(showChordBass);
+    notifyListeners();
+  }
+
+  Future<void> toggleAddedNotes() async {
+    showAddedNotes = !showAddedNotes;
+    await PrintCacheService.setShowAddedNotes(showAddedNotes);
     notifyListeners();
   }
 

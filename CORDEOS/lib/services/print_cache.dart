@@ -20,6 +20,8 @@ class PrintCacheService {
 
   static const String _keyShowLabel = 'print_show_labels';
 
+  static const String _keyShowChordBass = 'print_show_chord_bass';
+  static const String _keyShowAddedNotes = 'print_show_added_notes';
   static const String _keyShowChords = 'print_show_chords';
   static const String _keyShowLyrics = 'print_show_lyrics';
 
@@ -107,6 +109,22 @@ class PrintCacheService {
 
   static bool getShowDuration() {
     return _preferences.getBool(_keyShowDuration) ?? true;
+  }
+
+  static Future<void> setShowChordBass(bool show) async {
+    await _preferences.setBool(_keyShowChordBass, show);
+  }
+
+  static bool getShowChordBass() {
+    return _preferences.getBool(_keyShowChordBass) ?? true;
+  }
+
+  static Future<void> setShowAddedNotes(bool show) async {
+    await _preferences.setBool(_keyShowAddedNotes, show);
+  }
+
+  static bool getShowAddedNotes() {
+    return _preferences.getBool(_keyShowAddedNotes) ?? true;
   }
 
   static Future<void> setShowChords(bool show) async {

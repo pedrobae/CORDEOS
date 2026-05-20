@@ -85,7 +85,8 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
 
     if (widget.versionDto != null) {
       originalKey = widget.versionDto!.originalKey;
-      transposedKey = widget.versionDto!.overwriteKey ?? widget.versionDto!.transposedKey;
+      transposedKey =
+          widget.versionDto!.overwriteKey ?? widget.versionDto!.transposedKey;
     } else {
       final cipher = ciph.getCipher(widget.cipherID!);
       final version = localVer.getVersion(widget.versionID!);
@@ -216,10 +217,7 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
         backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
         context: context,
         isScrollControlled: true,
-        builder: (context) => BottomSheet(
-          onClosing: () {},
-          builder: (context) => const ContentFilters(),
-        ),
+        builder: (context) => ContentFilters(),
       );
     };
   }

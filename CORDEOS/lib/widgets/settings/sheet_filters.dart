@@ -1,11 +1,18 @@
+import 'package:cordeos/helpers/chords.dart';
 import 'package:cordeos/l10n/app_localizations.dart';
 import 'package:cordeos/providers/settings/layout_settings_provider.dart';
-import 'package:cordeos/widgets/settings/chord_customization.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class ContentFilters extends StatelessWidget {
+class ContentFilters extends StatefulWidget {
   const ContentFilters({super.key});
+
+  @override
+  State<ContentFilters> createState() => _ContentFiltersState();
+}
+
+class _ContentFiltersState extends State<ContentFilters> {
+  bool showChordCustomization = false;
 
   @override
   Widget build(BuildContext context) {
@@ -39,31 +46,8 @@ class ContentFilters extends StatelessWidget {
               ),
 
               // FILTERS
-              GestureDetector(
-                onTap: () {
-                  Navigator.of(context).pop();
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    builder: (context) => ChordCustomization(),
-                  );
-                },
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(0),
-                    border: Border.all(
-                      color: colorScheme.surfaceContainerLowest,
-                      width: 1,
-                    ),
-                  ),
-                  child: _buildFilterToggle(
-                    textTheme,
-                    label: l10n.chords,
-                    value: settings.showChords,
-                    onChanged: (_) => settings.toggleChords(),
-                  ),
-                ),
-              ),
+              _buildChordSettings(context),
+
               _buildFilterToggle(
                 textTheme,
                 label: l10n.repeatSections,
@@ -93,6 +77,113 @@ class ContentFilters extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildChordSettings(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
+    final textTheme = Theme.of(context).textTheme;
+
+    final laySet = context.read<LayoutSetProvider>();
+
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHigh,
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.shadow,
+            offset: Offset(2, 2),
+            blurRadius: 2,
+          ),
+        ],
+      ),
+      child: AnimatedSize(
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeInOut,
+        alignment: Alignment.topCenter,
+        child: showChordCustomization
+            ? Column(
+                key: const ValueKey('expanded'),
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                spacing: 8,
+                children: [
+                  SizedBox(),
+                  GestureDetector(
+                    onTap: () => setState(() => showChordCustomization = false),
+                    child: Row(
+                      children: [
+                        AnimatedRotation(
+                          turns: 0.25,
+                          duration: const Duration(milliseconds: 250),
+                          curve: Curves.easeInOut,
+                          child: Icon(Icons.chevron_right),
+                        ),
+                        Expanded(
+                          child: Text(l10n.chords, style: textTheme.labelLarge),
+                        ),
+                        // Example chord
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                            (Chord.fromString('C#m7/E').string(
+                              showBass: laySet.showChordBass,
+                              showAddedNote: laySet.showAddedNotes,
+                            )),
+                            style: laySet.chordStyle.copyWith(fontSize: 18),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Divider(height: 1, color: colorScheme.surfaceContainerLowest),
+                  Row(
+                    children: [
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          l10n.chordBass,
+                          style: textTheme.labelLarge,
+                        ),
+                      ),
+                      Switch(
+                        value: laySet.showChordBass,
+                        onChanged: (_) async => laySet.toggleChordBass(),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          l10n.addedNotes,
+                          style: textTheme.labelLarge,
+                        ),
+                      ),
+                      Switch(
+                        value: laySet.showAddedNotes,
+                        onChanged: (_) async => laySet.toggleAddedNotes(),
+                      ),
+                    ],
+                  ),
+                ],
+              )
+            : GestureDetector(
+                key: const ValueKey('collapsed'),
+
+                onTap: () => setState(() {
+                  showChordCustomization = true;
+                }),
+                child: _buildFilterToggle(
+                  textTheme,
+                  label: l10n.chords,
+                  value: laySet.showChords,
+                  onChanged: (_) => laySet.toggleChords(),
+                ),
+              ),
+      ),
     );
   }
 

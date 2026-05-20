@@ -1,3 +1,4 @@
+import 'package:cordeos/helpers/chords.dart';
 import 'package:cordeos/l10n/app_localizations.dart';
 import 'package:cordeos/providers/printing_provider.dart';
 import 'package:flutter/material.dart';
@@ -11,6 +12,8 @@ class PrintFilters extends StatefulWidget {
 }
 
 class _PrintFiltersState extends State<PrintFilters> {
+  bool showChordCustomization = false;
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -31,6 +34,8 @@ class _PrintFiltersState extends State<PrintFilters> {
         bool showAnnotations,
         bool showChords,
         bool showLyrics,
+        bool showAddedNotes,
+        bool showChordBass,
       })
     >(
       selector: (context, print) => (
@@ -43,6 +48,8 @@ class _PrintFiltersState extends State<PrintFilters> {
         showAnnotations: print.showAnnotations,
         showChords: print.showChords,
         showLyrics: print.showLyrics,
+        showAddedNotes: print.showAddedNotes,
+        showChordBass: print.showChordBass,
       ),
       builder: (context, s, child) => Container(
         color: colorScheme.surface,
@@ -86,13 +93,10 @@ class _PrintFiltersState extends State<PrintFilters> {
                             await print.toggleHeader();
                           },
                         ),
-                        _buildFilterToggle(
-                          context,
-                          label: l10n.chords,
-                          value: s.showChords,
-                          onChanged: (_) async {
-                            await print.toggleChords();
-                          },
+                        _buildChordSettings(
+                          s.showChords,
+                          s.showChordBass,
+                          s.showAddedNotes,
                         ),
                         _buildFilterToggle(
                           context,
@@ -150,7 +154,6 @@ class _PrintFiltersState extends State<PrintFilters> {
                             await print.toggleAnnotations();
                           },
                         ),
-                        
                       ],
                     ),
                   ),
@@ -178,6 +181,117 @@ class _PrintFiltersState extends State<PrintFilters> {
         Expanded(child: Text(label, style: textTheme.labelLarge)),
         Switch(value: value, onChanged: onChanged),
       ],
+    );
+  }
+
+  Widget _buildChordSettings(
+    bool showChords,
+    bool showChordBass,
+    bool showAddedNotes,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
+    final textTheme = Theme.of(context).textTheme;
+
+    final print = context.read<PrintingProvider>();
+
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHigh,
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.shadow,
+            offset: Offset(2, 2),
+            blurRadius: 2,
+          ),
+        ],
+      ),
+      child: AnimatedSize(
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeInOut,
+        alignment: Alignment.topCenter,
+        child: showChordCustomization
+            ? Column(
+                key: const ValueKey('expanded'),
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                spacing: 8,
+                children: [
+                  SizedBox(),
+                  GestureDetector(
+                    onTap: () => setState(() => showChordCustomization = false),
+                    child: Row(
+                      children: [
+                        AnimatedRotation(
+                          turns: 0.25,
+                          duration: const Duration(milliseconds: 250),
+                          curve: Curves.easeInOut,
+                          child: Icon(Icons.chevron_right),
+                        ),
+                        Expanded(
+                          child: Text(l10n.chords, style: textTheme.labelLarge),
+                        ),
+                        // Example chord
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                            (Chord.fromString('C#m7/E').string(
+                              showBass: showChordBass,
+                              showAddedNote: showAddedNotes,
+                            )),
+                            style: print.chordStyle.copyWith(fontSize: 18),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Divider(height: 1, color: colorScheme.surfaceContainerLowest),
+                  Row(
+                    children: [
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          l10n.chordBass,
+                          style: textTheme.labelLarge,
+                        ),
+                      ),
+                      Switch(
+                        value: showChordBass,
+                        onChanged: (_) async => print.toggleChordBass(),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          l10n.addedNotes,
+                          style: textTheme.labelLarge,
+                        ),
+                      ),
+                      Switch(
+                        value: showAddedNotes,
+                        onChanged: (_) async => print.toggleAddedNotes(),
+                      ),
+                    ],
+                  ),
+                ],
+              )
+            : GestureDetector(
+                key: const ValueKey('collapsed'),
+
+                onTap: () => setState(() {
+                  showChordCustomization = true;
+                }),
+                child: _buildFilterToggle(
+                  context,
+                  label: l10n.chords,
+                  value: showChords,
+                  onChanged: (_) => print.toggleChords(),
+                ),
+              ),
+      ),
     );
   }
 }
