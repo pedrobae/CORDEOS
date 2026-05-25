@@ -10,17 +10,6 @@ class TranspositionProvider extends ChangeNotifier {
       _transposedKey != null && _transposedKey!.contains('b') ||
       _transposedKey == 'F';
 
-  int get transposeValue {
-    if (_transposedKey == null) return -1;
-
-    int indexOriginal = ChordHelper.keyList.indexOf(_originalKey);
-    int indexTransposed = ChordHelper.keyList.indexOf(_transposedKey!);
-
-    if (indexOriginal == -1 || indexTransposed == -1) return -1;
-
-    return (indexTransposed - indexOriginal) % 12;
-  }
-
   String get originalKey => _originalKey;
   String? get transposedKey => _transposedKey;
   int get versionID => _versionID;

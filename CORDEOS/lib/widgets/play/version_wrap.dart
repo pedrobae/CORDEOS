@@ -1,3 +1,4 @@
+import 'package:cordeos/helpers/chords.dart';
 import 'package:cordeos/l10n/app_localizations.dart';
 import 'package:cordeos/models/dtos/version_dto.dart';
 import 'package:cordeos/providers/play/auto_scroll_provider.dart';
@@ -253,6 +254,13 @@ class VersionWrap extends StatelessWidget {
             sectionBadge: badgesData[sectionKey]!,
             transposeChord: (chord) =>
                 trans.transposeChord(chord, originalKey, newKey),
+            transposeValue: () {
+              if (newKey == null) return 0;
+              int indexOriginal = ChordHelper.keyList.indexOf(originalKey);
+              int indexTransposed = ChordHelper.keyList.indexOf(newKey);
+              if (indexOriginal == -1 || indexTransposed == -1) return -1;
+              return (indexTransposed - indexOriginal) % 12;
+            }(),
           ),
         ),
       );

@@ -17,6 +17,7 @@ class SectionCard extends StatelessWidget {
   final String sectionText;
   final SectionBadgeData sectionBadge;
   final String Function(String) transposeChord;
+  final int transposeValue;
 
   const SectionCard({
     super.key,
@@ -27,6 +28,7 @@ class SectionCard extends StatelessWidget {
     required this.sectionText,
     required this.sectionBadge,
     required this.transposeChord,
+    required this.transposeValue,
   });
 
   @override
@@ -41,6 +43,7 @@ class SectionCard extends StatelessWidget {
       content: sectionText,
       sectionKey: sectionKey,
       isEditMode: false,
+      transposeValue: transposeValue,
     );
     return Selector2<
       LayoutSetProvider,
@@ -50,7 +53,6 @@ class SectionCard extends StatelessWidget {
         bool showChords,
         bool showChordBass,
         bool showAddedNotes,
-        int transposeValue,
       })
     >(
       selector: (context, laySet, trans) => (
@@ -58,17 +60,13 @@ class SectionCard extends StatelessWidget {
         showChords: laySet.showChords,
         showChordBass: laySet.showChordBass,
         showAddedNotes: laySet.showAddedNotes,
-        transposeValue: trans.transposeValue,
       ),
       builder: (context, filter, child) {
-        if (filter.transposeValue == -1)
-          return Center(child: CircularProgressIndicator());
         // PHASE 1: Ensure tokens are cached & organized for this content + filters
         layoutKey.showChords = filter.showChords;
         layoutKey.showLyrics = filter.showLyrics;
         layoutKey.showAddedNotes = filter.showAddedNotes;
         layoutKey.showChordBass = filter.showChordBass;
-        layoutKey.transposeValue = filter.transposeValue;
 
         tokenProv.tokenize(layoutKey, transposeChord: transposeChord);
         tokenProv.organize(layoutKey);

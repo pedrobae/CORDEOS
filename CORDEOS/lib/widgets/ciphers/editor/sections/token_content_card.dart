@@ -110,7 +110,11 @@ class _TokenContentCardState extends State<TokenContentCard> {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
-    _tokensKey = TokenCacheKey(sectionKey: widget.sectionKey, isEditMode: true);
+    _tokensKey = TokenCacheKey(
+      sectionKey: widget.sectionKey,
+      isEditMode: true,
+      transposeValue: 0,
+    );
 
     return Selector<SectionProvider, ({Section? section, String? contentText})>(
       selector: (context, sect) {
@@ -126,7 +130,11 @@ class _TokenContentCardState extends State<TokenContentCard> {
           return const Center(child: CircularProgressIndicator());
         }
 
+        // PHASE 1: Ensure tokens are cached & organized for this content + filters (static on edit)
         _tokensKey!.content = s.contentText;
+
+        _tokenProv.tokenize(_tokensKey!, transposeChord: (chord) => chord);
+        _tokenProv.organize(_tokensKey!);
 
         return Container(
           decoration: BoxDecoration(
@@ -225,118 +233,102 @@ class _TokenContentCardState extends State<TokenContentCard> {
               ),
 
               /// CONTENT
-              Selector<TranspositionProvider, int>(
-                selector: (context, trans) => trans.transposeValue,
-                builder: (context, transposeValue, child) {
-                  if (transposeValue == -1)
-                    return Center(child: CircularProgressIndicator());
-                  // PHASE 1: Ensure tokens are cached & organized for this content + filters
-                  _tokensKey!.transposeValue = transposeValue;
-
-                  _tokenProv.tokenize(
-                    _tokensKey!,
-                    transposeChord: (chord) => chord,
+              Selector2<
+                LayoutSetProvider,
+                TranspositionProvider,
+                ({
+                  TextStyle lyricStyle,
+                  TextStyle chordStyle,
+                  TextStyle annotationStyle,
+                  double heightSpacing,
+                })
+              >(
+                selector: (context, laySet, trans) => (
+                  lyricStyle: laySet.lyricStyle,
+                  chordStyle: laySet.chordStyle,
+                  annotationStyle: laySet.annotationStyle,
+                  heightSpacing: laySet.heightSpacing,
+                ),
+                builder: (context, measure, child) {
+                  // PHASE 2: Ensure measurements are cached for this content + style
+                  _tokensKey!.heightSpacing = measure.heightSpacing;
+                  _tokenProv.measureTokens(
+                    chordStyle: measure.chordStyle,
+                    lyricStyle: measure.lyricStyle,
+                    annotationStyle: measure.annotationStyle,
+                    key: _tokensKey!,
                   );
-                  _tokenProv.organize(_tokensKey!);
-                  return Selector2<
+
+                  return Selector<
                     LayoutSetProvider,
-                    TranspositionProvider,
                     ({
-                      TextStyle lyricStyle,
-                      TextStyle chordStyle,
-                      TextStyle annotationStyle,
                       double heightSpacing,
+                      double minChordSpacing,
+                      double letterSpacing,
                     })
                   >(
-                    selector: (context, laySet, trans) => (
-                      lyricStyle: laySet.lyricStyle,
-                      chordStyle: laySet.chordStyle,
-                      annotationStyle: laySet.annotationStyle,
-                      heightSpacing: laySet.heightSpacing,
-                    ),
-                    builder: (context, measure, child) {
-                      // PHASE 2: Ensure measurements are cached for this content + style
-                      _tokensKey!.heightSpacing = measure.heightSpacing;
-                      _tokenProv.measureTokens(
-                        chordStyle: measure.chordStyle,
-                        lyricStyle: measure.lyricStyle,
-                        annotationStyle: measure.annotationStyle,
+                    selector: (context, laySet) {
+                      return (
+                        letterSpacing: laySet.letterSpacing,
+                        heightSpacing: laySet.heightSpacing,
+                        minChordSpacing: laySet.minChordSpacing,
+                      );
+                    },
+                    builder: (context, l, child) {
+                      // PHASE 3: Calculate and cache widget positions based on width constraints
+                      final width =
+                          MediaQuery.sizeOf(context).width -
+                          2.4 - // Container border
+                          8 - // Container padding
+                          32 - // ScrollView padding
+                          TokenizationConstants.chordTokenWidthPadding;
+                      _tokensKey!.heightSpacing = l.heightSpacing;
+                      _tokensKey!.minChordSpacing = l.minChordSpacing;
+                      _tokensKey!.letterSpacing = l.letterSpacing;
+                      _tokensKey!.maxWidth = width;
+
+                      _tokenProv.calculatePositions(
                         key: _tokensKey!,
+                        lyricStyle: measure.lyricStyle,
+                        chordStyle: measure.chordStyle,
+                        annotationStyle: measure.annotationStyle,
                       );
 
-                      return Selector<
-                        LayoutSetProvider,
-                        ({
-                          double heightSpacing,
-                          double minChordSpacing,
-                          double letterSpacing,
-                        })
-                      >(
-                        selector: (context, laySet) {
-                          return (
-                            letterSpacing: laySet.letterSpacing,
-                            heightSpacing: laySet.heightSpacing,
-                            minChordSpacing: laySet.minChordSpacing,
-                          );
-                        },
-                        builder: (context, l, child) {
-                          // PHASE 3: Calculate and cache widget positions based on width constraints
-                          final width =
-                              MediaQuery.sizeOf(context).width -
-                              2.4 - // Container border
-                              8 - // Container padding
-                              32 - // ScrollView padding
-                              TokenizationConstants.chordTokenWidthPadding;
-                          _tokensKey!.heightSpacing = l.heightSpacing;
-                          _tokensKey!.minChordSpacing = l.minChordSpacing;
-                          _tokensKey!.letterSpacing = l.letterSpacing;
-                          _tokensKey!.maxWidth = width;
+                      final positions = _tokenProv.getPositions(
+                        _tokensKey!,
+                        measure.chordStyle,
+                        measure.lyricStyle,
+                      );
 
-                          _tokenProv.calculatePositions(
-                            key: _tokensKey!,
-                            lyricStyle: measure.lyricStyle,
-                            chordStyle: measure.chordStyle,
-                            annotationStyle: measure.annotationStyle,
-                          );
+                      final content = _tokenProv.buildEditWidgets(
+                        key: _tokensKey!,
+                        lyricStyle: measure.lyricStyle,
+                        chordStyle: measure.chordStyle,
+                        annotationStyle: measure.annotationStyle,
+                        contentColor: s.section!.contentColor,
+                        tint: colorScheme.surfaceTint.withAlpha(128),
+                        secondary: colorScheme.secondary,
+                        surfaceColor: colorScheme.surface,
+                        onSurfaceColor: colorScheme.onSurface,
+                        onContentColor: colorScheme.surface,
+                        isEnabled: widget.isEnabled,
+                        onAddChord: _addChord(_tokensKey!),
+                        onRemoveChord: _removeChord(_tokensKey!),
+                      );
 
-                          final positions = _tokenProv.getPositions(
-                            _tokensKey!,
-                            measure.chordStyle,
-                            measure.lyricStyle,
-                          );
-
-                          final content = _tokenProv.buildEditWidgets(
-                            key: _tokensKey!,
-                            lyricStyle: measure.lyricStyle,
-                            chordStyle: measure.chordStyle,
-                            annotationStyle: measure.annotationStyle,
-                            contentColor: s.section!.contentColor,
-                            tint: colorScheme.surfaceTint.withAlpha(128),
-                            secondary: colorScheme.secondary,
-                            surfaceColor: colorScheme.surface,
-                            onSurfaceColor: colorScheme.onSurface,
-                            onContentColor: colorScheme.surface,
-                            isEnabled: widget.isEnabled,
-                            onAddChord: _addChord(_tokensKey!),
-                            onRemoveChord: _removeChord(_tokensKey!),
-                          );
-
-                          return Padding(
-                            padding: const EdgeInsets.all(4),
-                            child: Container(
-                              padding: const EdgeInsets.only(
-                                left: TokenizationConstants
-                                    .chordTokenWidthPadding,
-                              ),
-                              width: width,
-                              height: positions?.contentHeight,
-                              child: Stack(
-                                clipBehavior: Clip.none,
-                                children: [...content],
-                              ),
-                            ),
-                          );
-                        },
+                      return Padding(
+                        padding: const EdgeInsets.all(4),
+                        child: Container(
+                          padding: const EdgeInsets.only(
+                            left: TokenizationConstants.chordTokenWidthPadding,
+                          ),
+                          width: width,
+                          height: positions?.contentHeight,
+                          child: Stack(
+                            clipBehavior: Clip.none,
+                            children: [...content],
+                          ),
+                        ),
                       );
                     },
                   );
