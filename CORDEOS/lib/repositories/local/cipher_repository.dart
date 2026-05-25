@@ -46,7 +46,7 @@ class CipherRepository {
     final db = await _databaseHelper.database;
     final results = await db.query(
       'cipher',
-      where: 'id = ? AND is_deleted = 0',
+      where: 'id = ?',
       whereArgs: [id],
     );
 

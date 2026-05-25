@@ -160,6 +160,7 @@ class _ImportTextScreenState extends State<ImportTextScreen> {
       final parsingCipher = await imp.importFromText(_strategy, text);
 
       int versionID;
+      int cipherID = widget.cipherID;
       final song = await par.parseCipher(parsingCipher);
       if (song != null) {
         if (widget.cipherID != -1) {
@@ -173,7 +174,7 @@ class _ImportTextScreenState extends State<ImportTextScreen> {
           versionID = widget.versionID;
         } else {
           // CREATE NEW SONG
-          final cipherID = await ciph.upsertVersionDto(song);
+          cipherID = await ciph.upsertVersionDto(song);
           versionID = await localVer.upsertVersion(
             song.toDomain(cipherId: cipherID),
           );
@@ -188,26 +189,26 @@ class _ImportTextScreenState extends State<ImportTextScreen> {
 
           await sect.saveSections(versionID);
         }
-      }
 
-      // Navigate to edit cipher screen
-      nav.pop();
-      if (widget.versionID == -1)
-        nav.push(
-          () => EditCipherScreen(
-            versionID: widget.versionID,
-            cipherID: widget.cipherID,
-            versionType: VersionType.local,
-          ),
-          keepAlive: true,
-          changeDetector: () {
-            return ciph.hasUnsavedChanges || localVer.hasUnsavedChanges;
-          },
-          onChangeDiscarded: () async {
-            await localVer.loadVersion(widget.versionID);
-            await ciph.loadCipher(widget.cipherID);
-          },
-        );
+        // Navigate to edit cipher screen
+        nav.pop();
+        if (widget.cipherID == -1)
+          nav.push(
+            () => EditCipherScreen(
+              versionID: versionID,
+              cipherID: cipherID,
+              versionType: VersionType.local,
+            ),
+            keepAlive: true,
+            changeDetector: () {
+              return ciph.hasUnsavedChanges || localVer.hasUnsavedChanges;
+            },
+            onChangeDiscarded: () async {
+              await localVer.loadVersion(widget.versionID);
+              await ciph.loadCipher(widget.cipherID);
+            },
+          );
+      }
     }
   }
 }
