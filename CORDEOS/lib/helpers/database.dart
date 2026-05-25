@@ -435,4 +435,8 @@ class DatabaseHelper {
       rethrow;
     }
   }
+
+  Future<void> testOnCreate(Database db, int version) => _onCreate(db, version);
+  Future<void> testOnUpgrade(Database db, int oldVersion, int newVersion) =>
+      _onUpgrade(db, oldVersion, newVersion);
 }
