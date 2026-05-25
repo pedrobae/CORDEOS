@@ -118,7 +118,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildAppVersionText() {
-    final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
     return Selector<AppInfoProvider, (bool, String)>(
@@ -129,9 +128,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         return Text(
           appVersion,
           textAlign: TextAlign.center,
-          style: textTheme.bodyMedium?.copyWith(
-            color: colorScheme.surfaceContainerLow,
-          ),
+          style: textTheme.bodyMedium,
         );
       },
     );

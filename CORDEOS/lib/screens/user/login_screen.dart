@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:cordeos/l10n/app_localizations.dart';
+import 'package:cordeos/providers/settings/app_info_provider.dart';
 import 'package:cordeos/screens/main_screen.dart';
 
 import 'package:cordeos/screens/user/password_reset_screen.dart';
@@ -9,6 +10,7 @@ import 'package:cordeos/screens/schedule/share_code_screen.dart';
 import 'package:cordeos/services/firebase/remote_config_service.dart';
 
 import 'package:cordeos/widgets/common/filled_text_button.dart';
+import 'package:cordeos/widgets/common/icon_load_indicator.dart';
 import 'package:cordeos/widgets/common/labeled_text_field.dart';
 
 import 'package:cordeos/providers/user/my_auth_provider.dart';
@@ -48,6 +50,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+
     return Scaffold(
       body: Consumer<MyAuthProvider>(
         builder: (context, auth, child) => SingleChildScrollView(
@@ -71,6 +75,20 @@ class _LoginScreenState extends State<LoginScreen> {
                 _buildActionButtons(auth),
                 if (RemoteConfigService.isRegistrationEnabled)
                   _buildSignUpLink(),
+                SizedBox(height: 40),
+                Selector<AppInfoProvider, (bool, String)>(
+                  selector: (_, info) =>
+                      (info.isLoading, info.appVersionWithBuild),
+                  builder: (context, data, child) {
+                    final (isLoading, appVersion) = data;
+                    if (isLoading) return const IconLoadIndicator(size: 20);
+                    return Text(
+                      appVersion,
+                      textAlign: TextAlign.center,
+                      style: textTheme.bodyMedium,
+                    );
+                  },
+                ),
               ],
             ),
           ),
@@ -373,15 +391,30 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _postSignIn(MyAuthProvider auth) async {
     final userProvider = context.read<UserProvider>();
     // Load users after successful login
-    await userProvider.loadUsers();
-    await userProvider.ensureUserExists(auth.id!);
+    try {
+      await userProvider.loadUsers();
+      await userProvider.ensureUserExists(auth.id!);
 
-    if (mounted &&
-        (userProvider.error == null || userProvider.error!.isEmpty)) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const MainScreen()),
-      );
-      auth.setUserData(userProvider.getUserByFirebaseId(auth.id!)!);
+      if (mounted &&
+          (userProvider.error == null || userProvider.error!.isEmpty)) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const MainScreen()),
+        );
+        auth.setUserData(userProvider.getUserByFirebaseId(auth.id!)!);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.errorMessage(
+                AppLocalizations.of(context)!.loading,
+                e.toString(),
+              ),
+            ),
+          ),
+        );
+      }
     }
   }
 }
