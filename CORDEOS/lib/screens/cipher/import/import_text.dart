@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cordeos/l10n/app_localizations.dart';
+import 'package:cordeos/models/domain/cipher/section.dart';
 import 'package:cordeos/models/domain/cipher/version.dart';
 import 'package:cordeos/models/domain/parsing_cipher.dart';
 import 'package:cordeos/providers/cipher/cipher_provider.dart';
@@ -9,9 +10,7 @@ import 'package:cordeos/providers/cipher/parser_provider.dart';
 import 'package:cordeos/providers/section/section_provider.dart';
 import 'package:cordeos/providers/version/local_version_provider.dart';
 import 'package:cordeos/screens/cipher/edit_cipher.dart';
-import 'package:cordeos/services/sync_service.dart';
 import 'package:cordeos/widgets/common/filled_text_button.dart';
-import 'package:cordeos/widgets/common/icon_load_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:cordeos/providers/cipher/import_provider.dart';
 import 'package:provider/provider.dart';
@@ -28,83 +27,39 @@ class ImportTextScreen extends StatefulWidget {
 
 class _ImportTextScreenState extends State<ImportTextScreen> {
   final TextEditingController _importTextController = TextEditingController();
-
-  void _onImportTextChanged() {
-    setState(() {});
-  }
+  ParsingStrategy _strategy = ParsingStrategy.emptyLine;
 
   @override
   void dispose() {
-    _importTextController.removeListener(_onImportTextChanged);
     _importTextController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final nav = Provider.of<NavigationProvider>(context, listen: false);
-
     final textTheme = Theme.of(context).textTheme;
 
-    return Consumer2<ImportProvider, ParserProvider>(
-      builder: (context, imp, par, child) {
-        return Scaffold(
-          appBar: AppBar(
-            title: Text(
-              AppLocalizations.of(context)!.importFromText,
-              style: textTheme.titleMedium,
-            ),
-            leading: BackButton(onPressed: () => nav.attemptPop(context)),
-          ),
-          body: imp.error != null
-              ? _buildErrorState(imp)
-              : imp.isImporting
-              ? _buildLoadingState()
-              : _buildContentState(imp, par),
-        );
-      },
-    );
-  }
-
-  Widget _buildErrorState(ImportProvider imp) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            AppLocalizations.of(context)!.errorMessage(
-              AppLocalizations.of(context)!.importFromText,
-              imp.error!,
-            ),
-            style: const TextStyle(color: Colors.red),
-          ),
-          FilledButton.icon(
-            label: Text(AppLocalizations.of(context)!.tryAgain),
-            onPressed: () => imp.clearError(),
-            icon: const Icon(Icons.refresh),
-          ),
-        ],
+    final nav = context.read<NavigationProvider>();
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          AppLocalizations.of(context)!.importFromText,
+          style: textTheme.titleMedium,
+        ),
+        leading: BackButton(onPressed: () => nav.attemptPop(context)),
       ),
-    );
-  }
-
-  Widget _buildLoadingState() {
-    return const Center(child: IconLoadIndicator(size: 150));
-  }
-
-  Widget _buildContentState(ImportProvider imp, ParserProvider par) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          spacing: 16.0,
-          mainAxisSize: MainAxisSize.max,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _buildTextInputField(),
-            _buildParsingStrategySection(imp),
-            _buildImportButton(imp, par),
-          ],
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.max,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildTextInputField(),
+              _buildParsingStrategySection(),
+              _buildImportButton(),
+            ],
+          ),
         ),
       ),
     );
@@ -135,10 +90,9 @@ class _ImportTextScreenState extends State<ImportTextScreen> {
     );
   }
 
-  Widget _buildParsingStrategySection(ImportProvider imp) {
+  Widget _buildParsingStrategySection() {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -162,15 +116,12 @@ class _ImportTextScreenState extends State<ImportTextScreen> {
                 colorScheme.primary,
               ),
               thumbIcon: WidgetStatePropertyAll<Icon>(Icon(Icons.circle)),
-              value:
-                  imp.files.first.parsingStrategy ==
-                  ParsingStrategy.sectionLabels,
-              onChanged: (value) {
-                imp.files.first.parsingStrategy = value
+              value: _strategy == ParsingStrategy.sectionLabels,
+              onChanged: (value) => setState(() {
+                _strategy = value
                     ? ParsingStrategy.sectionLabels
                     : ParsingStrategy.emptyLine;
-                imp.notify();
-              },
+              }),
             ),
             Expanded(
               child: Text(
@@ -185,7 +136,7 @@ class _ImportTextScreenState extends State<ImportTextScreen> {
     );
   }
 
-  Widget _buildImportButton(ImportProvider imp, ParserProvider par) {
+  Widget _buildImportButton() {
     return FilledTextButton(
       text: AppLocalizations.of(context)!.import,
       isDark: true,
@@ -206,51 +157,57 @@ class _ImportTextScreenState extends State<ImportTextScreen> {
 
     final text = _importTextController.text;
     if (text.isNotEmpty) {
-      final imports = await imp.importText(data: text);
+      final parsingCipher = await imp.importFromText(_strategy, text);
 
-      if (imports.isEmpty) {
-        throw Exception('Failed to import text');
-      }
-      final versionIDs = <int>[];
-      for (final import in imports) {
-        final song = await par.parseCipher(import);
-        if (song != null) {
-          if (widget.cipherID != -1) {
-            final sections = song.sections.map(
-              (key, value) => MapEntry(key, value.toDomain()),
-            );
-            for (final section in sections.values) {
-              final newKey = sect.cacheAddSection(widget.versionID, section);
-              localVer.addSectionToStruct(widget.versionID, newKey);
-            }
-            versionIDs.add(widget.versionID);
-          } else {
-            final id = await ScheduleSyncService().upsertVersion(song);
-            versionIDs.add(id);
+      int versionID;
+      final song = await par.parseCipher(parsingCipher);
+      if (song != null) {
+        if (widget.cipherID != -1) {
+          final sections = song.sections.map(
+            (key, value) => MapEntry(key, value.toDomain()),
+          );
+          for (final section in sections.values) {
+            final newKey = sect.cacheAddSection(widget.versionID, section);
+            localVer.addSectionToStruct(widget.versionID, newKey);
           }
+          versionID = widget.versionID;
+        } else {
+          // CREATE NEW SONG
+          final cipherID = await ciph.upsertVersionDto(song);
+          versionID = await localVer.upsertVersion(
+            song.toDomain(cipherId: cipherID),
+          );
+
+          sect.setNewSectionsInCache(
+            versionID,
+            song.sections.map(
+              (code, section) =>
+                  MapEntry(code, Section.fromFirestore(section, versionID)),
+            ),
+          );
+
+          await sect.saveSections(versionID);
         }
       }
 
       // Navigate to edit cipher screen
-      if (versionIDs.length == 1) {
-        nav.pop();
-        if (widget.versionID == -1)
-          nav.push(
-            () => EditCipherScreen(
-              versionID: widget.versionID,
-              cipherID: widget.cipherID,
-              versionType: VersionType.local,
-            ),
-            keepAlive: true,
-            changeDetector: () {
-              return ciph.hasUnsavedChanges || localVer.hasUnsavedChanges;
-            },
-            onChangeDiscarded: () async {
-              await localVer.loadVersion(widget.versionID);
-              await ciph.loadCipher(widget.cipherID);
-            },
-          );
-      }
+      nav.pop();
+      if (widget.versionID == -1)
+        nav.push(
+          () => EditCipherScreen(
+            versionID: widget.versionID,
+            cipherID: widget.cipherID,
+            versionType: VersionType.local,
+          ),
+          keepAlive: true,
+          changeDetector: () {
+            return ciph.hasUnsavedChanges || localVer.hasUnsavedChanges;
+          },
+          onChangeDiscarded: () async {
+            await localVer.loadVersion(widget.versionID);
+            await ciph.loadCipher(widget.cipherID);
+          },
+        );
     }
   }
 }
