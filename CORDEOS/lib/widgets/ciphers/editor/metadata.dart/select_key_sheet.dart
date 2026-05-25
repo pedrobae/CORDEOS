@@ -134,7 +134,6 @@ class _SelectKeySheetState extends State<SelectKeySheet> {
                 setState(() {
                   selectedKey = widget.originalKey;
                 });
-                Navigator.of(context).pop();
               },
             ),
           if (widget.showSave) ...[
