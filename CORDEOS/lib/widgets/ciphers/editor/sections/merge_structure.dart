@@ -107,7 +107,6 @@ class _MergeStructureState extends State<MergeStructure> {
                     for (var section in sections.values) {
                       sectionIDs.add(section.key);
                       sectionTypes[section.key] = section.sectionType;
-                      sectionTypes[section.key] = SectionType.unknown;
                     }
                     return (
                       sectionIDs: sectionIDs,

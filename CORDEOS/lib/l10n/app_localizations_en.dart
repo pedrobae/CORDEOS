@@ -1209,8 +1209,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get customChordInstruction => 'Type to create a custom chord.';
 
   @override
-  String get draggableChordInstruction =>
-      'Drag chords to the letters to add them to the song.';
+  String get draggableInstruction =>
+      'Drag a card to the lyrics to insert it in the song.';
+
+  @override
+  String get onLineToggleInstruction =>
+      'Select where the annotation should be positioned (Chord / Lyrics)';
 
   @override
   String get error => 'Error';

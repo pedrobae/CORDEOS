@@ -2267,8 +2267,14 @@ abstract class AppLocalizations {
   /// Instruction to drag chords to letters
   ///
   /// In pt, this message translates to:
-  /// **'Arraste os acordes para as letras para adicioná-los à música.'**
-  String get draggableChordInstruction;
+  /// **'Arraste um cartão para as letras para adicioná-lo à música.'**
+  String get draggableInstruction;
+
+  /// Instruction for lyric / chord inLine annotation toggle
+  ///
+  /// In pt, this message translates to:
+  /// **'Selecione o posicionamento da anotação (Acorde / Letra)'**
+  String get onLineToggleInstruction;
 
   /// Generic error label
   ///

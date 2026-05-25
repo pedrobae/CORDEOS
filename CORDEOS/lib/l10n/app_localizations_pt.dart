@@ -1217,8 +1217,12 @@ class AppLocalizationsPt extends AppLocalizations {
       'Digite para criar um acorde personalizado.';
 
   @override
-  String get draggableChordInstruction =>
-      'Arraste os acordes para as letras para adicioná-los à música.';
+  String get draggableInstruction =>
+      'Arraste um cartão para as letras para adicioná-lo à música.';
+
+  @override
+  String get onLineToggleInstruction =>
+      'Selecione o posicionamento da anotação (Acorde / Letra)';
 
   @override
   String get error => 'Erro';

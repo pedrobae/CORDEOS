@@ -1581,9 +1581,13 @@
   "@customChordInstruction": {
     "description": "Instruction to enter custom chord name"
   },
-  "draggableChordInstruction": "Drag chords to the letters to add them to the song.",
-  "@draggableChordInstruction": {
+  "draggableInstruction": "Drag a card to the lyrics to insert it in the song.",
+  "@draggableInstruction": {
     "description": "Instruction to drag chords to letters"
+  },
+  "onLineToggleInstruction": "Select where the annotation should be positioned (Chord / Lyrics)",
+  "@onLineToggleInstruction": {
+    "description": "Instruction for lyric / chord inLine annotation toggle"
   },
   "error": "Error",
   "@error": {

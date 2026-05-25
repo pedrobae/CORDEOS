@@ -66,6 +66,7 @@ class TokenProvider extends ChangeNotifier {
     TokenCacheKey key, {
     required String Function(String) transposeChord,
   }) {
+    if (key.transposeValue == -1) return;
     if (getTokens(key) != null) {
       return;
     }
@@ -94,7 +95,8 @@ class TokenProvider extends ChangeNotifier {
       return;
     }
 
-    final tokens = getTokens(key)!;
+    final tokens = getTokens(key);
+    if (tokens == null) return;
 
     final organized = _tokenizer.organize(tokens);
     _organizedCache[tokenCacheKey(key)] = organized;
@@ -250,6 +252,9 @@ class TokenProvider extends ChangeNotifier {
       return;
     }
 
+    final organized = getOrganized(key);
+    if (organized == null) return;
+
     final lyricHeight = _builder
         .measureText(style: lyricStyle, text: 'Sample Text')
         .height;
@@ -259,7 +264,7 @@ class TokenProvider extends ChangeNotifier {
 
     // Cache miss - compute
     final positions = _positioner.calculateTokenPositions(
-      organizedTokens: getOrganized(key)!,
+      organizedTokens: organized,
       measurements: _measurementCache,
       maxWidth: key.maxWidth!,
       heightSpacing: key.heightSpacing!,
@@ -289,7 +294,7 @@ class TokenProvider extends ChangeNotifier {
     required TextStyle lyricStyle,
     required TextStyle chordStyle,
     required TextStyle annotationStyle,
-    required Color primary,
+    required Color tint,
     required Color secondary,
     required Color surfaceColor,
     required Color onSurfaceColor,
@@ -321,7 +326,7 @@ class TokenProvider extends ChangeNotifier {
       lyricStyle: lyricStyle,
       annotationStyle: annotationStyle,
       maxWidth: key.maxWidth!,
-      primary: primary,
+      tint: tint,
       secondary: secondary,
       surfaceColor: surfaceColor,
       onSurfaceColor: onSurfaceColor,
@@ -355,10 +360,13 @@ class TokenProvider extends ChangeNotifier {
       return;
     }
 
+    final positions = getPositions(key, chordStyle, lyricStyle);
+    if (positions == null) return;
+
     final model = _builder.buildPaintModel(
       sectionKey: key.sectionKey,
       measurements: _measurementCache,
-      positions: getPositions(key, chordStyle, lyricStyle)!,
+      positions: positions,
       chordStyle: chordStyle,
       lyricStyle: lyricStyle,
       annotationStyle: annotationStyle,

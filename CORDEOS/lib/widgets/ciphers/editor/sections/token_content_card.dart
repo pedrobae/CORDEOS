@@ -228,6 +228,8 @@ class _TokenContentCardState extends State<TokenContentCard> {
               Selector<TranspositionProvider, int>(
                 selector: (context, trans) => trans.transposeValue,
                 builder: (context, transposeValue, child) {
+                  if (transposeValue == -1)
+                    return Center(child: CircularProgressIndicator());
                   // PHASE 1: Ensure tokens are cached & organized for this content + filters
                   _tokensKey!.transposeValue = transposeValue;
 
@@ -309,7 +311,7 @@ class _TokenContentCardState extends State<TokenContentCard> {
                             chordStyle: measure.chordStyle,
                             annotationStyle: measure.annotationStyle,
                             contentColor: s.section!.contentColor,
-                            primary: colorScheme.surfaceTint,
+                            tint: colorScheme.surfaceTint.withAlpha(128),
                             secondary: colorScheme.secondary,
                             surfaceColor: colorScheme.surface,
                             onSurfaceColor: colorScheme.onSurface,

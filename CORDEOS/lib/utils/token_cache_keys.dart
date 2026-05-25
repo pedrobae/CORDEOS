@@ -51,6 +51,8 @@ class TokenCacheKey {
         other.minChordSpacing == minChordSpacing &&
         other.letterSpacing == letterSpacing &&
         other.showChords == showChords &&
+        other.showChordBass == showChordBass &&
+        other.showAddedNotes == showAddedNotes &&
         other.showLyrics == showLyrics &&
         other.isEditMode == isEditMode &&
         other.transposeValue == transposeValue &&
@@ -60,15 +62,17 @@ class TokenCacheKey {
   @override
   int get hashCode => Object.hash(
     content,
+    sectionKey,
     maxWidth,
     heightSpacing,
     minChordSpacing,
     letterSpacing,
     showChords,
+    showChordBass,
+    showAddedNotes,
     showLyrics,
-    transposeValue,
-    sectionKey,
     isEditMode,
+    transposeValue,
   );
 }
 

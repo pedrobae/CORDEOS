@@ -11,7 +11,7 @@ class TranspositionProvider extends ChangeNotifier {
       _transposedKey == 'F';
 
   int get transposeValue {
-    if (_transposedKey == null) return 0;
+    if (_transposedKey == null) return -1;
 
     int indexOriginal = ChordHelper.keyList.indexOf(_originalKey);
     int indexTransposed = ChordHelper.keyList.indexOf(_transposedKey!);

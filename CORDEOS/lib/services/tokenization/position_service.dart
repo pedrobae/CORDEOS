@@ -146,33 +146,32 @@ class PositionService {
     for (var token in word.tokens) {
       switch (token.type) {
         case TokenType.chord:
+          final msr =
+              ctx.measurements[measurementKey(
+                token.text,
+                ctx.chordStyle,
+                isChordToken: isEditMode,
+              )]!;
           if (cursor.lyricsX < cursor.chordX) {
             // If the chord is ahead of the lyrics,
             // push lyrics forward to the chord,
             // and inject an underline if there are lyrics on both sides of the chord.
             final hasLyricAfter = _hasLyricAfterInWord(word, token);
             final hasLyricBefore = _hasLyricBeforeInWord(word, token);
-
             if (hasLyricAfter && hasLyricBefore) {
-              final underlineToken = ContentToken(
-                text: '',
+              final newToken = ContentToken(
+                text: '_',
                 type: TokenType.underline,
               );
+              positions.setPosition(newToken, cursor.lyricsX, cursor.yOffset);
 
-              positions.setPosition(
-                underlineToken,
-                cursor.lyricsX,
-                cursor.yOffset,
-              );
-
-              ctx.measurements[underlineToken.toKey()] = Measurements(
+              ctx.measurements[newToken.toKey()] = Measurements(
                 width: cursor.chordX - cursor.lyricsX,
                 height: ctx.lineHeight,
                 baseline: ctx.chordHeight,
                 size: 1,
               );
-
-              tokensToAdd[charIndex] = underlineToken;
+              tokensToAdd[charIndex] = newToken;
               charIndex++;
             }
 
@@ -185,13 +184,6 @@ class PositionService {
                 (isEditMode ? TokenizationConstants.chordTokenWidthPadding : 0),
             cursor.yOffset,
           );
-
-          final msr =
-              ctx.measurements[measurementKey(
-                token.text,
-                ctx.chordStyle,
-                isChordToken: isEditMode,
-              )]!;
 
           cursor.chordX =
               cursor.lyricsX +
@@ -442,11 +434,7 @@ class PositionService {
       }
     }
 
-    if (!isEditMode) {
-      precedingOffset += minChordSpacing;
-    }
-
-    return precedingOffset;
+    return precedingOffset + (isEditMode ? -minChordSpacing : minChordSpacing);
   }
 
   /// Checks whether there is a lyric token after [chordToken] in the same word.

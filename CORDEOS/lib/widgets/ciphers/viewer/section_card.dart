@@ -61,6 +61,8 @@ class SectionCard extends StatelessWidget {
         transposeValue: trans.transposeValue,
       ),
       builder: (context, filter, child) {
+        if (filter.transposeValue == -1)
+          return Center(child: CircularProgressIndicator());
         // PHASE 1: Ensure tokens are cached & organized for this content + filters
         layoutKey.showChords = filter.showChords;
         layoutKey.showLyrics = filter.showLyrics;

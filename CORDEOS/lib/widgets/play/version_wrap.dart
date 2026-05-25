@@ -52,7 +52,9 @@ class VersionWrap extends StatelessWidget {
         } else {
           final version = localVer.getVersion(versionID!)!;
           originalKey = ciph.getCipher(version.cipherID)!.musicKey;
-          newKey = localVer.getVersion(versionID!)!.transposedKey;
+          newKey =
+              trans.transposedKey ??
+              localVer.getVersion(versionID!)!.transposedKey;
           songStructure = localVer.getSongStructure(versionID!);
         }
 

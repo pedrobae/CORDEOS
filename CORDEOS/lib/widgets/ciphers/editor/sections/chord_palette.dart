@@ -201,7 +201,7 @@ class _ChordPaletteState extends State<ChordPalette> {
                           builder: (builder) {
                             final chord = chords[i];
                             return GestureDetector(
-                              onTap: () => {
+                              onTapDown: (_) => {
                                 _showChordVariations(
                                   originalKey ?? 'C',
                                   chord,
@@ -217,7 +217,7 @@ class _ChordPaletteState extends State<ChordPalette> {
                   SizedBox(height: 8),
                   // Instruction text
                   Text(
-                    AppLocalizations.of(context)!.draggableChordInstruction,
+                    AppLocalizations.of(context)!.draggableInstruction,
                     style: textTheme.bodyMedium?.copyWith(
                       fontStyle: FontStyle.italic,
                     ),

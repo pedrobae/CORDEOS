@@ -131,6 +131,9 @@ class _SelectKeySheetState extends State<SelectKeySheet> {
               isDark: true,
               onPressed: () {
                 widget.onKeySelected(widget.originalKey);
+                setState(() {
+                  selectedKey = widget.originalKey;
+                });
                 Navigator.of(context).pop();
               },
             ),

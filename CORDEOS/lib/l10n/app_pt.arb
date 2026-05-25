@@ -1573,9 +1573,13 @@
   "@customChordInstruction": {
     "description": "Instruction to enter custom chord name"
   },
-  "draggableChordInstruction": "Arraste os acordes para as letras para adicioná-los à música.",
-  "@draggableChordInstruction": {
+  "draggableInstruction": "Arraste um cartão para as letras para adicioná-lo à música.",
+  "@draggableInstruction": {
     "description": "Instruction to drag chords to letters"
+  },
+  "onLineToggleInstruction": "Selecione o posicionamento da anotação (Acorde / Letra)",
+  "@onLineToggleInstruction": {
+    "description": "Instruction for lyric / chord inLine annotation toggle"
   },
   "error": "Erro",
   "@error": {
