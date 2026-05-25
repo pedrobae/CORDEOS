@@ -129,12 +129,6 @@ class PositionedWithRef {
   PositionedWithRef({required this.positioned, required this.ref});
 }
 
-class ContentTokenized {
-  final List<Positioned> tokens;
-
-  ContentTokenized(this.tokens);
-}
-
 /// Hierarchical structures to organize tokens into lines and words.
 class TokenWord {
   final List<ContentToken> tokens;

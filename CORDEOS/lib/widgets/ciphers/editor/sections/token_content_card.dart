@@ -330,7 +330,7 @@ class _TokenContentCardState extends State<TokenContentCard> {
                               height: positions?.contentHeight,
                               child: Stack(
                                 clipBehavior: Clip.none,
-                                children: [...content.tokens],
+                                children: [...content],
                               ),
                             ),
                           );

@@ -284,7 +284,7 @@ class TokenProvider extends ChangeNotifier {
   // ═══════════════════════════════════════════════════════════════════════════
   /// Builds and applies positions to widgets, returning the final positioned content.
   /// Key must include all necessary layout parameters.
-  ContentTokenized buildEditWidgets({
+  List<Positioned> buildEditWidgets({
     required TokenCacheKey key,
     required TextStyle lyricStyle,
     required TextStyle chordStyle,

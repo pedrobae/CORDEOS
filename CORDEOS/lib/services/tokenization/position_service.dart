@@ -145,37 +145,6 @@ class PositionService {
 
     for (var token in word.tokens) {
       switch (token.type) {
-        case TokenType.postSeparator:
-          final xOffset = max(cursor.chordX, cursor.lyricsX);
-          if (isEditMode) {
-            cursor.chordX =
-                xOffset +
-                TokenizationConstants.targetWidth +
-                ctx.minChordSpacing +
-                2 * TokenizationConstants.chordTokenWidthPadding;
-          }
-          positions.setPosition(token, xOffset, cursor.yOffset);
-
-          charIndex++;
-          break;
-
-        case TokenType.preSeparator:
-          cursor.lyricsX =
-              ctx.precedingOffset +
-              (isEditMode ? TokenizationConstants.chordTokenWidthPadding : 0);
-          cursor.chordX =
-              ctx.precedingOffset +
-              (isEditMode ? TokenizationConstants.chordTokenWidthPadding : 0);
-          cursor.foundPreSeparator = true;
-
-          positions.setPosition(
-            token,
-            ctx.precedingOffset - TokenizationConstants.targetWidth,
-            cursor.yOffset,
-          );
-          charIndex++;
-          break;
-
         case TokenType.chord:
           if (cursor.lyricsX < cursor.chordX) {
             // If the chord is ahead of the lyrics,
@@ -209,6 +178,7 @@ class PositionService {
 
             cursor.lyricsX = cursor.chordX;
           }
+
           positions.setPosition(
             token,
             cursor.lyricsX -
@@ -223,7 +193,10 @@ class PositionService {
                 isChordToken: isEditMode,
               )]!;
 
-          cursor.chordX = cursor.lyricsX + msr.width + ctx.minChordSpacing;
+          cursor.chordX =
+              cursor.lyricsX +
+              msr.width +
+              (isEditMode ? 0 : ctx.minChordSpacing);
           charIndex++;
           break;
 
@@ -245,6 +218,36 @@ class PositionService {
           final msr =
               ctx.measurements[measurementKey(token.text, ctx.lyricStyle)]!;
           cursor.lyricsX += msr.width + ctx.letterSpacing;
+          charIndex++;
+          break;
+
+        case TokenType.postSeparator:
+          final xOffset = max(
+            cursor.chordX - TokenizationConstants.chordTokenWidthPadding,
+            cursor.lyricsX,
+          );
+          positions.setPosition(token, xOffset, cursor.yOffset);
+
+          if (isEditMode) {
+            cursor.chordX =
+                xOffset +
+                TokenizationConstants.targetWidth +
+                TokenizationConstants.chordTokenWidthPadding;
+            cursor.lyricsX = cursor.chordX;
+          }
+          charIndex++;
+          break;
+
+        case TokenType.preSeparator:
+          cursor.lyricsX = ctx.precedingOffset;
+          cursor.chordX = ctx.precedingOffset;
+          cursor.foundPreSeparator = true;
+
+          positions.setPosition(
+            token,
+            ctx.precedingOffset - TokenizationConstants.targetWidth,
+            cursor.yOffset,
+          );
           charIndex++;
           break;
 
@@ -272,21 +275,19 @@ class PositionService {
               lineBroke: true,
             );
           }
-
           charIndex++;
           break;
+
         // Underlines are injected on-demand above; newlines are handled at
         // the line level — neither should appear during word iteration.
         case TokenType.underline:
         case TokenType.newline:
           break;
+
         case TokenType.chordAnnotation:
-          positions.setPosition(
-            token,
-            max(cursor.lyricsX, cursor.chordX) -
-                (isEditMode ? TokenizationConstants.chordTokenWidthPadding : 0),
-            cursor.yOffset,
-          );
+          final xOffset =
+              max(cursor.lyricsX, cursor.chordX) -
+              (isEditMode ? TokenizationConstants.chordTokenWidthPadding : 0);
 
           final msr =
               ctx.measurements[measurementKey(
@@ -295,8 +296,15 @@ class PositionService {
                 isChordToken: isEditMode,
               )]!;
 
-          cursor.chordX += msr.width + ctx.minChordSpacing;
+          positions.setPosition(token, xOffset, cursor.yOffset);
+          cursor.chordX =
+              xOffset +
+              msr.width +
+              (isEditMode
+                  ? TokenizationConstants.chordTokenWidthPadding
+                  : ctx.minChordSpacing);
           charIndex++;
+
         case TokenType.lyricAnnotation:
           if (cursor.hasLyrics == false) {
             cursor.hasLyrics = true;
@@ -310,13 +318,13 @@ class PositionService {
               )]!;
 
           cursor.lyricsX += msr.width + ctx.letterSpacing;
-
           if (cursor.lyricsX > cursor.chordX) {
             cursor.chordX = cursor.lyricsX;
           }
           charIndex++;
           break;
       }
+
       if (ctx.checkOverflow &&
           (cursor.lyricsX > ctx.maxWidth || cursor.chordX > ctx.maxWidth)) {
         return _WordLayoutResult(
@@ -337,7 +345,7 @@ class PositionService {
   ///
   /// Uses the TokenPositionMap to position widgets without recalculating layout.
   /// Handles line breaking and oversized words using position information.
-  ContentTokenized applyPositionsToWidgets(
+  List<Positioned> applyPositionsToWidgets(
     OrganizedWidgets contentWidgets,
     TokenPositionMap positionMap,
     bool isEditMode,
@@ -360,7 +368,7 @@ class PositionService {
         }
       }
     }
-    return ContentTokenized(tokenWidgets);
+    return tokenWidgets;
   }
 
   /// Calculates preceding chord offset.
@@ -405,7 +413,7 @@ class PositionService {
             case TokenType.preSeparator:
               foundSeparator = true;
               if (isEditMode) {
-                xOffset += TokenizationConstants.targetWidth;
+                xOffset += TokenizationConstants.targetWidth - minChordSpacing;
               }
               break;
             case TokenType.chordAnnotation:
@@ -434,7 +442,11 @@ class PositionService {
       }
     }
 
-    return precedingOffset + minChordSpacing;
+    if (!isEditMode) {
+      precedingOffset += minChordSpacing;
+    }
+
+    return precedingOffset;
   }
 
   /// Checks whether there is a lyric token after [chordToken] in the same word.
