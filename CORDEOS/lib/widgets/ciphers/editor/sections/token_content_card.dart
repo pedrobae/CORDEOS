@@ -10,7 +10,6 @@ import 'package:cordeos/providers/settings/layout_settings_provider.dart';
 import 'package:cordeos/providers/navigation_provider.dart';
 import 'package:cordeos/providers/section/section_provider.dart';
 import 'package:cordeos/providers/token_cache_provider.dart';
-import 'package:cordeos/providers/transposition_provider.dart';
 import 'package:cordeos/providers/version/local_version_provider.dart';
 
 import 'package:cordeos/services/tokenization/helper_classes.dart';
@@ -110,11 +109,7 @@ class _TokenContentCardState extends State<TokenContentCard> {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
-    _tokensKey = TokenCacheKey(
-      sectionKey: widget.sectionKey,
-      isEditMode: true,
-      transposeValue: 0,
-    );
+    _tokensKey = TokenCacheKey(sectionKey: widget.sectionKey, isEditMode: true);
 
     return Selector<SectionProvider, ({Section? section, String? contentText})>(
       selector: (context, sect) {
@@ -125,7 +120,7 @@ class _TokenContentCardState extends State<TokenContentCard> {
         return (section: section, contentText: section?.contentText);
       },
       builder: (context, s, child) {
-        _tokenProv.clearSectionKey(_tokensKey!);
+        _tokenProv.clearCacheOfKey(_tokensKey!);
         if (s.section == null) {
           return const Center(child: CircularProgressIndicator());
         }
@@ -233,9 +228,8 @@ class _TokenContentCardState extends State<TokenContentCard> {
               ),
 
               /// CONTENT
-              Selector2<
+              Selector<
                 LayoutSetProvider,
-                TranspositionProvider,
                 ({
                   TextStyle lyricStyle,
                   TextStyle chordStyle,
@@ -243,7 +237,7 @@ class _TokenContentCardState extends State<TokenContentCard> {
                   double heightSpacing,
                 })
               >(
-                selector: (context, laySet, trans) => (
+                selector: (context, laySet) => (
                   lyricStyle: laySet.lyricStyle,
                   chordStyle: laySet.chordStyle,
                   annotationStyle: laySet.annotationStyle,

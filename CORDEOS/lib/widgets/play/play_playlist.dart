@@ -1,7 +1,9 @@
+import 'package:cordeos/helpers/chords.dart';
 import 'package:cordeos/l10n/app_localizations.dart';
 import 'package:cordeos/models/domain/playlist/flow_item.dart';
 import 'package:cordeos/models/domain/playlist/playlist_item.dart';
 import 'package:cordeos/models/dtos/playlist_dto.dart';
+import 'package:cordeos/providers/cipher/cipher_provider.dart';
 import 'package:cordeos/providers/play/auto_scroll_provider.dart';
 import 'package:cordeos/providers/navigation_provider.dart';
 import 'package:cordeos/providers/play/play_state_provider.dart';
@@ -234,11 +236,39 @@ class _PlayPlaylistState extends State<PlayPlaylist> {
 
           switch (item.type) {
             case PlaylistItemType.version:
+              String originalKey = '';
+              String? tempKey;
+              final localVer = context.read<LocalVersionProvider>();
+              final ciph = context.read<CipherProvider>();
+
+              if (widget.playlistDto != null) {
+                final versionDto =
+                    widget.playlistDto!.versions[item.firebaseContentId]!;
+                originalKey = versionDto.originalKey;
+                tempKey = versionDto.overwriteKey ?? versionDto.transposedKey;
+              } else {
+                final version = localVer.getVersion(item.contentId!);
+                if (version == null) {
+                  debugPrint(
+                    "PLAT PLAYLIST - Couldnt get version ${item.contentId}",
+                  );
+                  return SizedBox();
+                }
+                originalKey = ciph.getCipher(version.cipherID)!.musicKey;
+                tempKey = version.transposedKey;
+              }
+
               return VersionWrap(
                 itemIndex: i,
                 versionDto:
                     widget.playlistDto?.versions[item.firebaseContentId],
                 versionID: item.contentId,
+                songKey: tempKey,
+                transposeChord: (chord) => ChordHelper().transposeChord(
+                  chord: chord,
+                  originalKey: originalKey,
+                  newKey: tempKey,
+                ),
               );
             case PlaylistItemType.flowItem:
               FlowItem? flow;

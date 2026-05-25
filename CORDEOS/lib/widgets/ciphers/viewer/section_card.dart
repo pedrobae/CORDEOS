@@ -1,6 +1,5 @@
 import 'package:cordeos/providers/play/auto_scroll_provider.dart';
 import 'package:cordeos/providers/token_cache_provider.dart';
-import 'package:cordeos/providers/transposition_provider.dart';
 import 'package:cordeos/utils/section_type.dart';
 import 'package:cordeos/utils/token_cache_keys.dart';
 import 'package:cordeos/widgets/ciphers/section_badge.dart';
@@ -17,7 +16,7 @@ class SectionCard extends StatelessWidget {
   final String sectionText;
   final SectionBadgeData sectionBadge;
   final String Function(String) transposeChord;
-  final int transposeValue;
+  final String? songKey;
 
   const SectionCard({
     super.key,
@@ -28,7 +27,7 @@ class SectionCard extends StatelessWidget {
     required this.sectionText,
     required this.sectionBadge,
     required this.transposeChord,
-    required this.transposeValue,
+    required this.songKey,
   });
 
   @override
@@ -43,11 +42,10 @@ class SectionCard extends StatelessWidget {
       content: sectionText,
       sectionKey: sectionKey,
       isEditMode: false,
-      transposeValue: transposeValue,
+      songKey: songKey,
     );
-    return Selector2<
+    return Selector<
       LayoutSetProvider,
-      TranspositionProvider,
       ({
         bool showLyrics,
         bool showChords,
@@ -55,7 +53,7 @@ class SectionCard extends StatelessWidget {
         bool showAddedNotes,
       })
     >(
-      selector: (context, laySet, trans) => (
+      selector: (context, laySet) => (
         showLyrics: laySet.showLyrics,
         showChords: laySet.showChords,
         showChordBass: laySet.showChordBass,

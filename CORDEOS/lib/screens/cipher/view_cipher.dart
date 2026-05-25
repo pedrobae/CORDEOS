@@ -1,10 +1,10 @@
+import 'package:cordeos/helpers/chords.dart';
 import 'package:cordeos/models/domain/cipher/version.dart';
 import 'package:cordeos/models/dtos/version_dto.dart';
 import 'package:cordeos/providers/play/auto_scroll_provider.dart';
 import 'package:cordeos/providers/navigation_provider.dart';
 import 'package:cordeos/providers/section/section_provider.dart';
-import 'package:cordeos/providers/transposition_provider.dart';
-import 'package:cordeos/widgets/ciphers/transposer.dart';
+import 'package:cordeos/widgets/ciphers/editor/metadata.dart/select_key_sheet.dart';
 import 'package:cordeos/widgets/ciphers/viewer/structure_list.dart';
 import 'package:cordeos/widgets/play/version_wrap.dart';
 import 'package:cordeos/widgets/settings/sheet_filters.dart';
@@ -41,13 +41,33 @@ class ViewCipherScreen extends StatefulWidget {
 class _ViewCipherScreenState extends State<ViewCipherScreen>
     with SingleTickerProviderStateMixin {
   late ScrollController _scrollController;
-  late TranspositionProvider _trans;
+
+  String originalKey = '';
+  String? tempKey;
+
+  void transposeUp() {
+    int index = ChordHelper.keyList.indexOf(tempKey ?? originalKey);
+    if (index == -1) return;
+    int newIndex = (index + 1) % ChordHelper.keyList.length;
+    setState(() {
+      tempKey = ChordHelper.keyList[newIndex];
+    });
+  }
+
+  void transposeDown() {
+    int index = ChordHelper.keyList.indexOf(tempKey ?? originalKey);
+    if (index == -1) return;
+    int newIndex = index - 1;
+    if (newIndex < 0) newIndex += ChordHelper.keyList.length;
+    setState(() {
+      tempKey = ChordHelper.keyList[newIndex];
+    });
+  }
 
   @override
   void initState() {
     super.initState();
     _scrollController = ScrollController();
-    _trans = context.read<TranspositionProvider>();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _setOriginalKey();
       _scrollController.addListener(_scrollListener);
@@ -80,30 +100,22 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
     final localVer = context.read<LocalVersionProvider>();
     final ciph = context.read<CipherProvider>();
 
-    final String originalKey;
-    final String? transposedKey;
-
-    if (widget.versionDto != null) {
-      originalKey = widget.versionDto!.originalKey;
-      transposedKey =
-          widget.versionDto!.overwriteKey ?? widget.versionDto!.transposedKey;
-    } else {
-      final cipher = ciph.getCipher(widget.cipherID!);
-      final version = localVer.getVersion(widget.versionID!);
-      originalKey = cipher!.musicKey;
-      transposedKey = version?.transposedKey;
-    }
-
-    _trans.setOriginalKey(originalKey, widget.versionID ?? -2);
-    _trans.setTransposedKey(transposedKey);
+    setState(() {
+      if (widget.versionDto != null) {
+        originalKey = widget.versionDto!.originalKey;
+        tempKey =
+            widget.versionDto!.overwriteKey ?? widget.versionDto!.transposedKey;
+      } else {
+        originalKey = ciph.getCipher(widget.cipherID!)!.musicKey;
+        tempKey = localVer.getVersion(widget.versionID!)?.transposedKey;
+      }
+    });
   }
 
   @override
   void dispose() {
     _scrollController.removeListener(_scrollListener);
     _scrollController.dispose();
-
-    _trans.clearTransposer();
     super.dispose();
   }
 
@@ -128,6 +140,12 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
                   itemIndex: 0,
                   versionID: widget.versionID,
                   versionDto: widget.versionDto,
+                  transposeChord: (chord) => ChordHelper().transposeChord(
+                    chord: chord,
+                    originalKey: originalKey,
+                    newKey: tempKey,
+                  ),
+                  songKey: tempKey,
                 ),
               ),
             );
@@ -180,7 +198,58 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
               ),
               if (isWideScreen) ...[SizedBox(width: 24)] else ...[Spacer()],
 
-              const Transposer(),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  GestureDetector(
+                    onTap: () => transposeDown(),
+                    child: const SizedBox(
+                      width: 40,
+                      height: 40,
+                      child: Icon(Icons.remove),
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      showModalBottomSheet(
+                        context: context,
+                        builder: (context) {
+                          return SelectKeySheet(
+                            initialKey: tempKey,
+                            originalKey: originalKey,
+                            versionID: widget.versionID,
+                            showSave: (widget.versionID! < 0) ? false : true,
+                            onKeySelected: (key) {
+                              setState(() {
+                                tempKey = key;
+                              });
+                            },
+                          );
+                        },
+                      );
+                    },
+                    child: SizedBox(
+                      width: 30,
+                      height: 30,
+                      child: Center(
+                        child: Text(
+                          tempKey ?? originalKey,
+                          style: Theme.of(context).textTheme.labelLarge,
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () => transposeUp(),
+                    child: const SizedBox(
+                      width: 40,
+                      height: 40,
+                      child: Icon(Icons.add),
+                    ),
+                  ),
+                ],
+              ),
               if (isWideScreen) ...[SizedBox(width: 24)] else ...[Spacer()],
 
               IconButton(

@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:cordeos/helpers/chords.dart';
 import 'package:cordeos/models/domain/playlist/playlist_item.dart';
 import 'package:cordeos/providers/playlist/flow_item_provider.dart';
 import 'package:cordeos/providers/playlist/playlist_provider.dart';
-import 'package:cordeos/providers/transposition_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:cordeos/helpers/song.dart';
 
@@ -86,8 +86,7 @@ class _TextExportScreenState extends State<TextExportScreen>
             Tab(text: 'ChordPro'),
           ],
         ),
-        Selector6<
-          TranspositionProvider,
+        Selector5<
           PlaylistProvider,
           LocalVersionProvider,
           CipherProvider,
@@ -95,7 +94,7 @@ class _TextExportScreenState extends State<TextExportScreen>
           FlowItemProvider,
           ({String chordPro, String songText, String fileName})
         >(
-          selector: (context, trans, play, localVer, ciph, sect, flow) {
+          selector: (context, play, localVer, ciph, sect, flow) {
             String fileName = '';
             final chordPros = <String>[];
             final holyricss = <String>[];
@@ -105,7 +104,6 @@ class _TextExportScreenState extends State<TextExportScreen>
                 chordPros,
                 holyricss,
                 widget.versionID!,
-                trans,
                 localVer,
                 ciph,
                 sect,
@@ -133,7 +131,6 @@ class _TextExportScreenState extends State<TextExportScreen>
                       chordPros,
                       holyricss,
                       item.contentId!,
-                      trans,
                       localVer,
                       ciph,
                       sect,
@@ -206,7 +203,6 @@ class _TextExportScreenState extends State<TextExportScreen>
     List<String> chordPros,
     List<String> holyricss,
     int versionID,
-    TranspositionProvider trans,
     LocalVersionProvider localVer,
     CipherProvider ciph,
     SectionProvider sect,
@@ -222,8 +218,11 @@ class _TextExportScreenState extends State<TextExportScreen>
       return;
     }
     final sections = sect.getSections(versionID);
-    final transposeChord = (String chord) =>
-        trans.transposeChord(chord, cipher.musicKey, version.transposedKey);
+    final transposeChord = (String chord) => ChordHelper().transposeChord(
+      chord: chord,
+      originalKey: cipher.musicKey,
+      newKey: version.transposedKey,
+    );
     chordPros.add(SongHelper.convertToChordPro(cipher, version, sections));
     holyricss.add(
       SongHelper.convertToHolyricsText(

@@ -32,7 +32,6 @@ import 'package:cordeos/providers/play/auto_scroll_provider.dart';
 import 'package:cordeos/providers/bug_report_provider.dart';
 import 'package:cordeos/providers/cipher/edit_sections_state_provider.dart';
 import 'package:cordeos/providers/token_cache_provider.dart';
-import 'package:cordeos/providers/transposition_provider.dart';
 
 import 'package:cordeos/services/firebase/firebase_service.dart';
 import 'package:cordeos/services/firebase/remote_config_service.dart';
@@ -105,7 +104,6 @@ class MyApp extends StatelessWidget {
           create: (_) => PrintingProvider()..loadSettings(),
         ),
         ChangeNotifierProvider(create: (_) => SelectionProvider()),
-        ChangeNotifierProvider(create: (_) => TranspositionProvider()),
         ChangeNotifierProvider(create: (_) => EmailProvider()),
       ],
       child: Consumer<SettingsProvider>(

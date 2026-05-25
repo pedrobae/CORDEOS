@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:math';
 
+import 'package:cordeos/helpers/chords.dart';
 import 'package:cordeos/l10n/app_localizations.dart';
 import 'package:cordeos/models/domain/cipher/cipher.dart';
 import 'package:cordeos/models/domain/cipher/section.dart';
@@ -13,7 +14,6 @@ import 'package:cordeos/providers/playlist/flow_item_provider.dart';
 import 'package:cordeos/providers/playlist/playlist_provider.dart';
 import 'package:cordeos/providers/printing_provider.dart';
 import 'package:cordeos/providers/section/section_provider.dart';
-import 'package:cordeos/providers/transposition_provider.dart';
 import 'package:cordeos/providers/version/local_version_provider.dart';
 import 'package:cordeos/widgets/ciphers/print/page_preview_painter.dart';
 import 'package:cordeos/widgets/ciphers/print/sheet_print_filters.dart';
@@ -108,7 +108,6 @@ class _PrintPreviewScreenState extends State<PrintPreviewScreen> {
   })
   _getSong(
     int versionID,
-    TranspositionProvider trans,
     CipherProvider ciph,
     LocalVersionProvider localVer,
     SectionProvider sect,
@@ -122,8 +121,11 @@ class _PrintPreviewScreenState extends State<PrintPreviewScreen> {
       throw Exception('Cipher not found for ID: $versionID');
     }
     final sections = sect.getSections(versionID);
-    final transposeChord = (String chord) =>
-        trans.transposeChord(chord, cipher.musicKey, version.transposedKey);
+    final transposeChord = (String chord) => ChordHelper().transposeChord(
+      chord: chord,
+      originalKey: cipher.musicKey,
+      newKey: version.transposedKey,
+    );
 
     return (
       cipher: cipher,
@@ -150,8 +152,7 @@ class _PrintPreviewScreenState extends State<PrintPreviewScreen> {
         bottom: MediaQuery.of(context).viewPadding.bottom,
       ),
       child:
-          Selector6<
-            TranspositionProvider,
+          Selector5<
             PlaylistProvider,
             CipherProvider,
             LocalVersionProvider,
@@ -169,7 +170,7 @@ class _PrintPreviewScreenState extends State<PrintPreviewScreen> {
               String fileName,
             })
           >(
-            selector: (context, trans, play, ciph, localVer, sect, print) {
+            selector: (context, play, ciph, localVer, sect, print) {
               List<PlaylistItem> items = [];
               final flowItems = <int, FlowItem>{};
               final versions = <int, Version>{};
@@ -182,7 +183,6 @@ class _PrintPreviewScreenState extends State<PrintPreviewScreen> {
                 try {
                   final song = _getSong(
                     widget.versionID!,
-                    trans,
                     ciph,
                     localVer,
                     sect,
@@ -234,7 +234,6 @@ class _PrintPreviewScreenState extends State<PrintPreviewScreen> {
                       try {
                         final song = _getSong(
                           item.contentId!,
-                          trans,
                           ciph,
                           localVer,
                           sect,

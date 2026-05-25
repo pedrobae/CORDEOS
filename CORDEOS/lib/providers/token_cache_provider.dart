@@ -66,7 +66,7 @@ class TokenProvider extends ChangeNotifier {
     TokenCacheKey key, {
     required String Function(String) transposeChord,
   }) {
-    if (key.transposeValue == -1) return;
+    if (key.songKey == -1) return;
     if (getTokens(key) != null) {
       return;
     }
@@ -407,7 +407,7 @@ class TokenProvider extends ChangeNotifier {
     _paintCache.clear();
   }
 
-  void clearSectionKey(TokenCacheKey key) {
+  void clearCacheOfKey(TokenCacheKey key) {
     debugPrint("TOKEN PROVIDER - clearing cache of section ${key.sectionKey}");
     _tokenCache.removeWhere((k, v) => k.startsWith(key.sectionKey.toString()));
     _organizedCache.removeWhere(

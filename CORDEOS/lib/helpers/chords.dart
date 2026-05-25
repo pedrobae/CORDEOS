@@ -153,7 +153,7 @@ class ChordHelper {
     }
   }
 
-  String transpose(String originalKey, String? newKey, String chord) {
+  String _transpose(String originalKey, String? newKey, String chord) {
     if (chord.isEmpty || originalKey.isEmpty) {
       return chord;
     }
@@ -235,7 +235,7 @@ class ChordHelper {
       result.write(prefix);
       // Write transposed root
       result.write(
-        ChordHelper().transpose(originalKey, newKey, root.toString()),
+        ChordHelper()._transpose(originalKey, newKey, root.toString()),
       );
     }
     return result.toString();

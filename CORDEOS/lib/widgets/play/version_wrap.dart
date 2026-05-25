@@ -1,11 +1,9 @@
-import 'package:cordeos/helpers/chords.dart';
 import 'package:cordeos/l10n/app_localizations.dart';
 import 'package:cordeos/models/dtos/version_dto.dart';
 import 'package:cordeos/providers/play/auto_scroll_provider.dart';
 import 'package:cordeos/providers/cipher/cipher_provider.dart';
 import 'package:cordeos/providers/settings/layout_settings_provider.dart';
 import 'package:cordeos/providers/section/section_provider.dart';
-import 'package:cordeos/providers/transposition_provider.dart';
 import 'package:cordeos/providers/version/local_version_provider.dart';
 import 'package:cordeos/utils/date_utils.dart';
 import 'package:cordeos/utils/section_type.dart';
@@ -18,19 +16,22 @@ class VersionWrap extends StatelessWidget {
   final int itemIndex;
   final VersionDto? versionDto;
   final int? versionID;
+  final String Function(String) transposeChord;
+  final String? songKey;
 
   const VersionWrap({
     super.key,
     required this.itemIndex,
     required this.versionID,
     this.versionDto,
+    required this.transposeChord,
+    required this.songKey,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Selector5<
+    return Selector4<
       LayoutSetProvider,
-      TranspositionProvider,
       CipherProvider,
       LocalVersionProvider,
       SectionProvider,
@@ -38,26 +39,12 @@ class VersionWrap extends StatelessWidget {
         Axis wrapDirection,
         List<int> filteredStructure,
         Map<int, SectionBadgeData> badgesData,
-        String originalKey,
-        String? newKey,
       })
     >(
-      selector: (context, laySet, trans, ciph, localVer, sect) {
-        String originalKey;
-        String? newKey;
-        List<int> songStructure;
-        if (versionDto != null) {
-          originalKey = versionDto!.originalKey;
-          newKey = versionDto!.overwriteKey ?? versionDto!.transposedKey;
-          songStructure = versionDto!.songStructure;
-        } else {
-          final version = localVer.getVersion(versionID!)!;
-          originalKey = ciph.getCipher(version.cipherID)!.musicKey;
-          newKey =
-              trans.transposedKey ??
-              localVer.getVersion(versionID!)!.transposedKey;
-          songStructure = localVer.getSongStructure(versionID!);
-        }
+      selector: (context, laySet, ciph, localVer, sect) {
+        final songStructure = (versionDto != null)
+            ? versionDto!.songStructure
+            : localVer.getSongStructure(versionID!);
 
         final filteredStructure = <int>[];
         for (var key in songStructure) {
@@ -98,8 +85,6 @@ class VersionWrap extends StatelessWidget {
           wrapDirection: laySet.wrapDirection,
           filteredStructure: filteredStructure,
           badgesData: getSectionBadges(sectionTypes),
-          originalKey: originalKey,
-          newKey: newKey,
         );
       },
       builder: (context, s, child) {
@@ -120,8 +105,6 @@ class VersionWrap extends StatelessWidget {
                   context,
                   s.filteredStructure,
                   s.badgesData,
-                  s.originalKey,
-                  s.newKey,
                 ),
               ),
             ),
@@ -199,12 +182,9 @@ class VersionWrap extends StatelessWidget {
     BuildContext context,
     List<int> filteredStructure,
     Map<int, SectionBadgeData> badgesData,
-    String originalKey,
-    String? newKey,
   ) {
     final scroll = context.read<ScrollProvider>();
     final sect = context.read<SectionProvider>();
-    final trans = context.read<TranspositionProvider>();
 
     final sectionWidgets = <Widget>[];
 
@@ -252,15 +232,8 @@ class VersionWrap extends StatelessWidget {
             sectionKey: sectionKey,
             sectionText: section.contentText,
             sectionBadge: badgesData[sectionKey]!,
-            transposeChord: (chord) =>
-                trans.transposeChord(chord, originalKey, newKey),
-            transposeValue: () {
-              if (newKey == null) return 0;
-              int indexOriginal = ChordHelper.keyList.indexOf(originalKey);
-              int indexTransposed = ChordHelper.keyList.indexOf(newKey);
-              if (indexOriginal == -1 || indexTransposed == -1) return -1;
-              return (indexTransposed - indexOriginal) % 12;
-            }(),
+            transposeChord: transposeChord,
+            songKey: songKey,
           ),
         ),
       );
