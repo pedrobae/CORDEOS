@@ -324,6 +324,7 @@ class PrintingProvider extends ChangeNotifier {
               section.contentText,
               showAddedNotes: showAddedNotes,
               showChordBass: showChordBass,
+              showAnnotations: showAnnotations,
               showLyrics: showLyrics,
               showChords: showChords,
               transposeChord: transposeChord,

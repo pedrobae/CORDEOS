@@ -22,6 +22,7 @@ class TokenizationService {
     String content, {
     required bool showLyrics,
     required bool showChords,
+    required bool showAnnotations,
     required bool showChordBass,
     required bool showAddedNotes,
     required String Function(String) transposeChord,
@@ -71,9 +72,14 @@ class TokenizationService {
           index++;
         }
         if (isAnnotation) {
-          lineTokens.add(
-            ContentToken(type: TokenType.chordAnnotation, text: bracketedText),
-          );
+          if (showAnnotations) {
+            lineTokens.add(
+              ContentToken(
+                type: TokenType.chordAnnotation,
+                text: bracketedText,
+              ),
+            );
+          }
         } else if (showChords) {
           lineTokens.add(
             ContentToken(
@@ -96,9 +102,11 @@ class TokenizationService {
           annotationText += content[index];
           index++;
         }
-        lineTokens.add(
-          ContentToken(type: TokenType.lyricAnnotation, text: annotationText),
-        );
+        if (showAnnotations) {
+          lineTokens.add(
+            ContentToken(type: TokenType.lyricAnnotation, text: annotationText),
+          );
+        }
       } else if (char == '<' && (showLyrics || showChords)) {
         lineTokens.add(ContentToken(type: TokenType.preSeparator, text: char));
       } else if (char == '>' && (showLyrics || showChords)) {

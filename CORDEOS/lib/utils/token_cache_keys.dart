@@ -17,6 +17,7 @@ class TokenCacheKey {
   bool? showChordBass;
   bool? showAddedNotes;
   bool? showLyrics;
+  bool? showAnnotations;
   bool isEditMode;
   String? songKey;
   Color? chordColor;
@@ -33,6 +34,7 @@ class TokenCacheKey {
     this.showLyrics,
     this.showChordBass,
     this.showAddedNotes,
+    this.showAnnotations,
     this.songKey,
     required this.sectionKey,
     this.isEditMode = false,
@@ -54,6 +56,7 @@ class TokenCacheKey {
         other.showChordBass == showChordBass &&
         other.showAddedNotes == showAddedNotes &&
         other.showLyrics == showLyrics &&
+        other.showAnnotations == showAnnotations &&
         other.isEditMode == isEditMode &&
         other.songKey == songKey &&
         other.sectionKey == sectionKey;
@@ -70,6 +73,7 @@ class TokenCacheKey {
     showChords,
     showChordBass,
     showAddedNotes,
+    showAnnotations,
     showLyrics,
     isEditMode,
     songKey,
@@ -82,7 +86,7 @@ class TokenCacheKey {
 
 /// Token cache key: content + filters + transposition
 String tokenCacheKey(TokenCacheKey k) =>
-    '${k.sectionKey}|content:${k.content}|chords:${k.showChords}|lyrics:${k.showLyrics}|bass:${k.showChordBass}|addedNotes:${k.showAddedNotes}|songKey:${k.songKey}|editMode:${k.isEditMode}';
+    '${k.sectionKey}|content:${k.content}|chords:${k.showChords}|lyrics:${k.showLyrics}|bass:${k.showChordBass}|addedNotes:${k.showAddedNotes}|songKey:${k.songKey}|editMode:${k.isEditMode}|annotations:${k.showAnnotations}';
 
 String measurementKey(
   String text,

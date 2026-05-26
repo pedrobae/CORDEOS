@@ -109,7 +109,15 @@ class _TokenContentCardState extends State<TokenContentCard> {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
-    _tokensKey = TokenCacheKey(sectionKey: widget.sectionKey, isEditMode: true);
+    _tokensKey = TokenCacheKey(
+      sectionKey: widget.sectionKey,
+      isEditMode: true,
+      showAddedNotes: true,
+      showChordBass: true,
+      showChords: true,
+      showLyrics: true,
+      showAnnotations: true,
+    );
 
     return Selector<SectionProvider, ({Section? section, String? contentText})>(
       selector: (context, sect) {

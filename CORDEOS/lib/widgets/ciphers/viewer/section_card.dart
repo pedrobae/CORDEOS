@@ -51,6 +51,7 @@ class SectionCard extends StatelessWidget {
         bool showChords,
         bool showChordBass,
         bool showAddedNotes,
+        bool showAnnotations,
       })
     >(
       selector: (context, laySet) => (
@@ -58,6 +59,7 @@ class SectionCard extends StatelessWidget {
         showChords: laySet.showChords,
         showChordBass: laySet.showChordBass,
         showAddedNotes: laySet.showAddedNotes,
+        showAnnotations: laySet.showAnnotations,
       ),
       builder: (context, filter, child) {
         // PHASE 1: Ensure tokens are cached & organized for this content + filters
@@ -65,6 +67,7 @@ class SectionCard extends StatelessWidget {
         layoutKey.showLyrics = filter.showLyrics;
         layoutKey.showAddedNotes = filter.showAddedNotes;
         layoutKey.showChordBass = filter.showChordBass;
+        layoutKey.showAnnotations = filter.showAnnotations;
 
         tokenProv.tokenize(layoutKey, transposeChord: transposeChord);
         tokenProv.organize(layoutKey);

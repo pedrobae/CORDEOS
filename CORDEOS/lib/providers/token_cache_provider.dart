@@ -78,6 +78,7 @@ class TokenProvider extends ChangeNotifier {
       showChords: key.showChords ?? true,
       showChordBass: key.showChordBass ?? true,
       showAddedNotes: key.showAddedNotes ?? true,
+      showAnnotations: key.showAnnotations ?? true,
       transposeChord: transposeChord,
     );
 
