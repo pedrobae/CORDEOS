@@ -167,69 +167,65 @@ class _SectionsTabState extends State<SectionsTab> {
 
                         // Palette FAB
                         if (widget.isEnabled)
-                          Row(
-                            children: [
-                              GestureDetector(
-                                onTap: () {
-                                  context
-                                      .read<EditSectionsStateProvider>()
-                                      .togglePalette();
-                                },
-                                child: Container(
-                                  margin: const EdgeInsets.all(8),
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: colorScheme.onSurface,
-                                    shape: BoxShape.circle,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color:
-                                            colorScheme.surfaceContainerLowest,
-                                        blurRadius: 8,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ],
+                          GestureDetector(
+                            onTap: () {
+                              context
+                                  .read<EditSectionsStateProvider>()
+                                  .togglePalette();
+                            },
+                            child: Container(
+                              margin: const EdgeInsets.all(8),
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: colorScheme.onSurface,
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: colorScheme.surfaceContainerLowest,
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
                                   ),
-                                  child: Icon(
-                                    s.paletteIsOpen
-                                        ? Icons.close
-                                        : Icons.music_note,
-                                    size: 28,
-                                    color: colorScheme.surface,
-                                  ),
-                                ),
+                                ],
                               ),
-                              GestureDetector(
-                                onTap: () {
-                                  context
-                                      .read<EditSectionsStateProvider>()
-                                      .toggleAnnotationPalette();
-                                },
-                                child: Container(
-                                  margin: const EdgeInsets.all(8),
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: colorScheme.onSurface,
-                                    shape: BoxShape.circle,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color:
-                                            colorScheme.surfaceContainerLowest,
-                                        blurRadius: 8,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Icon(
-                                    s.annotationPaletteIsOpen
-                                        ? Icons.close
-                                        : Icons.note_outlined,
-                                    size: 28,
-                                    color: colorScheme.surface,
-                                  ),
-                                ),
+                              child: Icon(
+                                s.paletteIsOpen
+                                    ? Icons.close
+                                    : Icons.music_note,
+                                size: 28,
+                                color: colorScheme.surface,
                               ),
-                            ],
+                            ),
+                          ),
+                        // ANNOTATION PALETTE FAB
+                        if (widget.isEnabled)
+                          GestureDetector(
+                            onTap: () {
+                              context
+                                  .read<EditSectionsStateProvider>()
+                                  .toggleAnnotationPalette();
+                            },
+                            child: Container(
+                              margin: const EdgeInsets.all(8),
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: colorScheme.onSurface,
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: colorScheme.surfaceContainerLowest,
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Icon(
+                                s.annotationPaletteIsOpen
+                                    ? Icons.close
+                                    : Icons.sticky_note_2_outlined,
+                                size: 28,
+                                color: colorScheme.surface,
+                              ),
+                            ),
                           ),
 
                         // Open add sheet
