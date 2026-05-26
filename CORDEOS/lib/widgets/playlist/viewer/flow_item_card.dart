@@ -40,7 +40,7 @@ class _FlowItemCardState extends State<FlowItemCard> {
 
     if (widget.flowItem == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) async {
-        await flow.loadFlowItem(widget.flowItemID);
+        await flow.ensureIsLoaded(widget.flowItemID);
       });
     }
   }

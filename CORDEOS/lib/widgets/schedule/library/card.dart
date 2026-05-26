@@ -1,4 +1,5 @@
 import 'package:cordeos/providers/playlist/flow_item_provider.dart';
+import 'package:cordeos/providers/schedule/cloud_schedule_provider.dart';
 import 'package:cordeos/providers/section/section_provider.dart';
 import 'package:cordeos/providers/selection_provider.dart';
 import 'package:cordeos/providers/version/local_version_provider.dart';
@@ -39,24 +40,27 @@ class ScheduleCard extends StatelessWidget {
     final nav = context.read<NavigationProvider>();
     final user = context.read<UserProvider>();
 
-    return Selector2<
+    return Selector3<
+      CloudScheduleProvider,
       LocalScheduleProvider,
       PlaylistProvider,
-      ({Schedule? schedule, Playlist? playlist})
+      ({Schedule? schedule, Playlist? playlist, bool isSyncing})
     >(
-      selector: (context, localSch, play) {
+      selector: (context, cloudSch, localSch, play) {
         final schedule = localSch.getSchedule(scheduleId);
         return (
           schedule: schedule,
           playlist: play.getPlaylist(schedule?.playlistId ?? -1),
+          isSyncing: cloudSch.syncingStatus(
+            firebaseScheduleID: schedule?.firebaseId,
+            shareCode: schedule?.shareCode,
+          ),
         );
       },
       builder: (context, s, child) {
         // LOADING STATE
-        if (s.schedule == null) {
-          return Center(
-            child: CircularProgressIndicator(color: colorScheme.primary),
-          );
+        if (s.isSyncing) {
+          return SizedBox.shrink();
         }
 
         String? userRole = AppLocalizations.of(context)!.generalMember;

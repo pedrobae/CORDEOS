@@ -2,6 +2,7 @@ import 'package:cordeos/l10n/app_localizations.dart';
 import 'package:cordeos/providers/user/my_auth_provider.dart';
 import 'package:cordeos/providers/schedule/cloud_schedule_provider.dart';
 import 'package:cordeos/providers/schedule/local_schedule_provider.dart';
+import 'package:cordeos/widgets/common/icon_load_indicator.dart';
 import 'package:cordeos/widgets/schedule/library/card_cloud.dart';
 import 'package:cordeos/widgets/schedule/library/card.dart';
 import 'package:flutter/material.dart';
@@ -54,6 +55,7 @@ class _ScheduleScrollViewState extends State<ScheduleScrollView> {
         List<dynamic> futureScheduleIDs,
         List<dynamic> pastScheduleIDs,
         String? error,
+        bool isSyncing,
       })
     >(
       selector: (context, localSch, cloudSch) {
@@ -70,6 +72,7 @@ class _ScheduleScrollViewState extends State<ScheduleScrollView> {
               : (cloudSch.error != null && cloudSch.error!.isNotEmpty)
               ? cloudSch.error
               : null,
+          isSyncing: cloudSch.isSyncing,
         );
       },
       builder: (context, s, child) {
@@ -97,7 +100,11 @@ class _ScheduleScrollViewState extends State<ScheduleScrollView> {
           );
         }
 
-        return _buildScheduleList(s.pastScheduleIDs, s.futureScheduleIDs);
+        return _buildScheduleList(
+          s.pastScheduleIDs,
+          s.futureScheduleIDs,
+          s.isSyncing,
+        );
       },
     );
   }
@@ -119,6 +126,7 @@ class _ScheduleScrollViewState extends State<ScheduleScrollView> {
   Widget _buildScheduleList(
     List<dynamic> pastScheduleIDs,
     List<dynamic> futureScheduleIDs,
+    bool isSyncing,
   ) {
     final textTheme = Theme.of(context).textTheme;
 
@@ -143,6 +151,8 @@ class _ScheduleScrollViewState extends State<ScheduleScrollView> {
                       style: textTheme.titleMedium,
                     )
                   : SizedBox.shrink()),
+
+        if (isSyncing) Center(child: IconLoadIndicator(size: 100)),
 
         // SCHEDULES LIST
         Expanded(

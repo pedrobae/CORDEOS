@@ -22,8 +22,9 @@ class CloudScheduleProvider extends ChangeNotifier {
 
   bool _isLoading = false;
   bool _isSaving = false;
+  bool _isSyncing = false;
 
-  final Map<String, bool> _isSyncing = {};
+  final List<ScheduleDto> _syncQueue = [];
   final Map<String, DateTime> _lastSyncTimes = {};
 
   // ===== GETTERS =====
@@ -33,8 +34,12 @@ class CloudScheduleProvider extends ChangeNotifier {
 
   bool get isLoading => _isLoading;
   bool get isSaving => _isSaving;
+  bool get isSyncing => _isSyncing;
 
-  bool syncingStatus(String scheduleId) => _isSyncing[scheduleId] ?? false;
+  bool syncingStatus({String? firebaseScheduleID, String? shareCode}) =>
+      _syncQueue.any(
+        (s) => s.firebaseId == firebaseScheduleID || s.shareCode == shareCode,
+      );
 
   List<String> get filteredScheduleIds {
     if (_searchTerm.isEmpty) {
@@ -89,7 +94,16 @@ class CloudScheduleProvider extends ChangeNotifier {
       );
 
       for (var schedule in schedules) {
-        _schedules[schedule.firebaseId!] = schedule;
+        if (schedule.ownerFirebaseId == userId && schedule.firebaseId != null) {
+          if ((forceFetch || _oldSync(schedule.firebaseId!)) &&
+              context.mounted) {
+            _syncQueue.add(schedule);
+            notifyListeners();
+            _syncQueueListener(context);
+          }
+        } else {
+          _schedules[schedule.firebaseId!] = schedule;
+        }
       }
     } catch (e) {
       debugPrint('Error loading schedules: $e');
@@ -98,43 +112,39 @@ class CloudScheduleProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
-
-    // Keep loading state scoped to cloud fetch only.
-    // Owner schedule sync can be slow and should not block the screen loader.
-    for (final schedule in _schedules.values.toList()) {
-      if (schedule.ownerFirebaseId == userId && schedule.firebaseId != null) {
-        if ((forceFetch || _oldSync(schedule.firebaseId!)) && context.mounted) {
-          unawaited(_syncOwnedSchedule(context, schedule));
-        } else {
-          _schedules.remove(schedule.firebaseId!);
-        }
-      }
-    }
   }
 
   Future<void> _syncOwnedSchedule(
     BuildContext context,
     ScheduleDto schedule,
   ) async {
-    final scheduleId = schedule.firebaseId!;
-
-    _isSyncing[scheduleId] = true;
+    _isSyncing = true;
     notifyListeners();
 
     try {
       final localID = await _syncService.scheduleToLocal(schedule);
-      _lastSyncTimes[scheduleId] = DateTime.now();
-      _schedules.remove(scheduleId);
+      _lastSyncTimes[schedule.firebaseId!] = DateTime.now();
+      _schedules.remove(schedule.firebaseId!);
       // Trigger local provider load.
       if (context.mounted) {
         final localScheduleProvider = context.read<LocalScheduleProvider>();
         localScheduleProvider.loadSchedule(localID);
       }
     } catch (e) {
-      debugPrint('Error syncing owned schedule $scheduleId: $e');
+      debugPrint('Error syncing owned schedule ${schedule.firebaseId!}: $e');
     } finally {
-      _isSyncing[scheduleId] = false;
+      _syncQueue.remove(schedule);
+      _isSyncing = false;
       notifyListeners();
+    }
+    if (_syncQueue.isNotEmpty) {
+      _syncQueueListener(context);
+    }
+  }
+
+  void _syncQueueListener(BuildContext context) {
+    if (_syncQueue.isNotEmpty && !isSyncing) {
+      _syncOwnedSchedule(context, _syncQueue.first);
     }
   }
 
@@ -189,7 +199,7 @@ class CloudScheduleProvider extends ChangeNotifier {
     _schedules.clear();
     _isLoading = false;
     _isSaving = false;
-    _isSyncing.clear();
+    _syncQueue.clear();
     _searchTerm = '';
     _error = null;
     notifyListeners();
@@ -197,16 +207,6 @@ class CloudScheduleProvider extends ChangeNotifier {
 
   void clearError() {
     _error = null;
-    notifyListeners();
-  }
-
-  void startSyncing(String scheduleId) {
-    _isSyncing[scheduleId] = true;
-    notifyListeners();
-  }
-
-  void stopSyncing(String scheduleId) {
-    _isSyncing[scheduleId] = false;
     notifyListeners();
   }
 

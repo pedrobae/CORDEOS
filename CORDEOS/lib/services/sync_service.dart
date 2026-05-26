@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:cordeos/helpers/codes.dart';
 import 'package:cordeos/models/domain/cipher/cipher.dart';
+import 'package:cordeos/models/domain/cipher/version.dart';
 import 'package:cordeos/models/domain/playlist/flow_item.dart';
 import 'package:cordeos/models/domain/playlist/playlist_item.dart';
 import 'package:cordeos/models/domain/schedule.dart';
@@ -156,11 +157,21 @@ class ScheduleSyncService {
       playlistDto.toDomain(ownerUser.id!),
     );
 
-    final existingItems = (await _playlistRepo.getPlaylistById(
-      playlistID,
-    ))!.items;
+    final playlist = (await _playlistRepo.getPlaylistById(playlistID))!;
+    final versionsToDelete = <PlaylistItem>[];
+    for (var item in playlist.items) {
+      if (item.type == PlaylistItemType.version &&
+          versionsToDelete.none((i) => i.id == item.id)) {
+        versionsToDelete.add(item);
+      }
+    }
+    debugPrint(
+      "\t found ${versionsToDelete.length} items to potentially delete",
+    );
+    // Clear associated items
+    _playlistRepo.clearItemsOfPlaylist(playlistID);
 
-    // Upsert each playlist Item in the playlist
+    // Insert each Item in the playlist
     for (var item in playlistDto.getPlaylistItems()) {
       switch (item.type) {
         case PlaylistItemType.flowItem:
@@ -173,42 +184,31 @@ class ScheduleSyncService {
               playlistId: playlistID,
             ),
           );
-          existingItems.remove(
-            existingItems.firstWhereOrNull(
-              (i) =>
-                  i.type == PlaylistItemType.flowItem &&
-                  i.firebaseContentId == item.firebaseContentId,
-            ),
-          );
           break;
         case PlaylistItemType.version:
           final versionDto = playlistDto.versions[item.firebaseContentId]!;
           debugPrint("\t\tsyncing version");
 
           final versionID = await upsertVersion(versionDto);
-          await _playlistRepo.addVersionToPlaylist(playlistID, versionID);
+          await _playlistRepo.addVersionToPlaylistAt(
+            playlistID,
+            versionID,
+            item.position,
+          );
 
-          existingItems.remove(
-            existingItems.firstWhereOrNull(
-              (i) =>
-                  i.type == PlaylistItemType.version &&
-                  i.firebaseContentId == item.firebaseContentId,
-            ),
+          versionsToDelete.remove(
+            versionsToDelete.firstWhereOrNull((i) => i.contentId == versionID),
           );
           break;
       }
     }
 
-    // Remove any versions from the playlist that are not in the cloud version
-    for (var item in existingItems) {
-      switch (item.type) {
-        case PlaylistItemType.flowItem:
-          await _flowRepo.deleteFlowItem(item.contentId!);
-          break;
-        case PlaylistItemType.version:
-          await _versionRepo.deleteVersion(item.contentId!);
-          break;
-      }
+    // Remove any items from the playlist that are not in the cloud version
+    debugPrint(
+      "\t deleting ${versionsToDelete.length} items that are not in the cloud version",
+    );
+    for (var item in versionsToDelete) {
+      await _versionRepo.deleteVersion(item.contentId!);
     }
 
     return playlistID;
@@ -261,11 +261,12 @@ class ScheduleSyncService {
             existingSection.versionID,
             existingSection.key,
           );
+
+          final songStructure = [...existingVersion.songStructure];
+          songStructure.remove(existingSection.key);
+
           await _versionRepo.updateVersion(
-            existingVersion.copyWith(
-              songStructure: existingVersion.songStructure
-                ..remove(existingSection.key),
-            ),
+            existingVersion.copyWith(songStructure: songStructure),
           );
         } else {
           await _sectionRepo.upsertSection(
@@ -308,7 +309,7 @@ class ScheduleSyncService {
     for (var item in domainPlaylist.items) {
       switch (item.type) {
         case PlaylistItemType.version:
-          final version = (await _versionRepo.getVersionWithId(
+          Version? version = (await _versionRepo.getVersionWithId(
             item.contentId!,
           ));
 
@@ -321,8 +322,13 @@ class ScheduleSyncService {
 
           if (firebaseID == null) {
             firebaseID = generateFirebaseId();
-            await _versionRepo.updateVersion(
-              version.copyWith(firebaseID: firebaseID),
+
+            version = version.copyWith(firebaseID: firebaseID);
+            await _versionRepo.updateVersion(version);
+
+            await _playlistRepo.updateItem(
+              item.id,
+              item.copyWith(firebaseContentId: firebaseID),
             );
           }
 

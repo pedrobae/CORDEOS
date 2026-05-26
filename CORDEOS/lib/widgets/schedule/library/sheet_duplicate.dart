@@ -221,7 +221,6 @@ class _DuplicateScheduleSheetState extends State<DuplicateScheduleSheet> {
     } else {
       final scheduleDto = cloudSch.getSchedule(widget.scheduleId)!;
 
-      cloudSch.startSyncing(widget.scheduleId);
       final scheduleID = await sync.scheduleToLocal(
         scheduleDto.copyWith(
           ownerFirebaseId: auth.id!,
@@ -238,7 +237,6 @@ class _DuplicateScheduleSheetState extends State<DuplicateScheduleSheet> {
         isPublic: false,
       );
       localSch.loadSchedule(scheduleID);
-      cloudSch.stopSyncing(widget.scheduleId);
     }
   }
 }

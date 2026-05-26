@@ -55,11 +55,10 @@ class FlowItemProvider extends ChangeNotifier {
 
   Future<void> ensureIsLoaded(int flowID) async {
     if (_flowItems[flowID] != null) return;
-    loadFlowItem(flowID);
+    await loadFlowItem(flowID);
   }
 
   Future<void> loadFlowItem(int id) async {
-    // Not in cache, query repository
     try {
       final flowItem = await _flowItemRepo.getFlowItem(id);
       if (flowItem != null) {

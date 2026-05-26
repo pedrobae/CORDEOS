@@ -23,6 +23,7 @@ class PlaylistRepository {
             await txn.insert('playlist_version', {
               'version_id': item.contentId,
               'playlist_id': playlistId,
+              'firebase_content_id': item.firebaseContentId,
               'position': item.position,
             });
             break;
@@ -229,6 +230,38 @@ class PlaylistRepository {
     });
   }
 
+  Future<void> clearItemsOfPlaylist(int playlistId) async {
+    final db = await _databaseHelper.database;
+
+    await db.transaction((txn) async {
+      await txn.delete(
+        'playlist_version',
+        where: 'playlist_id = ?',
+        whereArgs: [playlistId],
+      );
+      await txn.delete(
+        'flow_item',
+        where: 'playlist_id = ?',
+        whereArgs: [playlistId],
+      );
+    });
+  }
+
+  Future<void> updateItem(int itemID, PlaylistItem item) async {
+    final db = await _databaseHelper.database;
+
+    await db.update(
+      'playlist_version',
+      {
+        'position': item.position,
+        'firebase_content_id': item.firebaseContentId,
+        'version_id': item.contentId,
+      },
+      where: 'id = ?',
+      whereArgs: [itemID],
+    );
+  }
+
   Future<void> _updateItemPosition(
     Transaction txn,
     PlaylistItem item,
@@ -265,6 +298,7 @@ class PlaylistRepository {
         await txn.insert('playlist_version', {
           'version_id': item.contentId!,
           'playlist_id': playlistID,
+          'firebase_content_id': item.firebaseContentId,
           'position': position,
         });
         break;

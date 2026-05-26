@@ -3,7 +3,6 @@ import 'package:cordeos/models/dtos/schedule_dto.dart';
 import 'package:cordeos/providers/play/auto_scroll_provider.dart';
 import 'package:cordeos/screens/schedule/play.dart';
 import 'package:cordeos/screens/schedule/view.dart';
-import 'package:cordeos/widgets/common/cloud_download_indicator.dart';
 import 'package:cordeos/widgets/schedule/status_chip.dart';
 import 'package:flutter/services.dart';
 
@@ -33,18 +32,12 @@ class CloudScheduleCard extends StatelessWidget {
     final auth = context.read<MyAuthProvider>();
     final nav = context.read<NavigationProvider>();
 
-    return Selector<
-      CloudScheduleProvider,
-      ({ScheduleDto? schedule, bool isSyncing})
-    >(
-      selector: (context, cloudSch) => (
-        schedule: cloudSch.getSchedule(scheduleId),
-        isSyncing: cloudSch.syncingStatus(scheduleId),
-      ),
-      builder: (context, s, child) {
+    return Selector<CloudScheduleProvider, ScheduleDto?>(
+      selector: (context, cloudSch) => cloudSch.getSchedule(scheduleId),
+      builder: (context, schedule, child) {
         String userRole = AppLocalizations.of(context)!.generalMember;
 
-        for (var role in s.schedule!.roles) {
+        for (var role in schedule!.roles) {
           if (role.users.any((user) => user.firebaseId == auth.id)) {
             userRole = role.name;
             break;
@@ -102,12 +95,12 @@ class CloudScheduleCard extends StatelessWidget {
                                   spacing: 8,
                                   children: [
                                     Text(
-                                      s.schedule!.name,
+                                      schedule.name,
                                       style: theme.textTheme.titleMedium,
                                       softWrap: true,
                                     ),
                                     StatusChip(
-                                      status: s.schedule!.scheduleState,
+                                      status: schedule.scheduleState,
                                     ),
                                   ],
                                 ),
@@ -118,18 +111,18 @@ class CloudScheduleCard extends StatelessWidget {
                                   children: [
                                     Text(
                                       DateTimeUtils.formatDate(
-                                        s.schedule!.datetime.toDate(),
+                                        schedule.datetime.toDate(),
                                       ),
                                       style: theme.textTheme.bodyMedium,
                                     ),
                                     Text(
                                       DateTimeUtils.formatTime(
-                                        s.schedule!.datetime.toDate(),
+                                        schedule.datetime.toDate(),
                                       ),
                                       style: theme.textTheme.bodyMedium,
                                     ),
                                     Text(
-                                      s.schedule!.location,
+                                      schedule.location,
                                       style: theme.textTheme.bodyMedium,
                                     ),
                                   ],
@@ -137,7 +130,7 @@ class CloudScheduleCard extends StatelessWidget {
 
                                 // PLAYLIST INFO
                                 Text(
-                                  '${AppLocalizations.of(context)!.playlist}: ${s.schedule!.playlist.name}',
+                                  '${AppLocalizations.of(context)!.playlist}: ${schedule.playlist.name}',
                                   style: theme.textTheme.bodyMedium,
                                 ),
 
@@ -150,11 +143,10 @@ class CloudScheduleCard extends StatelessWidget {
                             ),
                           ),
                           Spacer(),
-                          if (s.isSyncing) const CloudDownloadIndicator(),
                           IconButton(
                             onPressed: () => _openScheduleActionsSheet(
                               context,
-                              s.schedule?.ownerFirebaseId,
+                              schedule.ownerFirebaseId,
                             ),
                             icon: Icon(Icons.more_vert),
                           ),
