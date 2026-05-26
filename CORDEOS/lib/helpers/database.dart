@@ -288,17 +288,29 @@ class DatabaseHelper {
     // Handle migrations between database versions
     if (oldVersion < 17) {
       // ADD COUNTRY, LANGUAGE AND TIMEZONE TO USER TABLE
-      await db.execute('ALTER TABLE user ADD COLUMN country TEXT');
-      await db.execute('ALTER TABLE user ADD COLUMN language TEXT');
-      await db.execute('ALTER TABLE user ADD COLUMN time_zone TEXT');
+      try {
+        await db.execute('ALTER TABLE user ADD COLUMN country TEXT');
+        await db.execute('ALTER TABLE user ADD COLUMN language TEXT');
+        await db.execute('ALTER TABLE user ADD COLUMN time_zone TEXT');
+      } catch (e) {
+        // Columns may already exist if DB version is misrepresented
+      }
     }
     if (oldVersion < 18) {
       // REMOVE TIME COLUMN FROM SCHEDULE TABLE
-      await db.execute('ALTER TABLE schedule DROP COLUMN time');
+      try {
+        await db.execute('ALTER TABLE schedule DROP COLUMN time');
+      } catch (e) {
+        // Column may not exist if DB version is misrepresented
+      }
     }
     if (oldVersion < 19) {
       // ADD LINK COLUMN TO CIPHER TABLE
-      await db.execute('ALTER TABLE cipher ADD COLUMN link TEXT');
+      try {
+        await db.execute('ALTER TABLE cipher ADD COLUMN link TEXT');
+      } catch (e) {
+        // Column may already exist if DB version is misrepresented
+      }
     }
     if (oldVersion < 20) {
       // REMOVE content_code ON SECTION TABLE (was NON NULL)
@@ -370,22 +382,31 @@ class DatabaseHelper {
     }
     if (oldVersion < 21) {
       // RENAME LINK TO LINKS BEGIN USING A COLON SEPARATED STRING
-      await db.execute('ALTER TABLE cipher RENAME COLUMN link TO links');
+      try {
+        await db.execute('ALTER TABLE cipher RENAME COLUMN link TO links');
+      } catch (e) {
+        // Column may already be renamed if DB version is misrepresented
+      }
     }
     if (oldVersion < 22) {
-      await db.execute(
-        'ALTER TABLE schedule ADD COLUMN collaborators TEXT \'\'',
-      );
+      try {
+        await db.execute(
+          'ALTER TABLE schedule ADD COLUMN collaborators TEXT \'\'',
+        );
+      } catch (e) {
+        // Column may already exist if DB version is misrepresented
+      }
     }
     if (oldVersion < 23) {
       try {
-        await db.execute('ALTER TABLE version DROP COLUMN notes');
-      } catch (e) {}
-      await db.execute('ALTER TABLE version ADD COLUMN notes TEXT \'\'');
+        await db.execute('ALTER TABLE version ADD COLUMN notes TEXT \'\'');
+      } catch (e) {
+        // Column may already exist if DB version is misrepresented
+      }
     }
     if (oldVersion < 24) {
       await db.execute('''  
-      CREATE TABLE cloud_version_note (
+      CREATE TABLE IF NOT EXISTS cloud_version_note (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         firebase_version_id TEXT NOT NULL,
         position INTEGER NOT NULL,
@@ -394,13 +415,17 @@ class DatabaseHelper {
     ''');
     }
     if (oldVersion < 25) {
-      await db.execute('''  
+      try {
+        await db.execute('''  
       ALTER TABLE cloud_version_note ADD COLUMN title TEXT ''
     ''');
+      } catch (e) {
+        // Column may already exist if DB version is misrepresented
+      }
     }
     if (oldVersion < 26) {
       await db.execute('''  
-      CREATE TABLE cloud_version_key_overwrite (
+      CREATE TABLE IF NOT EXISTS cloud_version_key_overwrite (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         firebase_version_id TEXT UNIQUE NOT NULL,
         key TEXT
