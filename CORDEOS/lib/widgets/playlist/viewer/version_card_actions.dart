@@ -108,10 +108,18 @@ class VersionCardActionsSheet extends StatelessWidget {
                     itemType: AppLocalizations.of(context)!.version,
                     isDangerous: true,
                     onConfirm: () {
+                      // Count occurrences BEFORE removing to check if this is the only one
+                      final playlist = play.getPlaylist(playlistID);
+                      final occurrences =
+                          playlist?.items
+                              .where((item) => item.contentId == versionID)
+                              .length ??
+                          0;
+
                       play.cacheRemoveVersion(itemID, playlistID);
-                      // Check if version has a duplicate in this playlist
-                      // If not, delete it
-                      if (!play.versionIsInPlaylist(versionID, playlistID)) {
+
+                      // If this was the only occurrence, delete the version
+                      if (occurrences <= 1) {
                         localVer.cacheDeletion(versionID);
                       }
                       Navigator.of(context).pop();

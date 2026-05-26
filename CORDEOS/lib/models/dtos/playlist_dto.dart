@@ -108,7 +108,7 @@ class PlaylistDto {
       if (id[0] == 'f') {
         playlistItems.add(
           PlaylistItem(
-            id: -1,
+            id: -position,
             firebaseContentId: id[1],
             position: position++,
             type: PlaylistItemType.flowItem,
@@ -120,7 +120,7 @@ class PlaylistDto {
       } else if (id[0] == 'v') {
         playlistItems.add(
           PlaylistItem(
-            id: -1,
+            id: -position,
             firebaseContentId: id[1],
             type: PlaylistItemType.version,
             position: position++,

@@ -189,6 +189,7 @@ class _PrintPreviewScreenState extends State<PrintPreviewScreen> {
                   );
                   items.add(
                     PlaylistItem.version(
+                      id: -1,
                       versionId: widget.versionID!,
                       position: 0,
                     ),

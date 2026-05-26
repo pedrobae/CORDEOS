@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:cordeos/helpers/codes.dart';
 import 'package:cordeos/models/domain/cipher/cipher.dart';
 import 'package:cordeos/models/domain/playlist/flow_item.dart';
@@ -173,15 +174,10 @@ class ScheduleSyncService {
             ),
           );
           existingItems.remove(
-            existingItems.firstWhere(
+            existingItems.firstWhereOrNull(
               (i) =>
                   i.type == PlaylistItemType.flowItem &&
                   i.firebaseContentId == item.firebaseContentId,
-              orElse: () => PlaylistItem(
-                type: PlaylistItemType.flowItem,
-                position: 0,
-                duration: Duration.zero,
-              ),
             ),
           );
           break;
@@ -193,15 +189,10 @@ class ScheduleSyncService {
           await _playlistRepo.addVersionToPlaylist(playlistID, versionID);
 
           existingItems.remove(
-            existingItems.firstWhere(
+            existingItems.firstWhereOrNull(
               (i) =>
                   i.type == PlaylistItemType.version &&
                   i.firebaseContentId == item.firebaseContentId,
-              orElse: () => PlaylistItem(
-                type: PlaylistItemType.version,
-                position: 0,
-                duration: Duration.zero,
-              ),
             ),
           );
           break;
@@ -326,7 +317,14 @@ class ScheduleSyncService {
 
           if (cipher == null) break;
 
-          final firebaseID = version.firebaseID ?? generateFirebaseId();
+          String? firebaseID = version.firebaseID;
+
+          if (firebaseID == null) {
+            firebaseID = generateFirebaseId();
+            await _versionRepo.updateVersion(
+              version.copyWith(firebaseID: firebaseID),
+            );
+          }
 
           final sections = await _sectionRepo.getSections(version.id!);
 

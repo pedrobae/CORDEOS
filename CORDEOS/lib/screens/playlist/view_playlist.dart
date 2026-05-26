@@ -79,7 +79,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen>
           items = widget.playlistDto!.toDomain(-1).items;
         }
 
-        return (name: name, items: items);
+        return (name: name, items: items == null ? null : [...items]);
       },
       builder: (context, s, child) {
         if (s.name == null || s.name!.isEmpty) {
@@ -207,17 +207,17 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen>
     switch (item.type) {
       case PlaylistItemType.version:
         return PlaylistVersionCard(
-          key: ValueKey('idx_$index'),
+          key: ValueKey('playlist_${widget.playlistID}_item_${item.id}'),
           index: index,
           canEdit: widget.canEdit,
           versionId: item.contentId ?? -1,
           playlistId: widget.playlistID,
-          itemId: item.id ?? -1,
+          itemId: item.id,
           version: widget.playlistDto?.versions[item.firebaseContentId],
         );
       case PlaylistItemType.flowItem:
         return FlowItemCard(
-          key: ValueKey('idx_$index'),
+          key: ValueKey('playlist_${widget.playlistID}_item_${item.id}'),
           index: index,
           flowItemID: item.contentId ?? -1,
           playlistID: widget.playlistID,

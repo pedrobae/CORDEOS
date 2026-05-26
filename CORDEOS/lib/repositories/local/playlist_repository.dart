@@ -168,16 +168,14 @@ class PlaylistRepository {
       // Clear position indexes
       int pos = -1;
       for (final item in items) {
-        if (item.id != null && item.id! != -1) {
+        if (item.id >= 0) {
           _updateItemPosition(txn, item, pos);
         }
         pos--;
       }
       pos = 0;
       for (final item in items) {
-        if ((item.type == PlaylistItemType.version &&
-                item.id != null &&
-                item.id != -1) ||
+        if ((item.type == PlaylistItemType.version && item.id >= 0) ||
             (item.type == PlaylistItemType.flowItem &&
                 item.contentId != null &&
                 item.contentId != -1)) {
@@ -242,7 +240,7 @@ class PlaylistRepository {
           'playlist_version',
           {'position': position},
           where: 'id = ?',
-          whereArgs: [item.id!],
+          whereArgs: [item.id],
         );
         break;
       case PlaylistItemType.flowItem:
@@ -298,6 +296,7 @@ class PlaylistRepository {
       final firebaseId = row['firebase_id'] as String;
 
       return PlaylistItem.flowItem(
+        id: -position,
         flowItemId: contentId,
         position: position,
         duration: duration,

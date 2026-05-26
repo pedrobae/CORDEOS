@@ -185,6 +185,7 @@ class PlaylistProvider extends ChangeNotifier {
     final playlist = _playlists[playlistId];
     if (playlist != null) {
       final newItem = PlaylistItem.version(
+        id: -playlist.items.length,
         versionId: versionId,
         position: playlist.items.length,
       );
@@ -198,6 +199,7 @@ class PlaylistProvider extends ChangeNotifier {
     final playlist = _playlists[playlistId];
     if (playlist != null) {
       final newItem = PlaylistItem.flowItem(
+        id: -playlist.items.length,
         flowItemId: flowItemId,
         position: playlist.items.length,
       );
@@ -224,6 +226,7 @@ class PlaylistProvider extends ChangeNotifier {
     final playlist = _playlists[playlistId];
     if (playlist != null) {
       final newItem = PlaylistItem.version(
+        id: -playlist.items.length,
         versionId: versionId,
         position: playlist.items.length,
       );
@@ -280,17 +283,6 @@ class PlaylistProvider extends ChangeNotifier {
   }
 
   // ===== UTILITY =====
-  /// Check if a version is still in the passed playlist (used to determine if it should be deleted entirely or not)
-  bool versionIsInPlaylist(int versionId, int playlistId) {
-    final playlist = _playlists[playlistId];
-    if (playlist != null) {
-      if (playlist.items.any((item) => item.contentId == versionId)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   void clearUnsavedChanges() {
     _hasUnsavedChanges = false;
     notifyListeners();

@@ -58,6 +58,7 @@ class ScheduleDto {
 
         items.add(
           PlaylistItem(
+            id: -position,
             type: PlaylistItemType.version,
             firebaseContentId: version!.firebaseId,
             position: position,
@@ -70,6 +71,7 @@ class ScheduleDto {
 
         items.add(
           PlaylistItem(
+            id: -position,
             type: PlaylistItemType.flowItem,
             firebaseContentId: contentId,
             position: position,

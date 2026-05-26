@@ -25,14 +25,14 @@ extension PlaylistItemTypeExtension on PlaylistItemType {
 
 class PlaylistItem {
   final PlaylistItemType type;
-  final int? id;
+  final int id;
   final int? contentId; // when contentID is null - firebaseContentId is not
   Duration duration;
   String? firebaseContentId;
   int position;
 
   PlaylistItem({
-    this.id,
+    required this.id,
     required this.type,
     this.contentId,
     required this.position,
@@ -43,7 +43,7 @@ class PlaylistItem {
   PlaylistItem.version({
     required int versionId,
     required int position,
-    int? id,
+    required int id,
     Duration? duration,
     String? versionFirebaseId,
   }) : this(
@@ -58,7 +58,7 @@ class PlaylistItem {
   PlaylistItem.flowItem({
     required int flowItemId,
     required int position,
-    int? id,
+    required int id,
     Duration? duration,
     String? flowItemFirebaseId,
   }) : this(
