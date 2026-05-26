@@ -47,7 +47,11 @@ class PositionService {
 
     final double lineHeight;
     if (isEditMode ||
-        organizedTokens.tokens.any((token) => token.type == TokenType.lyric)) {
+        organizedTokens.tokens.any(
+          (token) =>
+              (token.type == TokenType.lyric ||
+              token.type == TokenType.lyricAnnotation),
+        )) {
       lineHeight =
           ((showLyrics ? lyricHeight : 0.0) +
           (showChords ? chordHeight : 0.0) +
@@ -115,12 +119,9 @@ class PositionService {
 
     positionMap.contentHeight =
         (cursor.yOffset -
-                ((cursor.hasLyrics || isEditMode)
-                    ? 0
-                    : (ctx.lineHeight -
-                          ctx.chordHeight -
-                          ctx.chordLyricSpacing)))
-            .clamp(0, double.infinity);
+        ((cursor.hasLyrics || isEditMode)
+            ? 0
+            : (ctx.lineHeight - ctx.chordHeight - ctx.chordLyricSpacing)));
 
     return positionMap;
   }
@@ -301,15 +302,26 @@ class PositionService {
           if (cursor.hasLyrics == false) {
             cursor.hasLyrics = true;
           }
-          positions.setPosition(token, cursor.lyricsX, cursor.yOffset);
           final msr =
               ctx.measurements[measurementKey(
                 token.text,
                 ctx.annotationStyle,
                 isChordToken: isEditMode,
               )]!;
+          final spaceMsr =
+              ctx.measurements[measurementKey(
+                ' ',
+                ctx.lyricStyle,
+                isChordToken: isEditMode,
+              )];
 
-          cursor.lyricsX += msr.width + ctx.letterSpacing;
+          positions.setPosition(
+            token,
+            cursor.lyricsX + (spaceMsr?.width ?? 0.0),
+            cursor.yOffset,
+          );
+          cursor.lyricsX +=
+              msr.width + 2 * (spaceMsr?.width ?? 0.0) + ctx.letterSpacing;
           if (cursor.lyricsX > cursor.chordX) {
             cursor.chordX = cursor.lyricsX;
           }
