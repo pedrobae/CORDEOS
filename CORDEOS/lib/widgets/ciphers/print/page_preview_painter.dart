@@ -253,17 +253,22 @@ class PageContext {
 
 class SectionPlacement {
   final int sectionKey;
+  final bool isSplitSection;
+  (int, int)?
+  splitLineIndexes; // If this is a split section, the index of the line where the split occurs
   final int pageIndex;
   final int columnIndex;
   final double xOffset;
   final double yOffset;
 
-  const SectionPlacement({
+  SectionPlacement({
     required this.sectionKey,
+    required this.isSplitSection,
     required this.pageIndex,
     required this.columnIndex,
     required this.xOffset,
     required this.yOffset,
+    this.splitLineIndexes,
   });
 }
 
@@ -376,12 +381,93 @@ class PagePreviewPainter extends CustomPainter {
     }
   }
 
+  void _paintSplitSectionSlice(
+    Canvas canvas,
+    SectionPaintModel model,
+    SectionPlacement placement,
+    SongPPS snapshot,
+  ) {
+    final topIndex = placement.splitLineIndexes!.$1;
+    final bottomIndex = placement.splitLineIndexes!.$2;
+
+    canvas.save();
+    canvas.clipRect(
+      Rect.fromLTWH(
+        placement.xOffset,
+        placement.yOffset,
+        ctx.sectionWidth,
+        model.textInstructions[bottomIndex].offset.dy -
+            model.textInstructions[topIndex].offset.dy +
+            ((topIndex != 0)
+                ? 0
+                : snapshot.sectionLabelHeight + ctx.internalGap),
+      ),
+    );
+
+    final label = snapshot.sectionLabelPainters[placement.sectionKey];
+    final badge = snapshot.badgeModels[placement.sectionKey];
+    if ((snapshot.sectionLabelHeight > 0 && topIndex == 0) &&
+        badge != null &&
+        label != null) {
+      canvas.drawRRect(
+        badge.rRect.shift(Offset(placement.xOffset, placement.yOffset)),
+        Paint()..color = badge.color,
+      );
+      badge.textPainter.paint(
+        canvas,
+        Offset(placement.xOffset + 4, placement.yOffset + 2),
+      );
+      label.textPainter.paint(
+        canvas,
+        Offset(
+          placement.xOffset + badge.textPainter.width + 12,
+          placement.yOffset + 2,
+        ),
+      );
+    }
+
+    for (int i = topIndex; i <= bottomIndex; i++) {
+      final instruction = model.textInstructions[i];
+      instruction.painter.paint(
+        canvas,
+        Offset(
+          placement.xOffset + instruction.offset.dx,
+          placement.yOffset +
+              instruction.offset.dy +
+              snapshot.sectionLabelHeight +
+              4,
+        ),
+      );
+    }
+    for (final underline in model.underlines) {
+      canvas.drawLine(
+        Offset(
+          placement.xOffset + underline.offset.dx,
+          placement.yOffset + underline.offset.dy + snapshot.sectionLabelHeight,
+        ),
+        Offset(
+          placement.xOffset + underline.offset.dx + underline.width,
+          placement.yOffset + underline.offset.dy + snapshot.sectionLabelHeight,
+        ),
+        Paint()
+          ..color = model.underlineColor
+          ..strokeWidth = 1,
+      );
+    }
+    canvas.restore();
+  }
+
   void _paintSectionSlice(
     Canvas canvas,
     SectionPaintModel model,
     SectionPlacement placement,
     SongPPS snapshot,
   ) {
+    if (placement.isSplitSection && placement.splitLineIndexes != null) {
+      // If this is a split section, we need to adjust the model to only paint the visible slice
+      _paintSplitSectionSlice(canvas, model, placement, snapshot);
+      return;
+    }
     canvas.save();
     canvas.clipRect(
       Rect.fromLTWH(

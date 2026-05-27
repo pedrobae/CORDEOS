@@ -482,8 +482,60 @@ class PrintingProvider extends ChangeNotifier {
                 (showSectionLabels ? songSnapshot.sectionLabelHeight : 0);
 
             if (sectionBlockHeight > contentHeight) {
-              // TODO-Break sections bigger than space
-              debugPrint("PRINTING PROVIDER - failed to layout big section");
+              debugPrint("PRINTING PROVIDER - found too big section");
+              final parts =
+                  ((sectionBlockHeight - contentHeight - cursor.y) ~/
+                      contentHeight) +
+                  1;
+              for (int i = 0; i < parts; i++) {
+                int previousIndex = 0;
+                int splitIndex = 0;
+                for (var intruction in model.textInstructions) {
+                  if (i == 0) {
+                    // first part can fit less content, as there can be content above
+                    if (intruction.offset.dy > contentHeight - cursor.y) {
+                      splitIndex = model.textInstructions.indexOf(intruction);
+                    }
+                  } else {
+                    if (intruction.offset.dy -
+                            model.textInstructions[splitIndex].offset.dy >
+                        contentHeight) {
+                      previousIndex = splitIndex;
+                      splitIndex = model.textInstructions.indexOf(intruction);
+                    }
+                  }
+                }
+
+                placements.add(
+                  SectionPlacement(
+                    sectionKey: model.key,
+                    isSplitSection: true,
+                    splitLineIndexes: (previousIndex, splitIndex),
+                    pageIndex: cursor.pageIndex,
+                    columnIndex: cursor.columnIndex,
+                    xOffset: cursor.x,
+                    yOffset: cursor.y,
+                  ),
+                );
+
+                final newPage = cursor.breakColumn(columnCount);
+
+                if (newPage) {
+                  pages.add(
+                    PageLayout(
+                      snapshotIndex: snapIdx,
+                      isFlow: false,
+                      songPageLayout: SongPageLayout(
+                        placements: List.from(placements),
+                        showHeader: firstPage,
+                      ),
+                    ),
+                  );
+                  placements.clear();
+                  firstPage = false;
+                }
+              }
+              continue;
             }
 
             if (cursor.y + sectionBlockHeight > contentHeight) {
@@ -508,6 +560,7 @@ class PrintingProvider extends ChangeNotifier {
             placements.add(
               SectionPlacement(
                 sectionKey: model.key,
+                isSplitSection: false,
                 pageIndex: cursor.pageIndex,
                 columnIndex: cursor.columnIndex,
                 xOffset: cursor.x,
