@@ -113,8 +113,8 @@ class _StyleSettingsState extends State<StyleSettings> {
                       ),
                       Switch(
                         value: s.scrollDirection == Axis.vertical,
-                        onChanged: (_) {
-                          set.toggleAxisDirection();
+                        onChanged: (_) async {
+                          await set.toggleAxisDirection();
                         },
                         thumbIcon: WidgetStatePropertyAll(
                           s.scrollDirection == Axis.vertical
@@ -146,7 +146,9 @@ class _StyleSettingsState extends State<StyleSettings> {
                       ),
                       Switch(
                         value: !s.showSectionHeaders,
-                        onChanged: (_) => set.toggleSectionHeaders(),
+                        onChanged: (_) async {
+                          await set.toggleSectionHeaders();
+                        },
                         thumbColor: WidgetStatePropertyAll(colorScheme.primary),
                         trackColor: WidgetStatePropertyAll(
                           colorScheme.surfaceContainerHigh,
@@ -193,8 +195,8 @@ class _StyleSettingsState extends State<StyleSettings> {
                           onChanged: (v) {
                             setState(() => _cardsOnScreen = 6 - v * 5);
                           },
-                          onChangeEnd: (v) {
-                            set.setCardWidthMult(
+                          onChangeEnd: (v) async {
+                            await set.setCardWidthMult(
                               _calcWidthMult(
                                 _cardsOnScreen!,
                                 _screenWidth ?? 0,
@@ -237,8 +239,8 @@ class _StyleSettingsState extends State<StyleSettings> {
                           onChanged: (v) {
                             setState(() => _heightSpacing = v);
                           },
-                          onChangeEnd: (v) {
-                            set.setHeightSpacingMult(v);
+                          onChangeEnd: (v) async {
+                            await set.setHeightSpacingMult(v);
                           },
                         ),
                       ),
@@ -268,8 +270,8 @@ class _StyleSettingsState extends State<StyleSettings> {
                               ),
                             ],
                           ],
-                          onChanged: (v) {
-                            if (v != null) set.setFontFamily(v);
+                          onChanged: (v) async {
+                            if (v != null) await set.setFontFamily(v);
                           },
                           underline: Container(),
                         ),
@@ -284,8 +286,8 @@ class _StyleSettingsState extends State<StyleSettings> {
                             child: Text(size.toString()),
                           );
                         }),
-                        onChanged: (v) {
-                          if (v != null) set.setFontSize(v);
+                        onChanged: (v) async {
+                          if (v != null) await set.setFontSize(v);
                         },
                         underline: Container(),
                       ),

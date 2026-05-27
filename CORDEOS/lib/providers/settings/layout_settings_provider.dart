@@ -56,83 +56,83 @@ class LayoutSetProvider extends ChangeNotifier {
   }
 
   // Add setters that call notifyListeners() and persist to storage
-  void setFontSize(double value) {
+  Future<void> setFontSize(double value) async {
     fontSize = value;
-    SettingsService.setFontSize(value);
+    await SettingsService.setFontSize(value);
     notifyListeners();
   }
 
-  void setFontFamily(String family) {
+  Future<void> setFontFamily(String family) async {
     fontFamily = family;
-    SettingsService.setFontFamily(family);
+    await SettingsService.setFontFamily(family);
     notifyListeners();
   }
 
-  void toggleAxisDirection() {
+  Future<void> toggleAxisDirection() async {
     scrollDirection = scrollDirection == Axis.vertical
         ? Axis.horizontal
         : Axis.vertical;
-    SettingsService.setScrollDirection(scrollDirection);
+    await SettingsService.setScrollDirection(scrollDirection);
     notifyListeners();
   }
 
-  void setCardWidthMult(double value) {
+  Future<void> setCardWidthMult(double value) async {
     cardWidthMult = value;
-    SettingsService.setCardWidthMult(value);
+    await SettingsService.setCardWidthMult(value);
     notifyListeners();
   }
 
-  void setHeightSpacingMult(double value) {
+  Future<void> setHeightSpacingMult(double value) async {
     heightSpacingMult = value;
-    SettingsService.setHeightSpacingMult(value);
+    await SettingsService.setHeightSpacingMult(value);
     notifyListeners();
   }
 
-  void toggleSectionHeaders() {
+  Future<void> toggleSectionHeaders() async {
     showSectionHeaders = !showSectionHeaders;
-    SettingsService.setShowSectionHeaders(showSectionHeaders);
+    await SettingsService.setShowSectionHeaders(showSectionHeaders);
     notifyListeners();
   }
 
-  void toggleChordBass() {
+  Future<void> toggleChordBass() async {
     _showChordBass = !_showChordBass;
-    SettingsService.setShowChordBass(_showChordBass);
+    await SettingsService.setShowChordBass(_showChordBass);
     notifyListeners();
   }
 
-  void toggleAddedNotes() {
+  Future<void> toggleAddedNotes() async {
     _showAddedNotes = !_showAddedNotes;
-    SettingsService.setShowAddedNotes(_showAddedNotes);
+    await SettingsService.setShowAddedNotes(_showAddedNotes);
     notifyListeners();
   }
 
-  void toggleChords() {
+  Future<void> toggleChords() async {
     _showChords = !_showChords;
-    SettingsService.setShowChords(_showChords);
+    await SettingsService.setShowChords(_showChords);
     notifyListeners();
   }
 
-  void toggleLyrics() {
+  Future<void> toggleLyrics() async {
     _showLyrics = !_showLyrics;
-    SettingsService.setShowLyrics(_showLyrics);
+    await SettingsService.setShowLyrics(_showLyrics);
     notifyListeners();
   }
 
-  void toggleAnnotations() {
+  Future<void> toggleAnnotations() async {
     _showAnnotations = !_showAnnotations;
-    SettingsService.setShowNotes(_showAnnotations);
+    await SettingsService.setShowNotes(_showAnnotations);
     notifyListeners();
   }
 
-  void toggleTransitions() {
+  Future<void> toggleTransitions() async {
     _showTransitions = !_showTransitions;
-    SettingsService.setShowTransitions(_showTransitions);
+    await SettingsService.setShowTransitions(_showTransitions);
     notifyListeners();
   }
 
-  void toggleRepeatSections() {
+  Future<void> toggleRepeatSections() async {
     _showRepeatSections = !_showRepeatSections;
-    SettingsService.setShowRepeatSections(_showRepeatSections);
+    await SettingsService.setShowRepeatSections(_showRepeatSections);
     notifyListeners();
   }
 

@@ -2,6 +2,7 @@ import 'package:cordeos/l10n/app_localizations.dart';
 import 'package:cordeos/providers/schedule/cloud_schedule_provider.dart';
 import 'package:cordeos/providers/schedule/local_schedule_provider.dart';
 import 'package:cordeos/providers/user/user_provider.dart';
+import 'package:cordeos/widgets/common/icon_load_indicator.dart';
 import 'package:cordeos/widgets/schedule/library/card_cloud.dart';
 import 'package:cordeos/widgets/schedule/library/card.dart';
 import 'package:flutter/material.dart';
@@ -92,7 +93,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Selector2<
       LocalScheduleProvider,
       CloudScheduleProvider,
-      ({List<dynamic> futureScheduleIDs, String? error})
+      ({List<dynamic> futureScheduleIDs, String? error, bool isSyncing})
     >(
       selector: (context, localSch, cloudSch) {
         final localFuture = localSch.futureScheduleIDs;
@@ -105,6 +106,7 @@ class _HomeScreenState extends State<HomeScreen> {
               : (cloudSch.error != null && cloudSch.error!.isNotEmpty)
               ? cloudSch.error
               : null,
+          isSyncing: cloudSch.isSyncing,
         );
       },
       builder: (context, s, child) {
@@ -126,12 +128,12 @@ class _HomeScreenState extends State<HomeScreen> {
           );
         }
 
-        return _buildScheduleList(s.futureScheduleIDs);
+        return _buildScheduleList(s.futureScheduleIDs, s.isSyncing);
       },
     );
   }
 
-  Widget _buildScheduleList(List<dynamic> futureScheduleIDs) {
+  Widget _buildScheduleList(List<dynamic> futureScheduleIDs, bool isSyncing) {
     final textTheme = Theme.of(context).textTheme;
 
     final localSch = context.read<LocalScheduleProvider>();
@@ -160,6 +162,8 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  if (isSyncing) Center(child: IconLoadIndicator(size: 100)),
+
                   SizedBox(height: 8.0),
                   ...futureScheduleIDs.map((scheduleId) {
                     if (scheduleId is String) {

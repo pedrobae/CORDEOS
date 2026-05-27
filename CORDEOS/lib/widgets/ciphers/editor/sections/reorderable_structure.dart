@@ -97,6 +97,7 @@ class _ReorderableStructureState extends State<ReorderableStructure> {
                   scrollDirection: Axis.horizontal,
                   scrollController: _scrollController,
                   itemCount: s.songStructure.length,
+
                   onReorder: (oldIndex, newIndex) =>
                       localVer.reorderSongStructure(
                         widget.versionID,
@@ -137,56 +138,61 @@ class _ReorderableStructureState extends State<ReorderableStructure> {
       delay: Duration(milliseconds: 100),
       key: ValueKey('$sectionKey-$index'),
       index: index,
-      child: Stack(
-        children: [
-          Container(
-            margin: EdgeInsets.only(right: 4),
-            height: 44,
-            width: 42,
-            decoration: BoxDecoration(
-              color: badgeData.color.withValues(alpha: .90),
-              borderRadius: BorderRadius.circular(7),
-            ),
-            child: Center(
-              child: Text(
-                badgeData.code,
-                style: TextStyle(
-                  color: colorScheme.surface,
-                  fontWeight: FontWeight.w500,
-                  fontSize: 16,
-                ),
-                textAlign: TextAlign.center,
+      child: Padding(
+        padding: EdgeInsets.only(right: 4),
+        child: Stack(
+          children: [
+            Container(
+              height: 44,
+              width: 44,
+              decoration: BoxDecoration(
+                color: badgeData.color.withValues(alpha: .90),
+                borderRadius: BorderRadius.circular(7),
               ),
-            ),
-          ),
-          if (widget.showDelete)
-            Positioned(
-              top: -3,
-              right: 1, // Right margin is 4
-              child: GestureDetector(
-                onTap: () {
-                  debugPrint("REORDERABLE CHIP - tapped delete button");
-                  localVer.removeSection(widget.versionID, index);
-                  if (codeCount == 1) {
-                    sect.cacheDeletion(widget.versionID, sectionKey);
-                  }
-                },
-                child: Container(
-                  width: 22,
-                  height: 22,
-                  decoration: BoxDecoration(
-                    color: Colors.transparent,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.close,
+              child: Center(
+                child: Text(
+                  badgeData.code,
+                  style: TextStyle(
                     color: colorScheme.surface,
-                    size: 12,
+                    fontWeight: FontWeight.w500,
+                    fontSize: 16,
                   ),
+                  textAlign: TextAlign.center,
                 ),
               ),
             ),
-        ],
+            if (widget.showDelete)
+              Positioned(
+                top: 0,
+                right: 0,
+                child: GestureDetector(
+                  onTap: () {
+                    debugPrint("REORDERABLE CHIP - tapped delete button");
+                    localVer.removeSection(widget.versionID, index);
+                    if (codeCount == 1) {
+                      sect.cacheDeletion(widget.versionID, sectionKey);
+                    }
+                  },
+                  child: Container(
+                    width: 27.5,
+                    height: 27.5,
+                    decoration: BoxDecoration(
+                      color: Colors.transparent,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Align(
+                      alignment: Alignment.topRight,
+                      child: Icon(
+                        Icons.close,
+                        color: colorScheme.surface,
+                        size: 16,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

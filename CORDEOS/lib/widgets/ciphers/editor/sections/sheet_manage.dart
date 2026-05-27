@@ -83,13 +83,25 @@ class _ManageSheetState extends State<ManageSheet> {
     >(
       selector: (context, localVer, sect) {
         final sections = sect.getSections(widget.versionID);
+        final songStruct = localVer.getSongStructure(widget.versionID);
 
         final sectionIDs = <int>[];
         final sectionTypes = <int, SectionType>{};
-        for (var section in sections.values) {
-          sectionIDs.add(section.key);
-          sectionTypes[section.key] = section.sectionType;
+        for (final key in songStruct) {
+          if (!sectionIDs.contains(key)) {
+            sectionIDs.add(key);
+            sectionTypes[key] =
+                sections[key]?.sectionType ?? SectionType.unknown;
+          }
         }
+
+        for (final section in sections.values) {
+          if (!sectionIDs.contains(section.key)) {
+            sectionIDs.add(section.key);
+            sectionTypes[section.key] = section.sectionType;
+          }
+        }
+
         return (
           badgesData: getSectionBadges(sectionTypes),
           sectionIDs: sectionIDs,
