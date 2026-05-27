@@ -63,10 +63,8 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen>
       ({String? name, List<PlaylistItem>? items})
     >(
       selector: (context, play) {
-        debugPrint('VIEW PLAYLIST - selector triggered');
         String? name;
         List<PlaylistItem>? items;
-
         if (widget.playlistDto == null) {
           final playlist = play.getPlaylist(widget.playlistID);
           if (playlist == null)
@@ -189,9 +187,6 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen>
   }
 
   Widget _buildItemsList(List<PlaylistItem> items) {
-    debugPrint(
-      'VIEW PLAYLIST - building items\n\tContent IDs: ${items.map((e) => e.contentId).toList()}',
-    );
     return widget.canEdit
         ? ReorderableListView.builder(
             proxyDecorator: (child, index, animation) =>

@@ -64,7 +64,7 @@ class _ScheduleCardState extends State<ScheduleCard> {
       CloudScheduleProvider,
       LocalScheduleProvider,
       PlaylistProvider,
-      ({Schedule schedule, Playlist playlist, bool isSyncing})
+      ({Schedule schedule, Playlist? playlist, bool isSyncing})
     >(
       selector: (context, cloudSch, localSch, play) {
         final schedule = localSch.getSchedule(widget.scheduleId);
@@ -75,11 +75,6 @@ class _ScheduleCardState extends State<ScheduleCard> {
         }
 
         final playlist = play.getPlaylist(schedule.playlistId);
-        if (playlist == null) {
-          throw Exception(
-            'Playlist with id ${schedule.playlistId} not found in local cache',
-          );
-        }
         return (
           schedule: schedule,
           playlist: playlist,
@@ -91,7 +86,7 @@ class _ScheduleCardState extends State<ScheduleCard> {
       },
       builder: (context, s, child) {
         // LOADING STATE
-        if (s.isSyncing) {
+        if (s.isSyncing || s.playlist == null) {
           return SizedBox.shrink();
         }
 
@@ -132,7 +127,7 @@ class _ScheduleCardState extends State<ScheduleCard> {
               },
               onChangeDiscarded: () async {
                 debugPrint('PLAYLIST VIEW - discarding Changes');
-                play.loadPlaylist(s.playlist.id);
+                play.loadPlaylist(s.playlist!.id);
                 localSch.loadSchedule(widget.scheduleId);
                 for (var id in sel.newlyAddedVersionIds) {
                   debugPrint('\t - deleting version with id $id');
@@ -199,7 +194,7 @@ class _ScheduleCardState extends State<ScheduleCard> {
 
                             // PLAYLIST INFO
                             Text(
-                              '${AppLocalizations.of(context)!.playlist}: ${s.playlist.name}',
+                              '${AppLocalizations.of(context)!.playlist}: ${s.playlist!.name}',
                               style: theme.textTheme.bodyMedium,
                             ),
 
