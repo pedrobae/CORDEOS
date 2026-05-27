@@ -8,8 +8,8 @@ import 'package:cordeos/providers/navigation_provider.dart';
 import 'package:cordeos/utils/date_utils.dart';
 
 import 'package:cordeos/widgets/common/custom_reorderable_delayed.dart';
-import 'package:cordeos/widgets/playlist/viewer/flow_item_editor.dart';
-import 'package:cordeos/widgets/playlist/viewer/flow_item_card_actions.dart';
+import 'package:cordeos/widgets/playlist/viewer/flow_editor.dart';
+import 'package:cordeos/widgets/playlist/viewer/flow_card_actions.dart';
 
 class FlowItemCard extends StatefulWidget {
   final FlowItem? flowItem;
@@ -39,8 +39,8 @@ class _FlowItemCardState extends State<FlowItemCard> {
     final flow = context.read<FlowItemProvider>();
 
     if (widget.flowItem == null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        await flow.ensureIsLoaded(widget.flowItemID);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        flow.ensureIsLoaded(widget.flowItemID);
       });
     }
   }

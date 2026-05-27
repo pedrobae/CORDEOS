@@ -61,7 +61,7 @@ class _ViewScheduleScreenState extends State<ViewScheduleScreen>
         final play = context.read<PlaylistProvider>();
 
         final schedule = localSch.getSchedule(widget.scheduleID)!;
-        await play.loadPlaylist(schedule.playlistId);
+        await play.ensureIsLoaded(schedule.playlistId);
       } else {
         final cloudVer = context.read<CloudVersionProvider>();
         await cloudVer.loadNotes();

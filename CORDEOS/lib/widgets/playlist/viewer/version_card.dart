@@ -62,9 +62,8 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard>
         final sectionProvider = context.read<SectionProvider>();
         final ciph = context.read<CipherProvider>();
 
-        Version? version = localVer.getVersion(widget.versionId);
-        await localVer.loadVersion(widget.versionId);
-        version = localVer.getVersion(widget.versionId);
+        await localVer.ensureIsLoaded(widget.versionId);
+        final version = localVer.getVersion(widget.versionId);
 
         if (version == null) {
           throw Exception('Failed to load version with ID ${widget.versionId}');
@@ -75,7 +74,10 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard>
           await ciph.loadCipher(version.cipherID);
         }
 
-        await sectionProvider.loadSectionsOfVersion(widget.versionId);
+        await sectionProvider.ensureAreLoaded(
+          widget.versionId,
+          version.songStructure,
+        );
       });
     }
   }
@@ -224,6 +226,7 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard>
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Row(
+                          spacing: 8,
                           children: [
                             Expanded(
                               child: Column(
@@ -302,15 +305,12 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard>
                                   itemBuilder: (_, index) {
                                     final key = s.songStructure![index];
                                     final badgeData = s.badgesData[key];
-                                    if (badgeData == null) {
-                                      return SizedBox.shrink();
-                                    }
                                     return Padding(
                                       padding: const EdgeInsets.only(
                                         right: 2.0,
                                       ),
                                       child: SectionBadge(
-                                        sectionBadgeData: badgeData,
+                                        sectionBadgeData: badgeData!,
                                       ),
                                     );
                                   },
@@ -365,7 +365,7 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard>
         buildDefaultDragHandles: false,
         physics: const ClampingScrollPhysics(),
         scrollDirection: Axis.horizontal,
-        itemCount: badgesData.length,
+        itemCount: songStructure.length,
         onReorder: (oldIndex, newIndex) {
           localVer.reorderSongStructure(widget.versionId, oldIndex, newIndex);
         },

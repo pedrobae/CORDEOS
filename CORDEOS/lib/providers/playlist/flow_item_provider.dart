@@ -44,16 +44,17 @@ class FlowItemProvider extends ChangeNotifier {
     return flowItem?.id;
   }
 
-  FlowItem? getFlowItem(int id) {
-    // Check cache first
-    if (_flowItems.containsKey(id)) {
-      return _flowItems[id];
+  FlowItem? getFlowItem(int flowID) {
+    debugPrint("FLOW ITEM - Getting flow $flowID");
+    if (!_flowItems.containsKey(flowID)) {
+      debugPrint("FLOW ITEM - Could not find flow $flowID in cache");
     }
-
-    return null;
+    return _flowItems[flowID];
   }
 
   Future<void> ensureIsLoaded(int flowID) async {
+    debugPrint("FLOW ITEM - Ensuring flow $flowID is loaded");
+
     if (_flowItems[flowID] != null) return;
     await loadFlowItem(flowID);
   }
@@ -63,10 +64,14 @@ class FlowItemProvider extends ChangeNotifier {
       final flowItem = await _flowItemRepo.getFlowItem(id);
       if (flowItem != null) {
         _flowItems[id] = flowItem;
+        debugPrint("FLOW ITEM - Loaded flow $id");
+      } else {
+        debugPrint("FLOW ITEM - No flow found with ID $id");
       }
-      notifyListeners();
     } catch (e) {
       debugPrint("FLOW ITEM PROVIDER - ${e.toString()}");
+    } finally {
+      notifyListeners();
     }
   }
 

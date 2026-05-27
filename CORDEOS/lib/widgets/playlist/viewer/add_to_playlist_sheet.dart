@@ -9,7 +9,7 @@ import 'package:cordeos/providers/selection_provider.dart';
 import 'package:cordeos/screens/cipher/cipher_library.dart';
 
 import 'package:cordeos/widgets/common/filled_text_button.dart';
-import 'package:cordeos/widgets/playlist/viewer/flow_item_editor.dart';
+import 'package:cordeos/widgets/playlist/viewer/flow_editor.dart';
 
 class AddToPlaylistSheet extends StatelessWidget {
   final int playlistID;

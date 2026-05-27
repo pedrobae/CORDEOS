@@ -58,7 +58,7 @@ class _PlaylistScrollViewState extends State<PlaylistScrollView> {
       builder: (context, items, child) {
         return RefreshIndicator(
           onRefresh: () async {
-            play.loadPlaylists();
+            await play.loadPlaylists();
           },
           child: items.isEmpty
               ? Column(

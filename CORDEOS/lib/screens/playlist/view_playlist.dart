@@ -21,7 +21,7 @@ import 'package:cordeos/services/sync_service.dart';
 import 'package:cordeos/widgets/playlist/viewer/add_to_playlist_sheet.dart';
 
 import 'package:cordeos/widgets/playlist/viewer/version_card.dart';
-import 'package:cordeos/widgets/playlist/viewer/flow_item_card.dart';
+import 'package:cordeos/widgets/playlist/viewer/flow_card.dart';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -63,6 +63,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen>
       ({String? name, List<PlaylistItem>? items})
     >(
       selector: (context, play) {
+        debugPrint('VIEW PLAYLIST - selector triggered');
         String? name;
         List<PlaylistItem>? items;
 
@@ -188,6 +189,9 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen>
   }
 
   Widget _buildItemsList(List<PlaylistItem> items) {
+    debugPrint(
+      'VIEW PLAYLIST - building items\n\tContent IDs: ${items.map((e) => e.contentId).toList()}',
+    );
     return widget.canEdit
         ? ReorderableListView.builder(
             proxyDecorator: (child, index, animation) =>

@@ -90,6 +90,7 @@ class PlaylistProvider extends ChangeNotifier {
   // ===== READ =====
   /// Ensure playlist is loaded
   Future<void> ensureIsLoaded(int playlistID) async {
+    debugPrint("PLAYLIST PROVIDER - Ensuring playlist $playlistID is loaded");
     if (_playlists[playlistID] != null) return;
 
     await loadPlaylist(playlistID);
@@ -132,7 +133,10 @@ class PlaylistProvider extends ChangeNotifier {
       _playlists[playlist.id] = playlist;
     } catch (e) {
       _error = e.toString();
+      debugPrint("PLAYLIST PROVIDER - error loading playlist - $e");
     } finally {
+    debugPrint("PLAYLIST PROVIDER - loaded playlist $id");
+
       notifyListeners();
     }
   }

@@ -327,21 +327,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final db = await dbHelper.database;
 
       // Get table counts
-      const tables = [
-        'tag',
-        'cipher',
-        'cipher_tags',
-        'version',
-        'section',
-        'user',
-        'playlist',
-        'playlist_version',
-        'user_playlist',
-        'flow_item',
-        'schedule',
-        'role',
-        'role_member',
-      ];
+      final tables = (await db.rawQuery(
+        "SELECT name FROM sqlite_master WHERE type='table'",
+      )).map((row) => row['name'] as String).toList();
       final Map<String, int> tableCounts = {};
 
       for (final table in tables) {
@@ -475,26 +463,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _showTableData(String tableName) async {
     try {
-      const allowedTables = {
-        'tag',
-        'cipher',
-        'cipher_tags',
-        'version',
-        'section',
-        'user',
-        'playlist',
-        'playlist_version',
-        'user_playlist',
-        'flow_item',
-        'schedule',
-        'role',
-        'role_member',
-      };
-
-      if (!allowedTables.contains(tableName)) {
-        throw Exception('Table not allowed: $tableName');
-      }
-
       final dbHelper = DatabaseHelper();
       final db = await dbHelper.database;
 

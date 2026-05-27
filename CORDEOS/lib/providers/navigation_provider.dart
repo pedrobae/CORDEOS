@@ -91,6 +91,9 @@ class NavigationProvider extends ChangeNotifier {
     BuildContext context, {
     NavigationRoute? route,
   }) async {
+    debugPrint(
+      'NAVIGATION - Attempting to pop. Stack length: ${_screenStack.length}',
+    );
     final hasChanges =
         _screenStack.isNotEmpty && _screenStack.last.changeDetector();
 
@@ -173,6 +176,9 @@ class NavigationProvider extends ChangeNotifier {
   }
 
   void pop() {
+    debugPrint(
+      'NAVIGATION - Popping screen. Stack length: ${_screenStack.length}',
+    );
     if (_screenStack.isNotEmpty) {
       try {
         _screenStack.last.onPopCallback();

@@ -66,7 +66,7 @@ class VersionDto {
       versionName: map['versionName'] as String,
       originalKey: map['originalKey'] as String,
       transposedKey: map['transposedKey'] as String?,
-      links: ((map['link'] as List<dynamic>?) ?? [])
+      links: ((map['links'] as List<dynamic>?) ?? [])
           .map((link) => link as String)
           .toList(),
       tags: ((map['tags'] as List<dynamic>?) ?? [])

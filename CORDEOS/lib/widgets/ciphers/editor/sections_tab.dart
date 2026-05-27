@@ -1,3 +1,4 @@
+import 'package:cordeos/providers/version/local_version_provider.dart';
 import 'package:cordeos/widgets/ciphers/editor/sections/annotation_palette.dart';
 import 'package:flutter/material.dart';
 import 'package:cordeos/l10n/app_localizations.dart';
@@ -39,17 +40,28 @@ class _SectionsTabState extends State<SectionsTab> {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Selector<
+    return Selector2<
+      LocalVersionProvider,
       SectionProvider,
       ({List<int> sectionIDs, Map<int, SectionBadgeData> badgesData})
     >(
-      selector: (context, sect) {
+      selector: (context, localVer, sect) {
+        final songStruct = localVer.getSongStructure(widget.versionID);
         final sections = sect.getSections(widget.versionID);
         final ids = <int>[];
         final types = <int, SectionType>{};
-        for (var section in sections.values) {
-          ids.add(section.key);
-          types[section.key] = section.sectionType;
+        for (var key in songStruct) {
+          if (!ids.contains(key)) {
+            ids.add(key);
+            types[key] = sections[key]?.sectionType ?? SectionType.unknown;
+          }
+        }
+
+        for (final section in sections.values) {
+          if (!ids.contains(section.key)) {
+            ids.add(section.key);
+            types[section.key] = section.sectionType;
+          }
         }
         return (sectionIDs: ids, badgesData: getSectionBadges(types));
       },
