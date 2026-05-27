@@ -255,7 +255,7 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard>
                                         ],
                                       ),
                                       Text(
-                                        '${AppLocalizations.of(context)!.bpm}: ${s.bpm}',
+                                        '${AppLocalizations.of(context)!.bpm}: ${s.bpm == '0' ? '-' : s.bpm}',
                                         style: textTheme.bodyMedium,
                                       ),
                                       Text(

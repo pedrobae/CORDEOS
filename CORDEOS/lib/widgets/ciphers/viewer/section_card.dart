@@ -150,6 +150,7 @@ class SectionCard extends StatelessWidget {
 
                     return Container(
                       width: width * l.cardWidthMult,
+                      clipBehavior: Clip.hardEdge,
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
                         color: s.showSectionHeaders

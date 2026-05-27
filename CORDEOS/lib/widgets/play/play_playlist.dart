@@ -118,7 +118,7 @@ class _PlayPlaylistState extends State<PlayPlaylist> {
     final laySet = context.read<LayoutSetProvider>();
     if (laySet.scrollDirection == Axis.vertical) {
       // VERTICAL: use provider to calculate next item index and scroll to it
-      _scroll.scrollToNextSection(forward: forward);
+      _scroll.scrollToNextSectionItem(forward: forward);
       if (_scroll.currentItemIndex != _state.currentItemIndex) {
         _state.currentItemIndex = _scroll.currentItemIndex;
       }
@@ -178,19 +178,14 @@ class _PlayPlaylistState extends State<PlayPlaylist> {
                 controller: _scrollController,
                 scrollDirection: scrollDirection,
                 padding: scrollDirection == Axis.vertical
-                    ? const EdgeInsets.all(8)
+                    ? const EdgeInsets.symmetric(vertical: 8)
                     : const EdgeInsets.symmetric(horizontal: 8),
                 child: Flex(
                   direction: scrollDirection,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     for (int i = 0; i < itemCount; i++) ...[
-                      Padding(
-                        padding: scrollDirection == Axis.vertical
-                            ? const EdgeInsets.symmetric(vertical: 4)
-                            : const EdgeInsets.symmetric(horizontal: 4),
-                        child: _buildItem(i, scrollDirection),
-                      ),
+                      _buildItem(i, scrollDirection),
                     ],
                   ],
                 ),
@@ -223,10 +218,16 @@ class _PlayPlaylistState extends State<PlayPlaylist> {
 
   Widget _buildItem(int i, Axis scrollDirection) {
     final key = _scroll.registerItem(i);
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
       key: key,
-      padding: EdgeInsets.only(bottom: 56),
+      color: (i % 2 == 0)
+          ? colorScheme.surfaceContainerHighest
+          : colorScheme.surface,
+      height: scrollDirection == Axis.vertical ? null : double.infinity,
+      width: scrollDirection == Axis.horizontal ? null : double.infinity,
+      padding: const EdgeInsets.all(8),
       child: Selector<PlayStateProvider, PlaylistItem?>(
         selector: (context, play) => play.getItemAt(i),
         builder: (context, item, child) {

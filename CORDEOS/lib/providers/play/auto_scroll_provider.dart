@@ -27,7 +27,7 @@ class ScrollProvider extends ChangeNotifier {
   ValueListenable<double> get timerProgressListenable => _timerProgress;
 
   final Map<int, GlobalKey> _itemKeys = {};
-  final Map<int, Map<int, GlobalKey>> _sectionKeys = {};
+  final Map<int, Map<int, GlobalKey>> _itemSectionKeys = {};
 
   final Map<int, Map<int, int>> _sectionLineCounts = {};
 
@@ -44,7 +44,7 @@ class ScrollProvider extends ChangeNotifier {
   }
 
   Map<int, GlobalKey> get currentItemSectionKeys =>
-      _sectionKeys[_currentItemIndex] ?? {};
+      _itemSectionKeys[_currentItemIndex] ?? {};
 
   int get _sectionCount => currentItemSectionKeys.length;
   int get currentSectionIndex => _currentSectionIndex;
@@ -104,7 +104,7 @@ class ScrollProvider extends ChangeNotifier {
   }
 
   GlobalKey registerSection(int itemIndex, int sectionIndex) {
-    final itemSections = _sectionKeys.putIfAbsent(itemIndex, () => {});
+    final itemSections = _itemSectionKeys.putIfAbsent(itemIndex, () => {});
     return itemSections.putIfAbsent(sectionIndex, GlobalKey.new);
   }
 
@@ -176,7 +176,7 @@ class ScrollProvider extends ChangeNotifier {
         currentSectionIndex++;
 
         final sectionKey =
-            _sectionKeys[_currentItemIndex]?[currentSectionIndex];
+            _itemSectionKeys[_currentItemIndex]?[currentSectionIndex];
         final sectionContext = sectionKey?.currentContext;
 
         if (sectionContext != null && sectionContext.mounted) {
@@ -196,14 +196,13 @@ class ScrollProvider extends ChangeNotifier {
   }
 
   /// Scrolls to the next section
-  void scrollToNextSection({required bool forward}) {
-    if (_sectionCount == 0) return;
-
+  void scrollToNextSectionItem({required bool forward}) {
     final nextSectionIndex = currentSectionIndex + (forward ? 1 : -1);
     if (nextSectionIndex < _sectionCount && nextSectionIndex >= 0) {
       // Next section is within current item - scroll to it
       currentSectionIndex = nextSectionIndex;
-      final sectionKey = _sectionKeys[_currentItemIndex]?[_currentSectionIndex];
+      final sectionKey =
+          _itemSectionKeys[_currentItemIndex]?[_currentSectionIndex];
       final sectionContext = sectionKey?.currentContext;
 
       if (sectionContext != null && sectionContext.mounted) {
@@ -215,17 +214,17 @@ class ScrollProvider extends ChangeNotifier {
         );
       }
     } else {
-      // Next section is in next item - assume built check if next item exists
+      // Next section is in next item
       final nextItemIndex = _currentItemIndex + (forward ? 1 : -1);
-      if (nextItemIndex < _itemKeys.length && nextItemIndex >= 0) {
+      if (_itemSectionKeys.containsKey(nextItemIndex)) {
         // Next item exists - scroll
         currentSectionIndex = forward
             ? 0
-            : _sectionKeys[nextItemIndex]!.length - 1;
+            : _itemSectionKeys[nextItemIndex]!.length - 1;
         _currentItemIndex = nextItemIndex;
 
         final sectionKey =
-            _sectionKeys[_currentItemIndex]?[_currentSectionIndex];
+            _itemSectionKeys[_currentItemIndex]?[_currentSectionIndex];
         final sectionContext = sectionKey?.currentContext;
 
         if (sectionContext != null && sectionContext.mounted) {
@@ -237,6 +236,9 @@ class ScrollProvider extends ChangeNotifier {
           );
         }
       }
+      if (_itemKeys.containsKey(nextItemIndex)) {
+        probeScrollToItem(nextItemIndex, 0);
+      }
       // End of playlist - do nothing
     }
   }
@@ -245,7 +247,7 @@ class ScrollProvider extends ChangeNotifier {
   /// If not, scrolls toward it and probes again after postFrameCallback.
   void probeScrollToItem(int targetItemIndex, int targetSectionIndex) {
     // Try to get section context
-    final sectionKey = _sectionKeys[targetItemIndex]?[targetSectionIndex];
+    final sectionKey = _itemSectionKeys[targetItemIndex]?[targetSectionIndex];
     final sectionContext = sectionKey?.currentContext;
 
     if (sectionContext != null && sectionContext.mounted) {
@@ -491,7 +493,7 @@ class ScrollProvider extends ChangeNotifier {
     Axis scrollAxis,
   ) {
     final context =
-        _sectionKeys[_currentItemIndex]?[sectionIndex]?.currentContext;
+        _itemSectionKeys[_currentItemIndex]?[sectionIndex]?.currentContext;
 
     final box = context?.findRenderObject() as RenderBox?;
     if (box == null) return 0.0;
@@ -525,7 +527,7 @@ class ScrollProvider extends ChangeNotifier {
   /// Clears cache
   void clearCache({bool resetItemIndex = true}) {
     _itemKeys.clear();
-    _sectionKeys.clear();
+    _itemSectionKeys.clear();
     _sectionLineCounts.clear();
     _currentSectionIndex = 0;
     if (resetItemIndex) {

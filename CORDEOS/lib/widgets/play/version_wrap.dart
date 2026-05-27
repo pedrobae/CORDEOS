@@ -92,7 +92,6 @@ class VersionWrap extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           spacing: 4,
           children: [
-            _buildHeader(context),
             Expanded(
               flex: s.wrapDirection == Axis.vertical ? 1 : 0,
               child: Wrap(
@@ -101,11 +100,14 @@ class VersionWrap extends StatelessWidget {
                 alignment: WrapAlignment.start,
                 runSpacing: 8,
                 spacing: 8,
-                children: _buildSectionCards(
-                  context,
-                  s.filteredStructure,
-                  s.badgesData,
-                ),
+                children: [
+                  _buildHeader(context),
+                  ..._buildSectionCards(
+                    context,
+                    s.filteredStructure,
+                    s.badgesData,
+                  ),
+                ],
               ),
             ),
           ],
@@ -117,12 +119,21 @@ class VersionWrap extends StatelessWidget {
   Widget _buildHeader(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
 
-    return Selector2<
+    final width = MediaQuery.sizeOf(context).width;
+
+    return Selector3<
       CipherProvider,
       LocalVersionProvider,
-      ({String? title, String? key, int? bpm, Duration? duration})
+      LayoutSetProvider,
+      ({
+        String? title,
+        String? key,
+        int? bpm,
+        Duration? duration,
+        double widthMult,
+      })
     >(
-      selector: (context, ciph, localVer) {
+      selector: (context, ciph, localVer, laySet) {
         String? title;
         String? key;
         int? bpm;
@@ -138,7 +149,13 @@ class VersionWrap extends StatelessWidget {
         } else {
           final version = localVer.getVersion(versionID!);
           if (version == null) {
-            return (title: null, key: null, bpm: null, duration: null);
+            return (
+              title: null,
+              key: null,
+              bpm: null,
+              duration: null,
+              widthMult: laySet.cardWidthMult,
+            );
           }
           final cipher = ciph.getCipher(version.cipherID);
           title = cipher?.title;
@@ -146,33 +163,45 @@ class VersionWrap extends StatelessWidget {
           bpm = version.bpm;
           duration = version.duration;
         }
-        return (title: title, key: key, bpm: bpm, duration: duration);
+        return (
+          title: title,
+          key: key,
+          bpm: bpm,
+          duration: duration,
+          widthMult: laySet.cardWidthMult,
+        );
       },
       builder: (context, s, child) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(s.title ?? '', style: textTheme.titleMedium),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              spacing: 16.0,
-              children: [
-                Text(
-                  AppLocalizations.of(context)!.keyWithPlaceholder(s.key ?? ''),
-                  style: textTheme.bodyMedium,
-                ),
-                Text(
-                  AppLocalizations.of(context)!.bpmWithPlaceholder(s.bpm ?? 0),
-                  style: textTheme.bodyMedium,
-                ),
-                Text(
-                  '${AppLocalizations.of(context)!.duration}: ${DateTimeUtils.formatDuration(s.duration ?? Duration.zero)}',
-                  style: textTheme.bodyMedium,
-                ),
-              ],
-            ),
-          ],
+        return SizedBox(
+          width: width * s.widthMult,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(s.title ?? '', style: textTheme.titleMedium),
+              Wrap(
+                spacing: 16.0,
+                children: [
+                  Text(
+                    AppLocalizations.of(
+                      context,
+                    )!.keyWithPlaceholder(s.key ?? ''),
+                    style: textTheme.bodyMedium,
+                  ),
+                  Text(
+                    AppLocalizations.of(
+                      context,
+                    )!.bpmWithPlaceholder(s.bpm ?? 0),
+                    style: textTheme.bodyMedium,
+                  ),
+                  Text(
+                    '${AppLocalizations.of(context)!.duration}: ${DateTimeUtils.formatDuration(s.duration ?? Duration.zero)}',
+                    style: textTheme.bodyMedium,
+                  ),
+                ],
+              ),
+            ],
+          ),
         );
       },
     );

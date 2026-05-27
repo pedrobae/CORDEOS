@@ -24,38 +24,45 @@ class FlowFlex extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
+    final width = MediaQuery.sizeOf(context).width;
+
     return Selector2<
       FlowItemProvider,
       LayoutSetProvider,
-      (FlowItem?, TextStyle)
+      ({FlowItem? flow, TextStyle lyricStyle, double widthMult})
     >(
       selector: (context, flow, laySet) {
         final fItem = flowItem ?? flow.getFlowItem(flowID!);
-        return (fItem, laySet.lyricStyle);
+        return (
+          flow: fItem,
+          lyricStyle: laySet.lyricStyle,
+          widthMult: laySet.cardWidthMult,
+        );
       },
-      builder: (context, value, child) {
-        final (flowItem, lyricStyle) = value;
-        if (flowItem == null) {
+      builder: (context, s, child) {
+        if (s.flow == null) {
           return Center(child: CircularProgressIndicator());
         }
 
         return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          spacing: 4,
           children: [
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
-              spacing: 4,
               children: [
-                Text(flowItem.title, style: textTheme.titleMedium),
+                Text(s.flow!.title, style: textTheme.titleMedium),
                 Text(
-                  '${AppLocalizations.of(context)!.estimatedTime}: ${DateTimeUtils.formatDuration(flowItem.duration)}',
+                  '${AppLocalizations.of(context)!.estimatedTime}: ${DateTimeUtils.formatDuration(s.flow!.duration)}',
                   style: textTheme.bodyMedium,
                 ),
               ],
             ),
             Container(
               padding: const EdgeInsets.all(8),
+              width: s.widthMult * width,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(0),
                 border: Border.fromBorderSide(
@@ -65,7 +72,7 @@ class FlowFlex extends StatelessWidget {
                   ),
                 ),
               ),
-              child: Text(flowItem.contentText, style: lyricStyle),
+              child: Text(s.flow!.contentText, style: s.lyricStyle),
             ),
           ],
         );

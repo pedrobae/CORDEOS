@@ -82,25 +82,25 @@ class _CipherScrollViewState extends State<CipherScrollView> {
         }.entries.toList();
 
         // Create CipherListItem objects for AzListView
-        final items = filteredIds
+        final songIDs = filteredIds
             .map((entry) => CipherListItem(id: entry.key, title: entry.value))
             .toList();
 
         // Remove -1 (unsaved new song)
-        items.removeWhere((item) => item.id == -1);
+        songIDs.removeWhere((item) => item.id == -1);
 
         // Sort and set suspension status for AzListView
-        SuspensionUtil.sortListBySuspensionTag(items);
-        SuspensionUtil.setShowSuspensionStatus(items);
+        SuspensionUtil.sortListBySuspensionTag(songIDs);
+        SuspensionUtil.setShowSuspensionStatus(songIDs);
 
-        return items;
+        return songIDs;
       },
-      builder: (context, items, child) {
+      builder: (context, songs, child) {
         return RefreshIndicator(
           onRefresh: () async {
             _loadData(forceReload: true);
           },
-          child: (items.isEmpty)
+          child: (songs.isEmpty)
               ? Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -113,9 +113,9 @@ class _CipherScrollViewState extends State<CipherScrollView> {
                   ],
                 )
               : AzListView(
-                  data: items,
+                  data: songs,
                   physics: const AlwaysScrollableScrollPhysics(),
-                  indexBarData: SuspensionUtil.getTagIndexList(items),
+                  indexBarData: SuspensionUtil.getTagIndexList(songs),
                   padding: const EdgeInsets.only(right: 38),
                   indexBarOptions: IndexBarOptions(
                     decoration: BoxDecoration(
@@ -139,9 +139,9 @@ class _CipherScrollViewState extends State<CipherScrollView> {
                       color: colorScheme.onSurfaceVariant,
                     ),
                   ),
-                  itemCount: items.length,
+                  itemCount: songs.length,
                   itemBuilder: (context, index) {
-                    final item = items[index];
+                    final item = songs[index];
                     const itemPadding = EdgeInsets.only(bottom: 8.0);
 
                     if (item.id is String) {

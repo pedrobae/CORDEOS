@@ -109,10 +109,6 @@ class _CipherCardState extends State<CipherCard> {
         );
       },
       builder: (context, s, child) {
-        if (s.cipherID == null) {
-          return SizedBox.shrink();
-        }
-
         // Card content
         return GestureDetector(
           onTap: () async {
