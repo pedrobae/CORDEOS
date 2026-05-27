@@ -25,6 +25,8 @@ class _LabeledTimezonePickerState extends State<LabeledTimezonePicker> {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
+    final label = widget.timezone?.split('/').last.replaceAll('_', ' ');
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: 8,
@@ -45,9 +47,7 @@ class _LabeledTimezonePickerState extends State<LabeledTimezonePicker> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  widget.timezone?.isEmpty ?? true
-                      ? AppLocalizations.of(context)!.timezoneHint
-                      : widget.timezone!,
+                  label ?? AppLocalizations.of(context)!.timezoneHint,
                   style: textTheme.bodyLarge?.copyWith(
                     color: widget.timezone?.isEmpty ?? true
                         ? colorScheme.shadow
@@ -158,10 +158,12 @@ class _TimezoneSheetState extends State<TimezoneSheet> {
                   final timezone = filteredTimezones[index];
                   bool isSelected = timezone == widget.timezone;
 
+                  final label = timezone.split('/').last.replaceAll('_', ' ');
+
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 8),
                     child: FilledTextButton(
-                      text: timezone,
+                      text: label,
                       isDark: isSelected,
                       trailingIcon: Icons.chevron_right,
                       onPressed: () {

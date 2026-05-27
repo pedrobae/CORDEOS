@@ -31,6 +31,8 @@ class ScrollProvider extends ChangeNotifier {
 
   final Map<int, Map<int, int>> _sectionLineCounts = {};
 
+  bool _changeItemOnSectionSync = true;
+
   // ScrollController for manual scroll operations when items aren't built
   ScrollController? _scrollController;
   double _probeDistance = 800.0; // Fallback estimate
@@ -356,7 +358,11 @@ class ScrollProvider extends ChangeNotifier {
     int indexOffset = 1;
     bool checkPreNext = true;
 
-    if (itemCoversScreen(currentItemIndex, viewportHeight, scrollAxis)) {
+    if (itemCoversContainedScreen(
+      currentItemIndex,
+      viewportHeight,
+      scrollAxis,
+    )) {
       return currentItemIndex;
     }
 
@@ -377,7 +383,23 @@ class ScrollProvider extends ChangeNotifier {
           continue;
         }
 
-        if (itemCoversScreen(currentIndex, viewportHeight, scrollAxis)) {
+        if (itemCoversContainedScreen(
+          currentIndex,
+          viewportHeight,
+          scrollAxis,
+        )) {
+          currentItemIndex = currentIndex;
+          if (currentIndex < _currentItemIndex) {
+            _changeItemOnSectionSync = true;
+            if (_itemSectionKeys.containsKey(currentIndex)) {
+              currentSectionIndex =
+                  (_itemSectionKeys[currentIndex]?.length ?? 1) - 1;
+            }
+          }
+          if (currentIndex > _currentItemIndex) {
+            _changeItemOnSectionSync = true;
+            currentSectionIndex = 0;
+          }
           return currentIndex;
         }
       } else {
@@ -392,7 +414,23 @@ class ScrollProvider extends ChangeNotifier {
           hasItemsPost = false;
           continue;
         }
-        if (itemCoversScreen(currentIndex, viewportHeight, scrollAxis)) {
+        if (itemCoversContainedScreen(
+          currentIndex,
+          viewportHeight,
+          scrollAxis,
+        )) {
+          currentItemIndex = currentIndex;
+          if (currentIndex < _currentItemIndex) {
+            _changeItemOnSectionSync = true;
+            if (_itemSectionKeys.containsKey(currentIndex)) {
+              currentSectionIndex =
+                  (_itemSectionKeys[currentIndex]?.length ?? 1) - 1;
+            }
+          }
+          if (currentIndex > _currentItemIndex) {
+            _changeItemOnSectionSync = true;
+            currentSectionIndex = 0;
+          }
           return currentIndex;
         }
       }
@@ -401,9 +439,9 @@ class ScrollProvider extends ChangeNotifier {
     return null;
   }
 
-  /// Checks if the item at index i covers most of the viewport
+  /// Checks if the item at index i covers all of the viewport
   /// Gets the relevant edges depending on scroll axis and checks
-  bool itemCoversScreen(int i, double viewportHeight, Axis scrollAxis) {
+  bool itemCoversContainedScreen(int i, double viewport, Axis scrollAxis) {
     final itemKey = _itemKeys[i];
     if (itemKey == null) return false;
 
@@ -413,19 +451,22 @@ class ScrollProvider extends ChangeNotifier {
     final box = context.findRenderObject() as RenderBox?;
     if (box == null) return false;
 
-    final itemFront = scrollAxis == Axis.vertical
+    final itemBack = scrollAxis == Axis.vertical
         ? box.localToGlobal(Offset.zero).dy
         : box.localToGlobal(Offset.zero).dx;
 
-    final itemBack = scrollAxis == Axis.vertical
+    final itemFront = scrollAxis == Axis.vertical
         ? box.localToGlobal(Offset.zero).dy + box.size.height
         : box.localToGlobal(Offset.zero).dx + box.size.width;
 
-    if (itemFront < viewportHeight * 0.30 && itemBack > viewportHeight * 0.70) {
+    if (itemFront > viewport + 58 && itemBack < 58) {
+      debugPrint('ITEM $i Covers screen');
       return true;
     }
-
-    if (itemFront < viewportHeight && itemBack > 0) return true;
+    if (itemFront < viewport + 50 && itemBack > 60) {
+      debugPrint('ITEM $i is contained in screen');
+      return true;
+    }
 
     return false;
   }
@@ -433,6 +474,27 @@ class ScrollProvider extends ChangeNotifier {
   void syncSectionFromViewport(double viewportHeight, Axis scrollAxis) {
     if (percentageOnScreen(currentSectionIndex, viewportHeight, scrollAxis) >
         0.8) {
+      return;
+    }
+
+    if (currentSectionIndex == _sectionCount - 1 && _changeItemOnSectionSync) {
+      // Next item
+      final newItemIndex = currentItemIndex + 1;
+      if (newItemIndex >= _itemKeys.length) {
+        return;
+      }
+      _changeItemOnSectionSync = false;
+      currentItemIndex = newItemIndex;
+      currentSectionIndex = 0;
+      return;
+    } else if (currentSectionIndex == 0 && _changeItemOnSectionSync) {
+      final newItemIndex = currentItemIndex - 1;
+      if (newItemIndex < 0) {
+        return;
+      }
+      _changeItemOnSectionSync = false;
+      currentItemIndex = newItemIndex;
+      currentSectionIndex = (_itemSectionKeys[newItemIndex]?.length ?? 1) - 1;
       return;
     }
     bool hasSectionsPre = true;
@@ -460,6 +522,7 @@ class ScrollProvider extends ChangeNotifier {
         if (percentageOnScreen(currentIndex, viewportHeight, scrollAxis) >
             0.8) {
           currentSectionIndex = currentIndex;
+          _changeItemOnSectionSync = true;
           return;
         }
       } else {
@@ -478,6 +541,7 @@ class ScrollProvider extends ChangeNotifier {
         if (percentageOnScreen(currentIndex, viewportHeight, scrollAxis) >
             0.8) {
           currentSectionIndex = currentIndex;
+          _changeItemOnSectionSync = true;
           return;
         }
       }
@@ -502,19 +566,19 @@ class ScrollProvider extends ChangeNotifier {
         ? box.size.height
         : box.size.width;
 
-    final sectionFront = scrollAxis == Axis.vertical
+    final sectionBack = scrollAxis == Axis.vertical
         ? box.localToGlobal(Offset.zero).dy
         : box.localToGlobal(Offset.zero).dx;
 
-    final sectionBack = scrollAxis == Axis.vertical
+    final sectionFront = scrollAxis == Axis.vertical
         ? box.localToGlobal(Offset.zero).dy + box.size.height
         : box.localToGlobal(Offset.zero).dx + box.size.width;
 
     double boundStart = scrollAxis == Axis.vertical ? 150 : 0;
 
     final sectionVisiblePercentage =
-        ((sectionBack.clamp(boundStart, viewportHeight) -
-                    sectionFront.clamp(boundStart, viewportHeight)) /
+        ((sectionFront.clamp(boundStart, viewportHeight) -
+                    sectionBack.clamp(boundStart, viewportHeight)) /
                 sectionSize)
             .clamp(0.0, 1.0);
 
