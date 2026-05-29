@@ -106,7 +106,7 @@ class ScheduleDto {
   }
 
   Map<String, dynamic> toFirestore() {
-    final collab = <String>{};
+    final collab = <String>{...collaborators};
     List<String> roleUserIDs = roles
         .expand((role) => role.users.expand((user) => [user.firebaseId ?? '']))
         .toList();
@@ -129,7 +129,7 @@ class ScheduleDto {
   }
 
   Map<String, dynamic> toCache() {
-    final collab = <String>{};
+    final collab = <String>{...collaborators};
     List<String> roleUserIDs = roles
         .expand((role) => role.users.expand((user) => [user.firebaseId ?? '']))
         .toList();
