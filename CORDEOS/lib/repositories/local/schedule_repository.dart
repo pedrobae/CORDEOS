@@ -184,31 +184,13 @@ class LocalScheduleRepository {
     List<User> users,
     int roleID,
   ) async {
-    final result = await txn.query(
-      'role_member',
-      where: 'role_id = ?',
-      whereArgs: [roleID],
-    );
-
-    final existingIds = result.map((row) => row['member_id'] as int).toList();
+    await txn.delete('role_member', where: 'role_id = ?', whereArgs: [roleID]);
 
     for (final user in users) {
-      if (user.id == null) continue;
-      if (!existingIds.contains(user.id!)) {
-        await txn.insert('role_member', {
-          'role_id': roleID,
-          'member_id': user.id!,
-        });
-      }
-      existingIds.remove(user.id);
-    }
-
-    for (final remainingID in existingIds) {
-      await txn.delete(
-        'role_member',
-        where: 'role_id = ?, member_id = ?',
-        whereArgs: [roleID, remainingID],
-      );
+      await txn.insert('role_member', {
+        'role_id': roleID,
+        'member_id': user.id,
+      });
     }
   }
 

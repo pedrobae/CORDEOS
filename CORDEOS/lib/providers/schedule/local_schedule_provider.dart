@@ -421,11 +421,15 @@ class LocalScheduleProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      debugPrint(
+        "LOCAL SCHEDULE PROVIDER - saving roles of schedule $scheduleID",
+      );
       final schedule = _schedules[scheduleID];
 
       await _repo.saveRoles(scheduleID, schedule?.roles ?? []);
     } catch (e) {
       _error = e.toString();
+      debugPrint(e.toString());
     } finally {
       _isSaving = false;
       _hasUnsavedChanges = false;
