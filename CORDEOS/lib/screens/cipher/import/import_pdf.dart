@@ -43,7 +43,7 @@ class _ImportPdfScreenState extends State<ImportPdfScreen> {
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
-        allowedExtensions: ['pdf', 'doc', 'docx'],
+        allowedExtensions: ['pdf'],
         allowMultiple: true,
       );
 
@@ -258,6 +258,7 @@ class _ImportPdfScreenState extends State<ImportPdfScreen> {
               FilledTextButton(
                 isDark: true,
                 onPressed: _processAndNavigate(),
+                isDisabled: _files.isEmpty,
                 text: AppLocalizations.of(context)!.processPDF,
               ),
             FilledTextButton(
@@ -291,6 +292,7 @@ class _ImportPdfScreenState extends State<ImportPdfScreen> {
         imports.add(await imp.importFromPDF(file));
       }
       final versionIDs = <int>[];
+      int cipherID = widget.cipherID;
       for (final import in imports) {
         final song = await par.parseCipher(import);
         if (song != null) {
@@ -306,7 +308,7 @@ class _ImportPdfScreenState extends State<ImportPdfScreen> {
             versionIDs.add(widget.versionID);
           } else {
             // CREATE NEW SONG
-            final cipherID = await ciph.upsertVersionDto(song);
+            cipherID = await ciph.upsertVersionDto(song);
             final versionID = await localVer.upsertVersion(
               song.toDomain(cipherId: cipherID),
             );
@@ -325,13 +327,13 @@ class _ImportPdfScreenState extends State<ImportPdfScreen> {
         }
       }
 
+      nav.pop();
       if (versionIDs.length == 1) {
-        nav.pop;
         if (widget.versionID == -1) {
           nav.push(
             () => EditCipherScreen(
-              cipherID: widget.cipherID,
-              versionID: widget.versionID,
+              cipherID: cipherID,
+              versionID: versionIDs.first,
               versionType: VersionType.local,
             ),
             keepAlive: true,
