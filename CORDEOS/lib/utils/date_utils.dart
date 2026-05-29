@@ -49,12 +49,12 @@ class DateTimeUtils {
       } else {
         buffer.write('$minutes:');
       }
-    } else if (buffer.isNotEmpty) {
+    } else {
       buffer.write('00:');
     }
     if (seconds > 0) {
       buffer.write('$seconds'.padLeft(2, '0'));
-    } else if (buffer.isNotEmpty) {
+    } else {
       buffer.write('00');
     }
 
@@ -72,6 +72,8 @@ class DateTimeUtils {
       return Duration(hours: parts[0], minutes: parts[1], seconds: parts[2]);
     } else if (parts.length == 2) {
       return Duration(minutes: parts[0], seconds: parts[1]);
+    } else if (parts.length == 1) {
+      return Duration(seconds: parts[0]);
     } else {
       throw FormatException('Invalid duration format');
     }
