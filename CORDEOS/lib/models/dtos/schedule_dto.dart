@@ -9,7 +9,7 @@ class ScheduleDto {
   final String? firebaseId;
   final String ownerFirebaseId;
   final String name;
-  final Timestamp datetime;
+  final Timestamp timestamp;
   final String location;
   final String? roomVenue;
   final PlaylistDto playlist;
@@ -21,7 +21,7 @@ class ScheduleDto {
     this.firebaseId,
     required this.ownerFirebaseId,
     required this.name,
-    required this.datetime,
+    required this.timestamp,
     required this.location,
     this.roomVenue,
     required this.playlist,
@@ -31,7 +31,7 @@ class ScheduleDto {
   });
 
   ScheduleState get scheduleState {
-    final date = datetime.toDate();
+    final date = timestamp.toDate();
     if (DateTime.now().year > date.year ||
         (DateTime.now().year == date.year &&
             DateTime.now().month > date.month) ||
@@ -89,7 +89,7 @@ class ScheduleDto {
       firebaseId: id,
       ownerFirebaseId: json['ownerId'] as String,
       name: json['name'] as String,
-      datetime: json['datetime'] as Timestamp,
+      timestamp: json['datetime'] as Timestamp,
       location: json['location'] as String,
       roomVenue: json['roomVenue'] as String?,
       playlist: PlaylistDto.fromFirestore(
@@ -118,7 +118,7 @@ class ScheduleDto {
     return {
       'ownerId': ownerFirebaseId,
       'name': name,
-      'datetime': datetime,
+      'datetime': timestamp,
       'location': location,
       'roomVenue': roomVenue,
       'playlist': playlist.toFirestore(),
@@ -126,6 +126,27 @@ class ScheduleDto {
       'shareCode': shareCode,
       'collaborators': collab.toList(),
     };
+  }
+
+  factory ScheduleDto.fromCache(Map<String, dynamic> json) {
+    return ScheduleDto(
+      firebaseId: json['firebaseId'] as String,
+      ownerFirebaseId: json['ownerId'] as String,
+      name: json['name'] as String,
+      timestamp: json['datetime'] as Timestamp,
+      location: json['location'] as String,
+      roomVenue: json['roomVenue'] as String?,
+      playlist: PlaylistDto.fromFirestore(
+        json['playlist'] as Map<String, dynamic>,
+      ),
+      roles: (json['roles'] as List<dynamic>)
+          .map((role) => RoleDto.fromFirestore(role as Map<String, dynamic>))
+          .toList(),
+      shareCode: json['shareCode'] as String? ?? generateShareCode(),
+      collaborators: (json['collaborators'] as List<dynamic>? ?? [])
+          .map((collab) => collab as String)
+          .toList(),
+    );
   }
 
   Map<String, dynamic> toCache() {
@@ -142,7 +163,7 @@ class ScheduleDto {
       'firebaseId': firebaseId,
       'ownerId': ownerFirebaseId,
       'name': name,
-      'datetime': datetime.millisecondsSinceEpoch,
+      'datetime': timestamp.millisecondsSinceEpoch,
       'location': location,
       'roomVenue': roomVenue,
       'playlist': playlist.toCache(),
@@ -153,7 +174,7 @@ class ScheduleDto {
   }
 
   Schedule toDomain({required int playlistLocalId}) {
-    final dateTime = datetime.toDate();
+    final dateTime = timestamp.toDate();
     final schedule = Schedule(
       id: -1, // ID will be set by local database
       ownerFirebaseId: ownerFirebaseId,
@@ -195,7 +216,7 @@ class ScheduleDto {
       firebaseId: firebaseId ?? this.firebaseId,
       ownerFirebaseId: ownerFirebaseId ?? this.ownerFirebaseId,
       name: name ?? this.name,
-      datetime: datetime ?? this.datetime,
+      timestamp: datetime ?? this.timestamp,
       location: location ?? this.location,
       roomVenue: roomVenue ?? this.roomVenue,
       playlist: playlist ?? this.playlist,

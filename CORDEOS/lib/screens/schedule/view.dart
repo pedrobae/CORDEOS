@@ -240,8 +240,8 @@ class _ViewScheduleScreenState extends State<ViewScheduleScreen>
                     "Couldnt get cloud schedule ${widget.scheduleID}",
                   );
                 name = schedule.name;
-                date = DateTimeUtils.formatDate(schedule.datetime.toDate());
-                time = DateTimeUtils.formatTime(schedule.datetime.toDate());
+                date = DateTimeUtils.formatDate(schedule.timestamp.toDate());
+                time = DateTimeUtils.formatTime(schedule.timestamp.toDate());
                 location = schedule.location;
                 status = schedule.scheduleState;
               } else {

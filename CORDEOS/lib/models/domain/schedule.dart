@@ -126,7 +126,7 @@ class Schedule {
       firebaseId: firebaseId,
       ownerFirebaseId: ownerFirebaseId,
       name: name,
-      datetime: Timestamp.fromDate(date),
+      timestamp: Timestamp.fromDate(date),
       location: location,
       roomVenue: roomVenue,
       shareCode: shareCode,

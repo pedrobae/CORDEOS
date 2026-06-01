@@ -59,14 +59,14 @@ class CloudScheduleProvider extends ChangeNotifier {
   List<String> get futureScheduleIDs {
     final now = Timestamp.now();
     return filteredScheduleIds
-        .where((id) => _schedules[id]!.datetime.compareTo(now) >= 0)
+        .where((id) => _schedules[id]!.timestamp.compareTo(now) >= 0)
         .toList();
   }
 
   List<String> get pastScheduleIDs {
     final now = Timestamp.now();
     return filteredScheduleIds
-        .where((id) => _schedules[id]!.datetime.compareTo(now) < 0)
+        .where((id) => _schedules[id]!.timestamp.compareTo(now) < 0)
         .toList();
   }
 

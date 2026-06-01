@@ -402,19 +402,22 @@ class FirestoreService {
     }
   }
 
-  Future<List<QueryDocumentSnapshot>> fetchDocumentsContainingValue({
+  Future<List<QueryDocumentSnapshot>> fetchDocumentsContainingNewerThan({
     required String collectionPath,
     required String field,
-    required String orderField,
+    required String timestampField,
     required dynamic value,
     int limit = 50,
   }) async {
+    final yesterday = Timestamp.fromDate(
+      DateTime.now().subtract(Duration(days: 1)),
+    );
     try {
       final querySnapshot = await _firestore
           .collection(collectionPath)
           .where(field, arrayContains: value)
-          .where(orderField, isGreaterThanOrEqualTo: Timestamp.now())
-          .orderBy(orderField)
+          .where(timestampField, isGreaterThanOrEqualTo: yesterday)
+          .orderBy(timestampField)
           .limit(limit)
           .get()
           .timeout(
@@ -432,8 +435,8 @@ class FirestoreService {
       final querySnapshot = await _firestore
           .collection(collectionPath)
           .where(field, arrayContains: value)
-          .where(orderField, isGreaterThanOrEqualTo: Timestamp.now())
-          .orderBy(orderField)
+          .where(timestampField, isGreaterThanOrEqualTo: yesterday)
+          .orderBy(timestampField)
           .limit(limit)
           .get(const GetOptions(source: Source.cache));
       return querySnapshot.docs;

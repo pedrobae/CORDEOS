@@ -57,10 +57,10 @@ class _DuplicateScheduleSheetState extends State<DuplicateScheduleSheet> {
           context,
         )!.placeholderCopy(schedule.name);
         dateController.text = DateTimeUtils.formatDate(
-          schedule.datetime.toDate(),
+          schedule.timestamp.toDate(),
         );
         startTimeController.text = DateTimeUtils.formatTime(
-          schedule.datetime.toDate(),
+          schedule.timestamp.toDate(),
         );
         locationController.text = schedule.location;
       }

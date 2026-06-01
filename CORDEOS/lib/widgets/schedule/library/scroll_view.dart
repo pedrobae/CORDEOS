@@ -54,7 +54,6 @@ class _ScheduleScrollViewState extends State<ScheduleScrollView> {
       ({
         List<dynamic> futureScheduleIDs,
         List<dynamic> pastScheduleIDs,
-        String? error,
         bool isSyncing,
       })
     >(
@@ -67,19 +66,10 @@ class _ScheduleScrollViewState extends State<ScheduleScrollView> {
         return (
           futureScheduleIDs: [...localFuture, ...cloudFuture],
           pastScheduleIDs: [...localPast, ...cloudPast],
-          error: (localSch.error != null && localSch.error!.isNotEmpty)
-              ? localSch.error
-              : (cloudSch.error != null && cloudSch.error!.isNotEmpty)
-              ? cloudSch.error
-              : null,
           isSyncing: cloudSch.isSyncing,
         );
       },
       builder: (context, s, child) {
-        if (s.error != null && s.error!.isNotEmpty) {
-          return _buildErrorState(s.error!);
-        }
-
         // If there are no past schedules, remove the listener
         if (s.pastScheduleIDs.isEmpty) {
           _scrollController.removeListener(_listenForEndOfFutureSchedules);
@@ -106,20 +96,6 @@ class _ScheduleScrollViewState extends State<ScheduleScrollView> {
           s.isSyncing,
         );
       },
-    );
-  }
-
-  Widget _buildErrorState(String error) {
-    final textTheme = Theme.of(context).textTheme;
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Expanded(
-      child: Center(
-        child: Text(
-          error,
-          style: textTheme.bodyMedium?.copyWith(color: colorScheme.error),
-        ),
-      ),
     );
   }
 

@@ -111,13 +111,13 @@ class CloudScheduleCard extends StatelessWidget {
                                   children: [
                                     Text(
                                       DateTimeUtils.formatDate(
-                                        schedule.datetime.toDate(),
+                                        schedule.timestamp.toDate(),
                                       ),
                                       style: theme.textTheme.bodyMedium,
                                     ),
                                     Text(
                                       DateTimeUtils.formatTime(
-                                        schedule.datetime.toDate(),
+                                        schedule.timestamp.toDate(),
                                       ),
                                       style: theme.textTheme.bodyMedium,
                                     ),

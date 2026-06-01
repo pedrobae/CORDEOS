@@ -1,16 +1,20 @@
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:cordeos/helpers/guard.dart';
 import 'package:cordeos/models/dtos/schedule_dto.dart';
+import 'package:cordeos/services/cache_service.dart';
 import 'package:cordeos/services/firebase/firestore_service.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 class CloudScheduleRepository {
   static const String _functionsRegion = 'us-central1';
 
   final FirestoreService _firestoreService = FirestoreService();
   final GuardHelper _guardHelper = GuardHelper();
+
+  CacheService _cacheService = CacheService();
 
   CloudScheduleRepository();
   // ===== CREATE =====
@@ -43,31 +47,39 @@ class CloudScheduleRepository {
     String firebaseUserId, {
     bool forceFetch = false,
   }) async {
-    return await _withErrorHandling('fetch_user_schedules', () async {
-      final querySnapshot = await _firestoreService
-          .fetchDocumentsContainingValue(
-            collectionPath: 'schedules',
-            field: 'collaborators',
-            orderField: 'datetime',
-            value: firebaseUserId,
-          );
+    final connectivityResult = await Connectivity().checkConnectivity();
 
-      final schedules = <ScheduleDto>[];
-      for (var doc in querySnapshot) {
-        final data = doc.data() as Map<String, dynamic>;
-        final id = doc.id;
-        schedules.add(ScheduleDto.fromFirestore(data, id));
-      }
-
+    // CHECK NETWORK TO DECIDE CACHE OR CLOUD
+    if (connectivityResult == ConnectivityResult.none && !forceFetch) {
+      final cachedSchedules = await _cacheService.loadCloudSchedules();
       debugPrint(
-        'CLOUD SCHEDULE REPO - fetched ${schedules.length} schedules - USER $firebaseUserId',
+        'CLOUD SCHEDULE REPO - loaded ${cachedSchedules.length} schedules from cache - USER $firebaseUserId',
       );
+      return cachedSchedules;
+    } else {
+      return await _withErrorHandling('fetch_user_schedules', () async {
+        final querySnapshot = await _firestoreService
+            .fetchDocumentsContainingNewerThan(
+              collectionPath: 'schedules',
+              field: 'collaborators',
+              timestampField: 'datetime',
+              value: firebaseUserId,
+            );
 
-      // await _cacheService.saveCloudSchedules(schedules, firebaseUserId);
-      // await _cacheService.saveLastScheduleLoad(now);
+        final schedules = <ScheduleDto>[];
+        for (var doc in querySnapshot) {
+          final data = doc.data() as Map<String, dynamic>;
+          final id = doc.id;
+          schedules.add(ScheduleDto.fromFirestore(data, id));
+        }
+        await _cacheService.saveCloudSchedules(schedules);
 
-      return schedules;
-    });
+        debugPrint(
+          'CLOUD SCHEDULE REPO - fetched ${schedules.length} schedules - USER $firebaseUserId',
+        );
+        return schedules;
+      });
+    }
   }
 
   /// Fetches a schedule by its ID

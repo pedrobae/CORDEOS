@@ -2,7 +2,7 @@ name: cordeos
 description: "Chord Map Application."
 publish_to: 'none'
 
-version: 1.7.6+109
+version: 1.7.6+110
 
 environment:
   sdk: ^3.8.1
@@ -57,6 +57,7 @@ dependencies:
   country_picker: ^2.0.27
   package_info_plus: ^8.3.1
   font_awesome_flutter: ^10.12.0
+  connectivity_plus: ^7.1.1
 
 dev_dependencies:
   flutter_test:
@@ -144,6 +145,7 @@ flutter:
         - asset: assets/fonts/formaDJRMicro/FormaDJRMicro-ExtraLightItalic-Testing.otf
           weight: 200
           style: italic
+
 
 
 
