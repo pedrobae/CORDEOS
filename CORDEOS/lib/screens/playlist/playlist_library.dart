@@ -1,5 +1,4 @@
 import 'package:cordeos/l10n/app_localizations.dart';
-import 'package:cordeos/providers/selection_provider.dart';
 import 'package:cordeos/widgets/playlist/library/playlist_scroll_view.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -27,29 +26,23 @@ class _PlaylistLibraryScreenState extends State<PlaylistLibraryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final sel = Provider.of<SelectionProvider>(context, listen: false);
-
-    return Consumer<PlaylistProvider>(
-      builder: (context, play, child) {
-        return Padding(
-          padding: sel.isSelectionMode
-              ? EdgeInsets.zero
-              : const EdgeInsets.only(top: 8.0, left: 16.0, right: 16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            spacing: 8.0,
-            children: [
-              _buildSearchBar(play),
-              const Expanded(child: PlaylistScrollView()),
-            ],
-          ),
-        );
-      },
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: 8.0,
+        children: [
+          _buildSearchBar(),
+          const Expanded(child: PlaylistScrollView()),
+        ],
+      ),
     );
   }
 
-  Widget _buildSearchBar(PlaylistProvider play) {
+  Widget _buildSearchBar() {
+    final play = context.read<PlaylistProvider>();
     final colorScheme = Theme.of(context).colorScheme;
+
     return TextField(
       controller: _searchController,
       decoration: InputDecoration(

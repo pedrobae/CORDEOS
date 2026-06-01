@@ -11,18 +11,27 @@ import 'package:provider/provider.dart';
 
 class EditDetails extends StatefulWidget {
   final int scheduleID;
+  final ValueNotifier<bool> validFormNotifier;
 
-  const EditDetails({super.key, required this.scheduleID});
+  const EditDetails({
+    super.key,
+    required this.scheduleID,
+    required this.validFormNotifier,
+  });
 
   @override
   State<EditDetails> createState() => _EditDetailsState();
 }
 
 class _EditDetailsState extends State<EditDetails> {
+  final _formKey = GlobalKey<FormState>();
+
+  bool showDateError = false;
+  bool showTimeError = false;
+
   final nameController = TextEditingController();
   final locationController = TextEditingController();
   final roomVenueController = TextEditingController();
-  final dateController = TextEditingController();
 
   @override
   void initState() {
@@ -41,18 +50,25 @@ class _EditDetailsState extends State<EditDetails> {
         nameController.text = schedule.name;
         locationController.text = schedule.location;
         roomVenueController.text = schedule.roomVenue ?? '';
-        dateController.text = DateTimeUtils.formatDate(schedule.date);
       }
       _addListeners();
     });
   }
 
+  void _notifyListeners(bool isValid) {
+    if (widget.validFormNotifier.value != isValid) {
+      widget.validFormNotifier.value = isValid;
+    }
+  }
+
   void _addListeners() {
     nameController.addListener(() {
-      context.read<LocalScheduleProvider>().cacheName(
-        widget.scheduleID,
-        nameController.text,
-      );
+      if (nameController.value.text.length != 0) {
+        context.read<LocalScheduleProvider>().cacheName(
+          widget.scheduleID,
+          nameController.text,
+        );
+      }
     });
 
     locationController.addListener(() {
@@ -75,14 +91,15 @@ class _EditDetailsState extends State<EditDetails> {
     nameController.dispose();
     locationController.dispose();
     roomVenueController.dispose();
-
     super.dispose();
   }
 
-  bool _scheduleIsValid(Schedule? schedule) {
-    return schedule != null &&
-        schedule.name.isNotEmpty &&
-        schedule.location.isNotEmpty;
+  bool _scheduleIsValid(Schedule schedule) {
+    return _formKey.currentState?.validate() == true &&
+        schedule.date.compareTo(
+              DateTime.fromMicrosecondsSinceEpoch(8.64e10.toInt()),
+            ) >
+            0;
   }
 
   @override
@@ -91,7 +108,6 @@ class _EditDetailsState extends State<EditDetails> {
 
     final nav = context.read<NavigationProvider>();
     final auth = context.read<MyAuthProvider>();
-    final localSch = context.read<LocalScheduleProvider>();
 
     if (widget.scheduleID == -1) {
       return _buildForm();
@@ -106,113 +122,88 @@ class _EditDetailsState extends State<EditDetails> {
         ),
         actions: [
           IconButton(
+            icon: Icon(Icons.save, size: 30),
             onPressed: () {
-              // validate details
+              final localSch = context.read<LocalScheduleProvider>();
               final schedule = localSch.getSchedule(widget.scheduleID);
-
+              if (schedule == null) {
+                debugPrint(
+                  'EDIT DETAILS WIDGET - Schedule with ID ${widget.scheduleID} not found',
+                );
+                return;
+              }
               if (_scheduleIsValid(schedule)) {
                 localSch.saveDetails(widget.scheduleID);
                 localSch.uploadChangesToCloud(widget.scheduleID, auth.id!);
                 nav.pop();
-              } else {
-                // feedback to user about missing fields
-                if (schedule == null) return;
-
-                if (schedule.name.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        AppLocalizations.of(context)!.pleaseEnterScheduleName,
-                      ),
-                    ),
-                  );
-                }
-                if (schedule.location.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        AppLocalizations.of(context)!.pleaseEnterLocation,
-                      ),
-                    ),
-                  );
-                }
               }
             },
-            icon: Icon(Icons.save, size: 30),
           ),
         ],
       ),
-      body: Padding(padding: const EdgeInsets.all(16.0), child: _buildForm()),
+      body: _buildForm(),
     );
   }
 
-  Form _buildForm() {
-    return Form(
-      autovalidateMode: AutovalidateMode.onUnfocus,
-      child: SingleChildScrollView(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 16,
-          children: [
-            LabeledTextField(
-              label: AppLocalizations.of(context)!.scheduleName,
-              controller: nameController,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return AppLocalizations.of(context)!.pleaseEnterScheduleName;
-                }
-                return null;
-              },
-            ),
-            _buildDatePickerField(
-              label: AppLocalizations.of(context)!.date,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return AppLocalizations.of(context)!.pleaseEnterDate;
-                }
-                return null;
-              },
-            ),
-            _buildTimePickerField(
-              label: AppLocalizations.of(context)!.startTime,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return AppLocalizations.of(context)!.pleaseEnterStartTime;
-                }
-                return null;
-              },
-            ),
-            LabeledTextField(
-              label: AppLocalizations.of(context)!.location,
-              controller: locationController,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return AppLocalizations.of(context)!.pleaseEnterLocation;
-                }
-                return null;
-              },
-            ),
-            LabeledTextField(
-              label: AppLocalizations.of(
-                context,
-              )!.optionalPlaceholder(AppLocalizations.of(context)!.roomVenue),
-              controller: roomVenueController,
-            ),
-          ],
+  Widget _buildForm() {
+    final l10n = AppLocalizations.of(context)!;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Form(
+        key: _formKey,
+        autovalidateMode: AutovalidateMode.onUnfocus,
+        child: SingleChildScrollView(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: 16,
+            children: [
+              LabeledTextField(
+                label: l10n.requiredPlaceholder(l10n.scheduleName),
+                controller: nameController,
+                validator: (value) {
+                  String? error;
+                  if (value == null || value.trim().isEmpty) {
+                    error = l10n.pleaseEnterScheduleName;
+                  }
+                  _notifyListeners(error == null);
+                  return error;
+                },
+              ),
+              _buildDatePickerField(label: l10n.requiredPlaceholder(l10n.date)),
+              _buildTimePickerField(
+                label: l10n.requiredPlaceholder(l10n.startTime),
+              ),
+              LabeledTextField(
+                label: l10n.requiredPlaceholder(l10n.location),
+                controller: locationController,
+                validator: (value) {
+                  String? error;
+                  if (value == null || value.trim().isEmpty) {
+                    error = l10n.pleaseEnterLocation;
+                  }
+                  _notifyListeners(error == null);
+                  return error;
+                },
+              ),
+              LabeledTextField(
+                label: l10n.optionalPlaceholder(l10n.roomVenue),
+                controller: roomVenueController,
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildDatePickerField({
-    required String label,
-    String? Function(String?)? validator,
-  }) {
+  Widget _buildDatePickerField({required String label}) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -232,10 +223,13 @@ class _EditDetailsState extends State<EditDetails> {
               children: [
                 Selector<LocalScheduleProvider, String>(
                   selector: (context, localSch) {
-                    final date = localSch.getSchedule(widget.scheduleID)?.date;
-                    return date != null
-                        ? DateTimeUtils.formatDate(date)
-                        : DateTimeUtils.formatDate(DateTime.now());
+                    final date = localSch.getSchedule(widget.scheduleID)!.date;
+                    if (date.compareTo(
+                          DateTime.fromMicrosecondsSinceEpoch(8.64e10.toInt()),
+                        ) <=
+                        0)
+                      return '';
+                    return DateTimeUtils.formatDate(date);
                   },
                   builder: (context, formattedTime, child) {
                     return Text(formattedTime, style: textTheme.bodyLarge);
@@ -246,6 +240,11 @@ class _EditDetailsState extends State<EditDetails> {
             ),
           ),
         ),
+        if (showDateError)
+          Text(
+            l10n.pleaseSelectDate,
+            style: textTheme.bodyMedium?.copyWith(color: colorScheme.error),
+          ),
       ],
     );
   }
@@ -254,9 +253,16 @@ class _EditDetailsState extends State<EditDetails> {
     return () async {
       final localSch = context.read<LocalScheduleProvider>();
 
-      final initialDate = dateController.text.isNotEmpty
-          ? DateTimeUtils.parseDateTime(dateController.text)
-          : DateTime.now();
+      final schedule = localSch.getSchedule(widget.scheduleID);
+
+      final initialDate =
+          (schedule != null &&
+              schedule.date.compareTo(
+                    DateTime.fromMicrosecondsSinceEpoch(8.64e10.toInt()),
+                  ) >
+                  0)
+          ? schedule.date
+          : null;
       final firstDate = DateTime.now().subtract(const Duration(days: 365));
       final lastDate = DateTime.now().add(const Duration(days: 365));
 
@@ -269,17 +275,22 @@ class _EditDetailsState extends State<EditDetails> {
 
       if (pickedDate != null) {
         localSch.cacheDate(widget.scheduleID, pickedDate);
-        dateController.text = DateTimeUtils.formatDate(pickedDate);
+        setState(() {
+          showDateError = false;
+        });
+      } else if (initialDate == null) {
+        _notifyListeners(false);
+        setState(() {
+          showDateError = true;
+        });
       }
     };
   }
 
-  Widget _buildTimePickerField({
-    required String label,
-    String? Function(String?)? validator,
-  }) {
+  Widget _buildTimePickerField({required String label}) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context)!;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -299,10 +310,10 @@ class _EditDetailsState extends State<EditDetails> {
               children: [
                 Selector<LocalScheduleProvider, String>(
                   selector: (context, localSch) {
-                    final date = localSch.getSchedule(widget.scheduleID)?.date;
-                    return date != null
-                        ? DateTimeUtils.formatTime(date)
-                        : DateTimeUtils.formatTime(DateTime.now());
+                    final date = localSch.getSchedule(widget.scheduleID)!.date;
+                    if (date == DateTime.fromMicrosecondsSinceEpoch(0))
+                      return '';
+                    return DateTimeUtils.formatTime(date);
                   },
                   builder: (context, formattedTime, child) {
                     return Text(formattedTime, style: textTheme.bodyLarge);
@@ -313,20 +324,31 @@ class _EditDetailsState extends State<EditDetails> {
             ),
           ),
         ),
+        if (showTimeError)
+          Text(
+            l10n.pleaseSelectTime,
+            style: textTheme.bodyMedium?.copyWith(color: colorScheme.error),
+          ),
       ],
     );
   }
 
   VoidCallback _showTimePicker() {
     final localSch = context.read<LocalScheduleProvider>();
+    final schedule = localSch.getSchedule(widget.scheduleID);
 
     return () async {
+      final initialTime =
+          (schedule != null &&
+              schedule.date.compareTo(DateTime.fromMicrosecondsSinceEpoch(0)) >
+                  0)
+          ? schedule.date
+          : null;
+
       final pickedTime = await showTimePicker(
         context: context,
-        initialTime: localSch.getSchedule(widget.scheduleID)?.date != null
-            ? TimeOfDay.fromDateTime(
-                localSch.getSchedule(widget.scheduleID)!.date,
-              )
+        initialTime: initialTime != null
+            ? TimeOfDay.fromDateTime(initialTime)
             : TimeOfDay.now(),
         builder: (context, child) {
           return Theme(
@@ -340,6 +362,15 @@ class _EditDetailsState extends State<EditDetails> {
 
       if (pickedTime != null) {
         localSch.cacheTime(widget.scheduleID, pickedTime);
+
+        setState(() {
+          showTimeError = false;
+        });
+      } else if (initialTime == null) {
+        _notifyListeners(false);
+        setState(() {
+          showTimeError = true;
+        });
       }
     };
   }

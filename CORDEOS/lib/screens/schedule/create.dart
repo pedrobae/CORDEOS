@@ -21,11 +21,14 @@ class CreateScheduleScreen extends StatefulWidget {
 
 class _CreateScheduleScreenState extends State<CreateScheduleScreen> {
   late LocalScheduleProvider _scheduleProvider;
+  late ValueNotifier<bool> _formValidNotifier;
 
   @override
   void initState() {
     super.initState();
     _scheduleProvider = context.read<LocalScheduleProvider>();
+
+    _formValidNotifier = ValueNotifier(false);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -50,33 +53,32 @@ class _CreateScheduleScreenState extends State<CreateScheduleScreen> {
   @override
   void dispose() {
     _scheduleProvider.removeListener(_scheduleErrorListener);
+    _formValidNotifier.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final nav = Provider.of<NavigationProvider>(context, listen: false);
-    final auth = Provider.of<MyAuthProvider>(context, listen: false);
-    final localSch = Provider.of<LocalScheduleProvider>(context, listen: false);
-
     return Scaffold(
-      appBar: _buildAppBar(nav),
+      appBar: _buildAppBar(),
       body: Column(
-        spacing: 16,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _buildStepIndicator(),
           _buildStepInstruction(),
-          _buildStepSpacing(),
+          SizedBox(height: 16),
           _buildStepContent(),
-          _buildContinueButton(localSch, nav, auth),
+          _buildContinueButton(),
+          SizedBox(height: 16),
         ],
       ),
     );
   }
 
-  AppBar _buildAppBar(NavigationProvider nav) {
+  AppBar _buildAppBar() {
+    final nav = context.read<NavigationProvider>();
     final textTheme = Theme.of(context).textTheme;
+
     return AppBar(
       leading: BackButton(onPressed: () => nav.attemptPop(context)),
       title: Text(
@@ -88,105 +90,112 @@ class _CreateScheduleScreenState extends State<CreateScheduleScreen> {
 
   Widget _buildStepIndicator() {
     final textTheme = Theme.of(context).textTheme;
-    return Text(
-      AppLocalizations.of(context)!.stepXofY(widget.creationStep, 3),
-      style: textTheme.titleLarge,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Text(
+        AppLocalizations.of(context)!.stepXofY(widget.creationStep, 3),
+        style: textTheme.titleLarge,
+      ),
     );
   }
 
   Widget _buildStepInstruction() {
     final textTheme = Theme.of(context).textTheme;
-    return switch (widget.creationStep) {
-      1 => Text(
-        AppLocalizations.of(context)!.selectPlaylistForScheduleInstruction,
-        style: textTheme.bodyLarge,
-      ),
-      2 => Text(
-        AppLocalizations.of(context)!.fillScheduleDetailsInstruction,
-        style: textTheme.bodyLarge,
-      ),
-      3 => Text(
-        AppLocalizations.of(context)!.createRolesAndAssignUsersInstruction,
-        style: textTheme.bodyLarge,
-      ),
-      _ => const SizedBox.shrink(),
-    };
-  }
+    final l10n = AppLocalizations.of(context)!;
 
-  Widget _buildStepSpacing() {
-    return switch (widget.creationStep) {
-      1 => const SizedBox(height: 16),
-      2 => const SizedBox.shrink(),
-      3 => const SizedBox(height: 16),
-      _ => const SizedBox.shrink(),
-    };
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: switch (widget.creationStep) {
+        1 => Text(
+          l10n.selectPlaylistForScheduleInstruction,
+          style: textTheme.bodyLarge,
+        ),
+        2 => Text(
+          l10n.fillScheduleDetailsInstruction,
+          style: textTheme.bodyLarge,
+        ),
+        3 => Text(
+          l10n.createRolesAndAssignUsersInstruction,
+          style: textTheme.bodyLarge,
+        ),
+        _ => const SizedBox.shrink(),
+      },
+    );
   }
 
   Widget _buildStepContent() {
     return switch (widget.creationStep) {
       1 => const Expanded(child: PlaylistLibraryScreen()),
-      2 => Expanded(child: EditDetails(scheduleID: -1)),
+      2 => Expanded(
+        child: EditDetails(
+          scheduleID: -1,
+          validFormNotifier: _formValidNotifier,
+        ),
+      ),
       3 => const Expanded(child: EditRoles(scheduleId: -1)),
       _ => const SizedBox.shrink(),
     };
   }
 
-  String _getButtonText() {
-    return switch (widget.creationStep) {
-      1 => AppLocalizations.of(context)!.keepGoing,
-      2 => AppLocalizations.of(context)!.keepGoing,
-      3 => AppLocalizations.of(
-        context,
-      )!.createPlaceholder(AppLocalizations.of(context)!.schedule),
-      _ => 'ERROR',
-    };
-  }
+  Widget _buildContinueButton() {
+    final localSch = context.read<LocalScheduleProvider>();
+    final nav = context.read<NavigationProvider>();
 
-  Widget _buildContinueButton(
-    LocalScheduleProvider localSch,
-    NavigationProvider nav,
-    MyAuthProvider auth,
-  ) {
-    return Consumer<SelectionProvider>(
-      builder: (context, sel, child) {
-        return FilledTextButton(
-          text: _getButtonText(),
-          onPressed: () => _handleStepAction(localSch, nav, auth, sel),
-          isDisabled: sel.selectedItemIds.length != 1,
+    final id = context.select<MyAuthProvider, String?>((auth) => auth.id);
+    if (id == null) throw Exception('User ID is null in CreateScheduleScreen');
+
+    final l10n = AppLocalizations.of(context)!;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: switch (widget.creationStep) {
+        1 => Selector<SelectionProvider, List<int>>(
+          selector: (context, sel) => [...sel.selectedItemIds],
+          builder: (context, selectedIds, child) {
+            return FilledTextButton(
+              text: l10n.keepGoing,
+              isDark: true,
+              isDisabled: selectedIds.length != 1,
+              onPressed: () {
+                localSch.cacheBrandNewSchedule(selectedIds.first, id);
+                nav.push(
+                  () => CreateScheduleScreen(creationStep: 2),
+                  showBottomNavBar: true,
+                );
+              },
+            );
+          },
+        ),
+        2 => ValueListenableBuilder(
+          valueListenable: _formValidNotifier,
+          builder: (context, valid, child) {
+            return FilledTextButton(
+              text: l10n.keepGoing,
+              isDark: true,
+              isDisabled: !valid,
+              onPressed: () {
+                nav.push(
+                  () => CreateScheduleScreen(creationStep: 3),
+                  showBottomNavBar: true,
+                );
+              },
+            );
+          },
+        ),
+        3 => FilledTextButton(
+          text: l10n.createPlaceholder(l10n.schedule),
           isDark: true,
-        );
+          onPressed: () {
+            localSch.createFromCache(id).then((success) {
+              if (success && mounted) {
+                context.read<SelectionProvider>().disableSelectionMode();
+                nav.attemptPop(context, route: NavigationRoute.schedule);
+              }
+            });
+          },
+        ),
+        _ => const SizedBox.shrink(),
       },
     );
-  }
-
-  void _handleStepAction(
-    LocalScheduleProvider localSch,
-    NavigationProvider nav,
-    MyAuthProvider auth,
-    SelectionProvider sel,
-  ) {
-    switch (widget.creationStep) {
-      case 1:
-        localSch.cacheBrandNewSchedule(sel.selectedItemIds.first, auth.id!);
-        nav.push(
-          () => CreateScheduleScreen(creationStep: 2),
-          showBottomNavBar: true,
-        );
-      case 2:
-        nav.push(
-          () => CreateScheduleScreen(creationStep: 3),
-          showBottomNavBar: true,
-        );
-
-      case 3:
-        localSch.createFromCache(auth.id!).then((success) {
-          if (success && mounted) {
-            sel.disableSelectionMode();
-            nav.attemptPop(context, route: NavigationRoute.schedule);
-          }
-        });
-      default:
-        null;
-    }
   }
 }

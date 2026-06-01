@@ -1607,37 +1607,37 @@ abstract class AppLocalizations {
   /// Instruction to fill in schedule details
   ///
   /// In pt, this message translates to:
-  /// **'Por favor, preencha os detalhes da agenda.'**
+  /// **'Por favor preencha os detalhes da agenda.'**
   String get fillScheduleDetailsInstruction;
 
   /// Instruction to create roles and assign users
   ///
   /// In pt, this message translates to:
-  /// **'Por favor, crie funções e atribua Membros à agenda.'**
+  /// **'Por favor crie funções e atribua Membros à agenda.'**
   String get createRolesAndAssignUsersInstruction;
 
   /// Validation message for schedule name
   ///
   /// In pt, this message translates to:
-  /// **'Por favor, insira um nome para a agenda.'**
+  /// **'Por favor insira um nome para a agenda.'**
   String get pleaseEnterScheduleName;
 
   /// Validation message for date
   ///
   /// In pt, this message translates to:
-  /// **'Por favor, insira uma data válida (DD/MM/AAAA).'**
-  String get pleaseEnterDate;
+  /// **'Por favor selecione uma data.'**
+  String get pleaseSelectDate;
 
   /// Validation message for start time
   ///
   /// In pt, this message translates to:
-  /// **'Por favor, insira uma hora de início válida (HH:MM).'**
-  String get pleaseEnterStartTime;
+  /// **'Por favor selecione um horário de início.'**
+  String get pleaseSelectTime;
 
   /// Validation message for location
   ///
   /// In pt, this message translates to:
-  /// **'Por favor, insira um local.'**
+  /// **'Por favor insira um local.'**
   String get pleaseEnterLocation;
 
   /// Message displayed when there are no roles defined
@@ -2317,6 +2317,12 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'{field} (Opcional)'**
   String optionalPlaceholder(Object field);
+
+  /// Generic required field placeholder
+  ///
+  /// In pt, this message translates to:
+  /// **'{field} *'**
+  String requiredPlaceholder(Object field);
 
   /// Generic plural placeholder for labels
   ///

@@ -1081,27 +1081,27 @@
   "@scheduleDetails": {
     "description": "Schedule details section title"
   },
-  "fillScheduleDetailsInstruction": "Por favor, preencha os detalhes da agenda.",
+  "fillScheduleDetailsInstruction": "Por favor preencha os detalhes da agenda.",
   "@fillScheduleDetailsInstruction": {
     "description": "Instruction to fill in schedule details"
   },
-  "createRolesAndAssignUsersInstruction": "Por favor, crie funções e atribua Membros à agenda.",
+  "createRolesAndAssignUsersInstruction": "Por favor crie funções e atribua Membros à agenda.",
   "@createRolesAndAssignUsersInstruction": {
     "description": "Instruction to create roles and assign users"
   },
-  "pleaseEnterScheduleName": "Por favor, insira um nome para a agenda.",
+  "pleaseEnterScheduleName": "Por favor insira um nome para a agenda.",
   "@pleaseEnterScheduleName": {
     "description": "Validation message for schedule name"
   },
-  "pleaseEnterDate": "Por favor, insira uma data válida (DD/MM/AAAA).",
-  "@pleaseEnterDate": {
+  "pleaseSelectDate": "Por favor selecione uma data.",
+  "@pleaseSelectDate": {
     "description": "Validation message for date"
   },
-  "pleaseEnterStartTime": "Por favor, insira uma hora de início válida (HH:MM).",
-  "@pleaseEnterStartTime": {
+  "pleaseSelectTime": "Por favor selecione um horário de início.",
+  "@pleaseSelectTime": {
     "description": "Validation message for start time"
   },
-  "pleaseEnterLocation": "Por favor, insira um local.",
+  "pleaseEnterLocation": "Por favor insira um local.",
   "@pleaseEnterLocation": {
     "description": "Validation message for location"
   },
@@ -1616,6 +1616,13 @@
   "optionalPlaceholder": "{field} (Opcional)",
   "@optionalPlaceholder": {
     "description": "Generic optional field placeholder",
+    "placeholders": {
+      "field": {}
+    }
+  },
+  "requiredPlaceholder": "{field} *",
+  "@requiredPlaceholder": {
+    "description": "Generic required field placeholder",
     "placeholders": {
       "field": {}
     }

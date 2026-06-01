@@ -137,7 +137,7 @@ class _DuplicateScheduleSheetState extends State<DuplicateScheduleSheet> {
                     controller: dateController,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return AppLocalizations.of(context)!.pleaseEnterDate;
+                        return AppLocalizations.of(context)!.pleaseSelectDate;
                       }
                       return null;
                     },
@@ -148,9 +148,7 @@ class _DuplicateScheduleSheetState extends State<DuplicateScheduleSheet> {
                     controller: startTimeController,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return AppLocalizations.of(
-                          context,
-                        )!.pleaseEnterStartTime;
+                        return AppLocalizations.of(context)!.pleaseSelectTime;
                       }
                       return null;
                     },

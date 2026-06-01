@@ -841,26 +841,24 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get fillScheduleDetailsInstruction =>
-      'Por favor, preencha os detalhes da agenda.';
+      'Por favor preencha os detalhes da agenda.';
 
   @override
   String get createRolesAndAssignUsersInstruction =>
-      'Por favor, crie funções e atribua Membros à agenda.';
+      'Por favor crie funções e atribua Membros à agenda.';
 
   @override
   String get pleaseEnterScheduleName =>
-      'Por favor, insira um nome para a agenda.';
+      'Por favor insira um nome para a agenda.';
 
   @override
-  String get pleaseEnterDate =>
-      'Por favor, insira uma data válida (DD/MM/AAAA).';
+  String get pleaseSelectDate => 'Por favor selecione uma data.';
 
   @override
-  String get pleaseEnterStartTime =>
-      'Por favor, insira uma hora de início válida (HH:MM).';
+  String get pleaseSelectTime => 'Por favor selecione um horário de início.';
 
   @override
-  String get pleaseEnterLocation => 'Por favor, insira um local.';
+  String get pleaseEnterLocation => 'Por favor insira um local.';
 
   @override
   String get noRoles => 'Nenhum Papel Definido';
@@ -1251,6 +1249,11 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String optionalPlaceholder(Object field) {
     return '$field (Opcional)';
+  }
+
+  @override
+  String requiredPlaceholder(Object field) {
+    return '$field *';
   }
 
   @override

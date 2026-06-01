@@ -849,10 +849,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pleaseEnterScheduleName => 'Please enter a schedule name.';
 
   @override
-  String get pleaseEnterDate => 'Please enter a valid date (DD/MM/YYYY).';
+  String get pleaseSelectDate => 'Please select a date.';
 
   @override
-  String get pleaseEnterStartTime => 'Please enter a valid start time (HH:MM).';
+  String get pleaseSelectTime => 'Please select a start time.';
 
   @override
   String get pleaseEnterLocation => 'Please enter a location.';
@@ -1241,6 +1241,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String optionalPlaceholder(Object field) {
     return '$field (Optional)';
+  }
+
+  @override
+  String requiredPlaceholder(Object field) {
+    return '$field *';
   }
 
   @override

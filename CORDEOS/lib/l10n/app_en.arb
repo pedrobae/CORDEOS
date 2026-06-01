@@ -1093,12 +1093,12 @@
   "@pleaseEnterScheduleName": {
     "description": "Validation message for schedule name"
   },
-  "pleaseEnterDate": "Please enter a valid date (DD/MM/YYYY).",
-  "@pleaseEnterDate": {
+  "pleaseSelectDate": "Please select a date.",
+  "@pleaseSelectDate": {
     "description": "Validation message for date"
   },
-  "pleaseEnterStartTime": "Please enter a valid start time (HH:MM).",
-  "@pleaseEnterStartTime": {
+  "pleaseSelectTime": "Please select a start time.",
+  "@pleaseSelectTime": {
     "description": "Validation message for start time"
   },
   "pleaseEnterLocation": "Please enter a location.",
@@ -1624,6 +1624,13 @@
   "optionalPlaceholder": "{field} (Optional)",
   "@optionalPlaceholder": {
     "description": "Generic optional field placeholder",
+    "placeholders": {
+      "field": {}
+    }
+  },
+  "requiredPlaceholder": "{field} *",
+  "@requiredPlaceholder": {
+    "description": "Generic required field placeholder",
     "placeholders": {
       "field": {}
     }

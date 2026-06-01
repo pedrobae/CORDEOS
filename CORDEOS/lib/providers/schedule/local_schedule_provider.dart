@@ -73,7 +73,7 @@ class LocalScheduleProvider extends ChangeNotifier {
       id: -1,
       ownerFirebaseId: ownerFirebaseId,
       name: '',
-      date: DateTime.now(),
+      date: DateTime.fromMicrosecondsSinceEpoch(0),
       location: '',
       playlistId: playlistId,
       roles: [],

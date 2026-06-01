@@ -92,7 +92,10 @@ class _ViewScheduleScreenState extends State<ViewScheduleScreen>
               icon: const Icon(Icons.edit),
               onPressed: () {
                 nav.push(
-                  () => EditDetails(scheduleID: widget.scheduleID),
+                  () => EditDetails(
+                    scheduleID: widget.scheduleID,
+                    validFormNotifier: ValueNotifier(true),
+                  ),
                   changeDetector: () => localSch.hasUnsavedChanges,
                   onChangeDiscarded: () =>
                       localSch.loadSchedule(widget.scheduleID),
@@ -193,7 +196,11 @@ class _ViewScheduleScreenState extends State<ViewScheduleScreen>
                 ],
               ),
             ),
-            if (!_isCloud) _buildPublishButton(),
+            if (!_isCloud)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: _buildPublishButton(),
+              ),
             if (_isPublishing) ...[
               Center(child: CloudDownloadIndicator(isUpload: true)),
             ],
