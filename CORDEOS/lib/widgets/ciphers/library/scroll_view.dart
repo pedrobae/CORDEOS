@@ -65,7 +65,6 @@ class _CipherScrollViewState extends State<CipherScrollView> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final l10n = AppLocalizations.of(context)!;
 
     return Selector3<
       CipherProvider,
@@ -107,7 +106,7 @@ class _CipherScrollViewState extends State<CipherScrollView> {
                   children: [
                     SizedBox(height: 64),
                     Text(
-                      l10n.emptyCipherLibrary,
+                      AppLocalizations.of(context)!.emptyCipherLibrary,
                       style: Theme.of(context).textTheme.bodyLarge,
                       textAlign: TextAlign.center,
                     ),
@@ -155,7 +154,7 @@ class _CipherScrollViewState extends State<CipherScrollView> {
                     if (item.id is! int) {
                       return Center(
                         child: Text(
-                          '${l10n.error} (ID: ${item.id})',
+                          '${AppLocalizations.of(context)!.error} (ID: ${item.id})',
                           style: TextStyle(color: colorScheme.error),
                         ),
                       );
@@ -167,9 +166,8 @@ class _CipherScrollViewState extends State<CipherScrollView> {
 
                     if (versionID == null) {
                       return Center(
-                        child: Text(
-                          l10n.errorMessage(l10n.load, l10n.malformedData),
-                          style: TextStyle(color: colorScheme.error),
+                        child: CircularProgressIndicator(
+                          color: colorScheme.primary,
                         ),
                       );
                     }

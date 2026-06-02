@@ -5,7 +5,6 @@ import 'package:cordeos/models/domain/cipher/cipher.dart';
 
 import 'package:cordeos/helpers/database.dart';
 
-
 class CipherRepository {
   final _databaseHelper = DatabaseHelper();
 
@@ -36,7 +35,7 @@ class CipherRepository {
   /// Used for lazy loading versions
   Future<List<Cipher>> getAllCiphersPruned() async {
     final db = await _databaseHelper.database;
-    final results = await db.query('cipher', where: 'is_deleted = 0');
+    final results = await db.query('cipher');
 
     return Future.wait(results.map((row) => _buildPrunedCipher(row)));
   }
@@ -44,11 +43,7 @@ class CipherRepository {
   /// Retrieves a full cipher by its local ID
   Future<Cipher?> getCipherById(int id) async {
     final db = await _databaseHelper.database;
-    final results = await db.query(
-      'cipher',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    final results = await db.query('cipher', where: 'id = ?', whereArgs: [id]);
 
     if (results.isEmpty) return null;
 
@@ -64,7 +59,7 @@ class CipherRepository {
     final db = await _databaseHelper.database;
     final results = await db.query(
       'cipher',
-      where: 'title = ? AND author = ? AND is_deleted = 0',
+      where: 'title = ? AND author = ?',
       whereArgs: [title, author],
     );
 
