@@ -52,12 +52,18 @@ class _CipherCardState extends State<CipherCard> {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
 
     final nav = context.read<NavigationProvider>();
     final sel = context.read<SelectionProvider>();
 
     if (widget.versionID == -1) {
-      return SizedBox.shrink();
+      return Center(
+        child: Text(
+          l10n.errorMessage(l10n.load, l10n.malformedData),
+          style: TextStyle(color: colorScheme.error),
+        ),
+      );
     }
 
     return Selector3<
@@ -175,21 +181,17 @@ class _CipherCardState extends State<CipherCard> {
                           spacing: 16.0,
                           children: [
                             Text(
-                              '${AppLocalizations.of(context)!.musicKey}: ${s.key}',
+                              '${l10n.musicKey}: ${s.key}',
                               style: textTheme.bodyMedium,
                             ),
                             if (s.bpm != null)
                               Text(
-                                AppLocalizations.of(
-                                  context,
-                                )!.bpmWithPlaceholder(s.bpm!),
+                                l10n.bpmWithPlaceholder(s.bpm!),
                                 style: textTheme.bodyMedium,
                               ),
                             if (s.duration != null && s.duration!.isNotEmpty)
                               Text(
-                                AppLocalizations.of(
-                                  context,
-                                )!.durationWithPlaceholder(s.duration!),
+                                l10n.durationWithPlaceholder(s.duration!),
                                 style: textTheme.bodyMedium,
                               ),
                           ],
@@ -256,10 +258,11 @@ class _CipherCardState extends State<CipherCard> {
     final localVer = context.read<LocalVersionProvider>();
     final sect = context.read<SectionProvider>();
     final sel = context.read<SelectionProvider>();
+    final l10n = AppLocalizations.of(context)!;
 
-    final playVersionName = AppLocalizations.of(
-      context,
-    )!.playlistVersionName(play.getPlaylist(sel.targetId!)!.name);
+    final playVersionName = l10n.playlistVersionName(
+      play.getPlaylist(sel.targetId!)!.name,
+    );
 
     final version = localVer.getVersion(widget.versionID)!;
 

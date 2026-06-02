@@ -1236,6 +1236,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get malformedData => 'Malformed Data';
+
+  @override
   String get intValidationError => 'Please enter a valid positive integer.';
 
   @override

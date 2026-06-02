@@ -91,6 +91,7 @@ class SelectType extends StatelessWidget {
                                     sectionKey: newKey,
                                     versionID: versionID,
                                     isNewSection: true,
+                                    popOnSave: true,
                                   ),
                                   showBottomNavBar: true,
                                   changeDetector: () => sect.hasUnsavedChanges,
@@ -173,7 +174,7 @@ class SelectType extends StatelessWidget {
           contentText: '',
           contentType: type.localizedLabel(context),
           key: -1,
-          versionID: versionID
+          versionID: versionID,
         ),
       );
       return newKey;

@@ -1243,6 +1243,9 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get malformedData => 'Dados malformados.';
+
+  @override
   String get intValidationError =>
       'Por favor, insira um número inteiro positivo.';
 

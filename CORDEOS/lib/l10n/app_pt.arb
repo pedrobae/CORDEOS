@@ -1609,6 +1609,10 @@
       "max": {}
     }
   },
+  "malformedData": "Dados malformados.",
+  "@malformedData": {
+    "description": "Message for malformed data error"
+  },
   "intValidationError": "Por favor, insira um número inteiro positivo.",
   "@intValidationError": {
     "description": "Validation message for integer input"

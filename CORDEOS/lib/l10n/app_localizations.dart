@@ -2306,6 +2306,12 @@ abstract class AppLocalizations {
   /// **'{field} é muito longo. Máximo de {max} caracteres permitidos.'**
   String tooLongPlaceholder(Object field, Object max);
 
+  /// Message for malformed data error
+  ///
+  /// In pt, this message translates to:
+  /// **'Dados malformados.'**
+  String get malformedData;
+
   /// Validation message for integer input
   ///
   /// In pt, this message translates to:

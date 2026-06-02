@@ -16,6 +16,7 @@ class EditSectionScreen extends StatefulWidget {
   final int sectionKey;
   final bool isNewSection;
   final bool canChangeType;
+  final bool popOnSave;
 
   const EditSectionScreen({
     super.key,
@@ -23,6 +24,7 @@ class EditSectionScreen extends StatefulWidget {
     required this.versionID,
     this.isNewSection = false,
     this.canChangeType = true,
+    this.popOnSave = false,
   });
 
   @override
@@ -121,7 +123,7 @@ class _EditSectionScreenState extends State<EditSectionScreen> {
                       onPressed: () {
                         _upsertSection();
                         nav.pop();
-                        if (widget.isNewSection) nav.pop();
+                        if (widget.popOnSave) nav.pop();
                       },
                       icon: Icon(Icons.save, size: 30),
                     ),
