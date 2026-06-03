@@ -118,6 +118,7 @@ class VersionWrap extends StatelessWidget {
 
   Widget _buildHeader(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context)!;
 
     final width = MediaQuery.sizeOf(context).width;
 
@@ -127,6 +128,7 @@ class VersionWrap extends StatelessWidget {
       LayoutSetProvider,
       ({
         String? title,
+        String? artist,
         String? key,
         int? bpm,
         Duration? duration,
@@ -135,11 +137,13 @@ class VersionWrap extends StatelessWidget {
     >(
       selector: (context, ciph, localVer, laySet) {
         String? title;
+        String? artist;
         String? key;
         int? bpm;
         Duration? duration;
         if (versionDto != null) {
           title = versionDto!.title;
+          artist = versionDto!.author;
           key =
               versionDto!.overwriteKey ??
               versionDto!.transposedKey ??
@@ -151,6 +155,7 @@ class VersionWrap extends StatelessWidget {
           if (version == null) {
             return (
               title: null,
+              artist: null,
               key: null,
               bpm: null,
               duration: null,
@@ -159,12 +164,18 @@ class VersionWrap extends StatelessWidget {
           }
           final cipher = ciph.getCipher(version.cipherID);
           title = cipher?.title;
-          key = version.transposedKey ?? cipher?.musicKey;
+          artist = cipher?.author;
+          key =
+              (version.transposedKey != null &&
+                  version.transposedKey!.isNotEmpty)
+              ? version.transposedKey
+              : cipher?.musicKey;
           bpm = version.bpm;
           duration = version.duration;
         }
         return (
           title: title,
+          artist: artist,
           key: key,
           bpm: bpm,
           duration: duration,
@@ -178,26 +189,28 @@ class VersionWrap extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(s.title ?? '', style: textTheme.titleMedium),
+              if (s.title != null && s.title!.isNotEmpty)
+                Text(s.title!, style: textTheme.titleMedium),
+              if (s.artist != null && s.artist!.isNotEmpty)
+                Text(s.artist!, style: textTheme.bodyMedium),
               Wrap(
                 spacing: 16.0,
                 children: [
-                  Text(
-                    AppLocalizations.of(
-                      context,
-                    )!.keyWithPlaceholder(s.key ?? ''),
-                    style: textTheme.bodyMedium,
-                  ),
-                  Text(
-                    AppLocalizations.of(
-                      context,
-                    )!.bpmWithPlaceholder(s.bpm ?? 0),
-                    style: textTheme.bodyMedium,
-                  ),
-                  Text(
-                    '${AppLocalizations.of(context)!.duration}: ${DateTimeUtils.formatDuration(s.duration ?? Duration.zero)}',
-                    style: textTheme.bodyMedium,
-                  ),
+                  if (s.key != null && s.key!.isNotEmpty)
+                    Text(
+                      l10n.keyWithPlaceholder(s.key!),
+                      style: textTheme.bodyMedium,
+                    ),
+                  if (s.bpm != null && s.bpm != 0)
+                    Text(
+                      l10n.bpmWithPlaceholder(s.bpm!),
+                      style: textTheme.bodyMedium,
+                    ),
+                  if (s.duration != null && s.duration != Duration.zero)
+                    Text(
+                      '${l10n.duration}: ${DateTimeUtils.formatDuration(s.duration!)}',
+                      style: textTheme.bodyMedium,
+                    ),
                 ],
               ),
             ],

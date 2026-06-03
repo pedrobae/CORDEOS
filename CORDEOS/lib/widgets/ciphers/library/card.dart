@@ -93,10 +93,16 @@ class _CipherCardState extends State<CipherCard> {
           }
         }
 
+        String? key =
+            (version?.transposedKey != null &&
+                version!.transposedKey!.isNotEmpty)
+            ? version.transposedKey!
+            : (cipher?.musicKey);
+
         return (
           cipherID: cipher?.id,
-          title: cipher?.title ?? '',
-          key: version?.transposedKey ?? cipher?.musicKey ?? '',
+          title: cipher?.title,
+          key: key,
           duration: version != null && version.duration != Duration.zero
               ? DateTimeUtils.formatDuration(version.duration)
               : null,

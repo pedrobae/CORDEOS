@@ -4,6 +4,7 @@ import 'package:cordeos/models/dtos/version_dto.dart';
 import 'package:cordeos/providers/play/auto_scroll_provider.dart';
 import 'package:cordeos/providers/navigation_provider.dart';
 import 'package:cordeos/providers/section/section_provider.dart';
+import 'package:cordeos/providers/version/cloud_version_provider.dart';
 import 'package:cordeos/widgets/ciphers/editor/metadata.dart/select_key_sheet.dart';
 import 'package:cordeos/widgets/ciphers/viewer/structure_list.dart';
 import 'package:cordeos/widgets/play/version_wrap.dart';
@@ -107,7 +108,14 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
             widget.versionDto!.overwriteKey ?? widget.versionDto!.transposedKey;
       } else {
         originalKey = ciph.getCipher(widget.cipherID!)!.musicKey;
-        tempKey = localVer.getVersion(widget.versionID!)?.transposedKey;
+        String? transposedKey = localVer
+            .getVersion(widget.versionID!)
+            ?.transposedKey;
+        if (transposedKey != null && transposedKey.isEmpty) {
+          tempKey = null;
+        } else {
+          tempKey = transposedKey;
+        }
       }
     });
   }
@@ -218,11 +226,31 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
                             initialKey: tempKey,
                             originalKey: originalKey,
                             versionID: widget.versionID,
-                            showSave: (widget.versionID! < 0) ? false : true,
+                            showSave: true,
                             onKeySelected: (key) {
                               setState(() {
                                 tempKey = key;
                               });
+                            },
+                            onKeySaved: (key) async {
+                              final localVer = context
+                                  .read<LocalVersionProvider>();
+                              final cloudVer = context
+                                  .read<CloudVersionProvider>();
+                              if (widget.versionID != null) {
+                                localVer.cacheUpdates(
+                                  widget.versionID!,
+                                  transposedKey: key,
+                                );
+                                await localVer.saveVersion(
+                                  versionID: widget.versionID!,
+                                );
+                              } else {
+                                cloudVer.saveKey(
+                                  key,
+                                  widget.versionDto!.firebaseId!,
+                                );
+                              }
                             },
                           );
                         },

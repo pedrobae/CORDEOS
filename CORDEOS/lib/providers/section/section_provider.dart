@@ -253,12 +253,16 @@ class SectionProvider extends ChangeNotifier {
         throw Exception('Section not found in cache.');
       }
 
-      await _repo.upsertSection(section);
+      if (versionKey != -1) {
+        await _repo.upsertSection(section);
+        _hasUnsavedChanges = false;
+      } else {
+        _hasUnsavedChanges = true;
+      }
     } catch (e) {
       _error = e.toString();
       debugPrint('SECTION PROVIDER - error saving section: $e');
     } finally {
-      _hasUnsavedChanges = false;
       notifyListeners();
     }
   }

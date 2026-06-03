@@ -34,8 +34,13 @@ class Version {
       id: row['id'] as int?,
       firebaseID: row['firebase_id'] as String?,
       cipherID: row['cipher_id'] as int,
-      songStructure: ((row['song_structure'] as String?) != null)
-          ? (row['song_structure'] as String).split(',').map(int.parse).toList()
+      songStructure:
+          ((row['song_structure'] as String?) != null &&
+              (row['song_structure'] as String).trim().isNotEmpty)
+          ? (row['song_structure'] as String)
+                .split(',')
+                .map((s) => int.parse(s.trim()))
+                .toList()
           : [],
       transposedKey: row['transposed_key'] as String?,
       versionName: row['version_name'] as String,

@@ -231,10 +231,6 @@ class _EditCipherScreenState extends State<EditCipherScreen>
   }
 
   Future<void> _save(BuildContext context) async {
-    await _saveSingleVersion(context);
-  }
-
-  Future<void> _saveSingleVersion(BuildContext context) async {
     if (widget.versionType == VersionType.cloud) {
       throw Exception(
         'Cannot save directly a cloud version. Something went wrong.',
@@ -246,7 +242,7 @@ class _EditCipherScreenState extends State<EditCipherScreen>
     final sect = context.read<SectionProvider>();
 
     final cipher = ciph.getCipher(widget.cipherID);
-    if (cipher == null || cipher.musicKey.isEmpty) {
+    if (cipher == null || cipher.musicKey.trim().isEmpty) {
       final recognizer = KeyRecognizerService();
 
       final sections = sect.getSections(widget.versionID);

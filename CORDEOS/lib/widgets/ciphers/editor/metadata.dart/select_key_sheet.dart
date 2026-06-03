@@ -1,10 +1,7 @@
 import 'package:cordeos/helpers/chords.dart';
 import 'package:cordeos/l10n/app_localizations.dart';
-import 'package:cordeos/providers/version/cloud_version_provider.dart';
-import 'package:cordeos/providers/version/local_version_provider.dart';
 import 'package:cordeos/widgets/common/filled_text_button.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class SelectKeySheet extends StatefulWidget {
   final bool showSave;
@@ -12,14 +9,16 @@ class SelectKeySheet extends StatefulWidget {
   final dynamic versionID;
   final String originalKey;
   final Function(String) onKeySelected;
+  final Function(String) onKeySaved;
 
   SelectKeySheet({
     super.key,
-    this.showSave = true,
+    required this.showSave,
     this.initialKey,
     required this.versionID,
     required this.originalKey,
     required this.onKeySelected,
+    required this.onKeySaved,
   }) {
     assert(versionID is String || versionID is int);
   }
@@ -142,19 +141,7 @@ class _SelectKeySheetState extends State<SelectKeySheet> {
               isDark: true,
               onPressed: () async {
                 final nav = Navigator.of(context);
-                final localVer = context.read<LocalVersionProvider>();
-                final cloudVer = context.read<CloudVersionProvider>();
-
-                if (widget.versionID is int) {
-                  localVer.cacheUpdates(
-                    widget.versionID,
-                    transposedKey: selectedKey,
-                  );
-                  await localVer.saveVersion(versionID: widget.versionID);
-                } else {
-                  cloudVer.saveKey(selectedKey, widget.versionID);
-                }
-
+                await widget.onKeySaved(selectedKey);
                 nav.pop();
               },
             ),

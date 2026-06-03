@@ -37,7 +37,18 @@ class CipherRepository {
     final db = await _databaseHelper.database;
     final results = await db.query('cipher');
 
-    return Future.wait(results.map((row) => _buildPrunedCipher(row)));
+    final ciphers = <Cipher>[];
+    for (final row in results) {
+      try {
+        final cipher = await _buildPrunedCipher(row);
+        ciphers.add(cipher);
+      } catch (e) {
+        // Handle or log the error as needed
+        print('Error building cipher from row: $e');
+      }
+    }
+
+    return ciphers;
   }
 
   /// Retrieves a full cipher by its local ID

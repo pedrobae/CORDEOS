@@ -146,6 +146,11 @@ class _GuestManageSheetState extends State<GuestManageSheet> {
                   originalKey: widget.versionDto.originalKey,
                   versionID: widget.firebaseVersionID,
                   onKeySelected: (_) {},
+                  onKeySaved: (key) {
+                    final cloudVer = context.read<CloudVersionProvider>();
+                    cloudVer.saveKey(widget.firebaseVersionID, key);
+                  },
+                  showSave: true,
                 );
               },
             );

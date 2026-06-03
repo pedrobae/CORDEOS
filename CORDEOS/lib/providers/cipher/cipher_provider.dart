@@ -157,13 +157,14 @@ class CipherProvider extends ChangeNotifier {
     try {
       final prunedCiphers = await _repo.getAllCiphersPruned();
 
-      for (var cipher in prunedCiphers) {
+      for (final cipher in prunedCiphers) {
         if (cipher.musicKey.isEmpty) {
           final recognizedKey = await _recognizer.recognizeKeyLocal(cipher.id);
-          cipher = cipher.copyWith(musicKey: recognizedKey);
-          await _repo.updateCipher(cipher);
+          await _repo.updateCipher(cipher.copyWith(musicKey: recognizedKey));
+          _ciphers[cipher.id] = cipher.copyWith(musicKey: recognizedKey);
+        } else {
+          _ciphers[cipher.id] = cipher;
         }
-        _ciphers[cipher.id] = cipher;
       }
       _hasLoadedCiphers = true;
       debugPrint('CIPHER - Loaded ${_ciphers.length} ciphers');
