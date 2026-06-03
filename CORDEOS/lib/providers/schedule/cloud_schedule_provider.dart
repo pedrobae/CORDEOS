@@ -85,6 +85,7 @@ class CloudScheduleProvider extends ChangeNotifier {
 
     _isLoading = true;
     _error = null;
+    _schedules.clear();
     notifyListeners();
 
     try {

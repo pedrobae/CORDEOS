@@ -136,8 +136,9 @@ class _DownloadVersionSheetState extends State<DownloadVersionSheet> {
 
                     await sect.createSections(versionID, originKey: versionID);
 
-                    localVer.loadVersion(versionID);
-                    ciph.loadCipher(cipherID);
+                    await localVer.loadVersion(versionID);
+                    await ciph.loadCipher(cipherID);
+                    await sect.loadSectionsOfVersion(versionID);
 
                     cloudVer.toggleIsDownloading(widget.versionId);
                     // close sheet
