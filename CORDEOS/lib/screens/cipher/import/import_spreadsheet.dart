@@ -4,6 +4,7 @@ import 'package:cordeos/providers/cipher/parser_provider.dart';
 import 'package:cordeos/providers/section/section_provider.dart';
 import 'package:cordeos/providers/version/local_version_provider.dart';
 import 'package:cordeos/screens/cipher/import/batch_staging.dart';
+import 'package:cordeos/widgets/common/icon_load_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:cordeos/l10n/app_localizations.dart';
@@ -23,6 +24,7 @@ class ImportSpreadSheetScreen extends StatefulWidget {
 
 class _ImportPdfScreenState extends State<ImportSpreadSheetScreen> {
   ImportFile? _file;
+  bool _isImporting = false;
 
   /// Opens file picker and allows user to select a PDF file
   Future<void> _pickPdfFile() async {
@@ -87,6 +89,7 @@ class _ImportPdfScreenState extends State<ImportSpreadSheetScreen> {
           children: [
             _buildFileSelectionSection(),
             const Spacer(),
+            if (_isImporting) Center(child: IconLoadIndicator(size: 50)),
             _buildImportInstructions(),
             _buildActionButton(),
           ],
@@ -232,6 +235,9 @@ class _ImportPdfScreenState extends State<ImportSpreadSheetScreen> {
     final nav = context.read<NavigationProvider>();
 
     return () async {
+      setState(() {
+        _isImporting = true;
+      });
       final imports = await imp.importFromSpreadsheet(_file!);
       if (imports.isEmpty) {
         throw Exception('Failed to import text from PDF');
@@ -268,6 +274,10 @@ class _ImportPdfScreenState extends State<ImportSpreadSheetScreen> {
           par.clearCache();
         },
       );
+
+      setState(() {
+        _isImporting = false;
+      });
     };
   }
 
