@@ -29,21 +29,23 @@ class _ImportPdfScreenState extends State<ImportSpreadSheetScreen> {
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
-        allowedExtensions: ['csv', 'xlsx', 'gsheet'],
+        allowedExtensions: ['csv', 'xlsx'],
         allowMultiple: false,
       );
 
       // User selected a file
       if (result != null && result.files.isNotEmpty) {
         final file = result.files.first;
-        _file = ImportFile(
-          importType: ImportType.spreadSheet,
-          parsingStrategy: ParsingStrategy.emptyLine,
-          importVariation: ImportVariation.textDirect,
-          path: file.path,
-          name: file.name,
-          size: file.size,
-        );
+        setState(() {
+          _file = ImportFile(
+            importType: ImportType.spreadSheet,
+            parsingStrategy: ParsingStrategy.emptyLine,
+            importVariation: ImportVariation.textDirect,
+            path: file.path,
+            name: file.name,
+            size: file.size,
+          );
+        });
       }
       // If result is null, user canceled - do nothing
     } catch (e) {

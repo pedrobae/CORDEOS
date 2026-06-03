@@ -97,17 +97,17 @@ class SpreadsheetImportService {
 
     if (extension == '.xlsx') {
       // String column index -> field
-      Map<Field, int> fieldIdx = {};
-      bool setLabels = false;
       var bytes = File(path).readAsBytesSync();
       final excel = Excel.decodeBytes(bytes);
       for (var table in excel.tables.values) {
+        Map<Field, int> fieldIdx = {};
+        bool setLabels = false;
         for (var row in table.rows) {
           if (!setLabels) {
             for (var cell in row) {
               if (cell == null) continue;
               for (final field in Field.values) {
-                if (fieldIdx.containsValue(field)) break;
+                if (fieldIdx.containsKey(field)) continue;
                 for (final label in field.knownLabels) {
                   if (label == cell.value.toString().toLowerCase()) {
                     fieldIdx[field] = cell.columnIndex;
