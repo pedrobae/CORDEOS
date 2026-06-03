@@ -226,10 +226,14 @@ class _DuplicateScheduleSheetState extends State<DuplicateScheduleSheet> {
           datetime: Timestamp.fromDate(
             DateTimeUtils.parseDateTime(dateController.text)!,
           ),
-          firebaseId: '',
-          location: locationController.text,
-          name: nameController.text,
-          roomVenue: roomVenueController.text,
+          firebaseId: null,
+          location: locationController.text.isEmpty
+              ? null
+              : locationController.text,
+          name: nameController.text.isEmpty ? null : nameController.text,
+          roomVenue: roomVenueController.text.isEmpty
+              ? null
+              : roomVenueController.text,
           shareCode: generateShareCode(),
         ),
         isPublic: false,

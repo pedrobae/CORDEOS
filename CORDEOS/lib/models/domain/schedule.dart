@@ -66,7 +66,12 @@ class Schedule {
       roomVenue: map['room_venue'] as String?,
       playlistId: map['playlist_id'] as int,
       roles: roles,
-      collaborators: (map['collaborators'] as String).split(','),
+      collaborators:
+          (map['collaborators'] as String?)
+              ?.split(',')
+              .where((collab) => collab.isNotEmpty)
+              .toList() ??
+          [],
       annotations: map['annotations'] as String?,
       shareCode: map['share_code'] as String? ?? generateShareCode(),
       isPublic: (map['is_public'] as int?) == 1,
