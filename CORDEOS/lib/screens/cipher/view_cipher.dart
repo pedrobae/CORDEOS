@@ -188,7 +188,7 @@ class _ViewCipherScreenState extends State<ViewCipherScreen>
                   ),
                 ),
 
-              if (widget.versionType == VersionType.local) ...[
+              if (widget.versionType.canEdit) ...[
                 IconButton(
                   icon: const Icon(Icons.edit),
                   onPressed: _navigateToEditScreen(),

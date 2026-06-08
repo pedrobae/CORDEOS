@@ -4,6 +4,21 @@ import 'package:cordeos/models/dtos/version_dto.dart';
 
 enum VersionType { brandNew, cloud, local, playlist }
 
+extension VersionTypeMethods on VersionType {
+  bool get canEdit {
+    switch (this) {
+      case VersionType.brandNew:
+        return true;
+      case VersionType.cloud:
+        return false;
+      case VersionType.local:
+        return true;
+      case VersionType.playlist:
+        return true;
+    }
+  }
+}
+
 class Version {
   final int? id;
   final String? firebaseID;

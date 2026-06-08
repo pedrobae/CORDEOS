@@ -1,4 +1,7 @@
-import 'package:cordeos/widgets/ciphers/editor/sections/sheet_manage.dart';
+import 'package:cordeos/models/domain/cipher/version.dart';
+import 'package:cordeos/providers/navigation_provider.dart';
+import 'package:cordeos/providers/section/section_provider.dart';
+import 'package:cordeos/screens/cipher/edit_cipher.dart';
 import 'package:flutter/material.dart';
 import 'package:cordeos/l10n/app_localizations.dart';
 
@@ -29,6 +32,7 @@ class VersionCardActionsSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
 
     final auth = context.read<MyAuthProvider>();
     final user = context.read<UserProvider>();
@@ -48,9 +52,7 @@ class VersionCardActionsSheet extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                AppLocalizations.of(
-                  context,
-                )!.actionPlaceholder(AppLocalizations.of(context)!.version),
+                l10n.actionPlaceholder(l10n.version),
                 style: textTheme.titleMedium,
                 textAlign: TextAlign.center,
               ),
@@ -74,15 +76,34 @@ class VersionCardActionsSheet extends StatelessWidget {
           // ACTIONS
           // edit
           FilledTextButton(
-            text: AppLocalizations.of(context)!.editPlaceholder(''),
+            text: l10n.editPlaceholder(''),
             isDiscrete: true,
             trailingIcon: Icons.chevron_right,
-            onPressed: () => _showManageSheet(context),
+            onPressed: () {
+              final nav = context.read<NavigationProvider>();
+              final localVer = context.read<LocalVersionProvider>();
+              final sect = context.read<SectionProvider>();
+
+              nav.push(
+                () => EditCipherScreen(
+                  versionID: versionID,
+                  cipherID: cipherID,
+                  versionType: VersionType.playlist,
+                ),
+                changeDetector: () =>
+                    localVer.hasUnsavedChanges || sect.hasUnsavedChanges,
+                onChangeDiscarded: () async {
+                  await localVer.loadVersion(versionID);
+                  await sect.loadSectionsOfVersion(versionID);
+                },
+              );
+              Navigator.of(context).pop();
+            },
           ),
 
           // duplicate
           FilledTextButton(
-            text: AppLocalizations.of(context)!.duplicatePlaceholder(''),
+            text: l10n.duplicatePlaceholder(''),
             isDiscrete: true,
             trailingIcon: Icons.chevron_right,
             onPressed: () {
@@ -96,7 +117,7 @@ class VersionCardActionsSheet extends StatelessWidget {
           ),
           // delete
           FilledTextButton(
-            text: AppLocalizations.of(context)!.delete,
+            text: l10n.delete,
             isDangerous: true,
             trailingIcon: Icons.chevron_right,
             onPressed: () {
@@ -105,7 +126,7 @@ class VersionCardActionsSheet extends StatelessWidget {
                 isScrollControlled: true,
                 builder: (context) {
                   return DeleteConfirmationSheet(
-                    itemType: AppLocalizations.of(context)!.version,
+                    itemType: l10n.version,
                     isDangerous: true,
                     onConfirm: () {
                       // Count occurrences BEFORE removing to check if this is the only one
@@ -132,20 +153,6 @@ class VersionCardActionsSheet extends StatelessWidget {
           SizedBox(),
         ],
       ),
-    );
-  }
-
-  void _showManageSheet(BuildContext context) {
-    Navigator.of(context).pop();
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.75,
-      ),
-      builder: (context) {
-        return ManageSheet(versionID: versionID, playlistMode: true);
-      },
     );
   }
 }

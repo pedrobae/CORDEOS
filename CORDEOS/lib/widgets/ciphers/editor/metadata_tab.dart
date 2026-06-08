@@ -29,14 +29,12 @@ class MetadataTab extends StatefulWidget {
   final int cipherID;
   final int versionID;
   final VersionType versionType;
-  final bool isEnabled;
 
   const MetadataTab({
     super.key,
     required this.cipherID,
     required this.versionID,
     required this.versionType,
-    this.isEnabled = true,
   });
 
   @override
@@ -207,42 +205,61 @@ class _MetadataTabState extends State<MetadataTab> {
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      spacing: 16.0,
       children: [
-        for (var field in InfoField.values)
+        for (var field in InfoField.values) ...[
           switch (field) {
             InfoField.key => _buildKeySelector(),
             InfoField.language => _buildLanguagePicker(),
             InfoField.tags => _buildTags(),
-            InfoField.duration => DurationPickerField(
-              controller: _getController(field),
-              label: _getLabel(field),
+            InfoField.duration => Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: DurationPickerField(
+                controller: _getController(field),
+                label: _getLabel(field),
+              ),
             ),
-            InfoField.bpm => LabeledTextField(
-              label: _getLabel(field),
-              hint: _getHint(field),
-              controller: _getController(field),
-              isEnabled: widget.isEnabled,
-              keyboardType: TextInputType.number,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
+            InfoField.bpm => Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: LabeledTextField(
+                label: _getLabel(field),
+                hint: _getHint(field),
+                controller: _getController(field),
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return null;
+                  }
+                  final bpm = int.tryParse(value);
+                  if (bpm == null || bpm <= 0) {
+                    return AppLocalizations.of(context)!.intValidationError;
+                  }
                   return null;
-                }
-                final bpm = int.tryParse(value);
-                if (bpm == null || bpm <= 0) {
-                  return AppLocalizations.of(context)!.intValidationError;
-                }
-                return null;
-              },
+                },
+              ),
             ),
-            _ => LabeledTextField(
-              label: _getLabel(field),
-              hint: _getHint(field),
-              controller: _getController(field),
-              isEnabled: widget.isEnabled,
-              textCapitalization: TextCapitalization.words,
+            // DISABLED ON PLAYLIST VERSIOn
+            InfoField.author || InfoField.title || InfoField.link => Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: LabeledTextField(
+                label: _getLabel(field),
+                hint: _getHint(field),
+                isEnabled: widget.versionType != VersionType.playlist,
+                controller: _getController(field),
+                textCapitalization: TextCapitalization.words,
+              ),
+            ),
+            // ALWAYS ENABLED
+            InfoField.versionName || InfoField.notes => Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: LabeledTextField(
+                label: _getLabel(field),
+                hint: _getHint(field),
+                controller: _getController(field),
+                textCapitalization: TextCapitalization.words,
+              ),
             ),
           },
+        ],
       ],
     );
   }
@@ -315,6 +332,7 @@ class _MetadataTabState extends State<MetadataTab> {
             );
           },
         ),
+        SizedBox(height: 8),
       ],
     );
   }
@@ -326,14 +344,17 @@ class _MetadataTabState extends State<MetadataTab> {
         return cipher?.language ?? '';
       },
       builder: (context, language, child) {
-        return LabeledLanguagePicker(
-          language: language,
-          onLanguageChanged: (value) {
-            context.read<CipherProvider>().cacheUpdates(
-              widget.cipherID,
-              language: value,
-            );
-          },
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 16.0),
+          child: LabeledLanguagePicker(
+            language: language,
+            onLanguageChanged: (value) {
+              context.read<CipherProvider>().cacheUpdates(
+                widget.cipherID,
+                language: value,
+              );
+            },
+          ),
         );
       },
     );
@@ -344,10 +365,11 @@ class _MetadataTabState extends State<MetadataTab> {
     final colorScheme = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context)!;
 
-    return Consumer<CipherProvider>(
-      builder: (context, ciph, child) {
-        final tags = ciph.getCipher(widget.cipherID)?.tags ?? [];
-
+    return Selector<CipherProvider, List<String>>(
+      selector: (context, ciph) => ciph.getCipher(widget.cipherID)?.tags ?? [],
+      builder: (context, tags, child) {
+        if (tags.isEmpty && widget.versionType == VersionType.playlist)
+          return SizedBox();
         return Column(
           spacing: 4,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -371,38 +393,44 @@ class _MetadataTabState extends State<MetadataTab> {
                       spacing: 4,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        GestureDetector(
-                          onTap: () {
-                            ciph.cacheRemoveTag(widget.cipherID, tag);
-                          },
-                          child: Icon(
-                            Icons.close,
-                            size: 16,
-                            color: colorScheme.onSurfaceVariant,
+                        if (widget.versionType != VersionType.playlist)
+                          GestureDetector(
+                            onTap: () {
+                              context.read<CipherProvider>().cacheRemoveTag(
+                                widget.cipherID,
+                                tag,
+                              );
+                            },
+                            child: Icon(
+                              Icons.close,
+                              size: 16,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
                           ),
-                        ),
                         Text(tag, style: textTheme.labelMedium),
                       ],
                     ),
                   ),
               ],
             ),
-            FilledTextButton(
-              text: l10n.addPlaceholder(l10n.tag),
-              icon: Icons.add,
-              isDense: true,
-              onPressed: () => showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                builder: (context) {
-                  return AddTagSheet(
-                    cipherID: widget.cipherID,
-                    versionID: widget.versionID,
-                    versionType: widget.versionType,
-                  );
-                },
+            if (widget.versionType != VersionType.playlist)
+              FilledTextButton(
+                text: l10n.addPlaceholder(l10n.tag),
+                icon: Icons.add,
+                isDense: true,
+                onPressed: () => showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  builder: (context) {
+                    return AddTagSheet(
+                      cipherID: widget.cipherID,
+                      versionID: widget.versionID,
+                      versionType: widget.versionType,
+                    );
+                  },
+                ),
               ),
-            ),
+            SizedBox(height: 12),
           ],
         );
       },

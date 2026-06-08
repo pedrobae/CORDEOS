@@ -18,14 +18,12 @@ class EditCipherScreen extends StatefulWidget {
   final int cipherID;
   final int versionID;
   final VersionType versionType;
-  final bool isEnabled;
 
   const EditCipherScreen({
     super.key,
     required this.cipherID,
     required this.versionID,
     required this.versionType,
-    this.isEnabled = true,
   });
 
   @override
@@ -217,7 +215,6 @@ class _EditCipherScreenState extends State<EditCipherScreen>
         cipherID: widget.cipherID,
         versionID: widget.versionID,
         versionType: widget.versionType,
-        isEnabled: widget.isEnabled,
       ),
     );
   }
@@ -226,7 +223,6 @@ class _EditCipherScreenState extends State<EditCipherScreen>
     return SectionsTab(
       versionID: widget.versionID,
       versionType: widget.versionType,
-      isEnabled: widget.isEnabled,
     );
   }
 

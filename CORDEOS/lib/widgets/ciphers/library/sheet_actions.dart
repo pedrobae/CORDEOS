@@ -93,7 +93,6 @@ class CipherCardActionsSheet extends StatelessWidget {
                   versionID: versionID,
                   versionType: versionType,
                   cipherID: cipherID,
-                  isEnabled: versionType == VersionType.local,
                 ),
                 keepAlive: true,
                 changeDetector: () =>

@@ -10,7 +10,6 @@ import 'package:cordeos/models/domain/cipher/version.dart';
 import 'package:provider/provider.dart';
 import 'package:cordeos/providers/cipher/cipher_provider.dart';
 import 'package:cordeos/providers/navigation_provider.dart';
-import 'package:cordeos/providers/playlist/playlist_provider.dart';
 import 'package:cordeos/providers/section/section_provider.dart';
 import 'package:cordeos/providers/selection_provider.dart';
 import 'package:cordeos/providers/settings/secret_settings_provider.dart';
@@ -122,9 +121,7 @@ class _CipherCardState extends State<CipherCard> {
         return GestureDetector(
           onTap: () async {
             if (sel.isSelectionMode) {
-              await _createAndAddVersionToPlaylist();
-
-              nav.pop();
+              sel.toggleSelection(widget.versionID);
             } else {
               final token = context.read<TokenProvider>();
               nav.push(
@@ -171,6 +168,23 @@ class _CipherCardState extends State<CipherCard> {
             child: IntrinsicHeight(
               child: Row(
                 children: [
+                  if (sel.isSelectionMode)
+                    SizedBox(
+                      height: double.infinity,
+                      width: 40,
+                      child: Selector<SelectionProvider, bool>(
+                        selector: (context, sel) =>
+                            sel.isSelected(widget.versionID),
+                        builder: (context, isSelected, child) {
+                          return Icon(
+                            isSelected
+                                ? Icons.check_box_outlined
+                                : Icons.check_box_outline_blank,
+                          );
+                        },
+                      ),
+                    ),
+
                   Expanded(
                     child: Column(
                       spacing: 2.0,
@@ -258,37 +272,6 @@ class _CipherCardState extends State<CipherCard> {
         );
       },
     );
-  }
-
-  Future<void> _createAndAddVersionToPlaylist() async {
-    final play = context.read<PlaylistProvider>();
-    final localVer = context.read<LocalVersionProvider>();
-    final sect = context.read<SectionProvider>();
-    final sel = context.read<SelectionProvider>();
-
-    final playVersionName = AppLocalizations.of(
-      context,
-    )!.playlistVersionName(play.getPlaylist(sel.targetId!)!.name);
-
-    final version = localVer.getVersion(widget.versionID)!;
-
-    final newVersion = version.copyWith(
-      versionName: playVersionName,
-      firebaseID: '',
-    );
-
-    localVer.setNewVersionInCache(newVersion);
-    final newVersionID = await localVer.createVersion(
-      cipherID: version.cipherID,
-    );
-
-    await sect.ensureAreLoaded(version.id!, version.songStructure);
-    sect.cacheCopyOfVersion(version.id!, newVersionID);
-    await sect.saveSections(newVersionID);
-
-    sel.addVersionIdToDelete(newVersionID);
-
-    play.cacheAddVersion(sel.targetId!, newVersionID);
   }
 
   VoidCallback _openLinksSheet(List<String> links) {

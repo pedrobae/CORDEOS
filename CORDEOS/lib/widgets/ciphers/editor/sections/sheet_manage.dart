@@ -1,28 +1,18 @@
 import "package:cordeos/l10n/app_localizations.dart";
 import "package:cordeos/models/domain/cipher/section.dart";
-import "package:cordeos/providers/cipher/cipher_provider.dart";
 import "package:cordeos/providers/navigation_provider.dart";
 import "package:cordeos/providers/section/section_provider.dart";
 import "package:cordeos/providers/version/local_version_provider.dart";
-import "package:cordeos/utils/date_utils.dart";
 import "package:cordeos/utils/section_type.dart";
-import "package:cordeos/widgets/ciphers/editor/metadata.dart/select_key_sheet.dart";
 import "package:cordeos/widgets/ciphers/editor/sections/edit_section.dart";
 import "package:cordeos/widgets/ciphers/editor/sections/reorderable_structure.dart";
-import "package:cordeos/widgets/common/labeled_duration_picker.dart";
-import "package:cordeos/widgets/common/labeled_text_field.dart";
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
 
 class ManageSheet extends StatefulWidget {
   final int versionID;
-  final bool playlistMode;
 
-  const ManageSheet({
-    super.key,
-    required this.versionID,
-    this.playlistMode = false,
-  });
+  const ManageSheet({super.key, required this.versionID});
 
   @override
   State<ManageSheet> createState() => _ManageSheetState();
@@ -30,49 +20,12 @@ class ManageSheet extends StatefulWidget {
 
 class _ManageSheetState extends State<ManageSheet> {
   void Function()? _scrollToEnd;
-  final _durationController = TextEditingController();
-  final _notesController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    final localVer = context.read<LocalVersionProvider>();
-    final version = localVer.getVersion(widget.versionID);
-    if (version != null) {
-      _durationController.text = DateTimeUtils.formatDuration(version.duration);
-      _notesController.text = version.notes ?? '';
-    }
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _addListeners();
-    });
-  }
-
-  @override
-  void dispose() {
-    _durationController.dispose();
-    super.dispose();
-  }
-
-  void _addListeners() {
-    _durationController.addListener(() {
-      final duration = DateTimeUtils.parseDuration(_durationController.text);
-      context.read<LocalVersionProvider>().cacheUpdates(
-        widget.versionID,
-        duration: duration,
-      );
-    });
-    _notesController.addListener(() {
-      context.read<LocalVersionProvider>().cacheUpdates(
-        widget.versionID,
-        notes: _notesController.text,
-      );
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
 
     final localVer = context.read<LocalVersionProvider>();
 
@@ -136,13 +89,7 @@ class _ManageSheetState extends State<ManageSheet> {
                     children: [
                       SizedBox(height: 8),
                       Text(
-                        widget.playlistMode
-                            ? AppLocalizations.of(context)!.editPlaceholder(
-                                AppLocalizations.of(context)!.playlistVersion,
-                              )
-                            : AppLocalizations.of(context)!.managePlaceholder(
-                                AppLocalizations.of(context)!.songStructure,
-                              ),
+                        l10n.managePlaceholder(l10n.songStructure),
                         style: textTheme.titleMedium,
                       ),
                     ],
@@ -158,27 +105,6 @@ class _ManageSheetState extends State<ManageSheet> {
                   ),
                 ],
               ),
-              // VERSION METADATA
-              if (widget.playlistMode)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  spacing: 16,
-                  children: [
-                    Expanded(
-                      child: DurationPickerField(
-                        controller: _durationController,
-                      ),
-                    ),
-                    Expanded(child: _buildKeySelector()),
-                  ],
-                ),
-
-              if (widget.playlistMode)
-                LabeledTextField(
-                  label: '',
-                  hint: AppLocalizations.of(context)!.notesHint,
-                  controller: _notesController,
-                ),
 
               // REORDERABLE STRUCTURE
               ReorderableStructure(
@@ -254,67 +180,6 @@ class _ManageSheetState extends State<ManageSheet> {
                 ),
               ),
             ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildKeySelector() {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Selector2<
-      LocalVersionProvider,
-      CipherProvider,
-      ({String? transposedKey, String originalKey})
-    >(
-      selector: (context, localVer, ciph) {
-        final version = localVer.getVersion(widget.versionID);
-        final cipher = version != null
-            ? ciph.getCipher(version.cipherID)
-            : null;
-        return (
-          transposedKey: version?.transposedKey,
-          originalKey: cipher?.musicKey ?? '',
-        );
-      },
-      builder: (context, s, child) {
-        return GestureDetector(
-          onTap: () {
-            final localVer = context.read<LocalVersionProvider>();
-            showModalBottomSheet(
-              context: context,
-              builder: (context) {
-                return SelectKeySheet(
-                  showSave: false,
-                  initialKey: s.transposedKey,
-                  originalKey: s.originalKey,
-                  versionID: widget.versionID,
-                  onKeySelected: (key) {
-                    localVer.cacheUpdates(widget.versionID, transposedKey: key);
-                    localVer.saveVersion(versionID: widget.versionID);
-                  },
-                  onKeySaved: (_) {},
-                );
-              },
-            );
-          },
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
-            decoration: BoxDecoration(
-              border: Border.all(color: colorScheme.shadow, width: 1),
-              borderRadius: BorderRadius.circular(0),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  s.transposedKey ?? s.originalKey,
-                  style: TextStyle(color: colorScheme.onSurface, fontSize: 16),
-                ),
-                Icon(Icons.arrow_drop_down, color: colorScheme.onSurface),
-              ],
-            ),
           ),
         );
       },

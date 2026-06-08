@@ -21,13 +21,11 @@ import 'package:cordeos/widgets/ciphers/editor/sections/token_content_card.dart'
 class SectionsTab extends StatefulWidget {
   final int versionID;
   final VersionType versionType;
-  final bool isEnabled;
 
   const SectionsTab({
     super.key,
     required this.versionID,
     required this.versionType,
-    this.isEnabled = true,
   });
 
   @override
@@ -136,7 +134,6 @@ class _SectionsTabState extends State<SectionsTab> {
                               versionID: widget.versionID,
                               sectionBadgeData: s.badgesData[sectionKey]!,
                               sectionKey: sectionKey,
-                              isEnabled: widget.isEnabled,
                             );
                           }),
                       ],
@@ -146,129 +143,124 @@ class _SectionsTabState extends State<SectionsTab> {
                 ),
               ),
             ),
-            if (widget.isEnabled)
-              Selector<
-                EditSectionsStateProvider,
-                ({
-                  bool paletteIsOpen,
-                  bool mergeOverlayIsOpen,
-                  bool annotationPaletteIsOpen,
-                })
-              >(
-                selector: (context, state) => (
-                  paletteIsOpen: state.paletteIsOpen,
-                  mergeOverlayIsOpen: state.mergeOverlayIsOpen,
-                  annotationPaletteIsOpen: state.annotationPaletteIsOpen,
-                ),
-                builder: (context, s, child) {
-                  return Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      verticalDirection: VerticalDirection.up,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (s.paletteIsOpen)
-                          ChordPalette(versionID: widget.versionID),
+            Selector<
+              EditSectionsStateProvider,
+              ({
+                bool paletteIsOpen,
+                bool mergeOverlayIsOpen,
+                bool annotationPaletteIsOpen,
+              })
+            >(
+              selector: (context, state) => (
+                paletteIsOpen: state.paletteIsOpen,
+                mergeOverlayIsOpen: state.mergeOverlayIsOpen,
+                annotationPaletteIsOpen: state.annotationPaletteIsOpen,
+              ),
+              builder: (context, s, child) {
+                return Positioned(
+                  bottom: 0,
+                  right: 0,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    verticalDirection: VerticalDirection.up,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (s.paletteIsOpen)
+                        ChordPalette(versionID: widget.versionID),
 
-                        if (s.mergeOverlayIsOpen)
-                          MergeStructure(versionID: widget.versionID),
+                      if (s.mergeOverlayIsOpen)
+                        MergeStructure(versionID: widget.versionID),
 
-                        if (s.annotationPaletteIsOpen) AnnotationPalette(),
+                      if (s.annotationPaletteIsOpen) AnnotationPalette(),
 
-                        // Palette FAB
-                        if (widget.isEnabled)
-                          GestureDetector(
-                            onTap: () {
-                              context
-                                  .read<EditSectionsStateProvider>()
-                                  .togglePalette();
-                            },
-                            child: Container(
-                              margin: const EdgeInsets.all(8),
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: colorScheme.onSurface,
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: colorScheme.surfaceContainerLowest,
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
+                      // Palette FAB
+                      GestureDetector(
+                        onTap: () {
+                          context
+                              .read<EditSectionsStateProvider>()
+                              .togglePalette();
+                        },
+                        child: Container(
+                          margin: const EdgeInsets.all(8),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: colorScheme.onSurface,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: colorScheme.surfaceContainerLowest,
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
                               ),
-                              child: Icon(
-                                s.paletteIsOpen
-                                    ? Icons.close
-                                    : Icons.music_note,
-                                size: 28,
-                                color: colorScheme.surface,
-                              ),
-                            ),
+                            ],
                           ),
-                        // ANNOTATION PALETTE FAB
-                        if (widget.isEnabled)
-                          GestureDetector(
-                            onTap: () {
-                              context
-                                  .read<EditSectionsStateProvider>()
-                                  .toggleAnnotationPalette();
-                            },
-                            child: Container(
-                              margin: const EdgeInsets.all(8),
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: colorScheme.onSurface,
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: colorScheme.surfaceContainerLowest,
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: Icon(
-                                s.annotationPaletteIsOpen
-                                    ? Icons.close
-                                    : Icons.sticky_note_2_outlined,
-                                size: 28,
-                                color: colorScheme.surface,
-                              ),
-                            ),
-                          ),
-
-                        // Open add sheet
-                        GestureDetector(
-                          onTap: _openAddSheet(),
-                          child: Container(
-                            margin: const EdgeInsets.all(8),
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: colorScheme.onSurface,
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: colorScheme.surfaceContainerLowest,
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: Icon(
-                              Icons.add,
-                              size: 28,
-                              color: colorScheme.surface,
-                            ),
+                          child: Icon(
+                            s.paletteIsOpen ? Icons.close : Icons.music_note,
+                            size: 28,
+                            color: colorScheme.surface,
                           ),
                         ),
-                      ],
-                    ),
-                  );
-                },
-              ),
+                      ),
+                      // ANNOTATION PALETTE FAB
+                      GestureDetector(
+                        onTap: () {
+                          context
+                              .read<EditSectionsStateProvider>()
+                              .toggleAnnotationPalette();
+                        },
+                        child: Container(
+                          margin: const EdgeInsets.all(8),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: colorScheme.onSurface,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: colorScheme.surfaceContainerLowest,
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Icon(
+                            s.annotationPaletteIsOpen
+                                ? Icons.close
+                                : Icons.sticky_note_2_outlined,
+                            size: 28,
+                            color: colorScheme.surface,
+                          ),
+                        ),
+                      ),
+
+                      // Open add sheet
+                      GestureDetector(
+                        onTap: _openAddSheet(),
+                        child: Container(
+                          margin: const EdgeInsets.all(8),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: colorScheme.onSurface,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: colorScheme.surfaceContainerLowest,
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Icon(
+                            Icons.add,
+                            size: 28,
+                            color: colorScheme.surface,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
           ],
         );
       },

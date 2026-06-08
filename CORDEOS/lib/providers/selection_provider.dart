@@ -6,8 +6,7 @@ class SelectionProvider extends ChangeNotifier {
 
   bool _isSelectionMode = false;
   int? _targetId; // Playlist ID
-  final List<int> _selectedItemIds =
-      []; // int for local version / String for cloud version
+  final List<int> _selectedItemIds = [];
 
   // Versions that will be deleted on change discard
   final List<int> _newlyAddedVersionIds = [];
@@ -52,7 +51,7 @@ class SelectionProvider extends ChangeNotifier {
     _targetId = null;
   }
 
-  bool isSelected(dynamic item) {
+  bool isSelected(int item) {
     return _selectedItemIds.contains(item);
   }
 
