@@ -44,7 +44,10 @@ class _CipherCardState extends State<CipherCard> {
     isDense = secSet.denseCipherCard;
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await sect.loadSectionsOfVersion(widget.versionID);
+      final songStruct = context.read<LocalVersionProvider>().getSongStructure(
+        widget.versionID,
+      );
+      await sect.ensureAreLoaded(widget.versionID, songStruct);
     });
   }
 
@@ -279,7 +282,7 @@ class _CipherCardState extends State<CipherCard> {
       cipherID: version.cipherID,
     );
 
-    await sect.loadSectionsOfVersion(version.id!);
+    await sect.ensureAreLoaded(version.id!, version.songStructure);
     sect.cacheCopyOfVersion(version.id!, newVersionID);
     await sect.saveSections(newVersionID);
 

@@ -44,18 +44,18 @@ class _CipherScrollViewState extends State<CipherScrollView> {
   }
 
   void _loadData({bool forceReload = false}) async {
-    final cipherProvider = context.read<CipherProvider>();
-    final cloudVersionProvider = context.read<CloudVersionProvider>();
-    final localVersionProvider = context.read<LocalVersionProvider>();
+    final ciph = context.read<CipherProvider>();
+    final cloudVer = context.read<CloudVersionProvider>();
+    final localVer = context.read<LocalVersionProvider>();
 
-    await cipherProvider.loadCiphers(forceReload: forceReload);
-    await cloudVersionProvider.loadVersions(
+    await ciph.loadCiphers(forceReload: forceReload);
+    await cloudVer.loadVersions(
       forceReload: forceReload,
-      localCiphers: cipherProvider.ciphers.values.toList(),
+      localCiphers: ciph.ciphers.values.toList(),
     );
 
-    for (var cipher in cipherProvider.ciphers.values) {
-      await localVersionProvider.ensureCipherVersionsAreLoaded(
+    for (var cipher in ciph.ciphers.values) {
+      await localVer.ensureCipherVersionsAreLoaded(
         cipher.id,
         forceReload: forceReload,
       );

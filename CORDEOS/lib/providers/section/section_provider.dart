@@ -130,7 +130,7 @@ class SectionProvider extends ChangeNotifier {
     try {
       _sections[versionID] = await _repo.getSections(versionID);
       debugPrint(
-        "SECTION - Loaded version $versionID's SECTIONS - ${_sections[versionID]!.length} loaded",
+        "SECTION PROVIDER - Loaded version $versionID's SECTIONS - ${_sections[versionID]!.length} loaded",
       );
     } catch (e) {
       _error = e.toString();
@@ -151,7 +151,7 @@ class SectionProvider extends ChangeNotifier {
     try {
       _sections[versionID] = await _repo.getSections(versionID);
       debugPrint(
-        "SECTION - Loaded version $versionID's SECTIONS - ${_sections[versionID]!.length} loaded",
+        "SECTION PROVIDER - Loaded version $versionID's SECTIONS - ${_sections[versionID]!.length} loaded",
       );
     } catch (e) {
       _error = e.toString();
