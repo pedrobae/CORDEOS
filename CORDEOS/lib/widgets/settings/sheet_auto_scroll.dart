@@ -34,96 +34,103 @@ class _AutoScrollSettingsState extends State<AutoScrollSettings> {
       ),
       builder: (context, s, child) {
         _localScrollSpeed ??= s.scrollSpeed;
-        return Container(
-          decoration: BoxDecoration(
-            color: colorScheme.surface,
-            borderRadius: BorderRadius.circular(0),
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).padding.bottom,
           ),
-          padding: EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            spacing: 16,
-            children: [
-              // HEADER
-              Row(
-                spacing: 8,
-                children: [
-                  Expanded(
-                    child: Text(
-                      AppLocalizations.of(context)!.scrollSettings,
-                      style: textTheme.titleMedium,
+          child: Container(
+            decoration: BoxDecoration(
+              color: colorScheme.surface,
+              borderRadius: BorderRadius.circular(0),
+            ),
+            padding: EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              spacing: 16,
+              children: [
+                // HEADER
+                Row(
+                  spacing: 8,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        AppLocalizations.of(context)!.scrollSettings,
+                        style: textTheme.titleMedium,
+                      ),
                     ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                ],
-              ),
-              // TRANSPARENT BUTTONS
-              // toggle
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(AppLocalizations.of(context)!.transparentScrollButtons),
-                  Switch(
-                    trackOutlineColor: WidgetStateColor.fromMap({
-                      WidgetState.selected: colorScheme.primary,
-                      WidgetState.any: colorScheme.shadow,
-                    }),
-                    value: s.transparentButtons,
-                    onChanged: (value) {
-                      scroll.toggleTransparentButtons();
-                      state.showButtonsTemporarily();
-                    },
-                  ),
-                ],
-              ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ],
+                ),
+                // TRANSPARENT BUTTONS
+                // toggle
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      AppLocalizations.of(context)!.transparentScrollButtons,
+                    ),
+                    Switch(
+                      trackOutlineColor: WidgetStateColor.fromMap({
+                        WidgetState.selected: colorScheme.primary,
+                        WidgetState.any: colorScheme.shadow,
+                      }),
+                      value: s.transparentButtons,
+                      onChanged: (value) {
+                        scroll.toggleTransparentButtons();
+                        state.showButtonsTemporarily();
+                      },
+                    ),
+                  ],
+                ),
 
-              // AUTO SCROLL SETTINGS
-              // toggle
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(AppLocalizations.of(context)!.autoScroll),
-                  Switch(
-                    trackOutlineColor: WidgetStateColor.fromMap({
-                      WidgetState.selected: colorScheme.primary,
-                      WidgetState.any: colorScheme.shadow,
-                    }),
-                    value: scroll.scrollModeEnabled,
-                    onChanged: (value) {
-                      scroll.toggleAutoScrollMode();
-                    },
-                  ),
-                ],
-              ),
-              // speed
-              Column(
-                children: [
-                  Text(AppLocalizations.of(context)!.autoScrollSpeed),
-                  Slider(
-                    value: _localScrollSpeed!,
-                    onChanged: (value) {
-                      setState(() => _localScrollSpeed = value);
-                    },
-                    onChangeEnd: (value) {
-                      scroll.setScrollSpeed(value);
-                    },
-                    min: 0.5,
-                    max: 1.5,
-                    divisions: 8,
-                    label: _localScrollSpeed! < 0.85
-                        ? AppLocalizations.of(context)!.slow
-                        : _localScrollSpeed! < 1.15
-                        ? AppLocalizations.of(context)!.normal
-                        : AppLocalizations.of(context)!.fast,
-                  ),
-                ],
-              ),
-              SizedBox(height: 16),
-            ],
+                // AUTO SCROLL SETTINGS
+                // toggle
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(AppLocalizations.of(context)!.autoScroll),
+                    Switch(
+                      trackOutlineColor: WidgetStateColor.fromMap({
+                        WidgetState.selected: colorScheme.primary,
+                        WidgetState.any: colorScheme.shadow,
+                      }),
+                      value: scroll.scrollModeEnabled,
+                      onChanged: (value) {
+                        scroll.toggleAutoScrollMode();
+                      },
+                    ),
+                  ],
+                ),
+                // speed
+                Column(
+                  children: [
+                    Text(AppLocalizations.of(context)!.autoScrollSpeed),
+                    Slider(
+                      value: _localScrollSpeed!,
+                      onChanged: (value) {
+                        setState(() => _localScrollSpeed = value);
+                      },
+                      onChangeEnd: (value) {
+                        scroll.setScrollSpeed(value);
+                      },
+                      min: 0.5,
+                      max: 1.5,
+                      divisions: 8,
+                      label: _localScrollSpeed! < 0.85
+                          ? AppLocalizations.of(context)!.slow
+                          : _localScrollSpeed! < 1.15
+                          ? AppLocalizations.of(context)!.normal
+                          : AppLocalizations.of(context)!.fast,
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16),
+              ],
+            ),
           ),
         );
       },

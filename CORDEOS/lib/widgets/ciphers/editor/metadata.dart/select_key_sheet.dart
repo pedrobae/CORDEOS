@@ -46,108 +46,111 @@ class _SelectKeySheetState extends State<SelectKeySheet> {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Container(
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        shape: BoxShape.rectangle,
-        color: colorScheme.surface,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        spacing: 8,
-        children: [
-          // HEADER
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                AppLocalizations.of(context)!.keyHint,
-                style: textTheme.titleMedium,
-              ),
-              CloseButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          ),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final spacing = 8.0;
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
+      child: Container(
+        padding: EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          shape: BoxShape.rectangle,
+          color: colorScheme.surface,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: 8,
+          children: [
+            // HEADER
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  AppLocalizations.of(context)!.keyHint,
+                  style: textTheme.titleMedium,
+                ),
+                CloseButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            ),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final spacing = 8.0;
 
-              final itemWidth = (constraints.maxWidth - (3 * spacing)) / 4;
-              return Wrap(
-                spacing: spacing,
-                runSpacing: spacing,
-                children: ChordHelper.keyList.map((key) {
-                  return GestureDetector(
-                    onTap: () {
-                      if (selectedKey == key) {
-                        widget.onKeySelected(widget.originalKey);
-                      } else {
-                        widget.onKeySelected(key);
-                      }
-                      setState(() {
+                final itemWidth = (constraints.maxWidth - (3 * spacing)) / 4;
+                return Wrap(
+                  spacing: spacing,
+                  runSpacing: spacing,
+                  children: ChordHelper.keyList.map((key) {
+                    return GestureDetector(
+                      onTap: () {
                         if (selectedKey == key) {
-                          selectedKey = widget.originalKey;
+                          widget.onKeySelected(widget.originalKey);
                         } else {
-                          selectedKey = key;
+                          widget.onKeySelected(key);
                         }
-                      });
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: key == selectedKey
-                            ? colorScheme.onSurface
-                            : colorScheme.surface,
-                        border: Border.all(
-                          color: colorScheme.onSurface,
-                          width: 1,
+                        setState(() {
+                          if (selectedKey == key) {
+                            selectedKey = widget.originalKey;
+                          } else {
+                            selectedKey = key;
+                          }
+                        });
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: key == selectedKey
+                              ? colorScheme.onSurface
+                              : colorScheme.surface,
+                          border: Border.all(
+                            color: colorScheme.onSurface,
+                            width: 1,
+                          ),
                         ),
-                      ),
-                      width: itemWidth,
-                      height: itemWidth / 2,
-                      child: Center(
-                        child: Text(
-                          key,
-                          style: textTheme.titleMedium?.copyWith(
-                            color: key == selectedKey
-                                ? colorScheme.surface
-                                : colorScheme.onSurface,
+                        width: itemWidth,
+                        height: itemWidth / 2,
+                        child: Center(
+                          child: Text(
+                            key,
+                            style: textTheme.titleMedium?.copyWith(
+                              color: key == selectedKey
+                                  ? colorScheme.surface
+                                  : colorScheme.onSurface,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  );
-                }).toList(),
-              );
-            },
-          ),
-          if (widget.originalKey != '')
-            FilledTextButton(
-              text: AppLocalizations.of(context)!.originalKey,
-              isDark: true,
-              onPressed: () {
-                widget.onKeySelected(widget.originalKey);
-                setState(() {
-                  selectedKey = widget.originalKey;
-                });
+                    );
+                  }).toList(),
+                );
               },
             ),
-          if (widget.showSave) ...[
-            FilledTextButton(
-              text: AppLocalizations.of(context)!.save,
-              isDark: true,
-              onPressed: () async {
-                final nav = Navigator.of(context);
-                await widget.onKeySaved(selectedKey);
-                nav.pop();
-              },
-            ),
+            if (widget.originalKey != '')
+              FilledTextButton(
+                text: AppLocalizations.of(context)!.originalKey,
+                isDark: true,
+                onPressed: () {
+                  widget.onKeySelected(widget.originalKey);
+                  setState(() {
+                    selectedKey = widget.originalKey;
+                  });
+                },
+              ),
+            if (widget.showSave) ...[
+              FilledTextButton(
+                text: AppLocalizations.of(context)!.save,
+                isDark: true,
+                onPressed: () async {
+                  final nav = Navigator.of(context);
+                  await widget.onKeySaved(selectedKey);
+                  nav.pop();
+                },
+              ),
+            ],
+            SizedBox(),
           ],
-          SizedBox(),
-        ],
+        ),
       ),
     );
   }

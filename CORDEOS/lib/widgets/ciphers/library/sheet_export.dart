@@ -19,58 +19,65 @@ class ExportSheet extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context)!;
-    return Container(
-      padding: const EdgeInsets.all(16.0),
-      color: colorScheme.surface,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        spacing: 8,
-        children: [
-          // HEADER
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(l10n.export, style: textTheme.titleMedium),
-              IconButton(
-                icon: Icon(Icons.close, color: colorScheme.onSurface, size: 32),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
-          ),
-          // OPTIONS
-          FilledTextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              context.read<NavigationProvider>().push(
-                () => TextExportScreen(
-                  versionID: versionID,
-                  playlistID: playlistID,
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
+      child: Container(
+        padding: const EdgeInsets.all(16.0),
+        color: colorScheme.surface,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: 8,
+          children: [
+            // HEADER
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(l10n.export, style: textTheme.titleMedium),
+                IconButton(
+                  icon: Icon(
+                    Icons.close,
+                    color: colorScheme.onSurface,
+                    size: 32,
+                  ),
+                  onPressed: () => Navigator.of(context).pop(),
                 ),
-              );
-            },
-            text: l10n.textExport,
-            icon: Icons.text_fields,
-            trailingIcon: Icons.chevron_right,
-            isDiscrete: true,
-          ),
-          FilledTextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              context.read<NavigationProvider>().push(
-                () => PrintPreviewScreen(
-                  versionID: versionID,
-                  playlistID: playlistID,
-                ),
-              );
-            },
-            text: l10n.pdfExport,
-            icon: Icons.picture_as_pdf,
-            isDiscrete: true,
-            trailingIcon: Icons.chevron_right,
-          ),
-          SizedBox(),
-        ],
+              ],
+            ),
+            // OPTIONS
+            FilledTextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                context.read<NavigationProvider>().push(
+                  () => TextExportScreen(
+                    versionID: versionID,
+                    playlistID: playlistID,
+                  ),
+                );
+              },
+              text: l10n.textExport,
+              icon: Icons.text_fields,
+              trailingIcon: Icons.chevron_right,
+              isDiscrete: true,
+            ),
+            FilledTextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                context.read<NavigationProvider>().push(
+                  () => PrintPreviewScreen(
+                    versionID: versionID,
+                    playlistID: playlistID,
+                  ),
+                );
+              },
+              text: l10n.pdfExport,
+              icon: Icons.picture_as_pdf,
+              isDiscrete: true,
+              trailingIcon: Icons.chevron_right,
+            ),
+            SizedBox(),
+          ],
+        ),
       ),
     );
   }

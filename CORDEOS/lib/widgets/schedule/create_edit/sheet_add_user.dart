@@ -186,115 +186,118 @@ class _AddUserSheetState extends State<AddUserSheet> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(0)),
-      ),
-      padding: const EdgeInsets.all(16.0),
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // HEADER
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                IconButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  icon: Icon(Icons.close),
-                ),
-              ],
-            ),
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
+      child: Container(
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(0)),
+        ),
+        padding: const EdgeInsets.all(16.0),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // HEADER
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  IconButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    icon: Icon(Icons.close),
+                  ),
+                ],
+              ),
 
-            // NAME INPUT WITH DROPDOWN
-            Column(
-              spacing: 16,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // EMAIL INPUT WITH DROPDOWN
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  spacing: 8,
-                  children: [
-                    LabeledTextField(
-                      label: AppLocalizations.of(context)!.email,
-                      controller: _emailController,
-                      hint: AppLocalizations.of(context)!.enterEmailHint,
-                    ),
-                    if (_showDropdown && _emailFilteredUsers.isNotEmpty)
-                      Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: colorScheme.surfaceContainerLowest,
-                          ),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        constraints: BoxConstraints(maxHeight: 200),
-                        child: ListView.builder(
-                          shrinkWrap: true,
-                          itemCount: _emailFilteredUsers.length,
-                          itemBuilder: (context, index) {
-                            final user = _emailFilteredUsers[index];
-                            return ListTile(
-                              title: Text(user.email),
-                              subtitle: Text(user.username),
-                              onTap: () => _selectUser(user),
-                            );
-                          },
-                        ),
+              // NAME INPUT WITH DROPDOWN
+              Column(
+                spacing: 16,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // EMAIL INPUT WITH DROPDOWN
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: 8,
+                    children: [
+                      LabeledTextField(
+                        label: AppLocalizations.of(context)!.email,
+                        controller: _emailController,
+                        hint: AppLocalizations.of(context)!.enterEmailHint,
                       ),
-                  ],
-                ),
-
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  spacing: 8,
-                  children: [
-                    LabeledTextField(
-                      label: AppLocalizations.of(context)!.name,
-                      controller: _usernameController,
-                      hint: AppLocalizations.of(context)!.enterNameHint,
-                    ),
-                    if (_showDropdown && _usernameFilteredUsers.isNotEmpty)
-                      Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: colorScheme.surfaceContainerLowest,
+                      if (_showDropdown && _emailFilteredUsers.isNotEmpty)
+                        Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: colorScheme.surfaceContainerLowest,
+                            ),
+                            borderRadius: BorderRadius.circular(4),
                           ),
-                          borderRadius: BorderRadius.circular(4),
+                          constraints: BoxConstraints(maxHeight: 200),
+                          child: ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: _emailFilteredUsers.length,
+                            itemBuilder: (context, index) {
+                              final user = _emailFilteredUsers[index];
+                              return ListTile(
+                                title: Text(user.email),
+                                subtitle: Text(user.username),
+                                onTap: () => _selectUser(user),
+                              );
+                            },
+                          ),
                         ),
-                        constraints: BoxConstraints(maxHeight: 200),
-                        child: ListView.builder(
-                          shrinkWrap: true,
-                          itemCount: _usernameFilteredUsers.length,
-                          itemBuilder: (context, index) {
-                            final user = _usernameFilteredUsers[index];
-                            return ListTile(
-                              title: Text(user.username),
-                              subtitle: Text(user.email),
-                              onTap: () => _selectUser(user),
-                            );
-                          },
-                        ),
-                      ),
-                  ],
-                ),
+                    ],
+                  ),
 
-                // ADD BUTTON
-                FilledTextButton(
-                  onPressed: () => _addUser(),
-                  text: AppLocalizations.of(
-                    context,
-                  )!.addPlaceholder(AppLocalizations.of(context)!.member),
-                  isDark: true,
-                ),
-                SizedBox(),
-              ],
-            ),
-          ],
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: 8,
+                    children: [
+                      LabeledTextField(
+                        label: AppLocalizations.of(context)!.name,
+                        controller: _usernameController,
+                        hint: AppLocalizations.of(context)!.enterNameHint,
+                      ),
+                      if (_showDropdown && _usernameFilteredUsers.isNotEmpty)
+                        Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: colorScheme.surfaceContainerLowest,
+                            ),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          constraints: BoxConstraints(maxHeight: 200),
+                          child: ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: _usernameFilteredUsers.length,
+                            itemBuilder: (context, index) {
+                              final user = _usernameFilteredUsers[index];
+                              return ListTile(
+                                title: Text(user.username),
+                                subtitle: Text(user.email),
+                                onTap: () => _selectUser(user),
+                              );
+                            },
+                          ),
+                        ),
+                    ],
+                  ),
+
+                  // ADD BUTTON
+                  FilledTextButton(
+                    onPressed: () => _addUser(),
+                    text: AppLocalizations.of(
+                      context,
+                    )!.addPlaceholder(AppLocalizations.of(context)!.member),
+                    isDark: true,
+                  ),
+                  SizedBox(),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

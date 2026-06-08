@@ -45,61 +45,64 @@ class _EditRoleSheetState extends State<EditRoleSheet> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(0)),
-      ),
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        spacing: 16,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                widget.roleID == -1
-                    ? AppLocalizations.of(
-                        context,
-                      )!.createPlaceholder(AppLocalizations.of(context)!.role)
-                    : AppLocalizations.of(
-                        context,
-                      )!.editPlaceholder(AppLocalizations.of(context)!.role),
-                style: textTheme.titleMedium,
-              ),
-              IconButton(
-                icon: Icon(Icons.close),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
-          ),
-          // NAME FIELD
-          LabeledTextField(
-            label: AppLocalizations.of(context)!.name,
-            controller: _nameController,
-            hint: AppLocalizations.of(context)!.roleNameHint,
-            textCapitalization: TextCapitalization.words,
-            onSubmitted: (_) {
-              final localSch = context.read<LocalScheduleProvider>();
-              _onSubmit(localSch);
-            },
-          ),
-          // SUBMIT BUTTON
-          FilledTextButton(
-            text: widget.roleID == -1
-                ? AppLocalizations.of(context)!.create
-                : AppLocalizations.of(context)!.save,
-            isDark: true,
-            onPressed: () {
-              final localSch = context.read<LocalScheduleProvider>();
-              _onSubmit(localSch);
-            },
-          ),
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
+      child: Container(
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(0)),
+        ),
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: 16,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  widget.roleID == -1
+                      ? AppLocalizations.of(
+                          context,
+                        )!.createPlaceholder(AppLocalizations.of(context)!.role)
+                      : AppLocalizations.of(
+                          context,
+                        )!.editPlaceholder(AppLocalizations.of(context)!.role),
+                  style: textTheme.titleMedium,
+                ),
+                IconButton(
+                  icon: Icon(Icons.close),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ],
+            ),
+            // NAME FIELD
+            LabeledTextField(
+              label: AppLocalizations.of(context)!.name,
+              controller: _nameController,
+              hint: AppLocalizations.of(context)!.roleNameHint,
+              textCapitalization: TextCapitalization.words,
+              onSubmitted: (_) {
+                final localSch = context.read<LocalScheduleProvider>();
+                _onSubmit(localSch);
+              },
+            ),
+            // SUBMIT BUTTON
+            FilledTextButton(
+              text: widget.roleID == -1
+                  ? AppLocalizations.of(context)!.create
+                  : AppLocalizations.of(context)!.save,
+              isDark: true,
+              onPressed: () {
+                final localSch = context.read<LocalScheduleProvider>();
+                _onSubmit(localSch);
+              },
+            ),
 
-          SizedBox(),
-        ],
+            SizedBox(),
+          ],
+        ),
       ),
     );
   }

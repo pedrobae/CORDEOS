@@ -26,58 +26,61 @@ class FlowItemCardActionsSheet extends StatelessWidget {
     final play = context.read<PlaylistProvider>();
 
     // Your widget build logic here
-    return Container(
-      padding: const EdgeInsets.all(16.0),
-      color: colorScheme.surface,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        spacing: 8,
-        children: [
-          // HEADER
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                AppLocalizations.of(
-                  context,
-                )!.actionPlaceholder(AppLocalizations.of(context)!.flowItem),
-                style: textTheme.titleMedium,
-              ),
-              IconButton(
-                icon: Icon(Icons.close, size: 24),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
-          ),
-          // ACTIONS
-          // DUPLICATE FLOW ITEM
-          FilledTextButton(
-            text: AppLocalizations.of(context)!.duplicatePlaceholder(''),
-            trailingIcon: Icons.chevron_right,
-            isDiscrete: true,
-            onPressed: () {
-              flow.duplicateFlowItem(
-                flowItemId,
-                '(${AppLocalizations.of(context)!.copy})',
-                play.getPlaylist(playlistId)!.items.length,
-              );
-            },
-          ),
-          // DELETE FLOW ITEM
-          FilledTextButton(
-            text: AppLocalizations.of(context)!.delete,
-            trailingIcon: Icons.chevron_right,
-            isDiscrete: true,
-            isDangerous: true,
-            onPressed: () {
-              flow.cacheDeletion(flowItemId);
-              play.cacheRemoveFlowItem(flowItemId, playlistId);
-              Navigator.of(context).pop();
-            },
-          ),
-          SizedBox(),
-        ],
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
+      child: Container(
+        padding: const EdgeInsets.all(16.0),
+        color: colorScheme.surface,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: 8,
+          children: [
+            // HEADER
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  AppLocalizations.of(
+                    context,
+                  )!.actionPlaceholder(AppLocalizations.of(context)!.flowItem),
+                  style: textTheme.titleMedium,
+                ),
+                IconButton(
+                  icon: Icon(Icons.close, size: 24),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ],
+            ),
+            // ACTIONS
+            // DUPLICATE FLOW ITEM
+            FilledTextButton(
+              text: AppLocalizations.of(context)!.duplicatePlaceholder(''),
+              trailingIcon: Icons.chevron_right,
+              isDiscrete: true,
+              onPressed: () {
+                flow.duplicateFlowItem(
+                  flowItemId,
+                  '(${AppLocalizations.of(context)!.copy})',
+                  play.getPlaylist(playlistId)!.items.length,
+                );
+              },
+            ),
+            // DELETE FLOW ITEM
+            FilledTextButton(
+              text: AppLocalizations.of(context)!.delete,
+              trailingIcon: Icons.chevron_right,
+              isDiscrete: true,
+              isDangerous: true,
+              onPressed: () {
+                flow.cacheDeletion(flowItemId);
+                play.cacheRemoveFlowItem(flowItemId, playlistId);
+                Navigator.of(context).pop();
+              },
+            ),
+            SizedBox(),
+          ],
+        ),
       ),
     );
   }

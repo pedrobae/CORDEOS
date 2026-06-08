@@ -44,73 +44,78 @@ class _ReAuthSheetState extends State<ReAuthSheet> {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Consumer<MyAuthProvider>(
-      builder: (context, authProvider, child) {
-        return SingleChildScrollView(
-          child: Container(
-            color: colorScheme.surface,
-            padding: EdgeInsets.only(
-              left: 16.0,
-              top: 16.0,
-              right: 16.0,
-              bottom: max(16.0, MediaQuery.of(context).viewInsets.bottom),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              mainAxisSize: MainAxisSize.min,
-              spacing: 16,
-              children: [
-                /// HEADER
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      AppLocalizations.of(context)!.reauthenticationRequired,
-                      style: textTheme.titleMedium,
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
+      child: Consumer<MyAuthProvider>(
+        builder: (context, authProvider, child) {
+          return SingleChildScrollView(
+            child: Container(
+              color: colorScheme.surface,
+              padding: EdgeInsets.only(
+                left: 16.0,
+                top: 16.0,
+                right: 16.0,
+                bottom: max(16.0, MediaQuery.of(context).viewInsets.bottom),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                spacing: 16,
+                children: [
+                  /// HEADER
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        AppLocalizations.of(context)!.reauthenticationRequired,
+                        style: textTheme.titleMedium,
+                      ),
+                      IconButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: Icon(Icons.close),
+                      ),
+                    ],
+                  ),
+                  LabeledTextField(
+                    label: AppLocalizations.of(context)!.email,
+                    controller: emailController,
+                  ),
+                  LabeledTextField(
+                    label: AppLocalizations.of(context)!.password,
+                    controller: passwordController,
+                    obscureText: obscurePassword,
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        obscurePassword
+                            ? Icons.visibility
+                            : Icons.visibility_off,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          obscurePassword = !obscurePassword;
+                        });
+                      },
                     ),
-                    IconButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      icon: Icon(Icons.close),
-                    ),
-                  ],
-                ),
-                LabeledTextField(
-                  label: AppLocalizations.of(context)!.email,
-                  controller: emailController,
-                ),
-                LabeledTextField(
-                  label: AppLocalizations.of(context)!.password,
-                  controller: passwordController,
-                  obscureText: obscurePassword,
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      obscurePassword ? Icons.visibility : Icons.visibility_off,
-                    ),
+                  ),
+                  FilledTextButton(
+                    text: AppLocalizations.of(context)!.keepGoing,
+                    isDark: true,
                     onPressed: () {
-                      setState(() {
-                        obscurePassword = !obscurePassword;
-                      });
+                      authProvider.reauthenticate(
+                        emailController.text,
+                        passwordController.text,
+                      );
+                      Navigator.of(context).pop();
+                      widget.onReAuthSuccess();
                     },
                   ),
-                ),
-                FilledTextButton(
-                  text: AppLocalizations.of(context)!.keepGoing,
-                  isDark: true,
-                  onPressed: () {
-                    authProvider.reauthenticate(
-                      emailController.text,
-                      passwordController.text,
-                    );
-                    Navigator.of(context).pop();
-                    widget.onReAuthSuccess();
-                  },
-                ),
-                SizedBox(),
-              ],
+                  SizedBox(),
+                ],
+              ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }

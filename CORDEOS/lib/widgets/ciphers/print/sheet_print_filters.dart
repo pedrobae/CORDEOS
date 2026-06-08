@@ -51,115 +51,118 @@ class _PrintFiltersState extends State<PrintFilters> {
         showAddedNotes: print.showAddedNotes,
         showChordBass: print.showChordBass,
       ),
-      builder: (context, s, child) => Container(
-        color: colorScheme.surface,
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.6,
-          ),
-          child: Container(
-            padding: EdgeInsets.all(16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              spacing: 16,
-              children: [
-                // HEADER
-                Row(
-                  children: [
-                    Text(
-                      AppLocalizations.of(context)!.contentFilters,
-                      style: textTheme.titleMedium,
-                    ),
-                    Spacer(),
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
-                  ],
-                ),
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      spacing: 16,
-                      children: [
-                        _buildFilterToggle(
-                          context,
-                          label: l10n.header,
-                          value: s.showHeader,
-                          onChanged: (_) async {
-                            await print.toggleHeader();
-                          },
-                        ),
-                        _buildChordSettings(
-                          s.showChords,
-                          s.showChordBass,
-                          s.showAddedNotes,
-                        ),
-                        _buildFilterToggle(
-                          context,
-                          label: l10n.lyrics,
-                          value: s.showLyrics,
-                          onChanged: (_) async {
-                            await print.toggleLyrics();
-                          },
-                        ),
-                        _buildFilterToggle(
-                          context,
-                          label: l10n.songStructure,
-                          value: s.showSongMap,
-                          onChanged: (_) async {
-                            await print.toggleSongMap();
-                          },
-                        ),
-                        _buildFilterToggle(
-                          context,
-                          label: l10n.bpm,
-                          value: s.showBpm,
-                          onChanged: (_) async {
-                            await print.toggleBpm();
-                          },
-                        ),
-                        _buildFilterToggle(
-                          context,
-                          label: l10n.duration,
-                          value: s.showDuration,
-                          onChanged: (_) async {
-                            await print.toggleDuration();
-                          },
-                        ),
-                        _buildFilterToggle(
-                          context,
-                          label: l10n.sectionLabels,
-                          value: s.showSectionLabels,
-                          onChanged: (_) async {
-                            await print.toggleSectionLabels();
-                          },
-                        ),
-                        _buildFilterToggle(
-                          context,
-                          label: l10n.repeatSections,
-                          value: s.showRepeatSections,
-                          onChanged: (_) async {
-                            await print.toggleRepeatSections();
-                          },
-                        ),
-                        _buildFilterToggle(
-                          context,
-                          label: l10n.annotations,
-                          value: s.showAnnotations,
-                          onChanged: (_) async {
-                            await print.toggleAnnotations();
-                          },
-                        ),
-                      ],
+      builder: (context, s, child) => Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
+        child: Container(
+          color: colorScheme.surface,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.6,
+            ),
+            child: Container(
+              padding: EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                spacing: 16,
+                children: [
+                  // HEADER
+                  Row(
+                    children: [
+                      Text(
+                        AppLocalizations.of(context)!.contentFilters,
+                        style: textTheme.titleMedium,
+                      ),
+                      Spacer(),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                    ],
+                  ),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        spacing: 16,
+                        children: [
+                          _buildFilterToggle(
+                            context,
+                            label: l10n.header,
+                            value: s.showHeader,
+                            onChanged: (_) async {
+                              await print.toggleHeader();
+                            },
+                          ),
+                          _buildChordSettings(
+                            s.showChords,
+                            s.showChordBass,
+                            s.showAddedNotes,
+                          ),
+                          _buildFilterToggle(
+                            context,
+                            label: l10n.lyrics,
+                            value: s.showLyrics,
+                            onChanged: (_) async {
+                              await print.toggleLyrics();
+                            },
+                          ),
+                          _buildFilterToggle(
+                            context,
+                            label: l10n.songStructure,
+                            value: s.showSongMap,
+                            onChanged: (_) async {
+                              await print.toggleSongMap();
+                            },
+                          ),
+                          _buildFilterToggle(
+                            context,
+                            label: l10n.bpm,
+                            value: s.showBpm,
+                            onChanged: (_) async {
+                              await print.toggleBpm();
+                            },
+                          ),
+                          _buildFilterToggle(
+                            context,
+                            label: l10n.duration,
+                            value: s.showDuration,
+                            onChanged: (_) async {
+                              await print.toggleDuration();
+                            },
+                          ),
+                          _buildFilterToggle(
+                            context,
+                            label: l10n.sectionLabels,
+                            value: s.showSectionLabels,
+                            onChanged: (_) async {
+                              await print.toggleSectionLabels();
+                            },
+                          ),
+                          _buildFilterToggle(
+                            context,
+                            label: l10n.repeatSections,
+                            value: s.showRepeatSections,
+                            onChanged: (_) async {
+                              await print.toggleRepeatSections();
+                            },
+                          ),
+                          _buildFilterToggle(
+                            context,
+                            label: l10n.annotations,
+                            value: s.showAnnotations,
+                            onChanged: (_) async {
+                              await print.toggleAnnotations();
+                            },
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                SizedBox(),
-              ],
+                  SizedBox(),
+                ],
+              ),
             ),
           ),
         ),

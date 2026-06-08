@@ -77,226 +77,235 @@ class _StyleSettingsState extends State<StyleSettings> {
         );
       },
       builder: (context, s, child) {
-        return Container(
-          color: colorScheme.surface,
-          child: SingleChildScrollView(
-            padding: EdgeInsets.all(16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              spacing: 16,
-              children: [
-                // HEADER
-                Row(
-                  children: [
-                    Text(
-                      AppLocalizations.of(context)!.styleSettings,
-                      style: textTheme.titleMedium,
-                    ),
-                    Spacer(),
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
-                  ],
-                ),
-                // SCROLL DIRECTION SETTINGS
-                _buildOption(
-                  context,
-                  child: Row(
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).padding.bottom,
+          ),
+          child: Container(
+            color: colorScheme.surface,
+            child: SingleChildScrollView(
+              padding: EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                spacing: 16,
+                children: [
+                  // HEADER
+                  Row(
                     children: [
-                      Expanded(
-                        child: Text(
-                          AppLocalizations.of(context)!.scrollDirection,
-                          style: textTheme.labelLarge,
-                        ),
-                      ),
-                      Switch(
-                        value: s.scrollDirection == Axis.vertical,
-                        onChanged: (_) async {
-                          await set.toggleAxisDirection();
-                        },
-                        thumbIcon: WidgetStatePropertyAll(
-                          s.scrollDirection == Axis.vertical
-                              ? const Icon(Icons.swap_vert)
-                              : const Icon(Icons.swap_horiz),
-                        ),
-                        thumbColor: WidgetStatePropertyAll(colorScheme.primary),
-                        trackColor: WidgetStatePropertyAll(
-                          colorScheme.surfaceContainerHigh,
-                        ),
-                        trackOutlineColor: WidgetStatePropertyAll(
-                          colorScheme.surfaceTint,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                /// COMPACT VIEW
-                _buildOption(
-                  context,
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          AppLocalizations.of(context)!.compactView,
-                          style: textTheme.labelLarge,
-                        ),
-                      ),
-                      Switch(
-                        value: !s.showSectionHeaders,
-                        onChanged: (_) async {
-                          await set.toggleSectionHeaders();
-                        },
-                        thumbColor: WidgetStatePropertyAll(colorScheme.primary),
-                        trackColor: WidgetStatePropertyAll(
-                          colorScheme.surfaceContainerHigh,
-                        ),
-                        trackOutlineColor: WidgetStatePropertyAll(
-                          colorScheme.surfaceTint,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // CARD WIDTH SETTINGS
-                _buildOption(
-                  context,
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          AppLocalizations.of(context)!.cardWidth,
-                          style: textTheme.labelLarge,
-                        ),
-                      ),
                       Text(
-                        (_cardsOnScreen ?? 0).toStringAsFixed(2),
-                        style: textTheme.labelMedium?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
+                        AppLocalizations.of(context)!.styleSettings,
+                        style: textTheme.titleMedium,
                       ),
-                      SizedBox(
-                        width: 150,
-                        child: Slider(
-                          value: ((6 - (_cardsOnScreen ?? 0)) / 5).clamp(
-                            0.2,
-                            1.0,
-                          ),
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 16,
-                          ),
-                          divisions: 80,
-                          min: 0.2,
-                          max: 1.0,
-                          onChanged: (v) {
-                            setState(() => _cardsOnScreen = 6 - v * 5);
-                          },
-                          onChangeEnd: (v) async {
-                            await set.setCardWidthMult(
-                              _calcWidthMult(
-                                _cardsOnScreen!,
-                                _screenWidth ?? 0,
-                              ),
-                            );
-                          },
-                        ),
+                      Spacer(),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.of(context).pop(),
                       ),
                     ],
                   ),
-                ),
-                // Height spacing
-                _buildOption(
-                  context,
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          AppLocalizations.of(context)!.heightSpacing,
-                          style: textTheme.labelLarge,
-                        ),
-                      ),
-                      Text(
-                        (_heightSpacing * 10).toStringAsFixed(1),
-                        style: textTheme.labelMedium?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      SizedBox(
-                        width: 150,
-                        child: Slider(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 16,
+                  // SCROLL DIRECTION SETTINGS
+                  _buildOption(
+                    context,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            AppLocalizations.of(context)!.scrollDirection,
+                            style: textTheme.labelLarge,
                           ),
-                          value: _heightSpacing,
-                          divisions: 75,
-                          min: -0.1,
-                          max: 0.25,
-                          onChanged: (v) {
-                            setState(() => _heightSpacing = v);
-                          },
-                          onChangeEnd: (v) async {
-                            await set.setHeightSpacingMult(v);
-                          },
                         ),
-                      ),
-                    ],
+                        Switch(
+                          value: s.scrollDirection == Axis.vertical,
+                          onChanged: (_) async {
+                            await set.toggleAxisDirection();
+                          },
+                          thumbIcon: WidgetStatePropertyAll(
+                            s.scrollDirection == Axis.vertical
+                                ? const Icon(Icons.swap_vert)
+                                : const Icon(Icons.swap_horiz),
+                          ),
+                          thumbColor: WidgetStatePropertyAll(
+                            colorScheme.primary,
+                          ),
+                          trackColor: WidgetStatePropertyAll(
+                            colorScheme.surfaceContainerHigh,
+                          ),
+                          trackOutlineColor: WidgetStatePropertyAll(
+                            colorScheme.surfaceTint,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
 
-                // FONT SETTINGS
-                _buildOption(
-                  context,
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: DropdownButton<String>(
-                          value: s.fontFamily,
-                          isExpanded: true,
-                          items: [
-                            for (final fontFamily in FontFamilies.values) ...[
-                              DropdownMenuItem(
-                                value: fontFamily.key,
-                                child: Text(
-                                  fontFamily.key,
-                                  style: textTheme.titleMedium?.copyWith(
-                                    fontFamily: fontFamily.key,
+                  /// COMPACT VIEW
+                  _buildOption(
+                    context,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            AppLocalizations.of(context)!.compactView,
+                            style: textTheme.labelLarge,
+                          ),
+                        ),
+                        Switch(
+                          value: !s.showSectionHeaders,
+                          onChanged: (_) async {
+                            await set.toggleSectionHeaders();
+                          },
+                          thumbColor: WidgetStatePropertyAll(
+                            colorScheme.primary,
+                          ),
+                          trackColor: WidgetStatePropertyAll(
+                            colorScheme.surfaceContainerHigh,
+                          ),
+                          trackOutlineColor: WidgetStatePropertyAll(
+                            colorScheme.surfaceTint,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // CARD WIDTH SETTINGS
+                  _buildOption(
+                    context,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            AppLocalizations.of(context)!.cardWidth,
+                            style: textTheme.labelLarge,
+                          ),
+                        ),
+                        Text(
+                          (_cardsOnScreen ?? 0).toStringAsFixed(2),
+                          style: textTheme.labelMedium?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        SizedBox(
+                          width: 150,
+                          child: Slider(
+                            value: ((6 - (_cardsOnScreen ?? 0)) / 5).clamp(
+                              0.2,
+                              1.0,
+                            ),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 16,
+                            ),
+                            divisions: 80,
+                            min: 0.2,
+                            max: 1.0,
+                            onChanged: (v) {
+                              setState(() => _cardsOnScreen = 6 - v * 5);
+                            },
+                            onChangeEnd: (v) async {
+                              await set.setCardWidthMult(
+                                _calcWidthMult(
+                                  _cardsOnScreen!,
+                                  _screenWidth ?? 0,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Height spacing
+                  _buildOption(
+                    context,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            AppLocalizations.of(context)!.heightSpacing,
+                            style: textTheme.labelLarge,
+                          ),
+                        ),
+                        Text(
+                          (_heightSpacing * 10).toStringAsFixed(1),
+                          style: textTheme.labelMedium?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        SizedBox(
+                          width: 150,
+                          child: Slider(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 16,
+                            ),
+                            value: _heightSpacing,
+                            divisions: 75,
+                            min: -0.1,
+                            max: 0.25,
+                            onChanged: (v) {
+                              setState(() => _heightSpacing = v);
+                            },
+                            onChangeEnd: (v) async {
+                              await set.setHeightSpacingMult(v);
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // FONT SETTINGS
+                  _buildOption(
+                    context,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: DropdownButton<String>(
+                            value: s.fontFamily,
+                            isExpanded: true,
+                            items: [
+                              for (final fontFamily in FontFamilies.values) ...[
+                                DropdownMenuItem(
+                                  value: fontFamily.key,
+                                  child: Text(
+                                    fontFamily.key,
+                                    style: textTheme.titleMedium?.copyWith(
+                                      fontFamily: fontFamily.key,
+                                    ),
                                   ),
                                 ),
-                              ),
+                              ],
                             ],
-                          ],
+                            onChanged: (v) async {
+                              if (v != null) await set.setFontFamily(v);
+                            },
+                            underline: Container(),
+                          ),
+                        ),
+                        const SizedBox(width: 32),
+                        DropdownButton<double>(
+                          value: s.fontSize,
+                          items: List.generate(12, (i) {
+                            final double size = 12 + i * 2;
+                            return DropdownMenuItem(
+                              value: size,
+                              child: Text(size.toString()),
+                            );
+                          }),
                           onChanged: (v) async {
-                            if (v != null) await set.setFontFamily(v);
+                            if (v != null) await set.setFontSize(v);
                           },
                           underline: Container(),
                         ),
-                      ),
-                      const SizedBox(width: 32),
-                      DropdownButton<double>(
-                        value: s.fontSize,
-                        items: List.generate(12, (i) {
-                          final double size = 12 + i * 2;
-                          return DropdownMenuItem(
-                            value: size,
-                            child: Text(size.toString()),
-                          );
-                        }),
-                        onChanged: (v) async {
-                          if (v != null) await set.setFontSize(v);
-                        },
-                        underline: Container(),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
 
-                SizedBox(),
-              ],
+                  SizedBox(),
+                ],
+              ),
             ),
           ),
         );

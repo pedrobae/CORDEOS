@@ -57,139 +57,146 @@ class CipherCardActionsSheet extends StatelessWidget {
       );
     }
 
-    return Container(
-      padding: const EdgeInsets.all(16.0),
-      color: colorScheme.surface,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        spacing: 8,
-        children: [
-          // HEADER
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                l10n.quickAction,
-                style: textTheme.titleMedium,
-                textAlign: TextAlign.center,
-              ),
-              IconButton(
-                icon: Icon(Icons.close, color: colorScheme.onSurface, size: 32),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
-          ),
-          // ACTIONS
-          // EDIT CIPHER
-          FilledTextButton(
-            text: AppLocalizations.of(context)!.editPlaceholder(l10n.cipher),
-            trailingIcon: Icons.chevron_right,
-            isDiscrete: true,
-            onPressed: () {
-              Navigator.of(context).pop(); // Close the bottom sheet
-              nav.push(
-                () => EditCipherScreen(
-                  versionID: versionID,
-                  versionType: versionType,
-                  cipherID: cipherID,
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
+      child: Container(
+        padding: const EdgeInsets.all(16.0),
+        color: colorScheme.surface,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: 8,
+          children: [
+            // HEADER
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  l10n.quickAction,
+                  style: textTheme.titleMedium,
+                  textAlign: TextAlign.center,
                 ),
-                keepAlive: true,
-                changeDetector: () =>
-                    localVer.hasUnsavedChanges ||
-                    ciph.hasUnsavedChanges ||
-                    sect.hasUnsavedChanges,
-                onChangeDiscarded: () {
-                  localVer.loadVersion(versionID);
-                  ciph.loadCipher(cipherID);
-                  sect.loadSectionsOfVersion(versionID);
-                },
-              );
-            },
-          ),
-          FilledTextButton(
-            text: l10n.export,
-            onPressed: () {
-              Navigator.of(context).pop();
-              _openExportSheet(context, versionID);
-            },
-            trailingIcon: Icons.chevron_right,
-            isDiscrete: true,
-          ),
-          if (links != null &&
-              links.any((link) {
-                return link.isNotEmpty;
-              }))
-            FilledTextButton(
-              text: l10n.openLink,
-              trailingIcon: Icons.chevron_right,
-              isDiscrete: true,
-              onPressed: _openLinksSheet(links, context),
+                IconButton(
+                  icon: Icon(
+                    Icons.close,
+                    color: colorScheme.onSurface,
+                    size: 32,
+                  ),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ],
             ),
-          // SELECT VERSION
-          // Only show if there are multiple versions available
-          if (localVer.getVersionsByCipherId(cipherID).length > 1)
+            // ACTIONS
+            // EDIT CIPHER
             FilledTextButton(
-              text: AppLocalizations.of(
-                context,
-              )!.selectPlaceholder(l10n.version),
+              text: AppLocalizations.of(context)!.editPlaceholder(l10n.cipher),
               trailingIcon: Icons.chevron_right,
               isDiscrete: true,
               onPressed: () {
                 Navigator.of(context).pop(); // Close the bottom sheet
+                nav.push(
+                  () => EditCipherScreen(
+                    versionID: versionID,
+                    versionType: versionType,
+                    cipherID: cipherID,
+                  ),
+                  keepAlive: true,
+                  changeDetector: () =>
+                      localVer.hasUnsavedChanges ||
+                      ciph.hasUnsavedChanges ||
+                      sect.hasUnsavedChanges,
+                  onChangeDiscarded: () {
+                    localVer.loadVersion(versionID);
+                    ciph.loadCipher(cipherID);
+                    sect.loadSectionsOfVersion(versionID);
+                  },
+                );
+              },
+            ),
+            FilledTextButton(
+              text: l10n.export,
+              onPressed: () {
+                Navigator.of(context).pop();
+                _openExportSheet(context, versionID);
+              },
+              trailingIcon: Icons.chevron_right,
+              isDiscrete: true,
+            ),
+            if (links != null &&
+                links.any((link) {
+                  return link.isNotEmpty;
+                }))
+              FilledTextButton(
+                text: l10n.openLink,
+                trailingIcon: Icons.chevron_right,
+                isDiscrete: true,
+                onPressed: _openLinksSheet(links, context),
+              ),
+            // SELECT VERSION
+            // Only show if there are multiple versions available
+            if (localVer.getVersionsByCipherId(cipherID).length > 1)
+              FilledTextButton(
+                text: AppLocalizations.of(
+                  context,
+                )!.selectPlaceholder(l10n.version),
+                trailingIcon: Icons.chevron_right,
+                isDiscrete: true,
+                onPressed: () {
+                  Navigator.of(context).pop(); // Close the bottom sheet
+                  showModalBottomSheet(
+                    context: context,
+                    builder: (context) {
+                      return BottomSheet(
+                        shape: LinearBorder(),
+                        onClosing: () {},
+                        builder: (context) {
+                          return SelectVersionSheet(cipherId: cipherID);
+                        },
+                      );
+                    },
+                  );
+                },
+              ),
+            // DELETE CIPHER
+            FilledTextButton(
+              text: l10n.delete,
+              tooltip: l10n.deleteCipherDescription,
+              trailingIcon: Icons.chevron_right,
+              isDiscrete: true,
+              isDangerous: true,
+              onPressed: () {
                 showModalBottomSheet(
                   context: context,
+                  isScrollControlled: true,
                   builder: (context) {
                     return BottomSheet(
                       shape: LinearBorder(),
                       onClosing: () {},
                       builder: (context) {
-                        return SelectVersionSheet(cipherId: cipherID);
+                        return DeleteConfirmationSheet(
+                          itemType: l10n.cipher,
+                          onConfirm: () async {
+                            Navigator.of(context).pop();
+                            final version = localVer.getVersion(versionID)!;
+                            if (version.firebaseID != null &&
+                                version.firebaseID!.isNotEmpty) {
+                              await cloudVer.ensureVersionIsLoaded(
+                                version.firebaseID!,
+                              );
+                            }
+
+                            await ciph.deleteCipher(cipherID);
+                          },
+                        );
                       },
                     );
                   },
                 );
               },
             ),
-          // DELETE CIPHER
-          FilledTextButton(
-            text: l10n.delete,
-            tooltip: l10n.deleteCipherDescription,
-            trailingIcon: Icons.chevron_right,
-            isDiscrete: true,
-            isDangerous: true,
-            onPressed: () {
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                builder: (context) {
-                  return BottomSheet(
-                    shape: LinearBorder(),
-                    onClosing: () {},
-                    builder: (context) {
-                      return DeleteConfirmationSheet(
-                        itemType: l10n.cipher,
-                        onConfirm: () async {
-                          Navigator.of(context).pop();
-                          final version = localVer.getVersion(versionID)!;
-                          if (version.firebaseID != null &&
-                              version.firebaseID!.isNotEmpty) {
-                            await cloudVer.ensureVersionIsLoaded(
-                              version.firebaseID!,
-                            );
-                          }
-
-                          await ciph.deleteCipher(cipherID);
-                        },
-                      );
-                    },
-                  );
-                },
-              );
-            },
-          ),
-          SizedBox(),
-        ],
+            SizedBox(),
+          ],
+        ),
       ),
     );
   }

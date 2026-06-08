@@ -24,78 +24,83 @@ class _PrintStyleState extends State<PrintStyle> {
         return (fontFamily: print.fontFamily, fontSize: print.fontSize);
       },
       builder: (context, s, child) {
-        return Container(
-          color: colorScheme.surface,
-          child: SingleChildScrollView(
-            padding: EdgeInsets.all(16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              spacing: 16,
-              children: [
-                // HEADER
-                Row(
-                  children: [
-                    Text(
-                      AppLocalizations.of(context)!.styleSettings,
-                      style: textTheme.titleMedium,
-                    ),
-                    Spacer(),
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
-                  ],
-                ),
-                _buildOption(
-                  context,
-                  child: Row(
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).padding.bottom,
+          ),
+          child: Container(
+            color: colorScheme.surface,
+            child: SingleChildScrollView(
+              padding: EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                spacing: 16,
+                children: [
+                  // HEADER
+                  Row(
                     children: [
-                      Expanded(
-                        child: DropdownButton<String>(
-                          value: s.fontFamily,
-                          isExpanded: true,
-                          items: [
-                            for (final fontFamily in FontFamilies.values) ...[
-                              DropdownMenuItem(
-                                value: fontFamily.key,
-                                child: Text(
-                                  fontFamily.key,
-                                  style: textTheme.titleMedium?.copyWith(
-                                    fontFamily: fontFamily.key,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ],
-                          onChanged: (v) async {
-                            if (v == null) return;
-                            await print.setFontFamily(v);
-                          },
-                          underline: Container(),
-                        ),
+                      Text(
+                        AppLocalizations.of(context)!.styleSettings,
+                        style: textTheme.titleMedium,
                       ),
-                      const SizedBox(width: 32),
-                      DropdownButton<double>(
-                        value: s.fontSize,
-                        items: List.generate(10, (i) {
-                          final double size = 6 + i * 2;
-                          return DropdownMenuItem(
-                            value: size,
-                            child: Text(size.toString()),
-                          );
-                        }),
-                        onChanged: (v) async {
-                          if (v == null) return;
-                          await print.setFontSize(v);
-                        },
-                        underline: Container(),
+                      Spacer(),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.of(context).pop(),
                       ),
                     ],
                   ),
-                ),
-                SizedBox(),
-              ],
+                  _buildOption(
+                    context,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: DropdownButton<String>(
+                            value: s.fontFamily,
+                            isExpanded: true,
+                            items: [
+                              for (final fontFamily in FontFamilies.values) ...[
+                                DropdownMenuItem(
+                                  value: fontFamily.key,
+                                  child: Text(
+                                    fontFamily.key,
+                                    style: textTheme.titleMedium?.copyWith(
+                                      fontFamily: fontFamily.key,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
+                            onChanged: (v) async {
+                              if (v == null) return;
+                              await print.setFontFamily(v);
+                            },
+                            underline: Container(),
+                          ),
+                        ),
+                        const SizedBox(width: 32),
+                        DropdownButton<double>(
+                          value: s.fontSize,
+                          items: List.generate(10, (i) {
+                            final double size = 6 + i * 2;
+                            return DropdownMenuItem(
+                              value: size,
+                              child: Text(size.toString()),
+                            );
+                          }),
+                          onChanged: (v) async {
+                            if (v == null) return;
+                            await print.setFontSize(v);
+                          },
+                          underline: Container(),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(),
+                ],
+              ),
             ),
           ),
         );

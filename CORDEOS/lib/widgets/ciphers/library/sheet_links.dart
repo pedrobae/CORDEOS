@@ -14,32 +14,41 @@ class LinksSheet extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return Container(
-      padding: const EdgeInsets.all(16.0),
-      color: colorScheme.surface,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        spacing: 8,
-        children: [
-          // HEADER
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                AppLocalizations.of(context)!.openLink,
-                style: textTheme.titleMedium,
-              ),
-              IconButton(
-                icon: Icon(Icons.close, color: colorScheme.onSurface, size: 32),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
+      child: Container(
+        padding: const EdgeInsets.all(16.0),
+        color: colorScheme.surface,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: 8,
+          children: [
+            // HEADER
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  AppLocalizations.of(context)!.openLink,
+                  style: textTheme.titleMedium,
+                ),
+                IconButton(
+                  icon: Icon(
+                    Icons.close,
+                    color: colorScheme.onSurface,
+                    size: 32,
+                  ),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ],
+            ),
+            // VERSIONS
+            for (final link in links) ...[
+              _buildLinkOption(context, link.trim()),
             ],
-          ),
-          // VERSIONS
-          for (final link in links) ...[_buildLinkOption(context, link.trim())],
-          SizedBox(),
-        ],
+            SizedBox(),
+          ],
+        ),
       ),
     );
   }

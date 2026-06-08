@@ -30,111 +30,120 @@ class PlaylistCardActionsSheet extends StatelessWidget {
     final nav = context.read<NavigationProvider>();
 
     // Your widget build logic here
-    return Container(
-      padding: const EdgeInsets.all(16.0),
-      color: colorScheme.surface,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        spacing: 8,
-        children: [
-          // HEADER
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                l10n.optionsPlaceholder(AppLocalizations.of(context)!.playlist),
-                style: textTheme.titleMedium,
-              ),
-              IconButton(
-                icon: Icon(Icons.close, color: colorScheme.onSurface, size: 32),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
-          ),
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
+      child: Container(
+        padding: const EdgeInsets.all(16.0),
+        color: colorScheme.surface,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: 8,
+          children: [
+            // HEADER
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  l10n.optionsPlaceholder(
+                    AppLocalizations.of(context)!.playlist,
+                  ),
+                  style: textTheme.titleMedium,
+                ),
+                IconButton(
+                  icon: Icon(
+                    Icons.close,
+                    color: colorScheme.onSurface,
+                    size: 32,
+                  ),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ],
+            ),
 
-          /// ACTIONS
-          // export
-          FilledTextButton(
-            text: l10n.export,
-            onPressed: () async {
-              Navigator.of(context).pop();
-              final play = context.read<PlaylistProvider>();
-              final sect = context.read<SectionProvider>();
-              final localVer = context.read<LocalVersionProvider>();
+            /// ACTIONS
+            // export
+            FilledTextButton(
+              text: l10n.export,
+              onPressed: () async {
+                Navigator.of(context).pop();
+                final play = context.read<PlaylistProvider>();
+                final sect = context.read<SectionProvider>();
+                final localVer = context.read<LocalVersionProvider>();
 
-              final playlist = play.getPlaylist(playlistID);
-              if (playlist == null)
-                throw Exception("Couldnt get playlist $playlistID");
-              for (final item in playlist.items) {
-                if (item.type == PlaylistItemType.version) {
-                  await localVer.loadVersion(item.contentId!);
-                  await sect.loadSectionsOfVersion(item.contentId!);
+                final playlist = play.getPlaylist(playlistID);
+                if (playlist == null)
+                  throw Exception("Couldnt get playlist $playlistID");
+                for (final item in playlist.items) {
+                  if (item.type == PlaylistItemType.version) {
+                    await localVer.loadVersion(item.contentId!);
+                    await sect.loadSectionsOfVersion(item.contentId!);
+                  }
                 }
-              }
 
-              if (context.mounted) _openExportSheet(context, playlistID);
-            },
-            trailingIcon: Icons.chevron_right,
-            isDiscrete: true,
-          ),
+                if (context.mounted) _openExportSheet(context, playlistID);
+              },
+              trailingIcon: Icons.chevron_right,
+              isDiscrete: true,
+            ),
 
-          // rename
-          FilledTextButton(
-            text: AppLocalizations.of(context)!.renamePlaceholder(''),
-            trailingIcon: Icons.chevron_right,
-            isDiscrete: true,
-            onPressed: () {
-              final play = context.read<PlaylistProvider>();
+            // rename
+            FilledTextButton(
+              text: AppLocalizations.of(context)!.renamePlaceholder(''),
+              trailingIcon: Icons.chevron_right,
+              isDiscrete: true,
+              onPressed: () {
+                final play = context.read<PlaylistProvider>();
 
-              Navigator.of(context).pop(); // Close the bottom sheet
-              nav.push(
-                () => EditPlaylistScreen(playlistId: playlistID),
-                changeDetector: () => play.hasUnsavedChanges,
-                onChangeDiscarded: () => play.loadPlaylist(playlistID),
-                showBottomNavBar: true,
-              );
-            },
-          ),
+                Navigator.of(context).pop(); // Close the bottom sheet
+                nav.push(
+                  () => EditPlaylistScreen(playlistId: playlistID),
+                  changeDetector: () => play.hasUnsavedChanges,
+                  onChangeDiscarded: () => play.loadPlaylist(playlistID),
+                  showBottomNavBar: true,
+                );
+              },
+            ),
 
-          // duplicate
-          FilledTextButton(
-            text: AppLocalizations.of(context)!.duplicatePlaceholder(''),
-            trailingIcon: Icons.chevron_right,
-            isDiscrete: true,
-            onPressed: () {
-              Navigator.of(context).pop();
-              _duplicatePlaylist(context);
-            },
-          ),
+            // duplicate
+            FilledTextButton(
+              text: AppLocalizations.of(context)!.duplicatePlaceholder(''),
+              trailingIcon: Icons.chevron_right,
+              isDiscrete: true,
+              onPressed: () {
+                Navigator.of(context).pop();
+                _duplicatePlaylist(context);
+              },
+            ),
 
-          // delete
-          FilledTextButton(
-            text: AppLocalizations.of(context)!.delete,
-            tooltip: AppLocalizations.of(context)!.deletePlaylistDescription,
-            trailingIcon: Icons.chevron_right,
-            isDangerous: true,
-            isDiscrete: true,
-            onPressed: () {
-              showModalBottomSheet(
-                isScrollControlled: true,
-                context: context,
-                builder: (context) {
-                  return DeleteConfirmationSheet(
-                    itemType: AppLocalizations.of(context)!.playlist,
-                    onConfirm: () async {
-                      Navigator.of(context).pop();
+            // delete
+            FilledTextButton(
+              text: AppLocalizations.of(context)!.delete,
+              tooltip: AppLocalizations.of(context)!.deletePlaylistDescription,
+              trailingIcon: Icons.chevron_right,
+              isDangerous: true,
+              isDiscrete: true,
+              onPressed: () {
+                showModalBottomSheet(
+                  isScrollControlled: true,
+                  context: context,
+                  builder: (context) {
+                    return DeleteConfirmationSheet(
+                      itemType: AppLocalizations.of(context)!.playlist,
+                      onConfirm: () async {
+                        Navigator.of(context).pop();
 
-                      await _deletePlaylist(context, nav);
-                    },
-                  );
-                },
-              );
-            },
-          ),
+                        await _deletePlaylist(context, nav);
+                      },
+                    );
+                  },
+                );
+              },
+            ),
 
-          SizedBox(height: 16),
-        ],
+            SizedBox(height: 16),
+          ],
+        ),
       ),
     );
   }

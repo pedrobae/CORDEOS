@@ -141,16 +141,21 @@ class _GuestManageSheetState extends State<GuestManageSheet> {
             showModalBottomSheet(
               context: context,
               builder: (context) {
-                return SelectKeySheet(
-                  initialKey: widget.versionDto.overwriteKey,
-                  originalKey: widget.versionDto.originalKey,
-                  versionID: widget.firebaseVersionID,
-                  onKeySelected: (_) {},
-                  onKeySaved: (key) {
-                    final cloudVer = context.read<CloudVersionProvider>();
-                    cloudVer.saveKey(widget.firebaseVersionID, key);
-                  },
-                  showSave: true,
+                return Padding(
+                  padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).padding.bottom,
+                  ),
+                  child: SelectKeySheet(
+                    initialKey: widget.versionDto.overwriteKey,
+                    originalKey: widget.versionDto.originalKey,
+                    versionID: widget.firebaseVersionID,
+                    onKeySelected: (_) {},
+                    onKeySaved: (key) {
+                      final cloudVer = context.read<CloudVersionProvider>();
+                      cloudVer.saveKey(widget.firebaseVersionID, key);
+                    },
+                    showSave: true,
+                  ),
                 );
               },
             );

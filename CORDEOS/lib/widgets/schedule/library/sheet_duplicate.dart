@@ -83,116 +83,119 @@ class _DuplicateScheduleSheetState extends State<DuplicateScheduleSheet> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(0)),
-      ),
-      padding: const EdgeInsets.all(16.0),
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisSize: MainAxisSize.min,
-          spacing: 16,
-          children: [
-            // HEADER
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  AppLocalizations.of(context)!.duplicatePlaceholder(
-                    AppLocalizations.of(context)!.schedule,
-                  ),
-                  style: textTheme.titleMedium,
-                ),
-                IconButton(
-                  icon: Icon(Icons.close),
-                  onPressed: () => Navigator.of(context).pop(),
-                ),
-              ],
-            ),
-
-            // FORM
-            Form(
-              autovalidateMode: AutovalidateMode.onUnfocus,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                spacing: 16,
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
+      child: Container(
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(0)),
+        ),
+        padding: const EdgeInsets.all(16.0),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            spacing: 16,
+            children: [
+              // HEADER
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  LabeledTextField(
-                    label: AppLocalizations.of(context)!.scheduleName,
-                    controller: nameController,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return AppLocalizations.of(
-                          context,
-                        )!.pleaseEnterScheduleName;
-                      }
-                      return null;
-                    },
-                  ),
-                  _buildDatePickerField(
-                    context,
-                    label: AppLocalizations.of(context)!.date,
-                    controller: dateController,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return AppLocalizations.of(context)!.pleaseSelectDate;
-                      }
-                      return null;
-                    },
-                  ),
-                  _buildTimePickerField(
-                    context,
-                    label: AppLocalizations.of(context)!.startTime,
-                    controller: startTimeController,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return AppLocalizations.of(context)!.pleaseSelectTime;
-                      }
-                      return null;
-                    },
-                  ),
-                  LabeledTextField(
-                    label: AppLocalizations.of(context)!.location,
-                    controller: locationController,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return AppLocalizations.of(
-                          context,
-                        )!.pleaseEnterLocation;
-                      }
-                      return null;
-                    },
-                  ),
-                  LabeledTextField(
-                    label: AppLocalizations.of(context)!.optionalPlaceholder(
-                      AppLocalizations.of(context)!.roomVenue,
+                  Text(
+                    AppLocalizations.of(context)!.duplicatePlaceholder(
+                      AppLocalizations.of(context)!.schedule,
                     ),
-                    controller: roomVenueController,
+                    style: textTheme.titleMedium,
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.close),
+                    onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
               ),
-            ),
 
-            // ACTIONS
-            // confirm
-            FilledTextButton(
-              text: AppLocalizations.of(context)!.keepGoing,
-              isDark: true,
-              onPressed: () => _duplicate(context),
-            ),
+              // FORM
+              Form(
+                autovalidateMode: AutovalidateMode.onUnfocus,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: 16,
+                  children: [
+                    LabeledTextField(
+                      label: AppLocalizations.of(context)!.scheduleName,
+                      controller: nameController,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return AppLocalizations.of(
+                            context,
+                          )!.pleaseEnterScheduleName;
+                        }
+                        return null;
+                      },
+                    ),
+                    _buildDatePickerField(
+                      context,
+                      label: AppLocalizations.of(context)!.date,
+                      controller: dateController,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return AppLocalizations.of(context)!.pleaseSelectDate;
+                        }
+                        return null;
+                      },
+                    ),
+                    _buildTimePickerField(
+                      context,
+                      label: AppLocalizations.of(context)!.startTime,
+                      controller: startTimeController,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return AppLocalizations.of(context)!.pleaseSelectTime;
+                        }
+                        return null;
+                      },
+                    ),
+                    LabeledTextField(
+                      label: AppLocalizations.of(context)!.location,
+                      controller: locationController,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return AppLocalizations.of(
+                            context,
+                          )!.pleaseEnterLocation;
+                        }
+                        return null;
+                      },
+                    ),
+                    LabeledTextField(
+                      label: AppLocalizations.of(context)!.optionalPlaceholder(
+                        AppLocalizations.of(context)!.roomVenue,
+                      ),
+                      controller: roomVenueController,
+                    ),
+                  ],
+                ),
+              ),
 
-            // cancel
-            FilledTextButton(
-              text: AppLocalizations.of(context)!.cancel,
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
+              // ACTIONS
+              // confirm
+              FilledTextButton(
+                text: AppLocalizations.of(context)!.keepGoing,
+                isDark: true,
+                onPressed: () => _duplicate(context),
+              ),
 
-            SizedBox(height: 16),
-          ],
+              // cancel
+              FilledTextButton(
+                text: AppLocalizations.of(context)!.cancel,
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+
+              SizedBox(height: 16),
+            ],
+          ),
         ),
       ),
     );

@@ -24,96 +24,99 @@ class NewSectionSheet extends StatelessWidget {
         .cipherID;
     final nav = context.read<NavigationProvider>();
 
-    return Container(
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(0),
-      ),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        spacing: 8,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                AppLocalizations.of(
-                  context,
-                )!.createPlaceholder(AppLocalizations.of(context)!.section),
-                style: textTheme.titleMedium,
-              ),
-              IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          ),
-
-          /// MANUALLY CREATE SECTION
-          FilledTextButton(
-            text: AppLocalizations.of(
-              context,
-            )!.newPlaceholder(AppLocalizations.of(context)!.section),
-            isDark: true,
-            icon: Icons.add,
-            trailingIcon: Icons.chevron_right,
-            onPressed: () {
-              Navigator.of(context).pop();
-              nav.push(
-                () => SelectType(
-                  sectionKey: null,
-                  versionID: versionID,
-                  isNewSection: true,
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
+      child: Container(
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius: BorderRadius.circular(0),
+        ),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: 8,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  AppLocalizations.of(
+                    context,
+                  )!.createPlaceholder(AppLocalizations.of(context)!.section),
+                  style: textTheme.titleMedium,
                 ),
-                showBottomNavBar: true,
-              );
-            },
-          ),
-
-          /// IMPORT SECTION BUTTONS
-          // text
-          FilledTextButton(
-            text: AppLocalizations.of(context)!.importFromText,
-            icon: Icons.text_snippet,
-            trailingIcon: Icons.chevron_right,
-            isDiscrete: true,
-            onPressed: () {
-              Navigator.of(context).pop();
-              nav.push(
-                () => ImportTextScreen(
-                  versionID: versionID,
-                  cipherID: cipherID != -1
-                      ? cipherID
-                      : -2, // Pass -2 to trigger import instead of create flow
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
                 ),
-              );
-            },
-          ),
-          // pdf
-          FilledTextButton(
-            text: AppLocalizations.of(context)!.importFromPDF,
-            icon: Icons.picture_as_pdf,
-            trailingIcon: Icons.chevron_right,
-            isDiscrete: true,
-            onPressed: () {
-              Navigator.of(context).pop();
-              nav.push(
-                () => ImportPdfScreen(
-                  versionID: versionID,
-                  cipherID: cipherID != -1
-                      ? cipherID
-                      : -2, // Pass -2 to trigger import instead of create flow
-                ),
-              );
-            },
-          ),
+              ],
+            ),
 
-          SizedBox(height: 16),
-        ],
+            /// MANUALLY CREATE SECTION
+            FilledTextButton(
+              text: AppLocalizations.of(
+                context,
+              )!.newPlaceholder(AppLocalizations.of(context)!.section),
+              isDark: true,
+              icon: Icons.add,
+              trailingIcon: Icons.chevron_right,
+              onPressed: () {
+                Navigator.of(context).pop();
+                nav.push(
+                  () => SelectType(
+                    sectionKey: null,
+                    versionID: versionID,
+                    isNewSection: true,
+                  ),
+                  showBottomNavBar: true,
+                );
+              },
+            ),
+
+            /// IMPORT SECTION BUTTONS
+            // text
+            FilledTextButton(
+              text: AppLocalizations.of(context)!.importFromText,
+              icon: Icons.text_snippet,
+              trailingIcon: Icons.chevron_right,
+              isDiscrete: true,
+              onPressed: () {
+                Navigator.of(context).pop();
+                nav.push(
+                  () => ImportTextScreen(
+                    versionID: versionID,
+                    cipherID: cipherID != -1
+                        ? cipherID
+                        : -2, // Pass -2 to trigger import instead of create flow
+                  ),
+                );
+              },
+            ),
+            // pdf
+            FilledTextButton(
+              text: AppLocalizations.of(context)!.importFromPDF,
+              icon: Icons.picture_as_pdf,
+              trailingIcon: Icons.chevron_right,
+              isDiscrete: true,
+              onPressed: () {
+                Navigator.of(context).pop();
+                nav.push(
+                  () => ImportPdfScreen(
+                    versionID: versionID,
+                    cipherID: cipherID != -1
+                        ? cipherID
+                        : -2, // Pass -2 to trigger import instead of create flow
+                  ),
+                );
+              },
+            ),
+
+            SizedBox(height: 16),
+          ],
+        ),
       ),
     );
   }

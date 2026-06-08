@@ -25,82 +25,89 @@ class AddToPlaylistSheet extends StatelessWidget {
     final sel = context.read<SelectionProvider>();
 
     // Your widget build logic here
-    return Container(
-      padding: const EdgeInsets.all(16.0),
-      color: colorScheme.surface,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        spacing: 8,
-        children: [
-          // HEADER
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                AppLocalizations.of(context)!.quickAction,
-                style: textTheme.titleMedium,
-                textAlign: TextAlign.center,
-              ),
-              IconButton(
-                icon: Icon(Icons.close, color: colorScheme.onSurface, size: 32),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
-          ),
-          // ACTIONS
-          // ADD SONG TO PLAYLIST
-          FilledTextButton(
-            text: AppLocalizations.of(
-              context,
-            )!.addPlaceholder(AppLocalizations.of(context)!.cipher),
-            trailingIcon: Icons.chevron_right,
-            isDiscrete: true,
-            onPressed: () {
-              // Enable selection mode
-              sel.enableSelectionMode();
-              sel.setTarget(playlistID);
-
-              // Close the bottom sheet
-              Navigator.of(context).pop();
-
-              // Navigate to Cipher Library Screen
-              nav.push(
-                () => CipherLibraryScreen(),
-                showBottomNavBar: true,
-                onPopCallback: () {
-                  // Disable selection mode when returning
-                  sel.disableSelectionMode();
-                  sel.clearTarget();
-                },
-              );
-            },
-          ),
-          // ADD FLOW ITEM TO PLAYLIST
-          FilledTextButton(
-            text: AppLocalizations.of(
-              context,
-            )!.addPlaceholder(AppLocalizations.of(context)!.flowItem),
-            trailingIcon: Icons.chevron_right,
-            isDiscrete: true,
-            onPressed: () {
-              final flow = context.read<FlowItemProvider>();
-
-              Navigator.of(context).pop();
-              nav.push(
-                () => FlowItemEditor(
-                  flowID: -1,
-                  playlistID: playlistID,
-                  canEdit: true,
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
+      child: Container(
+        padding: const EdgeInsets.all(16.0),
+        color: colorScheme.surface,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: 8,
+          children: [
+            // HEADER
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  AppLocalizations.of(context)!.quickAction,
+                  style: textTheme.titleMedium,
+                  textAlign: TextAlign.center,
                 ),
-                changeDetector: () => flow.hasUnsavedChanges,
-                onChangeDiscarded: () => flow.removeFromCache(-1),
-                showBottomNavBar: true,
-              );
-            },
-          ),
-          SizedBox(),
-        ],
+                IconButton(
+                  icon: Icon(
+                    Icons.close,
+                    color: colorScheme.onSurface,
+                    size: 32,
+                  ),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ],
+            ),
+            // ACTIONS
+            // ADD SONG TO PLAYLIST
+            FilledTextButton(
+              text: AppLocalizations.of(
+                context,
+              )!.addPlaceholder(AppLocalizations.of(context)!.cipher),
+              trailingIcon: Icons.chevron_right,
+              isDiscrete: true,
+              onPressed: () {
+                // Enable selection mode
+                sel.enableSelectionMode();
+                sel.setTarget(playlistID);
+
+                // Close the bottom sheet
+                Navigator.of(context).pop();
+
+                // Navigate to Cipher Library Screen
+                nav.push(
+                  () => CipherLibraryScreen(),
+                  showBottomNavBar: true,
+                  onPopCallback: () {
+                    // Disable selection mode when returning
+                    sel.disableSelectionMode();
+                    sel.clearTarget();
+                  },
+                );
+              },
+            ),
+            // ADD FLOW ITEM TO PLAYLIST
+            FilledTextButton(
+              text: AppLocalizations.of(
+                context,
+              )!.addPlaceholder(AppLocalizations.of(context)!.flowItem),
+              trailingIcon: Icons.chevron_right,
+              isDiscrete: true,
+              onPressed: () {
+                final flow = context.read<FlowItemProvider>();
+
+                Navigator.of(context).pop();
+                nav.push(
+                  () => FlowItemEditor(
+                    flowID: -1,
+                    playlistID: playlistID,
+                    canEdit: true,
+                  ),
+                  changeDetector: () => flow.hasUnsavedChanges,
+                  onChangeDiscarded: () => flow.removeFromCache(-1),
+                  showBottomNavBar: true,
+                );
+              },
+            ),
+            SizedBox(),
+          ],
+        ),
       ),
     );
   }

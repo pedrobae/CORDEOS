@@ -26,75 +26,82 @@ class SelectVersionSheet extends StatelessWidget {
 
     final title = ciph.getCipher(cipherId)?.title;
 
-    return Container(
-      padding: const EdgeInsets.all(16.0),
-      color: colorScheme.surface,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        spacing: 8,
-        children: [
-          // HEADER
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    AppLocalizations.of(
-                      context,
-                    )!.selectPlaceholder(AppLocalizations.of(context)!.version),
-                    style: textTheme.titleMedium,
-                  ),
-                  if (title != null)
-                    Text(title, style: textTheme.titleSmall)
-                  else
-                    Center(child: CircularProgressIndicator()),
-                ],
-              ),
-              IconButton(
-                icon: Icon(Icons.close, color: colorScheme.onSurface, size: 32),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
-          ),
-          // VERSIONS
-          ...localVer.getVersionsByCipherId(cipherId).map((versionID) {
-            return Builder(
-              builder: (context) {
-                final version = localVer.getVersion(versionID);
-                if (version == null) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                return FilledTextButton(
-                  text: version.versionName,
-                  trailingIcon: Icons.chevron_right,
-                  isDiscrete: true,
-                  onPressed: () {
-                    final sect = context.read<SectionProvider>();
-                    final token = context.read<TokenProvider>();
-
-                    sect.loadSectionsOfVersion(versionID);
-                    Navigator.of(context).pop(); // Close the bottom sheet
-                    nav.push(
-                      () => ViewCipherScreen(
-                        versionType: VersionType.local,
-                        cipherID: cipherId,
-                        versionID: versionID,
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
+      child: Container(
+        padding: const EdgeInsets.all(16.0),
+        color: colorScheme.surface,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: 8,
+          children: [
+            // HEADER
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      AppLocalizations.of(context)!.selectPlaceholder(
+                        AppLocalizations.of(context)!.version,
                       ),
-                      onPopCallback: () {
-                        token.clear();
-                      },
-                      showBottomNavBar: true,
-                    );
-                  },
-                );
-              },
-            );
-          }),
-          SizedBox(),
-        ],
+                      style: textTheme.titleMedium,
+                    ),
+                    if (title != null)
+                      Text(title, style: textTheme.titleSmall)
+                    else
+                      Center(child: CircularProgressIndicator()),
+                  ],
+                ),
+                IconButton(
+                  icon: Icon(
+                    Icons.close,
+                    color: colorScheme.onSurface,
+                    size: 32,
+                  ),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ],
+            ),
+            // VERSIONS
+            ...localVer.getVersionsByCipherId(cipherId).map((versionID) {
+              return Builder(
+                builder: (context) {
+                  final version = localVer.getVersion(versionID);
+                  if (version == null) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  return FilledTextButton(
+                    text: version.versionName,
+                    trailingIcon: Icons.chevron_right,
+                    isDiscrete: true,
+                    onPressed: () {
+                      final sect = context.read<SectionProvider>();
+                      final token = context.read<TokenProvider>();
+
+                      sect.loadSectionsOfVersion(versionID);
+                      Navigator.of(context).pop(); // Close the bottom sheet
+                      nav.push(
+                        () => ViewCipherScreen(
+                          versionType: VersionType.local,
+                          cipherID: cipherId,
+                          versionID: versionID,
+                        ),
+                        onPopCallback: () {
+                          token.clear();
+                        },
+                        showBottomNavBar: true,
+                      );
+                    },
+                  );
+                },
+              );
+            }),
+            SizedBox(),
+          ],
+        ),
       ),
     );
   }

@@ -22,58 +22,63 @@ class _ContentFiltersState extends State<ContentFilters> {
 
     return Consumer<LayoutSetProvider>(
       builder: (context, settings, child) {
-        return Container(
-          decoration: BoxDecoration(
-            color: colorScheme.surface,
-            borderRadius: BorderRadius.circular(0),
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).padding.bottom,
           ),
-          padding: EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            spacing: 16,
-            children: [
-              // HEADER
-              Row(
-                children: [
-                  Text(l10n.contentFilters, style: textTheme.titleMedium),
-                  Spacer(),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                ],
-              ),
+          child: Container(
+            decoration: BoxDecoration(
+              color: colorScheme.surface,
+              borderRadius: BorderRadius.circular(0),
+            ),
+            padding: EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              spacing: 16,
+              children: [
+                // HEADER
+                Row(
+                  children: [
+                    Text(l10n.contentFilters, style: textTheme.titleMedium),
+                    Spacer(),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ],
+                ),
 
-              // FILTERS
-              _buildChordSettings(context),
+                // FILTERS
+                _buildChordSettings(context),
 
-              _buildFilterToggle(
-                textTheme,
-                label: l10n.repeatSections,
-                value: settings.showRepeatSections,
-                onChanged: (_) async => await settings.toggleRepeatSections(),
-              ),
-              _buildFilterToggle(
-                textTheme,
-                label: l10n.notes,
-                value: settings.showAnnotations,
-                onChanged: (_) async => await settings.toggleAnnotations(),
-              ),
-              _buildFilterToggle(
-                textTheme,
-                label: l10n.transitions,
-                value: settings.showTransitions,
-                onChanged: (_) async => await settings.toggleTransitions(),
-              ),
-              _buildFilterToggle(
-                textTheme,
-                label: l10n.lyrics,
-                value: settings.showLyrics,
-                onChanged: (_) async => await settings.toggleLyrics(),
-              ),
-              SizedBox(),
-            ],
+                _buildFilterToggle(
+                  textTheme,
+                  label: l10n.repeatSections,
+                  value: settings.showRepeatSections,
+                  onChanged: (_) async => await settings.toggleRepeatSections(),
+                ),
+                _buildFilterToggle(
+                  textTheme,
+                  label: l10n.notes,
+                  value: settings.showAnnotations,
+                  onChanged: (_) async => await settings.toggleAnnotations(),
+                ),
+                _buildFilterToggle(
+                  textTheme,
+                  label: l10n.transitions,
+                  value: settings.showTransitions,
+                  onChanged: (_) async => await settings.toggleTransitions(),
+                ),
+                _buildFilterToggle(
+                  textTheme,
+                  label: l10n.lyrics,
+                  value: settings.showLyrics,
+                  onChanged: (_) async => await settings.toggleLyrics(),
+                ),
+                SizedBox(),
+              ],
+            ),
           ),
         );
       },

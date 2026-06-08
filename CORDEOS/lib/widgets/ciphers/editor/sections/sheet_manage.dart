@@ -65,121 +65,126 @@ class _ManageSheetState extends State<ManageSheet> {
           return Center(child: CircularProgressIndicator());
         }
 
-        return Container(
-          decoration: BoxDecoration(
-            color: colorScheme.surface,
-            borderRadius: BorderRadius.circular(0),
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).padding.bottom,
           ),
-          padding: const EdgeInsets.only(
-            bottom: 24,
-            left: 16,
-            right: 16,
-            top: 16,
-          ),
-          child: Column(
-            spacing: 16,
-            children: [
-              // HEADER
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(height: 8),
-                      Text(
-                        l10n.managePlaceholder(l10n.songStructure),
-                        style: textTheme.titleMedium,
-                      ),
-                    ],
-                  ),
-                  IconButton(
-                    padding: EdgeInsets.zero,
-                    alignment: Alignment.topRight,
-                    visualDensity: VisualDensity.compact,
-                    icon: const Icon(Icons.close),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                ],
-              ),
-
-              // REORDERABLE STRUCTURE
-              ReorderableStructure(
-                versionID: widget.versionID,
-                onInit: (scrollToEnd) {
-                  _scrollToEnd = scrollToEnd;
-                },
-              ),
-
-              // ADD SECTION BUTTONS
-              Expanded(
-                child: ListView(
+          child: Container(
+            decoration: BoxDecoration(
+              color: colorScheme.surface,
+              borderRadius: BorderRadius.circular(0),
+            ),
+            padding: const EdgeInsets.only(
+              bottom: 24,
+              left: 16,
+              right: 16,
+              top: 16,
+            ),
+            child: Column(
+              spacing: 16,
+              children: [
+                // HEADER
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildAnnotationSection(),
-                    for (var key in s.sectionIDs)
-                      Builder(
-                        builder: (context) {
-                          final badgeData = s.badgesData[key]!;
-
-                          return GestureDetector(
-                            onTap: () {
-                              localVer.addSectionToStruct(
-                                widget.versionID,
-                                key,
-                              );
-                              if (_scrollToEnd != null) {
-                                WidgetsBinding.instance.addPostFrameCallback((
-                                  _,
-                                ) {
-                                  _scrollToEnd!();
-                                });
-                              }
-                            },
-                            child: Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(4),
-                                border: Border.all(
-                                  color: colorScheme.surfaceContainerHigh,
-                                  width: 1,
-                                ),
-                              ),
-                              padding: EdgeInsets.all(16),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                spacing: 8,
-                                children: [
-                                  Container(
-                                    height: 32,
-                                    width: 32,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: badgeData.color,
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: Text(
-                                      '${badgeData.code} - ${badgeData.type.localizedLabel(context)}',
-                                      style: textTheme.bodyLarge,
-                                    ),
-                                  ),
-                                  Icon(
-                                    Icons.chevron_right,
-                                    color: colorScheme.shadow,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(height: 8),
+                        Text(
+                          l10n.managePlaceholder(l10n.songStructure),
+                          style: textTheme.titleMedium,
+                        ),
+                      ],
+                    ),
+                    IconButton(
+                      padding: EdgeInsets.zero,
+                      alignment: Alignment.topRight,
+                      visualDensity: VisualDensity.compact,
+                      icon: const Icon(Icons.close),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
                   ],
                 ),
-              ),
-            ],
+
+                // REORDERABLE STRUCTURE
+                ReorderableStructure(
+                  versionID: widget.versionID,
+                  onInit: (scrollToEnd) {
+                    _scrollToEnd = scrollToEnd;
+                  },
+                ),
+
+                // ADD SECTION BUTTONS
+                Expanded(
+                  child: ListView(
+                    children: [
+                      _buildAnnotationSection(),
+                      for (var key in s.sectionIDs)
+                        Builder(
+                          builder: (context) {
+                            final badgeData = s.badgesData[key]!;
+
+                            return GestureDetector(
+                              onTap: () {
+                                localVer.addSectionToStruct(
+                                  widget.versionID,
+                                  key,
+                                );
+                                if (_scrollToEnd != null) {
+                                  WidgetsBinding.instance.addPostFrameCallback((
+                                    _,
+                                  ) {
+                                    _scrollToEnd!();
+                                  });
+                                }
+                              },
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(
+                                    color: colorScheme.surfaceContainerHigh,
+                                    width: 1,
+                                  ),
+                                ),
+                                padding: EdgeInsets.all(16),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  spacing: 8,
+                                  children: [
+                                    Container(
+                                      height: 32,
+                                      width: 32,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: badgeData.color,
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Text(
+                                        '${badgeData.code} - ${badgeData.type.localizedLabel(context)}',
+                                        style: textTheme.bodyLarge,
+                                      ),
+                                    ),
+                                    Icon(
+                                      Icons.chevron_right,
+                                      color: colorScheme.shadow,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
