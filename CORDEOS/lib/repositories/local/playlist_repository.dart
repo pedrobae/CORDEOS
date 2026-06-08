@@ -169,9 +169,7 @@ class PlaylistRepository {
       // Clear position indexes
       int pos = -1;
       for (final item in items) {
-        if (item.id >= 0) {
-          _updateItemPosition(txn, item, pos);
-        }
+        _updateItemPosition(txn, item, pos);
         pos--;
       }
       pos = 0;

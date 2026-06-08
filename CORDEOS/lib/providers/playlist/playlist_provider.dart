@@ -135,8 +135,7 @@ class PlaylistProvider extends ChangeNotifier {
       _error = e.toString();
       debugPrint("PLAYLIST PROVIDER - error loading playlist - $e");
     } finally {
-    debugPrint("PLAYLIST PROVIDER - loaded playlist $id");
-
+      debugPrint("PLAYLIST PROVIDER - loaded playlist $id");
       notifyListeners();
     }
   }

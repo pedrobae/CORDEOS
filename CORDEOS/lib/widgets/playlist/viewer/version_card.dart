@@ -85,9 +85,9 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
 
     final nav = context.read<NavigationProvider>();
 
@@ -98,10 +98,10 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard>
       SectionProvider,
       ({
         int? cipherID,
-        String? title,
-        String? musicKey,
-        String? duration,
-        String? bpm,
+        String title,
+        String musicKey,
+        Duration duration,
+        int bpm,
         Map<int, SectionBadgeData> badgesData,
         List<int>? songStructure,
         List<String>? links,
@@ -127,10 +127,8 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard>
                 versionDto.overwriteKey ??
                 versionDto.transposedKey ??
                 versionDto.originalKey,
-            duration: DateTimeUtils.formatDuration(
-              Duration(seconds: versionDto.duration),
-            ),
-            bpm: versionDto.bpm.toString(),
+            duration: Duration(seconds: versionDto.duration),
+            bpm: versionDto.bpm,
             badgesData: getSectionBadges(sectionTypes),
             songStructure: versionDto.songStructure,
             links: versionDto.links,
@@ -156,12 +154,10 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard>
         }
         return (
           cipherID: cipher?.id,
-          title: cipher?.title,
-          musicKey: version?.transposedKey ?? cipher?.musicKey,
-          duration: (version != null)
-              ? DateTimeUtils.formatDuration(version.duration)
-              : null,
-          bpm: (version != null) ? version.bpm.toString() : null,
+          title: cipher?.title ?? '',
+          musicKey: version?.transposedKey ?? cipher?.musicKey ?? '',
+          duration: (version != null) ? version.duration : Duration.zero,
+          bpm: (version != null) ? version.bpm : 0,
           badgesData: getSectionBadges(sectionTypes),
           songStructure: songStructure,
           links: cipher?.links,
@@ -234,34 +230,31 @@ class _PlaylistVersionCardState extends State<PlaylistVersionCard>
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    s.title!,
+                                    s.title,
                                     style: textTheme.titleMedium,
                                     softWrap: true,
                                   ),
                                   Wrap(
                                     spacing: 8,
                                     children: [
-                                      Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Text(
-                                            '${AppLocalizations.of(context)!.musicKey}: ',
-                                            style: textTheme.bodyMedium,
-                                          ),
-                                          Text(
-                                            s.musicKey!,
-                                            style: textTheme.bodyMedium,
-                                          ),
-                                        ],
-                                      ),
                                       Text(
-                                        '${AppLocalizations.of(context)!.bpm}: ${s.bpm == '0' ? '-' : s.bpm}',
+                                        l10n.keyWithPlaceholder(s.musicKey),
                                         style: textTheme.bodyMedium,
                                       ),
-                                      Text(
-                                        s.duration!,
-                                        style: textTheme.bodyMedium,
-                                      ),
+                                      if (s.bpm != 0)
+                                        Text(
+                                          l10n.bpmWithPlaceholder(s.bpm),
+                                          style: textTheme.bodyMedium,
+                                        ),
+                                      if (s.duration != Duration.zero)
+                                        Text(
+                                          l10n.durationWithPlaceholder(
+                                            DateTimeUtils.formatDuration(
+                                              s.duration,
+                                            ),
+                                          ),
+                                          style: textTheme.bodyMedium,
+                                        ),
                                     ],
                                   ),
                                 ],
