@@ -1477,7 +1477,7 @@
       "bpm": {}
     }
   },
-  "durationWithPlaceholder": "Duração: {duration}",
+  "durationWithPlaceholder": "Dur: {duration}",
   "@durationWithPlaceholder": {
     "description": "Label for the duration with placeholder",
     "placeholders": {

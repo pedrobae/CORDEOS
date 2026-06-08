@@ -1140,7 +1140,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String durationWithPlaceholder(Object duration) {
-    return 'Duration: $duration';
+    return 'Dur: $duration';
   }
 
   @override

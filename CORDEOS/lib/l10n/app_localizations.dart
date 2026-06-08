@@ -2147,7 +2147,7 @@ abstract class AppLocalizations {
   /// Label for the duration with placeholder
   ///
   /// In pt, this message translates to:
-  /// **'Duração: {duration}'**
+  /// **'Dur: {duration}'**
   String durationWithPlaceholder(Object duration);
 
   /// Label for the music key with placeholder

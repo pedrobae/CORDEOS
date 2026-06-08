@@ -26,6 +26,7 @@ class PlaylistCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
 
     final sel = context.read<SelectionProvider>();
     final nav = context.read<NavigationProvider>();
@@ -112,16 +113,20 @@ class PlaylistCard extends StatelessWidget {
                           children: [
                             Text(
                               itemCount != 1
-                                  ? '$itemCount ${AppLocalizations.of(context)!.pluralPlaceholder(
-                                      AppLocalizations.of(context)!.item, //
+                                  ? '$itemCount ${l10n.pluralPlaceholder(
+                                      l10n.item, //
                                     )}'
-                                  : '$itemCount ${AppLocalizations.of(context)!.item}',
+                                  : '$itemCount ${l10n.item}',
                               style: textTheme.bodyMedium,
                             ),
                             itemCount > 0
                                 ? Text(
                                     playlist.getTotalDuration() != Duration.zero
-                                        ? '${AppLocalizations.of(context)!.duration}: ${DateTimeUtils.formatDuration(playlist.getTotalDuration())}'
+                                        ? l10n.durationWithPlaceholder(
+                                            DateTimeUtils.formatDuration(
+                                              playlist.getTotalDuration(),
+                                            ),
+                                          )
                                         : '',
                                     style: textTheme.bodyMedium,
                                   )

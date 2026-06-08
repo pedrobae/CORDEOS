@@ -1144,7 +1144,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String durationWithPlaceholder(Object duration) {
-    return 'Duração: $duration';
+    return 'Dur: $duration';
   }
 
   @override
