@@ -199,7 +199,6 @@ class SectionProvider extends ChangeNotifier {
     section.contentText = newContentText ?? section.contentText;
 
     _hasUnsavedChanges = true;
-    notifyListeners();
   }
 
   /// ===== DELETE =====
@@ -285,5 +284,10 @@ class SectionProvider extends ChangeNotifier {
       key++;
     }
     return key;
+  }
+
+  // Notifies listeners
+  void callListeners() {
+    notifyListeners();
   }
 }

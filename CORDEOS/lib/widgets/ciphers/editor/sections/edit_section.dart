@@ -263,6 +263,13 @@ class _EditSectionScreenState extends State<EditSectionScreen> {
       versionKey: widget.versionID,
       sectionKey: widget.sectionKey,
     );
+
+    if (widget.isNewSection) {
+      context.read<LocalVersionProvider>().addSectionToStruct(
+        widget.versionID,
+        widget.sectionKey,
+      );
+    }
   }
 
   void _deleteSection() {

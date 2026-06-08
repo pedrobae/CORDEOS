@@ -45,6 +45,7 @@ class CloudCipherCard extends StatelessWidget {
           return (Center(child: CircularProgressIndicator()));
         }
 
+        final dto = s.dto!;
         return GestureDetector(
           onTap: () {
             final token = context.read<TokenProvider>();
@@ -91,31 +92,32 @@ class CloudCipherCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // TITLE
-                          Text(s.dto!.title, style: textTheme.titleMedium),
+                          Text(dto.title, style: textTheme.titleMedium),
 
                           // INFO
                           Row(
                             spacing: 8.0,
                             children: [
                               Text(
-                                '${l10n.musicKey}: ${s.dto!.transposedKey ?? s.dto!.originalKey}',
+                                l10n.keyWithPlaceholder(
+                                  dto.transposedKey ?? dto.originalKey,
+                                ),
                                 style: textTheme.bodyMedium,
                               ),
-                              if (s.dto!.bpm != 0)
+                              if (dto.bpm != 0)
                                 Text(
-                                  AppLocalizations.of(
-                                    context,
-                                  )!.bpmWithPlaceholder(s.dto!.bpm.toString()),
+                                  l10n.bpmWithPlaceholder(dto.bpm.toString()),
                                   style: textTheme.bodyMedium,
                                 ),
-                              Text(
-                                l10n.durationWithPlaceholder(
-                                  DateTimeUtils.formatDuration(
-                                    Duration(seconds: s.dto!.duration),
+                              if (dto.duration > 0)
+                                Text(
+                                  l10n.durationWithPlaceholder(
+                                    DateTimeUtils.formatDuration(
+                                      Duration(seconds: dto.duration),
+                                    ),
                                   ),
+                                  style: textTheme.bodyMedium,
                                 ),
-                                style: textTheme.bodyMedium,
-                              ),
                             ],
                           ),
                         ],

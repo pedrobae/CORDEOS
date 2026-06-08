@@ -77,6 +77,7 @@ class _TokenContentCardState extends State<TokenContentCard> {
         widget.sectionKey,
         newContentText: updatedContent,
       );
+      sect.callListeners();
     };
   }
 
@@ -101,6 +102,7 @@ class _TokenContentCardState extends State<TokenContentCard> {
         widget.sectionKey,
         newContentText: updatedContent,
       );
+      sect.callListeners();
     };
   }
 
