@@ -44,21 +44,16 @@ class ParsingServiceBase {
     return VersionDto(
       sections: result.parsedSections,
       songStructure: result.songStructure,
-      bpm: result.metadata['bpm'] ?? 0,
-      versionName: 'Imported',
-      duration: result.metadata['duration'] ?? 0,
-      title: result.metadata['title'] ?? 'Unknown Title',
-      author: result.metadata['author'] ?? 'Unknown Author',
-      language: result.metadata['language'] ?? '',
-      originalKey: result.metadata['key'] ?? '',
-      links: result.metadata['links'] != null
-          ? List<String>.from(result.metadata['tags'])
-          : [],
-      notes: result.metadata['annotations'],
-
-      tags: result.metadata['tags'] != null
-          ? List<String>.from(result.metadata['tags'])
-          : [],
+      bpm: result.metadata.bpm ?? 0,
+      versionName: result.metadata.versionName ?? 'Imported',
+      duration: result.metadata.duration ?? 0,
+      title: result.metadata.title ?? 'Unknown Title',
+      author: result.metadata.author ?? 'Unknown Author',
+      language: result.metadata.language ?? '',
+      originalKey: result.metadata.key ?? '',
+      links: List<String>.from(result.metadata.links),
+      notes: result.metadata.annotations,
+      tags: List<String>.from(result.metadata.tags),
     );
   }
 }

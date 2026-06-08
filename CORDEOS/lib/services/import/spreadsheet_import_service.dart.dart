@@ -6,6 +6,7 @@ enum Field {
   content,
   title,
   author,
+  versionName,
   key,
   bpm,
   duration,
@@ -33,6 +34,8 @@ extension FieldMethods on Field {
           'escritor',
           'compositor',
         ];
+      case Field.versionName:
+        return ['versão', 'version', 'versao'];
       case Field.key:
         return ['tom', 'key', 'music key'];
       case Field.bpm:
@@ -44,7 +47,7 @@ extension FieldMethods on Field {
       case Field.tags:
         return ['tags'];
       case Field.links:
-        return ['links'];
+        return ['links', 'link'];
       case Field.annotations:
         return ['annotations', 'anotações', 'notas', 'notes', 'anotacoes'];
     }
@@ -54,6 +57,7 @@ extension FieldMethods on Field {
 class SpreadsheetLine {
   final String content;
   final String title;
+  String? versionName;
   String? author;
   String? key;
   int? bpm;
@@ -66,6 +70,7 @@ class SpreadsheetLine {
   SpreadsheetLine({
     required this.content,
     required this.title,
+    this.versionName,
     this.author,
     this.key,
     this.bpm,
@@ -75,18 +80,6 @@ class SpreadsheetLine {
     this.links = const [],
     this.annotations,
   });
-
-  Map<String, dynamic> get metadata => {
-    'title': title,
-    'author': author,
-    'key': key,
-    'bpm': bpm,
-    'duration': duration,
-    'language': language,
-    'tags': tags,
-    'links': links,
-    'annotations': annotations,
-  };
 }
 
 class SpreadsheetImportService {
@@ -141,6 +134,11 @@ class SpreadsheetImportService {
                       .elementAt(fieldIdx[field]!)
                       ?.value
                       .toString();
+                  break;
+                case Field.versionName:
+                  line.versionName =
+                      row.elementAt(fieldIdx[field]!)?.value.toString() ??
+                      'Imported';
                   break;
                 case Field.key:
                   line.key = row.elementAt(fieldIdx[field]!)?.value.toString();

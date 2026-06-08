@@ -84,7 +84,7 @@ class ImportProvider extends ChangeNotifier {
 
     final nameList = pdfDocument.documentName.split('.');
     nameList.removeLast();
-    import.result.metadata['title'] = nameList.join();
+    import.result.metadata.title = nameList.join();
     // remove file extension
 
     final importedLines = pdfDocument.lines;
@@ -107,7 +107,7 @@ class ImportProvider extends ChangeNotifier {
         ),
         importType: ImportType.spreadSheet,
       );
-      import.result.metadata.addAll(sheetLine.metadata);
+      import.result.metadata.fromSpreadSheetLine(sheetLine);
       final rawLines = sheetLine.content.split('\n');
       for (var i = 0; i < rawLines.length; i++) {
         var sheetLine = rawLines[i];

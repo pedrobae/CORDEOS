@@ -1,6 +1,7 @@
 import 'package:cordeos/l10n/app_localizations.dart';
 import 'package:cordeos/models/dtos/pdf_dto.dart';
 import 'package:cordeos/models/dtos/version_dto.dart';
+import 'package:cordeos/services/import/spreadsheet_import_service.dart.dart';
 import 'package:flutter/material.dart';
 
 enum ImportType { text, pdf, image, spreadSheet }
@@ -70,7 +71,7 @@ class ParsingResult {
   final String rawText;
 
   final List<LineData> lines = [];
-  final Map<String, dynamic> metadata = {};
+  final Metadata metadata = Metadata();
   final List<RawSection> rawSections = [];
   final Map<int, SectionDto> parsedSections = {};
   final List<int> songStructure = [];
@@ -82,6 +83,45 @@ class ParsingResult {
 
   /// Get the number of sections found
   int get sectionCount => parsedSections.length;
+}
+
+class Metadata {
+  String? title;
+  String? versionName;
+  String? author;
+  String? key;
+  int? bpm;
+  int? duration;
+  String? language;
+  List<String> tags;
+  List<String> links;
+  String? annotations;
+
+  Metadata({
+    this.title,
+    this.versionName,
+    this.author,
+    this.key,
+    this.bpm,
+    this.duration,
+    this.language,
+    this.tags = const [],
+    this.links = const [],
+    this.annotations,
+  });
+
+  void fromSpreadSheetLine(SpreadsheetLine line) {
+    title = line.title;
+    versionName = line.versionName;
+    author = line.author;
+    key = line.key;
+    bpm = line.bpm;
+    duration = line.duration;
+    language = line.language;
+    tags = line.tags;
+    links = line.links;
+    annotations = line.annotations;
+  }
 }
 
 /// Main cipher parsing container that holds imported text and all import variants
