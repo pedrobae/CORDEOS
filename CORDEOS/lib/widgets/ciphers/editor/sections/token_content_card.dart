@@ -352,135 +352,142 @@ class _TokenContentCardState extends State<TokenContentCard> {
     showModalBottomSheet(
       context: context,
       builder: (context) {
-        return Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: colorScheme.surface,
-            borderRadius: BorderRadius.circular(0),
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).padding.bottom,
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            spacing: 8,
-            children: [
-              // HEADER
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    AppLocalizations.of(context)!.quickAction,
-                    style: textTheme.titleMedium,
-                  ),
-                  CloseButton(onPressed: () => Navigator.pop(context)),
-                ],
-              ),
-
-              // ACTIONS
-              // edit
-              FilledTextButton(
-                text: AppLocalizations.of(context)!.editPlaceholder(''),
-                trailingIcon: Icons.chevron_right,
-                isDiscrete: true,
-                onPressed: () {
-                  final nav = context.read<NavigationProvider>();
-                  final sect = context.read<SectionProvider>();
-
-                  Navigator.pop(context); // Close the bottom sheet
-                  nav.push(
-                    () => EditSectionScreen(
-                      versionID: widget.versionID,
-                      sectionKey: widget.sectionKey,
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: colorScheme.surface,
+              borderRadius: BorderRadius.circular(0),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              spacing: 8,
+              children: [
+                // HEADER
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      AppLocalizations.of(context)!.quickAction,
+                      style: textTheme.titleMedium,
                     ),
-                    showBottomNavBar: true,
-                    onChangeDiscarded: () =>
-                        sect.loadSection(widget.versionID, widget.sectionKey),
-                    changeDetector: () {
-                      return sect.hasUnsavedChanges;
-                    },
-                  );
-                },
-              ),
-              // merge
-              FilledTextButton(
-                text: AppLocalizations.of(context)!.mergePlaceholder(''),
-                trailingIcon: Icons.chevron_right,
-                isDiscrete: true,
-                onPressed: () {
-                  Navigator.pop(context); // Close the bottom sheet
-                  final state = context.read<EditSectionsStateProvider>();
-                  state.enableMergeOverlay();
-                  state.toggleMergeSection(widget.sectionKey);
-                },
-              ),
-              // create copy
-              FilledTextButton(
-                text: AppLocalizations.of(context)!.copySection,
-                trailingIcon: Icons.chevron_right,
-                tooltip: AppLocalizations.of(context)!.copySectionTooltip,
-                isDiscrete: true,
-                onPressed: () {
-                  Navigator.pop(context); // Close the bottom sheet
-                  final sect = context.read<SectionProvider>();
-                  final newKey = sect.cacheCopyOfSection(
-                    versionId: widget.versionID,
-                    sectionKey: widget.sectionKey,
-                  );
-                  if (newKey != null) {
+                    CloseButton(onPressed: () => Navigator.pop(context)),
+                  ],
+                ),
+
+                // ACTIONS
+                // edit
+                FilledTextButton(
+                  text: AppLocalizations.of(context)!.editPlaceholder(''),
+                  trailingIcon: Icons.chevron_right,
+                  isDiscrete: true,
+                  onPressed: () {
+                    final nav = context.read<NavigationProvider>();
+                    final sect = context.read<SectionProvider>();
+
+                    Navigator.pop(context); // Close the bottom sheet
+                    nav.push(
+                      () => EditSectionScreen(
+                        versionID: widget.versionID,
+                        sectionKey: widget.sectionKey,
+                      ),
+                      showBottomNavBar: true,
+                      onChangeDiscarded: () =>
+                          sect.loadSection(widget.versionID, widget.sectionKey),
+                      changeDetector: () {
+                        return sect.hasUnsavedChanges;
+                      },
+                    );
+                  },
+                ),
+                // merge
+                FilledTextButton(
+                  text: AppLocalizations.of(context)!.mergePlaceholder(''),
+                  trailingIcon: Icons.chevron_right,
+                  isDiscrete: true,
+                  onPressed: () {
+                    Navigator.pop(context); // Close the bottom sheet
+                    final state = context.read<EditSectionsStateProvider>();
+                    state.enableMergeOverlay();
+                    state.toggleMergeSection(widget.sectionKey);
+                  },
+                ),
+                // create copy
+                FilledTextButton(
+                  text: AppLocalizations.of(context)!.copySection,
+                  trailingIcon: Icons.chevron_right,
+                  tooltip: AppLocalizations.of(context)!.copySectionTooltip,
+                  isDiscrete: true,
+                  onPressed: () {
+                    Navigator.pop(context); // Close the bottom sheet
+                    final sect = context.read<SectionProvider>();
+                    final newKey = sect.cacheCopyOfSection(
+                      versionId: widget.versionID,
+                      sectionKey: widget.sectionKey,
+                    );
+                    if (newKey != null) {
+                      context.read<LocalVersionProvider>().addSectionToStruct(
+                        widget.versionID,
+                        newKey,
+                      );
+                    }
+                  },
+                ),
+                // duplicate (just to map)
+                FilledTextButton(
+                  text: AppLocalizations.of(context)!.duplicatePlaceholder(
+                    AppLocalizations.of(context)!.section,
+                  ),
+                  trailingIcon: Icons.chevron_right,
+                  tooltip: AppLocalizations.of(
+                    context,
+                  )!.duplicateSectionTooltip,
+                  isDiscrete: true,
+                  onPressed: () {
+                    Navigator.pop(context); // Close the bottom sheet
                     context.read<LocalVersionProvider>().addSectionToStruct(
                       widget.versionID,
-                      newKey,
+                      widget.sectionKey,
                     );
-                  }
-                },
-              ),
-              // duplicate (just to map)
-              FilledTextButton(
-                text: AppLocalizations.of(
-                  context,
-                )!.duplicatePlaceholder(AppLocalizations.of(context)!.section),
-                trailingIcon: Icons.chevron_right,
-                tooltip: AppLocalizations.of(context)!.duplicateSectionTooltip,
-                isDiscrete: true,
-                onPressed: () {
-                  Navigator.pop(context); // Close the bottom sheet
-                  context.read<LocalVersionProvider>().addSectionToStruct(
-                    widget.versionID,
-                    widget.sectionKey,
-                  );
-                },
-              ),
-              // delete
-              FilledTextButton(
-                text: AppLocalizations.of(context)!.delete,
-                trailingIcon: Icons.chevron_right,
-                isDiscrete: true,
-                isDangerous: true,
-                onPressed: () {
-                  showModalBottomSheet(
-                    context: context,
-                    builder: (context) {
-                      return DeleteConfirmationSheet(
-                        itemType: AppLocalizations.of(context)!.section,
-                        onConfirm: () {
-                          context.read<SectionProvider>().cacheDeletion(
-                            widget.versionID,
-                            widget.sectionKey,
-                          );
-                          context
-                              .read<LocalVersionProvider>()
-                              .removeSectionsByKey(
-                                widget.versionID,
-                                widget.sectionKey,
-                              );
-                          Navigator.pop(context); // Close quick actions sheet
-                        },
-                      );
-                    },
-                  );
-                },
-              ),
-              SizedBox(height: 8),
-            ],
+                  },
+                ),
+                // delete
+                FilledTextButton(
+                  text: AppLocalizations.of(context)!.delete,
+                  trailingIcon: Icons.chevron_right,
+                  isDiscrete: true,
+                  isDangerous: true,
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      builder: (context) {
+                        return DeleteConfirmationSheet(
+                          itemType: AppLocalizations.of(context)!.section,
+                          onConfirm: () {
+                            context.read<SectionProvider>().cacheDeletion(
+                              widget.versionID,
+                              widget.sectionKey,
+                            );
+                            context
+                                .read<LocalVersionProvider>()
+                                .removeSectionsByKey(
+                                  widget.versionID,
+                                  widget.sectionKey,
+                                );
+                            Navigator.pop(context); // Close quick actions sheet
+                          },
+                        );
+                      },
+                    );
+                  },
+                ),
+                SizedBox(height: 8),
+              ],
+            ),
           ),
         );
       },
