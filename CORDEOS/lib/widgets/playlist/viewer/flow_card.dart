@@ -1,3 +1,4 @@
+import 'package:cordeos/l10n/app_localizations.dart';
 import 'package:cordeos/models/domain/playlist/flow_item.dart';
 import 'package:flutter/material.dart';
 
@@ -56,6 +57,19 @@ class _FlowItemCardState extends State<FlowItemCard> {
         return widget.flowItem ?? flow.getFlowItem(widget.flowItemID);
       },
       builder: (context, flowItem, child) {
+        if (flowItem == null)
+          return Container(
+            decoration: BoxDecoration(
+              color: colorScheme.surface,
+              borderRadius: BorderRadius.circular(0),
+              border: Border.all(color: colorScheme.surfaceContainerLowest),
+            ),
+            margin: const EdgeInsets.only(bottom: 16),
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Center(child: CircularProgressIndicator()),
+            ),
+          );
         return Container(
           decoration: BoxDecoration(
             color: colorScheme.surface,
@@ -63,92 +77,86 @@ class _FlowItemCardState extends State<FlowItemCard> {
             border: Border.all(color: colorScheme.surfaceContainerLowest),
           ),
           margin: const EdgeInsets.only(bottom: 16),
-          child: (flowItem == null)
-              ? Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Center(child: CircularProgressIndicator()),
-                )
-              : Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    if (widget.canEdit)
-                      CustomReorderableDelayed(
-                        delay: Duration(milliseconds: 100),
-                        index: widget.index,
-                        child: Container(
-                          // Container to paint and enable hitbox for the icon
-                          color: Colors.transparent,
-                          height: 60,
-                          child: Icon(Icons.drag_indicator, size: 30),
-                        ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              if (widget.canEdit)
+                CustomReorderableDelayed(
+                  delay: Duration(milliseconds: 100),
+                  index: widget.index,
+                  child: Container(
+                    // Container to paint and enable hitbox for the icon
+                    color: Colors.transparent,
+                    height: 60,
+                    child: Icon(Icons.drag_indicator, size: 30),
+                  ),
+                ),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    final flow = context.read<FlowItemProvider>();
+                    nav.push(
+                      () => FlowItemEditor(
+                        flowItem: widget.flowItem,
+                        playlistID: widget.playlistID,
+                        flowID: widget.flowItemID,
+                        canEdit: widget.canEdit,
                       ),
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () {
-                          final flow = context.read<FlowItemProvider>();
-                          nav.push(
-                            () => FlowItemEditor(
-                              flowItem: widget.flowItem,
-                              playlistID: widget.playlistID,
-                              flowID: widget.flowItemID,
-                              canEdit: widget.canEdit,
-                            ),
-                            changeDetector: widget.canEdit
-                                ? () => flow.hasUnsavedChanges
-                                : null,
-                            onChangeDiscarded: widget.canEdit
-                                ? () => flow.loadFlowItem(widget.flowItemID)
-                                : null,
-                            showBottomNavBar: true,
-                          );
-                        },
-                        child: Container(
-                          decoration: BoxDecoration(
-                            border: BorderDirectional(
-                              start: BorderSide(
-                                color: colorScheme.surfaceContainerLowest,
-                                width: 1,
-                              ),
-                            ),
-                          ),
-                          padding: const EdgeInsets.all(8),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    flowItem.title,
-                                    style: textTheme.titleMedium,
-                                  ),
-                                  Text(
-                                    DateTimeUtils.formatDuration(
-                                      flowItem.duration,
-                                    ),
-                                    style: textTheme.bodyMedium,
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
+                      changeDetector: () => flow.hasUnsavedChanges,
+                      onChangeDiscarded: () =>
+                          flow.loadFlowItem(widget.flowItemID),
+                      showBottomNavBar: true,
+                    );
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: BorderDirectional(
+                        start: BorderSide(
+                          color: colorScheme.surfaceContainerLowest,
+                          width: 1,
                         ),
                       ),
                     ),
-                    if (widget.canEdit)
-                      GestureDetector(
-                        onTap: () {
-                          _openFlowActionsSheet(context);
-                        },
-                        child: Container(
-                          // Container to paint and enable hitbox for the icon
-                          color: Colors.transparent,
-                          height: 60,
-                          child: Icon(Icons.more_vert_rounded, size: 30),
+                    padding: const EdgeInsets.all(8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(flowItem.title, style: textTheme.titleMedium),
+                            if (flowItem.duration != Duration.zero)
+                              Text(
+                                AppLocalizations.of(
+                                  context,
+                                )!.durationWithPlaceholder(
+                                  DateTimeUtils.formatDuration(
+                                    flowItem.duration,
+                                  ),
+                                ),
+                                style: textTheme.bodyMedium,
+                              ),
+                          ],
                         ),
-                      ),
-                  ],
+                      ],
+                    ),
+                  ),
                 ),
+              ),
+              if (widget.canEdit)
+                GestureDetector(
+                  onTap: () {
+                    _openFlowActionsSheet(context);
+                  },
+                  child: Container(
+                    // Container to paint and enable hitbox for the icon
+                    color: Colors.transparent,
+                    height: 60,
+                    child: Icon(Icons.more_vert_rounded, size: 30),
+                  ),
+                ),
+            ],
+          ),
         );
       },
     );

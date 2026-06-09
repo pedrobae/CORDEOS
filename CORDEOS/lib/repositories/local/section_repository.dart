@@ -10,10 +10,7 @@ class SectionRepository {
   /// Returns the local ID of the inserted section
   Future<int> insertSection(Section section) async {
     final db = await _databaseHelper.database;
-    return await db.insert(
-      'section',
-      section.toSqlite()..['version_id'] = section.versionID,
-    );
+    return await db.insert('section', section.toSqlite());
   }
 
   Future<int> upsertSection(Section section) async {
@@ -36,10 +33,8 @@ class SectionRepository {
       return existing.first['id'] as int;
     } else {
       // Section doesn't exist, insert it
-      return await db.insert(
-        'section',
-        section.toSqlite()..['version_id'] = section.versionID,
-      );
+      final id = await db.insert('section', section.toSqlite());
+      return id;
     }
   }
 

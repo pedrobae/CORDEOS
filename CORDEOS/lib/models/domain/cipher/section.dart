@@ -41,6 +41,7 @@ class Section {
   Map<String, dynamic> toSqlite() {
     return {
       'key': key,
+      'version_id': versionID,
       'content_type': contentType,
       'content_text': contentText,
       'content_color': colorToHex(contentColor),
