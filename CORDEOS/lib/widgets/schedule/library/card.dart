@@ -257,81 +257,86 @@ class _ScheduleCardState extends State<ScheduleCard> {
       context: context,
       isScrollControlled: true,
       builder: (BuildContext context) {
-        return Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(0)),
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).padding.bottom,
           ),
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            spacing: 16,
-            children: [
-              // HEADER
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    AppLocalizations.of(context)!.scheduleActions,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.close),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                ],
-              ),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(0)),
+            ),
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              spacing: 16,
+              children: [
+                // HEADER
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      AppLocalizations.of(context)!.scheduleActions,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.close),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ],
+                ),
 
-              // ACTIONS
-              // duplicate
-              FilledTextButton(
-                text: AppLocalizations.of(context)!.duplicatePlaceholder(''),
-                tooltip: AppLocalizations.of(
-                  context,
-                )!.duplicateTooltip(AppLocalizations.of(context)!.setup),
-                trailingIcon: Icons.chevron_right,
-                onPressed: () {
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    builder: (BuildContext context) {
-                      return Padding(
-                        padding: EdgeInsets.only(
-                          bottom: MediaQuery.of(context).viewInsets.bottom,
-                        ),
-                        child: DuplicateScheduleSheet(
-                          scheduleId: widget.scheduleId,
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
+                // ACTIONS
+                // duplicate
+                FilledTextButton(
+                  text: AppLocalizations.of(context)!.duplicatePlaceholder(''),
+                  tooltip: AppLocalizations.of(
+                    context,
+                  )!.duplicateTooltip(AppLocalizations.of(context)!.setup),
+                  trailingIcon: Icons.chevron_right,
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      builder: (BuildContext context) {
+                        return Padding(
+                          padding: EdgeInsets.only(
+                            bottom: MediaQuery.of(context).viewInsets.bottom,
+                          ),
+                          child: DuplicateScheduleSheet(
+                            scheduleId: widget.scheduleId,
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
 
-              // delete
-              FilledTextButton(
-                text: AppLocalizations.of(context)!.delete,
-                tooltip: AppLocalizations.of(context)!.deleteScheduleTooltip,
-                trailingIcon: Icons.chevron_right,
-                isDangerous: true,
-                onPressed: () {
-                  showModalBottomSheet(
-                    context: context,
-                    builder: (context) {
-                      return DeleteConfirmationSheet(
-                        itemType: AppLocalizations.of(context)!.schedule,
-                        onConfirm: () async {
-                          Navigator.of(context).pop();
-                          await localSch.deleteSchedule(widget.scheduleId);
-                        },
-                      );
-                    },
-                  );
-                },
-              ),
+                // delete
+                FilledTextButton(
+                  text: AppLocalizations.of(context)!.delete,
+                  tooltip: AppLocalizations.of(context)!.deleteScheduleTooltip,
+                  trailingIcon: Icons.chevron_right,
+                  isDangerous: true,
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      builder: (context) {
+                        return DeleteConfirmationSheet(
+                          itemType: AppLocalizations.of(context)!.schedule,
+                          onConfirm: () async {
+                            Navigator.of(context).pop();
+                            await localSch.deleteSchedule(widget.scheduleId);
+                          },
+                        );
+                      },
+                    );
+                  },
+                ),
 
-              SizedBox(),
-            ],
+                SizedBox(),
+              ],
+            ),
           ),
         );
       },

@@ -778,6 +778,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get joinedScheduleSuccessfully => 'Joined schedule successfully!';
 
   @override
+  String get errorAlreadyCollaborator =>
+      'You are already a collaborator on this schedule.';
+
+  @override
+  String get errorShareCodeInvalid =>
+      'The share code is invalid or has expired.';
+
+  @override
+  String get errorScheduleNotFound => 'The schedule was not found.';
+
+  @override
+  String get errorJoiningSchedule =>
+      'Could not join the schedule. Please try again.';
+
+  @override
+  String get errorUnauthenticatedJoin => 'Please sign in to join a schedule.';
+
+  @override
+  String get errorServiceUnavailable =>
+      'Service unavailable. Please try again later.';
+
+  @override
+  String get errorGeneric => 'An error occurred. Please try again.';
+
+  @override
   String get joinSchedule => 'Join Service';
 
   @override

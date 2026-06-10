@@ -780,6 +780,32 @@ class AppLocalizationsPt extends AppLocalizations {
   String get joinedScheduleSuccessfully => 'Ingressou na agenda com sucesso!';
 
   @override
+  String get errorAlreadyCollaborator =>
+      'Você já é um colaborador nesta agenda.';
+
+  @override
+  String get errorShareCodeInvalid =>
+      'O código de compartilhamento é inválido ou expirou.';
+
+  @override
+  String get errorScheduleNotFound => 'A agenda não foi encontrada.';
+
+  @override
+  String get errorJoiningSchedule =>
+      'Não foi possível ingressar na agenda. Tente novamente.';
+
+  @override
+  String get errorUnauthenticatedJoin =>
+      'Por favor, entre para ingressar em uma agenda.';
+
+  @override
+  String get errorServiceUnavailable =>
+      'Serviço indisponível. Tente novamente mais tarde.';
+
+  @override
+  String get errorGeneric => 'Ocorreu um erro. Tente novamente.';
+
+  @override
   String get joinSchedule => 'Participar da Agenda';
 
   @override

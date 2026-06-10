@@ -1005,6 +1005,34 @@
   "@joinedScheduleSuccessfully": {
     "description": "Success message when joining a schedule with a share code"
   },
+  "errorAlreadyCollaborator": "Você já é um colaborador nesta agenda.",
+  "@errorAlreadyCollaborator": {
+    "description": "Error when user tries to join a schedule they're already part of"
+  },
+  "errorShareCodeInvalid": "O código de compartilhamento é inválido ou expirou.",
+  "@errorShareCodeInvalid": {
+    "description": "Error when share code is not found or expired"
+  },
+  "errorScheduleNotFound": "A agenda não foi encontrada.",
+  "@errorScheduleNotFound": {
+    "description": "Error when schedule doesn't exist"
+  },
+  "errorJoiningSchedule": "Não foi possível ingressar na agenda. Tente novamente.",
+  "@errorJoiningSchedule": {
+    "description": "Generic error when joining a schedule fails"
+  },
+  "errorUnauthenticatedJoin": "Por favor, entre para ingressar em uma agenda.",
+  "@errorUnauthenticatedJoin": {
+    "description": "Error when user is not authenticated while trying to join a schedule"
+  },
+  "errorServiceUnavailable": "Serviço indisponível. Tente novamente mais tarde.",
+  "@errorServiceUnavailable": {
+    "description": "Error when Firebase service is unavailable"
+  },
+  "errorGeneric": "Ocorreu um erro. Tente novamente.",
+  "@errorGeneric": {
+    "description": "Generic error fallback message"
+  },
   "joinSchedule": "Participar da Agenda",
   "@joinSchedule": {
     "description": "Share code screen title"

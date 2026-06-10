@@ -1490,6 +1490,48 @@ abstract class AppLocalizations {
   /// **'Ingressou na agenda com sucesso!'**
   String get joinedScheduleSuccessfully;
 
+  /// Error when user tries to join a schedule they're already part of
+  ///
+  /// In pt, this message translates to:
+  /// **'Você já é um colaborador nesta agenda.'**
+  String get errorAlreadyCollaborator;
+
+  /// Error when share code is not found or expired
+  ///
+  /// In pt, this message translates to:
+  /// **'O código de compartilhamento é inválido ou expirou.'**
+  String get errorShareCodeInvalid;
+
+  /// Error when schedule doesn't exist
+  ///
+  /// In pt, this message translates to:
+  /// **'A agenda não foi encontrada.'**
+  String get errorScheduleNotFound;
+
+  /// Generic error when joining a schedule fails
+  ///
+  /// In pt, this message translates to:
+  /// **'Não foi possível ingressar na agenda. Tente novamente.'**
+  String get errorJoiningSchedule;
+
+  /// Error when user is not authenticated while trying to join a schedule
+  ///
+  /// In pt, this message translates to:
+  /// **'Por favor, entre para ingressar em uma agenda.'**
+  String get errorUnauthenticatedJoin;
+
+  /// Error when Firebase service is unavailable
+  ///
+  /// In pt, this message translates to:
+  /// **'Serviço indisponível. Tente novamente mais tarde.'**
+  String get errorServiceUnavailable;
+
+  /// Generic error fallback message
+  ///
+  /// In pt, this message translates to:
+  /// **'Ocorreu um erro. Tente novamente.'**
+  String get errorGeneric;
+
   /// Share code screen title
   ///
   /// In pt, this message translates to:

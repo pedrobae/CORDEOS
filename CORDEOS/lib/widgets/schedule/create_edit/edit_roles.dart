@@ -41,7 +41,7 @@ class _EditRolesState extends State<EditRoles> {
                     List<Role> roles;
                     if (widget.scheduleId is int) {
                       roles = [
-                        ...localSch.getSchedule(widget.scheduleId)!.roles,
+                        ...localSch.getSchedule(widget.scheduleId)?.roles ?? [],
                       ];
                     } else {
                       roles = [];

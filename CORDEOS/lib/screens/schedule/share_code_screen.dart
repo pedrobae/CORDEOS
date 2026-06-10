@@ -81,7 +81,7 @@ class ShareCodeScreenState extends State<ShareCodeScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            cloudSch.error!,
+            cloudSch.getLocalizedError(context),
             textAlign: TextAlign.center,
             style: TextStyle(color: Theme.of(context).colorScheme.error),
           ),
@@ -179,7 +179,7 @@ class ShareCodeScreenState extends State<ShareCodeScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              _cloudSch.error!,
+              _cloudSch.getLocalizedError(context),
             ),
           ),
         );

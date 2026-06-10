@@ -111,9 +111,11 @@ class _ShareScheduleSheetState extends State<ShareScheduleSheet> {
                               copied = true;
                             });
                             Future.delayed(Duration(seconds: 2), () {
-                              setState(() {
-                                copied = false;
-                              });
+                              if (context.mounted) {
+                                setState(() {
+                                  copied = false;
+                                });
+                              }
                             });
                           },
                           isDark: true,

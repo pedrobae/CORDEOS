@@ -5,6 +5,7 @@ import 'package:cordeos/models/dtos/schedule_dto.dart';
 import 'package:cordeos/providers/schedule/local_schedule_provider.dart';
 import 'package:cordeos/repositories/cloud/schedule_repository.dart';
 import 'package:cordeos/services/sync_service.dart';
+import 'package:cordeos/utils/firebase_error_mapper.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -19,6 +20,7 @@ class CloudScheduleProvider extends ChangeNotifier {
   String _searchTerm = '';
 
   String? _error;
+  dynamic _lastException;
 
   bool _isLoading = false;
   bool _isSaving = false;
@@ -74,6 +76,14 @@ class CloudScheduleProvider extends ChangeNotifier {
     return _schedules[scheduleId];
   }
 
+  /// Get localized error message based on the stored exception
+  String getLocalizedError(BuildContext context) {
+    if (_lastException == null) {
+      return _error ?? 'An error occurred';
+    }
+    return FirebaseErrorMapper.mapErrorToUserMessage(context, _lastException);
+  }
+
   // ===== READ =====
   /// Fetches all schedules from the cloud repository (user has to be a collaborator)
   Future<void> loadSchedules(
@@ -85,6 +95,7 @@ class CloudScheduleProvider extends ChangeNotifier {
 
     _isLoading = true;
     _error = null;
+    _lastException = null;
     _schedules.clear();
     notifyListeners();
 
@@ -108,6 +119,7 @@ class CloudScheduleProvider extends ChangeNotifier {
       }
     } catch (e) {
       debugPrint('Error loading schedules: $e');
+      _lastException = e;
       _error = e.toString();
     } finally {
       _isLoading = false;
@@ -155,6 +167,7 @@ class CloudScheduleProvider extends ChangeNotifier {
 
     _isLoading = true;
     _error = null;
+    _lastException = null;
     notifyListeners();
 
     try {
@@ -165,6 +178,7 @@ class CloudScheduleProvider extends ChangeNotifier {
         throw Exception('Schedule not found');
       }
     } catch (e) {
+      _lastException = e;
       _error = e.toString();
     } finally {
       _isLoading = false;
@@ -179,6 +193,7 @@ class CloudScheduleProvider extends ChangeNotifier {
 
     _isSaving = true;
     _error = null;
+    _lastException = null;
     notifyListeners();
 
     try {
@@ -188,6 +203,7 @@ class CloudScheduleProvider extends ChangeNotifier {
 
       _schedules.remove(scheduleId);
     } catch (e) {
+      _lastException = e;
       _error = e.toString();
     } finally {
       _isSaving = false;
@@ -203,11 +219,13 @@ class CloudScheduleProvider extends ChangeNotifier {
     _syncQueue.clear();
     _searchTerm = '';
     _error = null;
+    _lastException = null;
     notifyListeners();
   }
 
   void clearError() {
     _error = null;
+    _lastException = null;
     notifyListeners();
   }
 
@@ -218,11 +236,13 @@ class CloudScheduleProvider extends ChangeNotifier {
 
     _isLoading = true;
     _error = null;
+    _lastException = null;
     notifyListeners();
 
     try {
       success = await _repo.joinWithCode(shareCode);
     } catch (e) {
+      _lastException = e;
       _error = e.toString();
     } finally {
       _isLoading = false;
