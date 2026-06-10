@@ -1,18 +1,21 @@
 import 'package:cordeos/l10n/app_localizations.dart';
+
 import 'package:cordeos/models/dtos/schedule_dto.dart';
-import 'package:cordeos/providers/play/auto_scroll_provider.dart';
+
 import 'package:cordeos/screens/schedule/play.dart';
 import 'package:cordeos/screens/schedule/view.dart';
-import 'package:cordeos/widgets/schedule/status_chip.dart';
+
 import 'package:flutter/services.dart';
 
 import 'package:provider/provider.dart';
+import 'package:cordeos/providers/play/auto_scroll_provider.dart';
 import 'package:cordeos/providers/user/my_auth_provider.dart';
 import 'package:cordeos/providers/navigation_provider.dart';
 import 'package:cordeos/providers/schedule/cloud_schedule_provider.dart';
 
 import 'package:cordeos/utils/date_utils.dart';
 
+import 'package:cordeos/widgets/schedule/status_chip.dart';
 import 'package:cordeos/widgets/common/delete_confirmation.dart';
 import 'package:cordeos/widgets/common/filled_text_button.dart';
 import 'package:cordeos/widgets/schedule/library/sheet_duplicate.dart';
@@ -99,9 +102,7 @@ class CloudScheduleCard extends StatelessWidget {
                                       style: theme.textTheme.titleMedium,
                                       softWrap: true,
                                     ),
-                                    StatusChip(
-                                      status: schedule.scheduleState,
-                                    ),
+                                    StatusChip(status: schedule.scheduleState),
                                   ],
                                 ),
 
@@ -195,70 +196,77 @@ class CloudScheduleCard extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       builder: (BuildContext context) {
-        return Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(0)),
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).padding.bottom,
           ),
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            spacing: 8,
-            children: [
-              // HEADER
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    AppLocalizations.of(context)!.scheduleActions,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.close),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                ],
-              ),
-
-              // ACTIONS
-              // duplicate
-              FilledTextButton(
-                text: AppLocalizations.of(context)!.duplicatePlaceholder(''),
-                tooltip: AppLocalizations.of(context)!.createLocalCopy,
-                onPressed: () =>
-                    _openDuplicateScheduleSheet(context, scheduleId),
-                trailingIcon: Icons.chevron_right,
-                isDiscrete: true,
-              ),
-              // unpublish
-              if (auth.id! == ownerID)
-                FilledTextButton(
-                  text: AppLocalizations.of(context)!.delete,
-                  tooltip: AppLocalizations.of(context)!.deleteScheduleTooltip,
-                  onPressed: () {
-                    showModalBottomSheet(
-                      context: context,
-                      builder: (context) {
-                        return DeleteConfirmationSheet(
-                          itemType: AppLocalizations.of(context)!.schedule,
-                          onConfirm: () {
-                            Navigator.of(context).pop();
-                            cloudSch.deleteSchedule(
-                              context.read<MyAuthProvider>().id!,
-                              scheduleId,
-                            );
-                          },
-                        );
-                      },
-                    );
-                  },
-                  trailingIcon: Icons.chevron_right,
-                  isDangerous: true,
-                  isDiscrete: true,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(0)),
+            ),
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              spacing: 8,
+              children: [
+                // HEADER
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      AppLocalizations.of(context)!.scheduleActions,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.close),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ],
                 ),
 
-              SizedBox(height: 16),
-            ],
+                // ACTIONS
+                // duplicate
+                FilledTextButton(
+                  text: AppLocalizations.of(context)!.duplicatePlaceholder(''),
+                  tooltip: AppLocalizations.of(context)!.createLocalCopy,
+                  onPressed: () =>
+                      _openDuplicateScheduleSheet(context, scheduleId),
+                  trailingIcon: Icons.chevron_right,
+                  isDiscrete: true,
+                ),
+                // unpublish
+                if (auth.id! == ownerID)
+                  FilledTextButton(
+                    text: AppLocalizations.of(context)!.delete,
+                    tooltip: AppLocalizations.of(
+                      context,
+                    )!.deleteScheduleTooltip,
+                    onPressed: () {
+                      showModalBottomSheet(
+                        context: context,
+                        builder: (context) {
+                          return DeleteConfirmationSheet(
+                            itemType: AppLocalizations.of(context)!.schedule,
+                            onConfirm: () {
+                              Navigator.of(context).pop();
+                              cloudSch.deleteSchedule(
+                                context.read<MyAuthProvider>().id!,
+                                scheduleId,
+                              );
+                            },
+                          );
+                        },
+                      );
+                    },
+                    trailingIcon: Icons.chevron_right,
+                    isDangerous: true,
+                    isDiscrete: true,
+                  ),
+
+                SizedBox(height: 16),
+              ],
+            ),
           ),
         );
       },
