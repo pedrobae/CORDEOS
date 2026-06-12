@@ -632,6 +632,12 @@ abstract class AppLocalizations {
   /// **'Sobre'**
   String get about;
 
+  /// Help navigation tab
+  ///
+  /// In pt, this message translates to:
+  /// **'Ajuda'**
+  String get help;
+
   /// Admin navigation tab
   ///
   /// In pt, this message translates to:
@@ -2515,6 +2521,12 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Cabeçalho'**
   String get printMetadata;
+
+  /// Message to be shown during development
+  ///
+  /// In pt, this message translates to:
+  /// **'Under Development'**
+  String get underDevelopment;
 }
 
 class _AppLocalizationsDelegate

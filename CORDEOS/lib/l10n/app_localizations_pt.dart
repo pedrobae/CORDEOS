@@ -304,6 +304,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get about => 'Sobre';
 
   @override
+  String get help => 'Ajuda';
+
+  @override
   String get admin => 'Admin';
 
   @override
@@ -1367,4 +1370,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get printMetadata => 'Cabeçalho';
+
+  @override
+  String get underDevelopment => 'Under Development';
 }

@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:cordeos/l10n/app_localizations.dart';
 import 'package:cordeos/screens/admin/admin_screen.dart';
+import 'package:cordeos/screens/help_screen.dart';
 import 'package:cordeos/screens/settings/report_bug_screen.dart';
 import 'package:cordeos/screens/settings/settings_screen.dart';
 import 'package:cordeos/screens/user/login_screen.dart';
@@ -89,6 +90,7 @@ class SideMenu extends StatelessWidget {
                           showAppBar: true,
                           showDrawerIcon: true,
                           handlesSystemBack: true,
+                          nullRoute: true,
                         );
                       },
                       trailing: Icon(Icons.arrow_forward_ios_rounded, size: 16),
@@ -107,13 +109,13 @@ class SideMenu extends StatelessWidget {
                     child: ListTile(
                       title: Text(AppLocalizations.of(context)!.settings),
                       onLongPress: () {
-                        /// SECRET SETTINGS
                         Navigator.of(context).pop();
                         nav.push(
                           () => const SettingsScreen(showSecrets: true),
                           showBottomNavBar: true,
                           showAppBar: true,
                           showDrawerIcon: true,
+                          nullRoute: true,
                         );
                       },
                       onTap: () {
@@ -123,6 +125,7 @@ class SideMenu extends StatelessWidget {
                           showBottomNavBar: true,
                           showAppBar: true,
                           showDrawerIcon: true,
+                          nullRoute: true,
                         );
                       },
                       trailing: Icon(Icons.arrow_forward_ios_rounded, size: 16),
@@ -148,6 +151,7 @@ class SideMenu extends StatelessWidget {
                             showBottomNavBar: true,
                             showAppBar: true,
                             showDrawerIcon: true,
+                            nullRoute: true,
                           );
                         },
                         trailing: Icon(
@@ -156,6 +160,31 @@ class SideMenu extends StatelessWidget {
                         ),
                       ),
                     ),
+                  Container(
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: colorScheme.surfaceContainerHighest,
+                          width: 1.2,
+                        ),
+                      ),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                    child: ListTile(
+                      title: Text(AppLocalizations.of(context)!.help),
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        nav.push(
+                          () => const HelpScreen(),
+                          showBottomNavBar: true,
+                          showAppBar: true,
+                          showDrawerIcon: true,
+                          nullRoute: true,
+                        );
+                      },
+                      trailing: Icon(Icons.arrow_forward_ios_rounded, size: 16),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -171,6 +200,7 @@ class SideMenu extends StatelessWidget {
                   showAppBar: true,
                   showBottomNavBar: true,
                   showDrawerIcon: true,
+                  nullRoute: true,
                 );
               },
               child: Row(
@@ -196,9 +226,7 @@ class SideMenu extends StatelessWidget {
                 navigator.pop();
                 await auth.signOut();
                 navigator.pushReplacement(
-                  MaterialPageRoute(
-                    builder: (context) => const LoginScreen(),
-                  ),
+                  MaterialPageRoute(builder: (context) => const LoginScreen()),
                 );
               },
               child: Row(
@@ -214,7 +242,7 @@ class SideMenu extends StatelessWidget {
               ),
             ),
           ),
-      
+
           // FOOTER
           Container(
             decoration: BoxDecoration(color: Colors.grey[800]),

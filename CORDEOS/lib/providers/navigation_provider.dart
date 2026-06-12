@@ -11,14 +11,18 @@ enum NavigationRoute { home, library, playlists, schedule }
 
 /// Screen metadata for storing in the navigation stack
 class _ScreenMetadata {
-  final Widget Function() screenBuilder;
   Widget? screen; // Store the actual widget for keepAlive purposes
+  final Widget Function() screenBuilder;
+
   final bool showAppBar;
   final bool showDrawerIcon;
   final bool showBottomNavBar;
   final bool showFAB;
+
   final bool handlesSystemBack;
   final bool keepAlive;
+  final bool nullRoute;
+
   final VoidCallback onPopCallback;
   final bool Function() changeDetector;
   final void Function() onChangeDiscarded;
@@ -34,6 +38,7 @@ class _ScreenMetadata {
     required this.onPopCallback,
     required this.changeDetector,
     required this.onChangeDiscarded,
+    required this.nullRoute,
   });
 
   Widget getScreenWidget() {
@@ -51,7 +56,10 @@ class NavigationProvider extends ChangeNotifier {
   String? _error;
 
   // Getters
-  NavigationRoute get currentRoute => _currentRoute;
+  NavigationRoute? get currentRoute {
+    if (_screenStack.isNotEmpty && _screenStack.last.nullRoute) return null;
+    return _currentRoute;
+  }
 
   Widget buildCurrentScreen(BuildContext context) {
     List<Widget> mountedScreens = [];
@@ -153,6 +161,7 @@ class NavigationProvider extends ChangeNotifier {
     bool showFAB = false,
     bool handlesSystemBack = false,
     bool keepAlive = false,
+    bool nullRoute = false,
     VoidCallback? onPopCallback,
     bool Function()? changeDetector,
     void Function()? onChangeDiscarded,
@@ -170,6 +179,7 @@ class NavigationProvider extends ChangeNotifier {
         onPopCallback: onPopCallback ?? () {},
         changeDetector: changeDetector ?? () => false,
         onChangeDiscarded: onChangeDiscarded ?? () {},
+        nullRoute: nullRoute,
       ),
     );
     notifyListeners();

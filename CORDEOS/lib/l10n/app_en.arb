@@ -379,6 +379,10 @@
   "@about": {
     "description": "About navigation tab"
   },
+  "help": "Help",
+  "@help": {
+    "description": "Help navigation tab"
+  },
   "admin": "Admin",
   "@admin": {
     "description": "Admin navigation tab"
@@ -1779,5 +1783,9 @@
   "printMetadata": "Metadata",
   "@printMetadata": {
     "description": "Label for metadata toggle in print settings"
+  },
+  "underDevelopment": "Under Development",
+  "@underDevelopment": {
+    "description": "Message to be shown during development"
   }
 }

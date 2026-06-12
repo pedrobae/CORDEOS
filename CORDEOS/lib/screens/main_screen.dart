@@ -89,16 +89,24 @@ class MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<NavigationProvider>(
-      builder: (context, nav, child) {
-        final isWideScreen = MediaQuery.of(context).size.width > 600;
-        final showWideSidebar =
-            isWideScreen && (nav.showDrawerIcon || nav.showBottomNavBar);
-
+    return Selector<
+      NavigationProvider,
+      ({bool showSidebar, bool shouldDeferSystemBack, bool isWide})
+    >(
+      selector: (context, nav) {
+        final isWide = MediaQuery.of(context).size.width > 600;
+        return (
+          isWide: isWide,
+          shouldDeferSystemBack: nav.shouldDeferSystemBack,
+          showSidebar: isWide && (nav.showDrawerIcon || nav.showBottomNavBar),
+        );
+      },
+      builder: (context, s, child) {
         return PopScope(
           canPop: false,
           onPopInvokedWithResult: (didPop, _) async {
-            if (didPop || nav.shouldDeferSystemBack) return;
+            if (didPop || s.shouldDeferSystemBack) return;
+            final nav = context.read<NavigationProvider>();
             await nav.attemptPop(context);
           },
           child: Scaffold(
@@ -108,8 +116,8 @@ class MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
             drawerEnableOpenDragGesture: false,
             body: Row(
               children: [
-                if (showWideSidebar) _buildWideSidebar(nav),
-                Expanded(child: _buildInnerScaffold(nav, isWideScreen)),
+                if (s.showSidebar) _buildSidebar(),
+                Expanded(child: _buildInnerScaffold(s.isWide)),
               ],
             ),
           ),
@@ -118,21 +126,31 @@ class MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     );
   }
 
-  Widget _buildInnerScaffold(NavigationProvider nav, bool isWideScreen) {
-    return Scaffold(
-      resizeToAvoidBottomInset: true,
-      appBar: nav.showAppBar ? _buildAppBar(nav, isWideScreen) : null,
-      bottomNavigationBar: !isWideScreen && nav.showBottomNavBar
-          ? _buildBottomNavigationBar(nav)
-          : null,
-      floatingActionButton: nav.showFAB ? _buildFAB(nav) : null,
-      body: _buildBody(nav),
+  Widget _buildInnerScaffold(bool isWideScreen) {
+    return Selector<
+      NavigationProvider,
+      ({bool showAppbar, bool showNav, bool showDrawerIcon, bool showFAB})
+    >(
+      selector: (context, nav) => (
+        showAppbar: nav.showAppBar,
+        showFAB: nav.showFAB,
+        showDrawerIcon: nav.showDrawerIcon,
+        showNav: !isWideScreen && nav.showBottomNavBar,
+      ),
+      builder: (context, s, child) => Scaffold(
+        resizeToAvoidBottomInset: true,
+        appBar: s.showAppbar
+            ? _buildAppBar(isWideScreen, s.showDrawerIcon)
+            : null,
+        bottomNavigationBar: s.showNav ? _buildBottomNavigationBar() : null,
+        floatingActionButton: s.showFAB ? _buildFAB() : null,
+        body: _buildBody(),
+      ),
     );
   }
 
-  Widget _buildWideSidebar(NavigationProvider nav) {
+  Widget _buildSidebar() {
     final colorScheme = Theme.of(context).colorScheme;
-
     return Container(
       width: 72,
       decoration: BoxDecoration(
@@ -152,40 +170,54 @@ class MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
               icon: const Icon(Icons.menu),
             ),
             Expanded(
-              child: NavigationRail(
-                selectedIndex: nav.currentRoute.index,
-                labelType: NavigationRailLabelType.none,
-                backgroundColor: Colors.transparent,
-                indicatorColor: colorScheme.surfaceTint,
-                indicatorShape: RoundedSuperellipseBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+              child:
+                  Selector<
+                    NavigationProvider,
+                    ({int? selectedIndex, List<NavigationItem> items})
+                  >(
+                    selector: (context, nav) {
+                      return (
+                        selectedIndex: nav.currentRoute?.index,
+                        items: nav.getNavigationItems(
+                          context,
+                          iconSize: 28,
+                          color: colorScheme.onSurface,
+                          activeColor: colorScheme.primary,
+                        ),
+                      );
+                    },
+                    builder: (context, s, child) {
+                      return NavigationRail(
+                        selectedIndex: s.selectedIndex,
+                        labelType: NavigationRailLabelType.none,
+                        backgroundColor: Colors.transparent,
+                        indicatorColor: colorScheme.surfaceTint,
+                        indicatorShape: RoundedSuperellipseBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
 
-                onDestinationSelected: (index) {
-                  if (mounted) {
-                    nav.attemptPop(
-                      context,
-                      route: NavigationRoute.values[index],
-                    );
-                  }
-                },
-                destinations: nav
-                    .getNavigationItems(
-                      context,
-                      iconSize: 28,
-                      color: colorScheme.onSurface,
-                      activeColor: colorScheme.primary,
-                    )
-                    .map(
-                      (navItem) => NavigationRailDestination(
-                        icon: navItem.icon,
-                        padding: EdgeInsets.symmetric(vertical: 4),
-                        selectedIcon: navItem.activeIcon,
-                        label: Text(navItem.title),
-                      ),
-                    )
-                    .toList(),
-              ),
+                        onDestinationSelected: (index) {
+                          final nav = context.read<NavigationProvider>();
+                          if (mounted) {
+                            nav.attemptPop(
+                              context,
+                              route: NavigationRoute.values[index],
+                            );
+                          }
+                        },
+                        destinations: s.items
+                            .map(
+                              (navItem) => NavigationRailDestination(
+                                icon: navItem.icon,
+                                padding: EdgeInsets.symmetric(vertical: 4),
+                                selectedIcon: navItem.activeIcon,
+                                label: Text(navItem.title),
+                              ),
+                            )
+                            .toList(),
+                      );
+                    },
+                  ),
             ),
           ],
         ),
@@ -193,20 +225,20 @@ class MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     );
   }
 
-  AppBar _buildAppBar(NavigationProvider nav, bool isWideScreen) {
+  AppBar _buildAppBar(bool isWideScreen, bool showDrawerIcon) {
     final colorScheme = Theme.of(context).colorScheme;
     return AppBar(
       backgroundColor: colorScheme.surface,
       centerTitle: true,
       automaticallyImplyLeading: false,
-      leading: (nav.showDrawerIcon && !isWideScreen)
+      leading: (showDrawerIcon && !isWideScreen)
           ? IconButton(
               tooltip: MaterialLocalizations.of(context).openAppDrawerTooltip,
               icon: const Icon(Icons.menu),
               onPressed: () => _scaffoldKey.currentState?.openDrawer(),
             )
           : null,
-      leadingWidth: nav.showDrawerIcon ? null : 0,
+      leadingWidth: showDrawerIcon ? null : 0,
       title: Image.asset(
         Theme.of(context).brightness == Brightness.dark
             ? 'assets/logos/app_icon_transparent_gray.png'
@@ -216,42 +248,85 @@ class MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     );
   }
 
-  Widget _buildBottomNavigationBar(NavigationProvider nav) {
+  Widget _buildBottomNavigationBar() {
     final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       decoration: BoxDecoration(
         border: Border(top: BorderSide(color: colorScheme.shadow)),
       ),
-      child: BottomNavigationBar(
-        currentIndex: nav.currentRoute.index,
-        type: BottomNavigationBarType.shifting,
-        selectedItemColor: colorScheme.primary,
-        onTap: (index) {
-          if (mounted) {
-            nav.attemptPop(context, route: NavigationRoute.values[index]);
-          }
-        },
-        items: nav
-            .getNavigationItems(
-              context,
-              iconSize: 28,
-              color: colorScheme.onSurface,
-              activeColor: colorScheme.primary,
-            )
-            .map(
-              (navItem) => BottomNavigationBarItem(
-                icon: navItem.icon,
-                label: navItem.title,
-                backgroundColor: colorScheme.surface,
-                activeIcon: navItem.activeIcon,
-              ),
-            )
-            .toList(),
-      ),
+      child:
+          Selector<
+            NavigationProvider,
+            ({int? selectedIndex, List<NavigationItem> items})
+          >(
+            selector: (context, nav) {
+              return (
+                selectedIndex: nav.currentRoute?.index,
+                items: nav.getNavigationItems(
+                  context,
+                  iconSize: 28,
+                  color: colorScheme.onSurface,
+                  activeColor: colorScheme.primary,
+                ),
+              );
+            },
+            builder: (context, s, child) {
+              return s.selectedIndex != null
+                  ? BottomNavigationBar(
+                      currentIndex: s.selectedIndex!,
+                      type: BottomNavigationBarType.shifting,
+                      selectedItemColor: colorScheme.primary,
+                      onTap: (index) {
+                        final nav = context.read<NavigationProvider>();
+                        if (mounted) {
+                          nav.attemptPop(
+                            context,
+                            route: NavigationRoute.values[index],
+                          );
+                        }
+                      },
+                      items: s.items
+                          .map(
+                            (navItem) => BottomNavigationBarItem(
+                              icon: navItem.icon,
+                              label: navItem.title,
+                              backgroundColor: colorScheme.surface,
+                              activeIcon: navItem.activeIcon,
+                            ),
+                          )
+                          .toList(),
+                    )
+                  : Padding(
+                      padding: EdgeInsets.only(
+                        bottom: MediaQuery.of(context).padding.bottom,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          ...s.items.map(
+                            (navItem) => SizedBox(
+                              height: 62,
+                              child: IconButton(
+                                icon: navItem.icon,
+                                color: colorScheme.surface,
+                                onPressed: () {
+                                  final nav = context
+                                      .read<NavigationProvider>();
+                                  nav.attemptPop(context, route: navItem.route);
+                                },
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+            },
+          ),
     );
   }
 
-  Widget _buildBody(NavigationProvider nav) {
+  Widget _buildBody() {
     return SafeArea(
       child: Builder(
         builder: (context) {
@@ -268,20 +343,33 @@ class MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
                 ],
               );
             },
-            child: KeyedSubtree(
-              key: ValueKey(nav.currentRoute),
-              child: nav.buildCurrentScreen(context),
-            ),
+            child:
+                Selector<
+                  NavigationProvider,
+                  ({Widget currentScreen, NavigationRoute? currentRoute})
+                >(
+                  selector: (context, nav) => (
+                    currentScreen: nav.buildCurrentScreen(context),
+                    currentRoute: nav.currentRoute,
+                  ),
+                  builder: (context, s, child) {
+                    return KeyedSubtree(
+                      key: ValueKey(s.currentRoute),
+                      child: s.currentScreen,
+                    );
+                  },
+                ),
           );
         },
       ),
     );
   }
 
-  GestureDetector _buildFAB(NavigationProvider nav) {
+  GestureDetector _buildFAB() {
     final colorScheme = Theme.of(context).colorScheme;
+
     return GestureDetector(
-      onTap: () => _handleFABTap(nav),
+      onTap: () => _handleFABTap(),
       child: Container(
         width: 56,
         height: 56,
@@ -302,7 +390,9 @@ class MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     );
   }
 
-  void _handleFABTap(NavigationProvider nav) {
+  void _handleFABTap() {
+    final nav = context.read<NavigationProvider>();
+
     switch (nav.currentRoute) {
       case NavigationRoute.library:
         showModalBottomSheet(
@@ -331,6 +421,8 @@ class MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
             return ScheduleActionsSheet();
           },
         );
+        break;
+      case _:
         break;
     }
   }

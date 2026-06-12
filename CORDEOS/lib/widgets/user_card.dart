@@ -21,6 +21,7 @@ class UserCard extends StatelessWidget {
             navigationProvider.push(
               () => ProfileScreen(),
               showBottomNavBar: true,
+              nullRoute: true,
             );
           },
           child: Container(
