@@ -134,17 +134,16 @@ class MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
-      width: nav.showBottomNavBar ? 96 : 72,
+      width: 72,
       decoration: BoxDecoration(
         color: colorScheme.surface,
         border: Border(
-          right: BorderSide(
-            color: colorScheme.surfaceContainerLowest,
-            width: 0.5,
-          ),
+          right: BorderSide(color: colorScheme.shadow, width: 0.5),
         ),
       ),
       child: SafeArea(
+        left: false,
+        right: false,
         child: Column(
           children: [
             IconButton(
@@ -221,12 +220,7 @@ class MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
       decoration: BoxDecoration(
-        border: Border(
-          top: BorderSide(
-            color: colorScheme.surfaceContainerLowest,
-            width: 0.5,
-          ),
-        ),
+        border: Border(top: BorderSide(color: colorScheme.shadow)),
       ),
       child: BottomNavigationBar(
         currentIndex: nav.currentRoute.index,

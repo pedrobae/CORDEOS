@@ -1,3 +1,6 @@
+import 'package:cordeos/providers/schedule/cloud_schedule_provider.dart';
+import 'package:cordeos/providers/schedule/local_schedule_provider.dart';
+import 'package:cordeos/providers/user/user_provider.dart';
 import 'package:cordeos/screens/main_screen.dart';
 import 'package:cordeos/screens/user/login_screen.dart';
 import 'package:cordeos/services/firebase/remote_config_service.dart';
@@ -40,6 +43,10 @@ class _SplashScreenState extends State<SplashScreen> {
     if (_hasNavigated) return;
     final ciph = context.read<CipherProvider>();
     final play = context.read<PlaylistProvider>();
+    final user = context.read<UserProvider>();
+    final auth = context.read<MyAuthProvider>();
+    final localSch = context.read<LocalScheduleProvider>();
+    final cloudSch = context.read<CloudScheduleProvider>();
 
     _hasNavigated = true;
 
@@ -49,13 +56,20 @@ class _SplashScreenState extends State<SplashScreen> {
       if (isAuthenticated) {
         // Eagerly load core data while the splash is still visible so the
         // first frame of MainScreen never blocks on SQLite reads.
+        // Preload failures must not block navigation.
         setState(() => _isPreloading = true);
+        await Future.wait([
+          ciph.loadCiphers().catchError((_) {}),
+          play.loadPlaylists().catchError((_) {}),
+          cloudSch.loadSchedules(context, auth.id!).catchError((_) {}),
+          localSch.loadSchedules().catchError((_) {}),
+        ], eagerError: false);
         try {
-          await ciph.loadCiphers();
-          await play.loadPlaylists();
-        } catch (_) {
-          // Preload failures must not block navigation.
-        }
+          final u = user.getUserByFirebaseId(auth.id!);
+          if (u != null) {
+            auth.setUserData(u);
+          }
+        } catch (_) {}
 
         // Ensure splash is visible for at least 5 seconds to avoid jarring transitions
         final elapsed = DateTime.now().difference(_loadStartTime);

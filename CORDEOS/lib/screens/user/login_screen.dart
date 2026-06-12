@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cordeos/l10n/app_localizations.dart';
 import 'package:cordeos/providers/settings/app_info_provider.dart';
 import 'package:cordeos/screens/main_screen.dart';
+import 'package:cordeos/screens/splash_screen.dart';
 
 import 'package:cordeos/screens/user/password_reset_screen.dart';
 import 'package:cordeos/screens/user/register_screen.dart';
@@ -14,7 +15,6 @@ import 'package:cordeos/widgets/common/icon_load_indicator.dart';
 import 'package:cordeos/widgets/common/labeled_text_field.dart';
 
 import 'package:cordeos/providers/user/my_auth_provider.dart';
-import 'package:cordeos/providers/user/user_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import 'package:flutter/material.dart';
@@ -375,7 +375,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
 
     if (auth.isAuthenticated) {
-      await _postSignIn(auth);
+      _postSignIn();
     }
   }
 
@@ -384,37 +384,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
     await auth.signInWithGoogle();
     if (auth.isAuthenticated) {
-      await _postSignIn(auth);
+      _postSignIn();
     }
   }
 
-  Future<void> _postSignIn(MyAuthProvider auth) async {
-    final userProvider = context.read<UserProvider>();
-    // Load users after successful login
-    try {
-      await userProvider.loadUsers();
-      await userProvider.ensureUserExists(auth.id!);
-
-      if (mounted &&
-          (userProvider.error == null || userProvider.error!.isEmpty)) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const MainScreen()),
-        );
-        auth.setUserData(userProvider.getUserByFirebaseId(auth.id!)!);
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              AppLocalizations.of(context)!.errorMessage(
-                AppLocalizations.of(context)!.loading,
-                e.toString(),
-              ),
-            ),
-          ),
-        );
-      }
-    }
+  void _postSignIn() {
+    if (mounted)
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const SplashScreen()),
+      );
   }
 }

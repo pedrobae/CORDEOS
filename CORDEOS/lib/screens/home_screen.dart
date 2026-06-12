@@ -1,7 +1,6 @@
 import 'package:cordeos/l10n/app_localizations.dart';
 import 'package:cordeos/providers/schedule/cloud_schedule_provider.dart';
 import 'package:cordeos/providers/schedule/local_schedule_provider.dart';
-import 'package:cordeos/providers/user/user_provider.dart';
 import 'package:cordeos/widgets/common/icon_load_indicator.dart';
 import 'package:cordeos/widgets/schedule/library/card_cloud.dart';
 import 'package:cordeos/widgets/schedule/library/card.dart';
@@ -29,21 +28,15 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadData() async {
-    final authProvider = context.read<MyAuthProvider>();
-    final userProvider = context.read<UserProvider>();
-    final localScheduleProvider = context.read<LocalScheduleProvider>();
-    final cloudScheduleProvider = context.read<CloudScheduleProvider>();
+    final auth = context.read<MyAuthProvider>();
+    final localSch = context.read<LocalScheduleProvider>();
+    final cloudSch = context.read<CloudScheduleProvider>();
 
-    if (!authProvider.isAuthenticated) {
+    if (!auth.isAuthenticated) {
       return;
     }
-    await cloudScheduleProvider.loadSchedules(context, authProvider.id!);
-    await localScheduleProvider.loadSchedules();
-
-    final user = userProvider.getUserByFirebaseId(authProvider.id!);
-    if (user != null) {
-      authProvider.setUserData(user);
-    }
+    await cloudSch.loadSchedules(context, auth.id!);
+    await localSch.loadSchedules();
   }
 
   @override
